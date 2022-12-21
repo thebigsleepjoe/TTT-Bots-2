@@ -6,6 +6,9 @@ TTTBots = {
 --# Initialize all of our libraries
 include("includes/commonlib.lua")
 include("includes/chatcommands.lua")
+include("includes/debugserver.lua")
+
+include("includes/cvarscommands.lua")
 
 --# Shorthands
 local Lib = TTTBots.Lib
@@ -26,3 +29,14 @@ end
 
 --# Initializing
 print("good to go")
+
+--# Bot behavior
+timer.Create("TTTBots_BotBehavior", 0.1, 0, function()
+
+    -- Use TTTBots.DebugServer to draw line to indicate where each bot is currently looking
+    local bots = player.GetBots()
+    for _, bot in pairs(bots) do
+        TTTBots.DebugServer.DrawBotLook(bot)
+    end
+
+end)

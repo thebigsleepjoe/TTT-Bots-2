@@ -230,7 +230,7 @@ local adjectives = {
     "Zooted"
 }
 
-local nouns = {
+local animalnames = {
     "Aardvark",
     "Albatross",
     "Alligator",
@@ -645,6 +645,125 @@ local humannames = {
     "Zachary"
 }
 
+-- Names suggested to me by community members.
+-- Thanks to all of you! <3
+-- WARNING: These names are not guaranteed to be safe for work, and many are offensive.
+local communitynames = {
+    "Chairdolf Sitler",
+    "De_way",
+    "Broseph Stalin",
+    "Han Shot First",
+    "Law Abiding Black Man",
+    "Furry",
+    "Hugh Janus",
+    "Brazzers Enjoyer",
+    "Würün",
+    "BOT Nino",
+    "Definitely Not a Traitor",
+    "Duke Groundrunner",
+    "Water is wet",
+    "Vladimir Prutin",
+    "Moist Mustard",
+    "2ez4me",
+    "Foxtrot",
+    "ilikehacks666",
+    "The Traitor!",
+    "I am a traitor",
+    "Imma newb",
+    "No hacking",
+    "sv_pure 1",
+    "sv_cheats 1",
+    "hey",
+    "cool thing",
+    "trigger_hurt",
+    "Garry :D",
+    "#worldspawn",
+    "NutBlower",
+    "Thiccy Bo Bicky",
+    "Gestappo Agent",
+    "Gazpacho Agent",
+    "Fappero Mastero",
+    "Oeuf",
+    "Dat_boi",
+    "KAWAAI",
+    "Xxpro360mlgxX",
+    "Hit_or_miss",
+    "Danny Devito",
+    "Jerry Seinfeld",
+    "Hugh Mungus",
+    "Ben Dover",
+    "Leon Koc",
+    "Juan_Gonzalas2007",
+    "Bot",
+    "Ur mom",
+    "Call of Duty Enjoyer",
+    "TTT Enjoyer",
+    "Big_chungus",
+    "im gay",
+    "spermless",
+    "spermlist",
+    "bomb_planted",
+    "traitor_lot?",
+    "NoobDestroyer",
+    "SudisCain",
+    "Totally Not A Bot",
+    "Etikawaspushed",
+    "JoJo Fan",
+    "ShuutYou",
+    "RoboHobo",
+    "HowDoYouLeave",
+    "gm_odd",
+    "Mr. CPU",
+    "Mr. Taliban",
+    "Obamium",
+    "Tasty, M.D.",
+    "The Mommy",
+    "Legion",
+    "Daddy (aka papa)",
+    "The bomb",
+    "Constance",
+    "Kyle",
+    "A wall",
+    "Yobama",
+    "Neckbeard the Anime Lord",
+    "Neckbeard the Fat",
+    "Hodd Toward",
+    "Arnold Shpitz",
+    "Corporal Pounder",
+    "Brian",
+    "Dr. Coomer",
+    "Cheeseball",
+    "DOOM",
+    "John MEsa",
+    "Gordon Freakman",
+    "Bangbangbang",
+    "Adolfdidnothingwrong",
+    "HuntDownTheRefund",
+    "Kitler",
+    "Username",
+    "GetShreqt",
+    "ION CANNONEER",
+    "Texas Red",
+    "100% Winrate",
+    "KOS ME",
+    "Dead mod",
+    "sex",
+    "ihavecancer",
+    "Big and sus",
+    "not a russian",
+    "instamothafocka",
+    "floppa",
+    "babyeater",
+    "johnplaysgmod",
+    "Quandale Dingle",
+    "Pootis",
+    "IBreakKnees",
+    "Waltuh",
+    "ScooterBarts",
+    "Noted (not really)",
+    "homies"
+}
+
 
 local Lib = TTTBots.Lib
 
@@ -680,31 +799,54 @@ function Lib.GenerateName()
     local human_name = humannames[math.random(1, #humannames)]
     local animal_name = animalnames[math.random(1, #animalnames)]
     local adjective = adjectives[math.random(1, #adjectives)]
-    local number = math.random(1, 9999)
+    local name_override = communitynames[math.random(1, #communitynames)]
 
-    local leetify = math.random(1, 100) > 80
+    local number = math.random(1, 9999)
+    local leetify = math.random(1, 100) > 90
     local use_number = math.random(1, 100) > 80
     local use_adjective = math.random(1, 100) > 60
     local use_animal = math.random(1, 100) > 50 -- else use human name
 
+    local use_community_name = GetConVar("ttt_bot_community_names"):GetBool() and math.random(1, 100) > 30
+
+    -- 1 = all caps, 2-5 = normal, 6-8 = no caps
+    local capitalization = math.random(1, 8)
+
     local name = ""
 
-    if use_adjective then
-        name = adjective
-    end
+    if not use_community_name then
+        if use_adjective then
+            name = adjective
+        end
 
-    if use_animal then
-        name = name .. animal_name
+        if use_animal then
+            name = name .. animal_name
+        else
+            name = name .. human_name
+        end
+
+        if use_number then
+            name = name .. number
+        end
     else
-        name = name .. human_name
-    end
-
-    if use_number then
-        name = name .. number
+        name = name_override
     end
 
     if leetify then
         name = Lib.LeetSpeak(name)
+    end
+
+    if capitalization == 1 then
+        name = name:upper()
+    elseif capitalization >= 6 then
+        name = name:lower()
+    end
+
+    -- Check if name exists already before returning
+    for _, ply in pairs(player.GetAll()) do
+        if ply:GetName():lower() == name:lower() then
+            return Lib.GenerateName()
+        end
     end
 
     return name

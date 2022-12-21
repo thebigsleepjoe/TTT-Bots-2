@@ -1,5 +1,7 @@
 TTTBots.Lib = {}
 
+include("includes/usernames.lua")
+
 local Lib = TTTBots.Lib
 local format = string.format
 
@@ -24,7 +26,13 @@ function Lib.CheckCompatibleGamemode()
 end
 
 function Lib.CreateBot(name)
+    if not Lib.CheckIfPlayerSlots() then
+        TTTBots.Chat.BroadcastInChat("Somebody tried to add a bot, but there are not enough player slots.")
+        return false
+    end
+    name = name or TTTBots.Lib.GenerateName()
     local bot = player.CreateNextBot(name)
+    print(string.format("%s created bot named %s", ply and ply:Nick() or "[Server]", bot:Nick()))
 
     return bot
 end
