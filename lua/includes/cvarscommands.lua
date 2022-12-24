@@ -3,8 +3,11 @@ local FCVAR = FCVAR_ARCHIVE + FCVAR_NOTIFY + FCVAR_REPLICATED + FCVAR_LUA_SERVER
 
 --# Server ConVars
 CreateConVar("ttt_bot_community_names", "1", FCVAR, "Enables community-suggested names. WARNING: Potentially offensive, not family-friendly.")
-CreateConVar("ttt_bot_debug", "1", FCVAR, "Enables debug to aide in coding.")
-CreateConVar("ttt_bot_debug_pathfinding", "1", FCVAR, "Enables debug for pathfinding. Requires ttt_bot_debug to be enabled.")
+CreateConVar("ttt_bot_debug_pathfinding", "1", FCVAR,
+    "Enables debug for pathfinding. Requires built-in developer convar to be 1.")
+CreateConVar("ttt_bot_debug_look", "1", FCVAR,
+    "Enables debug for looking at things. Requires built-in developer convar to be 1.")
+
 
 --# Local Variables
 local Lib = TTTBots.Lib
