@@ -29,7 +29,10 @@ local drawdata = {}
 ]]
 
 net.Receive("TTTBots_DrawData", function()
-    drawdata = net.ReadTable()
+    local bytes_amt = net.ReadUInt(32)
+    local compressed_data = net.ReadData(bytes_amt)
+    local uncompressed_data = util.Decompress(compressed_data)
+    drawdata = util.JSONToTable(uncompressed_data)
 
     for identifier, data in pairs(drawdata) do
         if data.type == "line" then

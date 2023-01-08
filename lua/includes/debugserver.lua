@@ -36,13 +36,19 @@ TTTBots.DebugServer = {
 local DebugServer = TTTBots.DebugServer
 
 function DebugServer.ChangeDrawData(identifier, newdata)
-    print("New draw data: " .. identifier)
     DebugServer.data[identifier] = newdata
 end
 
 function DebugServer.SendDrawData()
+    -- net.WriteTable()
+    local uncompressed_data = util.TableToJSON(DebugServer.data)
+    local compressed_data = util.Compress(uncompressed_data)
+    local bytes_amt = string.len(compressed_data)
+
+    
     net.Start("TTTBots_DrawData")
-    net.WriteTable(DebugServer.data)
+        net.WriteUInt(bytes_amt, 32)
+        net.WriteData(compressed_data, bytes_amt)
     net.Broadcast()
 
     DebugServer.data = {}
@@ -58,12 +64,7 @@ function TTTBots.DebugServer.RenderDebugFor(bot, settings)
     local all = has(settings, "all")
 
     if all or has(settings, "look") then TTTBots.DebugServer.DrawBotLook(bot) end
-    if all or has(settings, "path") then
-        local paths = TTTBots.PathManager.GetBotPaths(bot)
-        for i, path in pairs(paths) do
-            TTTBots.DebugServer.DrawPath(path)
-        end
-    end
+    if all or has(settings, "path") then TTTBots.DebugServer.DrawCurrentPathFor(bot) end
 end
 
 function TTTBots.DebugServer.DrawBotLook(bot)
@@ -95,26 +96,53 @@ function TTTBots.DebugServer.DrawBotLook(bot)
 end
 
 -- TODO: Rewrite this function to use the new pathmanager
-function TTTBots.DebugServer.DrawPath(pathparent)
-    if not GetConVar("ttt_bot_debug_pathfinding"):GetBool() then return end
-    if type(pathparent.path) ~= "table" and not pathparent.path then return end
+-- function TTTBots.DebugServer.DrawPath(pathparent)
+--     if not GetConVar("ttt_bot_debug_pathfinding"):GetBool() then return end
+--     if type(pathparent.path) ~= "table" and not pathparent.path then return end
     
-    -- pathparent.path is a table of CNavAreas, so just draw lines between each center
-    for i=1,table.Count(pathparent.path)-1 do
-        local start = pathparent.path[i]:GetCenter()
-        local ending = pathparent.path[i + 1]:GetCenter()
+--     -- pathparent.path is a table of CNavAreas, so just draw lines between each center
+--     for i=1,table.Count(pathparent.path)-1 do
+--         local start = pathparent.path[i]:GetCenter()
+--         local ending = pathparent.path[i + 1]:GetCenter()
 
-        local ageSecs = CurTime() - pathparent.generated_time
+--         local ageSecs = CurTime() - pathparent.generated_time
         
-        DebugServer.ChangeDrawData("path_" .. pathparent.bot:Nick() .. i,
+--         DebugServer.ChangeDrawData("path_" .. pathparent.bot:Nick() .. i,
+--         {
+--             type = "line",
+--             start = start,
+--             ending = ending,
+--             color = Color(255, 0, ageSecs * 255, 255),
+--             width = 15
+--             })
+--     end
+-- end
+
+function TTTBots.DebugServer.DrawCurrentPathFor(bot)
+    local pathinfo = bot.path
+    if not pathinfo or not pathinfo.path then return end
+
+    local path = pathinfo.path
+    local age = pathinfo:TimeSince()
+
+    if type(path) ~= "table" then return end
+
+    for i=1,table.Count(path)-1 do
+        local start = path[i]:GetCenter()
+        local ending = path[i + 1]:GetCenter()
+
+        local colorOffset = (age / TTTBots.PathManager.cullSeconds) * 255
+
+        DebugServer.ChangeDrawData("path_" .. bot:Nick() .. i,
         {
             type = "line",
             start = start,
             ending = ending,
-            color = Color(255, 0, ageSecs * 255, 255),
+            color = Color(255 - colorOffset, 0, colorOffset, 255),
             width = 15
             })
     end
+
 end
 
 -- Send latest draw data to clients every 0.1 seconds

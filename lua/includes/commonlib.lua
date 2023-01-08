@@ -1,6 +1,7 @@
 TTTBots.Lib = {}
 
 include("includes/usernames.lua")
+include("includes/components/locomotor.lua")
 
 local Lib = TTTBots.Lib
 local format = string.format
@@ -37,6 +38,11 @@ function Lib.CreateBot(name)
     end
     name = name or TTTBots.Lib.GenerateName()
     local bot = player.CreateNextBot(name)
+
+    bot.components = {
+        locomotor = TTTBots.Components.Locomotor:New(bot)
+    }
+
     print(string.format("%s created bot named %s", ply and ply:Nick() or "[Server]", bot:Nick()))
 
     return bot

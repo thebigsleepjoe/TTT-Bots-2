@@ -32,17 +32,25 @@ end
 print("good to go")
 
 -- Bot behavior
-timer.Create("TTTBots_BotBehavior", 0.1, 0, function()
+timer.Create("TTTBots_Tick", 0.1, 0, function()
 
     for i,bot in pairs(player.GetBots()) do
         TTTBots.DebugServer.RenderDebugFor(bot, { "all" })
 
-        -- Generate test path between our position and the first real player's
-        local ply = player.GetHumans()[1]
-        if ply then
-            -- PathManager.SetPath(identifier, goalpos, startpos, bot, algorithm, recheckevery)
-            PathManager.SetPath("testfor"..bot:Nick(), ply:GetPos(), bot:GetPos(), bot, "astar", 0.1)
+        for i,component in pairs(bot.components) do
+            component:Think()
         end
     end
 
+end)
+
+-- GM:SetupMove
+hook.Add("SetupMove", "TTTBots_SetupMove", function(ply, mv, cmd)
+    if ply:IsBot() then
+        local bot = ply
+        local locomotor = bot.components.locomotor
+
+        -- Update locomotor
+        locomotor:SetupMove(cmd)
+    end
 end)
