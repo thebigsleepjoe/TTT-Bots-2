@@ -2,7 +2,7 @@
 
 How this is used:
     1) Create a new locomotor component and assign it to the bot. This is done automatically when a bot is created.
-    2) Every GM:SetupMove, Locomotor:SetupMove(CMD) is ran. This will set the bot's movement and look angles.
+    2) Every GM:StartCommand, Locomotor:StartCommand(CMD) is ran. This will set the bot's movement and look angles.
     3) Every TTT Bot tick, Locomotor:Think() is ran. This will set the bot's movement and look angles.
 
 To update look angles:
@@ -105,7 +105,7 @@ function TTTBots.Components.Locomotor:GetGoalPos() return self.goalPos end
 -- Tick-level functions
 -----------------------------------------------
 
--- Tick periodically. Do not tick per GM:SetupMove
+-- Tick periodically. Do not tick per GM:StartCommand
 function TTTBots.Components.Locomotor:Think()
     self:UpdatePath()
     self:UpdateMovement()
@@ -133,38 +133,43 @@ function TTTBots.Components.Locomotor:UpdatePath()
     end
 end
 
------------------------------------------------
--- CMoveData-related functions
------------------------------------------------
-
---- Lerp look towards the goal position. it is important that this is only called once per frame, as it uses FrameTime() for the lerp factor.
-function TTTBots.Components.Locomotor:LerpLook(factor, goal)
-    if self.lookPosOverride and self.lookPosOverride ~= goal then return end
-    self.lookPos = LerpVector(FrameTime() * factor, self.lookPos, goal)
-end
-
 function TTTBots.Components.Locomotor:FollowPath()
     local path = self.path
     local bot = self.bot
 
     -- If we have a path, follow it
     if self:ValidatePath() then
-        local nextArea = path[1]
+        local nextN = 1
 
-        -- Determine area closest to the bot, then get the following one in the sequence, if there is any. Otherwise just use the closest one.
-        for i, area in ipairs(path) do
-            if bot:GetPos():DistToSqr(area:GetCenter()) < bot:GetPos():DistToSqr(nextArea:GetCenter()) then
-                nextArea = area
+        -- Determine the area furthest along the path that is visible to the character
+        for i = 1, #path do
+            local area = path[i]
+            if not bot:VisibleVec(area:GetCenter()) then
+                nextN = i - 1
+                break
             end
         end
-
+        
+        local nextArea = path[nextN]
         if nextArea then
-            self.lookPos = self:LerpLook(self.pathLookSpeed, nextArea:GetCenter())
+            self:LerpLook(self.pathLookSpeed, nextArea:GetCenter())
+            TTTBots.DebugServer.DrawLineBetween(bot:GetPos(), nextArea:GetCenter(), Color(255, 255, 255))
         end
     end
 end
 
-function TTTBots.Components.Locomotor:SetupMove(cmd)
+-----------------------------------------------
+-- CMoveData-related functions
+-----------------------------------------------
+
+--- Lerp look towards the goal position
+function TTTBots.Components.Locomotor:LerpLook(factor, goal)
+    if self.lookPosOverride and self.lookPosOverride ~= goal then return end
+    self.lookPos = LerpVector(factor, self.lookPos, goal)
+end
+
+
+function TTTBots.Components.Locomotor:StartCommand(cmd)
     if self.dontmove then return end
     local hasPath = self:ValidatePath()
 
@@ -179,7 +184,13 @@ function TTTBots.Components.Locomotor:SetupMove(cmd)
     if self.lookPosOverride then
         lookPos = LerpVector(FrameTime() * self.lookSpeed, lookPos, self.lookPosOverride)
     end
-    cmd:SetViewAngles((lookPos - self.bot:GetPos()):Angle())
+
+    -- if lookPos is (0, 0, 0) then skip
+    if lookPos ~= Vector(0, 0, 0) then
+        local ang = (lookPos - self.bot:GetPos()):Angle()
+        cmd:SetViewAngles(ang)
+        self.bot:SetEyeAngles(ang)
+    end
 
     -- Set forward and side movement
     local forward = hasPath and 400 or 0

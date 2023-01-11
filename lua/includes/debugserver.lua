@@ -95,33 +95,9 @@ function TTTBots.DebugServer.DrawBotLook(bot)
         })
 end
 
--- TODO: Rewrite this function to use the new pathmanager
--- function TTTBots.DebugServer.DrawPath(pathparent)
---     if not GetConVar("ttt_bot_debug_pathfinding"):GetBool() then return end
---     if type(pathparent.path) ~= "table" and not pathparent.path then return end
-    
---     -- pathparent.path is a table of CNavAreas, so just draw lines between each center
---     for i=1,table.Count(pathparent.path)-1 do
---         local start = pathparent.path[i]:GetCenter()
---         local ending = pathparent.path[i + 1]:GetCenter()
-
---         local ageSecs = CurTime() - pathparent.generated_time
-        
---         DebugServer.ChangeDrawData("path_" .. pathparent.bot:Nick() .. i,
---         {
---             type = "line",
---             start = start,
---             ending = ending,
---             color = Color(255, 0, ageSecs * 255, 255),
---             width = 15
---             })
---     end
--- end
-
 function TTTBots.DebugServer.DrawCurrentPathFor(bot)
     local pathinfo = bot.components.locomotor.pathinfo
     if not pathinfo or not pathinfo.path then return end
-    print("Drawing path for " .. bot:Nick())
 
     local path = pathinfo.path
     local age = pathinfo:TimeSince()
@@ -144,6 +120,19 @@ function TTTBots.DebugServer.DrawCurrentPathFor(bot)
             })
     end
 
+end
+
+function TTTBots.DebugServer.DrawLineBetween(start, finish, color)
+    if not (start and finish and color) then return end
+
+    DebugServer.ChangeDrawData("line_" .. tostring(start) .. tostring(finish),
+    {
+        type = "line",
+        start = start,
+        ending = finish,
+        color = color,
+        width = 5
+        })
 end
 
 -- Send latest draw data to clients every 0.1 seconds

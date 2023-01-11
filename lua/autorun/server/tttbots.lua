@@ -50,13 +50,13 @@ timer.Create("TTTBots_Tick", 0.1, 0, function()
 
 end)
 
--- GM:SetupMove
-hook.Add("SetupMove", "TTTBots_SetupMove", function(ply, mv, cmd)
+-- GM:StartCommand
+hook.Add("StartCommand", "TTTBots_StartCommand", function(ply, cmd)
     if ply:IsBot() then
         local bot = ply
         local locomotor = bot.components.locomotor
 
         -- Update locomotor
-        locomotor:SetupMove(cmd)
+        locomotor:StartCommand(cmd)
     end
 end)
