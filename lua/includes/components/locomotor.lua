@@ -25,8 +25,6 @@ To update the path goal, use Locomotor:SetGoalPos(pos). This will set the goal p
 TTTBots.Components = TTTBots.Components or {}
 TTTBots.Components.Locomotor = {}
 
-local pathmgr = TTTBots.PathManager
-
 function TTTBots.Components.Locomotor:New(bot)
     local newLocomotor = {}
     setmetatable(newLocomotor, self)
@@ -60,11 +58,23 @@ end
 -- Validate the path's integrity. Returns false if path is invalid, info is invalid, or path is too old. Then, sets path and pathinfo to nil.
 -- Else returns true.
 function TTTBots.Components.Locomotor:ValidatePath()
-    if
-        (not IsValid(self.path)) -- Path is invalid
-        or (not IsValid(self.pathinfo)) -- Path info is invalid
-        or (self.pathinfo:TimeSince() > pathmgr.cullSeconds) -- Path info is too old
-    then
+
+    -- This is ugly, but it works and it is easy to read.
+    local failReason = ""
+    if not self.path then -- No path
+        failReason = "No path"
+    elseif type(self.path) == "boolean" then -- Path is a boolean
+        failReason = "Path is a boolean"
+    -- elseif not IsValid(self.path) then -- Path is invalid
+    --     failReason = "Path is invalid; value is " .. tostring(self.path)
+    -- elseif not IsValid(self.pathinfo) then -- Path info is invalid
+    --     failReason = "Path info is invalid"
+    -- elseif self.pathinfo:TimeSince() > TTTBots.PathManager.cullSeconds then -- Path info is too old
+    --     failReason = "Path info is too old"
+    end
+
+    if failReason ~= "" then
+        -- print("Path failed: " .. failReason)
         self.path = nil
         self.pathinfo = nil
         return false
@@ -111,12 +121,13 @@ function TTTBots.Components.Locomotor:UpdateMovement()
     end
 end
 
--- Update the path
+-- Update the path. Requests a path from our current position to our goal position. Done as a tick-level function for performance reasons.
 function TTTBots.Components.Locomotor:UpdatePath()
-    if self:ValidatePath() then return end
+    -- if self:ValidatePath() then return end THIS IS NOT NECESSARY, as we will just update the path if it is invalid.
+    if self:GetGoalPos() == nil then return end
 
     -- If we don't have a path, request one
-    self.pathinfo = pathmgr.RequestPath(self.bot:GetPos(), self:GetGoalPos())
+    self.pathinfo = TTTBots.PathManager.RequestPath(self.bot:GetPos(), self:GetGoalPos())
     if self.pathinfo then
         self.path = self.pathinfo.path
     end
@@ -159,11 +170,8 @@ function TTTBots.Components.Locomotor:SetupMove(cmd)
 
     -- SetButtons to IN_DUCK if crouch, and IN_JUMP if jump
     cmd:SetButtons(
-        bit.bor(
-            cmd:GetButtons(),
-            self:GetCrouching() and IN_DUCK or 0,
-            self:GetJumping() and IN_JUMP or 0
-        )
+        self:GetCrouching() and IN_DUCK or 0,
+        self:GetJumping() and IN_JUMP or 0
     )
 
     -- Set viewangles to lookPos, and lerp to override if not nil

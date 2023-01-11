@@ -119,8 +119,9 @@ end
 -- end
 
 function TTTBots.DebugServer.DrawCurrentPathFor(bot)
-    local pathinfo = bot.path
+    local pathinfo = bot.components.locomotor.pathinfo
     if not pathinfo or not pathinfo.path then return end
+    print("Drawing path for " .. bot:Nick())
 
     local path = pathinfo.path
     local age = pathinfo:TimeSince()

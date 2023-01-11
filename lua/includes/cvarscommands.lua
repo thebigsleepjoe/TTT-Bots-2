@@ -47,3 +47,18 @@ concommand.Add("ttt_bot_kick", function(ply, cmd, args)
         end
     end
 end)
+
+concommand.Add("ttt_bot_debug_locomotor", function(ply, cmd, args)
+    -- Execute ttt_bot_kickall, then ttt_bot_add, then ttt_roundrestart.
+    -- This will remove all bots, then add one back, and then restart the round.
+    RunConsoleCommand("ttt_bot_kickall")
+    RunConsoleCommand("ttt_bot_add", "1")
+    RunConsoleCommand("ttt_roundrestart")
+
+    -- Wait for a quarter-second, then teleport the human player to the bot.
+    timer.Simple(0.25, function()
+        local bot = player.GetBots()[1]
+        if not bot then return end
+        ply:SetPos(bot:GetPos() + Vector(0, 0, 50))
+    end)
+end)
