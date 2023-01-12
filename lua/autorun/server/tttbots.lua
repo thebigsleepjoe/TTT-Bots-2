@@ -4,11 +4,13 @@ TTTBots = {
 }
 
 -- Initialize all of our libraries
-include("includes/commonlib.lua")
-include("includes/chatcommands.lua")
-include("includes/cvarscommands.lua")
-include("includes/pathmanager.lua")
-include("includes/debugserver.lua")
+include("includes/lib/commonlib.lua")
+include("includes/lib/pathmanager.lua")
+include("includes/lib/debugserver.lua")
+
+-- Initialize command libraries
+include("includes/commands/chatcommands.lua")
+include("includes/commands/cvarscommands.lua")
 
 -- Shorthands
 local Lib = TTTBots.Lib

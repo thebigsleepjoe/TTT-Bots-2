@@ -1,6 +1,8 @@
 TTTBots.Lib = {}
 
-include("includes/usernames.lua")
+include("includes/data/usernames.lua")
+
+-- Import components for bot creation
 include("includes/components/locomotor.lua")
 
 local Lib = TTTBots.Lib

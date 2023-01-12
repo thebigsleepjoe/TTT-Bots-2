@@ -149,7 +149,7 @@ function TTTBots.Components.Locomotor:FollowPath()
                 break
             end
         end
-        
+
         local nextArea = path[nextN]
         if nextArea then
             self:LerpLook(self.pathLookSpeed, nextArea:GetCenter())
