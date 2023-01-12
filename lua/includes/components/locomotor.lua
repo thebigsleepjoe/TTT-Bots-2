@@ -20,6 +20,10 @@ To update the path goal, use Locomotor:SetGoalPos(pos). This will set the goal p
 
 ]]
 
+-----------------------------------------------
+-- Utility functions
+-----------------------------------------------
+
 -- Component to manage the movement and look angles of the bot.
 
 TTTBots.Components = TTTBots.Components or {}
@@ -101,6 +105,26 @@ function TTTBots.Components.Locomotor:GetLookSpeed() return self.lookSpeed end
 function TTTBots.Components.Locomotor:GetStrafe() return self.strafe end
 function TTTBots.Components.Locomotor:GetGoalPos() return self.goalPos end
 
+function TTTBots.Components.Locomotor:WithinCompleteRange(pos)
+    return self.bot:GetPos():Distance(pos) < TTTBots.PathManager.completeRange
+end
+
+-- Trace line from eyes (if fromEyes, else feet) to the given position. Returns the trace result.
+-- This is used to cut corners when pathfinding.
+function TTTBots.Components.Locomotor:TraceLine(fromEyes, finish)
+    local startPos = self.bot:GetPos()
+    if fromEyes then
+        startPos = self.bot:EyePos()
+    end
+    local trace = util.TraceLine({
+        start = startPos,
+        endpos = finish,
+        filter = self.bot,
+        mask = MASK_PLAYERSOLID
+    })
+    return trace
+end
+
 -----------------------------------------------
 -- Tick-level functions
 -----------------------------------------------
@@ -133,27 +157,45 @@ function TTTBots.Components.Locomotor:UpdatePath()
     end
 end
 
+-- Determines how the bot navigates through its path once it has one.
 function TTTBots.Components.Locomotor:FollowPath()
+    local dvlpr = GetConVar("ttt_bot_debug_pathfinding"):GetBool()
     local path = self.path
     local bot = self.bot
 
     -- If we have a path, follow it
     if self:ValidatePath() then
-        local nextN = 1
+        local nextPos = nil
 
         -- Determine the area furthest along the path that is visible to the character
         for i = 1, #path do
             local area = path[i]
-            if not bot:VisibleVec(area:GetCenter()) then
-                nextN = i - 1
+            local areacenter = area:GetCenter()
+
+
+
+            local footTrace = self:TraceLine(false, areacenter)
+            local eyeTrace = self:TraceLine(true, areacenter)
+
+            if dvlpr then
+                TTTBots.DebugServer.DrawLineBetween(bot:GetPos(), footTrace.HitPos , Color(0, 255, 0))
+                TTTBots.DebugServer.DrawLineBetween(bot:EyePos(), eyeTrace.HitPos, Color(0, 255, 0))
+            end
+            
+            if footTrace.Hit and eyeTrace.Hit then
+                nextPos = areacenter
+            else
                 break
             end
         end
 
-        local nextArea = path[nextN]
-        if nextArea then
-            self:LerpLook(self.pathLookSpeed, nextArea:GetCenter())
-            TTTBots.DebugServer.DrawLineBetween(bot:GetPos(), nextArea:GetCenter(), Color(255, 255, 255))
+        if not nextPos then return end
+
+        self:LerpLook(self.pathLookSpeed, nextPos)
+
+        if dvlpr then
+            -- TTTBots.DebugServer.DrawSphere(nextPos, TTTBots.PathManager.completeRange, Color(255, 255, 0, 50))
+            TTTBots.DebugServer.DrawLineBetween(bot:GetPos(), nextPos, Color(255, 255, 255))
         end
     end
 end

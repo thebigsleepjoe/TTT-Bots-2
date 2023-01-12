@@ -135,6 +135,19 @@ function TTTBots.DebugServer.DrawLineBetween(start, finish, color)
         })
 end
 
+function TTTBots.DebugServer.DrawSphere(pos, radius, color)
+    if not (pos and radius and color) then return end
+
+    DebugServer.ChangeDrawData("sphere_" .. tostring(pos) .. tostring(radius),
+    {
+        type = "sphere",
+        pos = pos,
+        radius = radius,
+        color = color,
+        width = 5
+        })
+end
+
 -- Send latest draw data to clients every 0.1 seconds
 timer.Create("TTTBots_SendDrawData", 0.1, 0, function()
     DebugServer.SendDrawData()

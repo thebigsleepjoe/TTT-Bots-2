@@ -35,8 +35,10 @@ print("good to go")
 
 -- Bot behavior
 timer.Create("TTTBots_Tick", 0.1, 0, function()
-    -- Set ttt_idle_limit to 999999 to prevent us from getting kicked when debugging
-    RunConsoleCommand("ttt_idle_limit", "999999")
+    if GetConVar("ttt_bot_debug_all"):GetBool() then
+        RunConsoleCommand("ttt_idle_limit", "999999")
+        RunConsoleCommand("developer", "1")
+    end
 
     for i,bot in pairs(player.GetBots()) do
         TTTBots.DebugServer.RenderDebugFor(bot, { "all" })

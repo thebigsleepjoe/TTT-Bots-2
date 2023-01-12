@@ -41,6 +41,8 @@ net.Receive("TTTBots_DrawData", function()
             debugoverlay.Box(data.start, data.ending, 0.1, data.color, true)
         elseif data.type == "text" then
             debugoverlay.Text(data.pos, data.text, 0.1, true)
+        elseif data.type == "sphere" then
+            debugoverlay.Sphere(data.pos, data.radius, 0.1, data.color, true)
         end
         
     end

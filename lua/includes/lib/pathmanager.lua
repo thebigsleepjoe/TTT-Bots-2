@@ -15,6 +15,7 @@ TTTBots.PathManager = {}
 TTTBots.PathManager.cache = {}
 TTTBots.PathManager.cullSeconds = 5
 TTTBots.PathManager.maxCachedPaths = 200
+TTTBots.PathManager.completeRange = 100
 
 
 --[[ Define local A* functions ]]
