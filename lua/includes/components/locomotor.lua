@@ -163,28 +163,33 @@ function TTTBots.Components.Locomotor:FollowPath()
     local path = self.path
     local bot = self.bot
 
+    local nextPos = self:GetGoalPos()
+
     -- If we have a path, follow it
     if self:ValidatePath() then
-        local nextPos = nil
+        local smoothPath = TTTBots.PathManager.SmoothPath(path, 4)
 
-        -- Determine the area furthest along the path that is visible to the character
-        for i = 1, #path do
-            local area = path[i]
-            local areacenter = area:GetCenter()
-
-
-
-            local footTrace = self:TraceLine(false, areacenter)
-            local eyeTrace = self:TraceLine(true, areacenter)
-
-            if dvlpr then
-                TTTBots.DebugServer.DrawLineBetween(bot:GetPos(), footTrace.HitPos , Color(0, 255, 0))
-                TTTBots.DebugServer.DrawLineBetween(bot:EyePos(), eyeTrace.HitPos, Color(0, 255, 0))
+        if dvlpr then
+            for i = 1, #smoothPath - 1 do
+                TTTBots.DebugServer.DrawLineBetween(smoothPath[i], smoothPath[i + 1], Color(0, 125, 255))
             end
-            
-            if footTrace.Hit and eyeTrace.Hit then
-                nextPos = areacenter
-            else
+        end
+
+        ----------------------------
+        -- Begin following path
+        ----------------------------
+
+        -- Walk towards the next node in the smoothPath that we can see
+        for i = 1, #smoothPath do
+            local nodePos = smoothPath[i]
+
+            local trace = self:TraceLine(true, nodePos)
+
+            if not trace.Hit then
+                nextPos = smoothPath[i + 1]
+                if smoothPath[i + 2] then
+                    nextPos = smoothPath[i + 2]
+                end
                 break
             end
         end
@@ -195,6 +200,7 @@ function TTTBots.Components.Locomotor:FollowPath()
 
         if dvlpr then
             -- TTTBots.DebugServer.DrawSphere(nextPos, TTTBots.PathManager.completeRange, Color(255, 255, 0, 50))
+            TTTBots.DebugServer.DrawText(nextPos, "NextPos", Color(255, 255, 255))
             TTTBots.DebugServer.DrawLineBetween(bot:GetPos(), nextPos, Color(255, 255, 255))
         end
     end
@@ -230,8 +236,9 @@ function TTTBots.Components.Locomotor:StartCommand(cmd)
     -- if lookPos is (0, 0, 0) then skip
     if lookPos ~= Vector(0, 0, 0) then
         local ang = (lookPos - self.bot:GetPos()):Angle()
-        cmd:SetViewAngles(ang)
-        self.bot:SetEyeAngles(ang)
+        cmd:SetViewAngles(LerpAngle(0.5, cmd:GetViewAngles(), ang))
+        --self.bot:SetEyeAngles(ang)
+        self.bot:SetEyeAngles(LerpAngle(0.1, self.bot:EyeAngles(), ang))
     end
 
     -- Set forward and side movement

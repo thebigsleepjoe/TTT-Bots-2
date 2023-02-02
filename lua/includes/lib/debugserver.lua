@@ -24,10 +24,6 @@ TTTBots.DebugServer = {
             type = "text",
             pos = Vector(0, 0, 0),
             text = "Hello world!",
-            color = Color(255, 255, 255, 255),
-            font = "Default",
-            xalign = TEXT_ALIGN_CENTER,
-            yalign = TEXT_ALIGN_CENTER
         }
     }
 ]]
@@ -145,6 +141,17 @@ function TTTBots.DebugServer.DrawSphere(pos, radius, color)
         radius = radius,
         color = color,
         width = 5
+        })
+end
+
+function TTTBots.DebugServer.DrawText(pos, text, color)
+    if not (pos and text and color) then return end
+
+    DebugServer.ChangeDrawData("text_" .. tostring(pos) .. tostring(text),
+    {
+        type = "text",
+        pos = pos,
+        text = text
         })
 end
 

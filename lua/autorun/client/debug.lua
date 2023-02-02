@@ -20,10 +20,6 @@ local drawdata = {}
             type = "text",
             pos = Vector(0, 0, 0),
             text = "Hello world!",
-            color = Color(255, 255, 255, 255),
-            font = "Default",
-            xalign = TEXT_ALIGN_CENTER,
-            yalign = TEXT_ALIGN_CENTER
         }
     }
 ]]
@@ -40,7 +36,7 @@ net.Receive("TTTBots_DrawData", function()
         elseif data.type == "box" then
             debugoverlay.Box(data.start, data.ending, 0.1, data.color, true)
         elseif data.type == "text" then
-            debugoverlay.Text(data.pos, data.text, 0.1, true)
+            debugoverlay.Text(data.pos, data.text, 0.1, false)
         elseif data.type == "sphere" then
             debugoverlay.Sphere(data.pos, data.radius, 0.1, data.color, true)
         end

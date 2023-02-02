@@ -33,7 +33,7 @@ local function reconstruct_path( cameFrom, current )
 	while ( cameFrom[ current ] ) do
 		current = cameFrom[ current ]
 		table.insert( total_path, navmesh.GetNavAreaByID( current ) )
-	end
+    end
 	return total_path
 end
 
@@ -61,7 +61,7 @@ local function Astar( start, goal )
 
 		-- If the current navarea is the goal navarea, reconstruct and return the path
 		if ( current == goal ) then
-			return reconstruct_path( cameFrom, current )
+			return table.Reverse(reconstruct_path( cameFrom, current ))
 		end
 
 		current:AddToClosedList()
@@ -81,7 +81,13 @@ local function Astar( start, goal )
 				continue
 			else
 				-- Update the neighbor's cost so far and total cost
-				neighbor:SetCostSoFar( newCostSoFar );
+                neighbor:SetCostSoFar(newCostSoFar);
+                
+                -- Add a cost if we need to fall down to get to the neighbor
+                if (neighbor:ComputeGroundHeightChange(current) > 100) then
+                    neighbor:SetCostSoFar(neighbor:GetCostSoFar() + 1000);
+                end
+
 				neighbor:SetTotalCost( newCostSoFar + heuristic_cost_estimate( neighbor, goal ) )
 
 				-- If the neighbor was on the closed list, remove it
@@ -176,6 +182,56 @@ function PathManager.GetPath(startpos, finishpos)
 
     local pathinfo = PathManager.cache[nav1:GetID() .. "-" .. nav2:GetID()]
     return pathinfo
+end
+
+-- Bezier curve function; p0 is the start point, p1 is the control point, p2 is the end point, and t is the time.
+-- t ranges from 0 to 1, and represents the percentage of the path that has been travelled.
+local function bezierQuadratic(p0, p1, p2, t)
+    local x = (1 - t) ^ 2 * p0.x + 2 * (1 - t) * t * p1.x + t ^ 2 * p2.x
+    local y = (1 - t) ^ 2 * p0.y + 2 * (1 - t) * t * p1.y + t ^ 2 * p2.y
+    local z = (1 - t) ^ 2 * p0.z + 2 * (1 - t) * t * p1.z + t ^ 2 * p2.z
+    return Vector(x, y, z)
+end
+
+local function getBezierPoints(start, control, finish, numpoints)
+    local points = {}
+    for i = 0, numpoints do
+        local t = i / numpoints
+        local point = bezierQuadratic(start, control, finish, t)
+        table.insert(points, point)
+    end
+end
+
+-- Smooths a path of CNavAreas using bezier curves. Returns a table of vectors.
+-- smoothness is an integer that represents the number of points to be generated between each navarea.
+function PathManager.SmoothPath(path, smoothness)
+    -- The start is the center of the first navarea, the control point is the center of the second navarea, and the end is the center of the third navarea.
+
+    local smoothPath = {}
+    local n = 0 -- track number of points for next step
+
+    for i = 1, #path-2, 3 do
+        n = n + 1
+        local p0 = path[i]:GetCenter()
+        local p1 = path[i + 1]:GetCenter()
+        local p2 = path[i + 2]:GetCenter()
+
+        for j = 1, smoothness do
+            local t = j / smoothness
+            local point = bezierQuadratic(p0, p1, p2, t)
+            table.insert(smoothPath, point)
+        end
+    end
+
+    -- If the path is not divisible by 3, then we need to add the last navarea(s) to the path.
+    if #path % 3 == 1 then
+        table.insert(smoothPath, path[#path]:GetCenter())
+    elseif #path % 3 == 2 then
+        table.insert(smoothPath, path[#path - 1]:GetCenter())
+        table.insert(smoothPath, path[#path]:GetCenter())
+    end
+
+    return smoothPath
 end
 
 -- Cull the cache of paths that are older than the cullSeconds, and cull the oldest if we have too many paths.
