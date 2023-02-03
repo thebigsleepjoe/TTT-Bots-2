@@ -1,5 +1,7 @@
 --[[
 
+This component is how the bot gets to something. It does not create the paths, it just follows them.
+
 How this is used:
     1) Create a new locomotor component and assign it to the bot. This is done automatically when a bot is created.
     2) Every GM:StartCommand, Locomotor:StartCommand(CMD) is ran. This will set the bot's movement and look angles.
@@ -29,7 +31,10 @@ To update the path goal, use Locomotor:SetGoalPos(pos). This will set the goal p
 TTTBots.Components = TTTBots.Components or {}
 TTTBots.Components.Locomotor = {}
 
-function TTTBots.Components.Locomotor:New(bot)
+local lib = TTTBots.Lib
+local BotLocomotor = TTTBots.Components.Locomotor
+
+function BotLocomotor:New(bot)
     local newLocomotor = {}
     setmetatable(newLocomotor, self)
     self.__index = self
@@ -37,7 +42,7 @@ function TTTBots.Components.Locomotor:New(bot)
     return newLocomotor
 end
 
-function TTTBots.Components.Locomotor:Initialize(bot)
+function BotLocomotor:Initialize(bot)
     bot.components = bot.components or {}
     bot.components.locomotor = self
 
@@ -61,7 +66,7 @@ function TTTBots.Components.Locomotor:Initialize(bot)
 end
 -- Validate the path's integrity. Returns false if path is invalid, info is invalid, or path is too old. Then, sets path and pathinfo to nil.
 -- Else returns true.
-function TTTBots.Components.Locomotor:ValidatePath()
+function BotLocomotor:ValidatePath()
 
     -- This is ugly, but it works and it is easy to read.
     local failReason = ""
@@ -87,42 +92,49 @@ function TTTBots.Components.Locomotor:ValidatePath()
 end
 
 -- Getters and setters, just for external neatness and ease of use.
-function TTTBots.Components.Locomotor:SetCrouching(bool) self.crouch = bool end
-function TTTBots.Components.Locomotor:SetJumping(bool) self.jump = bool end
-function TTTBots.Components.Locomotor:SetCanMove(bool) self.dontmove = not bool end
+function BotLocomotor:SetCrouching(bool) self.crouch = bool end
+function BotLocomotor:SetJumping(bool) self.jump = bool end
+function BotLocomotor:SetCanMove(bool) self.dontmove = not bool end
 -- Set a look override, we will use the look override to override viewangles. Actual look angle is lerped to the override using lookSpeed.
-function TTTBots.Components.Locomotor:SetLookPosOverride(pos) self.lookPosOverride = pos end
-function TTTBots.Components.Locomotor:ClearLookPosOverride() self.lookPosOverride = nil end
-function TTTBots.Components.Locomotor:SetLookSpeed(speed) self.lookSpeed = speed end
-function TTTBots.Components.Locomotor:SetStrafe(value) self.strafe = value end
-function TTTBots.Components.Locomotor:SetGoalPos(pos) self.goalPos = pos end
+function BotLocomotor:SetLookPosOverride(pos) self.lookPosOverride = pos end
+function BotLocomotor:ClearLookPosOverride() self.lookPosOverride = nil end
+function BotLocomotor:SetLookSpeed(speed) self.lookSpeed = speed end
+function BotLocomotor:SetStrafe(value) self.strafe = value end
+function BotLocomotor:SetGoalPos(pos) self.goalPos = pos end
 
-function TTTBots.Components.Locomotor:GetCrouching() return self.crouch end
-function TTTBots.Components.Locomotor:GetJumping() return self.jump end
-function TTTBots.Components.Locomotor:GetCanMove() return not self.dontmove end
-function TTTBots.Components.Locomotor:GetLookPosOverride() return self.lookPosOverride end
-function TTTBots.Components.Locomotor:GetLookSpeed() return self.lookSpeed end
-function TTTBots.Components.Locomotor:GetStrafe() return self.strafe end
-function TTTBots.Components.Locomotor:GetGoalPos() return self.goalPos end
+function BotLocomotor:GetCrouching() return self.crouch end
+function BotLocomotor:GetJumping() return self.jump end
+function BotLocomotor:GetCanMove() return not self.dontmove end
+function BotLocomotor:GetLookPosOverride() return self.lookPosOverride end
+function BotLocomotor:GetLookSpeed() return self.lookSpeed end
+function BotLocomotor:GetStrafe() return self.strafe end
+function BotLocomotor:GetGoalPos() return self.goalPos end
 
-function TTTBots.Components.Locomotor:WithinCompleteRange(pos)
+function BotLocomotor:WithinCompleteRange(pos)
     return self.bot:GetPos():Distance(pos) < TTTBots.PathManager.completeRange
 end
 
--- Trace line from eyes (if fromEyes, else feet) to the given position. Returns the trace result.
--- This is used to cut corners when pathfinding.
-function TTTBots.Components.Locomotor:TraceLine(fromEyes, finish)
-    local startPos = self.bot:GetPos()
-    if fromEyes then
-        startPos = self.bot:EyePos()
-    end
-    local trace = util.TraceLine({
-        start = startPos,
-        endpos = finish,
+-- Return true if we should jump between vectors a and b. This is used for pathfinding.
+function BotLocomotor:ShouldJumpBetweenPoints(a, b)
+    local verticalCondition = (b.z - a.z) > 8
+
+    local trce = util.TraceLine({
+        start = a,
+        endpos = b,
         filter = self.bot,
-        mask = MASK_PLAYERSOLID
+        mask = MASK_SOLID_BRUSHONLY
     })
-    return trace
+    local canSee = trce.HitPos:Distance(b) < 1
+
+    return verticalCondition and not canSee
+end
+
+function BotLocomotor:ShouldCrouchBetweenPoints(a, b)
+    -- mostly just check if the closest area to a or b has a crouch flag
+    local area1 = navmesh.GetNearestNavArea(a)
+    local area2 = navmesh.GetNearestNavArea(b)
+
+    return (area1 and area1:IsCrouch()) or (area2 and area2:IsCrouch())
 end
 
 -----------------------------------------------
@@ -130,13 +142,13 @@ end
 -----------------------------------------------
 
 -- Tick periodically. Do not tick per GM:StartCommand
-function TTTBots.Components.Locomotor:Think()
+function BotLocomotor:Think()
     self:UpdatePath()
     self:UpdateMovement()
 end
 
 -- Manage the movement; do not use CMoveData, use the bot's movement functions and fields instead.
-function TTTBots.Components.Locomotor:UpdateMovement()
+function BotLocomotor:UpdateMovement()
     if self.dontmove then return end
 
     -- If we have a path, follow it
@@ -146,7 +158,7 @@ function TTTBots.Components.Locomotor:UpdateMovement()
 end
 
 -- Update the path. Requests a path from our current position to our goal position. Done as a tick-level function for performance reasons.
-function TTTBots.Components.Locomotor:UpdatePath()
+function BotLocomotor:UpdatePath()
     -- if self:ValidatePath() then return end THIS IS NOT NECESSARY, as we will just update the path if it is invalid.
     if self:GetGoalPos() == nil then return end
 
@@ -158,7 +170,7 @@ function TTTBots.Components.Locomotor:UpdatePath()
 end
 
 -- Determines how the bot navigates through its path once it has one.
-function TTTBots.Components.Locomotor:FollowPath()
+function BotLocomotor:FollowPath()
     local dvlpr = GetConVar("ttt_bot_debug_pathfinding"):GetBool()
     local path = self.path
     local bot = self.bot
@@ -167,6 +179,8 @@ function TTTBots.Components.Locomotor:FollowPath()
 
     -- If we have a path, follow it
     if self:ValidatePath() then
+        self:SetJumping(false)
+        self:SetCrouching(false)
         local smoothPath = TTTBots.PathManager.SmoothPath(path, 4)
 
         if dvlpr then
@@ -183,9 +197,10 @@ function TTTBots.Components.Locomotor:FollowPath()
         for i = 1, #smoothPath do
             local nodePos = smoothPath[i]
 
-            local trace = self:TraceLine(true, nodePos)
+            local trace = lib.TraceVisibilityLine(bot, true, nodePos)
+            local traceFoot = lib.TraceVisibilityLine(bot, false, nodePos)
 
-            if not trace.Hit then
+            if not trace.Hit and not traceFoot.Hit then -- If we can see the node, walk towards it
                 nextPos = smoothPath[i + 1]
                 if smoothPath[i + 2] then
                     nextPos = smoothPath[i + 2]
@@ -196,11 +211,17 @@ function TTTBots.Components.Locomotor:FollowPath()
 
         if not nextPos then return end
 
+        -- check if we should jump between our current position and nextPos
+        if self:ShouldJumpBetweenPoints(bot:GetPos(), nextPos) then
+            self:SetJumping(true)
+        end
+
         self:LerpLook(self.pathLookSpeed, nextPos)
 
         if dvlpr then
             -- TTTBots.DebugServer.DrawSphere(nextPos, TTTBots.PathManager.completeRange, Color(255, 255, 0, 50))
-            TTTBots.DebugServer.DrawText(nextPos, "NextPos", Color(255, 255, 255))
+            local nextpostxt = string.format("NextPos (height difference is %s)", nextPos.z - bot:GetPos().z)
+            TTTBots.DebugServer.DrawText(nextPos, nextpostxt, Color(255, 255, 255))
             TTTBots.DebugServer.DrawLineBetween(bot:GetPos(), nextPos, Color(255, 255, 255))
         end
     end
@@ -211,21 +232,36 @@ end
 -----------------------------------------------
 
 --- Lerp look towards the goal position
-function TTTBots.Components.Locomotor:LerpLook(factor, goal)
+function BotLocomotor:LerpLook(factor, goal)
     if self.lookPosOverride and self.lookPosOverride ~= goal then return end
     self.lookPos = LerpVector(factor, self.lookPos, goal)
 end
 
 
-function TTTBots.Components.Locomotor:StartCommand(cmd)
+function BotLocomotor:StartCommand(cmd)
+    cmd:ClearButtons()
+    cmd:ClearMovement()
     if self.dontmove then return end
-    local hasPath = self:ValidatePath()
+    if not lib.IsBotAlive(self.bot) then return end
 
-    -- SetButtons to IN_DUCK if crouch, and IN_JUMP if jump
+    local hasPath = self:ValidatePath()
+    local dvlpr = GetConVar("ttt_bot_debug_pathfinding"):GetBool()
+
+    -- SetButtons to IN_DUCK if crouch is true
     cmd:SetButtons(
-        self:GetCrouching() and IN_DUCK or 0,
-        self:GetJumping() and IN_JUMP or 0
+        (self:GetCrouching() or self:GetJumping()) and IN_DUCK or 0
     )
+
+    -- Set buttons for jumping if :GetJumping() is true
+    -- The way jumping works is a little quirky, as it cannot be held down. We must release it occasionally
+    if self:GetJumping() and (self.jumpReleaseTime < CurTime()) or self.jumpReleaseTime == nil then
+        cmd:SetButtons(IN_JUMP, IN_DUCK)
+        self.jumpReleaseTime = CurTime() + 0.1
+        
+        if dvlpr then
+            TTTBots.DebugServer.DrawText(self.bot:GetPos(), "Crouch Jumping", Color(255, 255, 255))
+        end
+    end
 
     -- Set viewangles to lookPos, and lerp to override if not nil
     local lookPos = self.lookPos

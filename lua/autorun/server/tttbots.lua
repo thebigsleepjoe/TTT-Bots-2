@@ -43,9 +43,6 @@ timer.Create("TTTBots_Tick", 0.1, 0, function()
     for i,bot in pairs(player.GetBots()) do
         TTTBots.DebugServer.RenderDebugFor(bot, { "all" })
 
-        -- debug: set goal of locomotor to human 1's position
-        bot.components.locomotor:SetGoalPos(player.GetHumans()[1]:GetPos())
-
         for i,component in pairs(bot.components) do
             component:Think()
         end
@@ -62,5 +59,14 @@ hook.Add("StartCommand", "TTTBots_StartCommand", function(ply, cmd)
 
         -- Update locomotor
         locomotor:StartCommand(cmd)
+    end
+end)
+
+
+timer.Create("TTTBots_ChangeGoal", 8, 0, function()
+    for i,bot in pairs(player.GetBots()) do
+        local locomotor = bot.components.locomotor
+        local randomSpawn = table.Random(ents.FindByClass("info_player_start"))
+        locomotor:SetGoalPos(randomSpawn:GetPos())
     end
 end)

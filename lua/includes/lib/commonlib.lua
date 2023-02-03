@@ -49,3 +49,19 @@ function Lib.CreateBot(name)
 
     return bot
 end
+
+-- Trace line from eyes (if fromEyes, else feet) to the given position. Returns the trace result.
+-- This is used to cut corners when pathfinding.
+function Lib.TraceVisibilityLine(player, fromEyes, finish)
+    local startPos = player:GetPos()
+    if fromEyes then
+        startPos = player:EyePos()
+    end
+    local trace = util.TraceLine({
+        start = startPos,
+        endpos = finish,
+        filter = player,
+        mask = MASK_PLAYERSOLID
+    })
+    return trace
+end

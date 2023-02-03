@@ -184,6 +184,11 @@ function PathManager.GetPath(startpos, finishpos)
     return pathinfo
 end
 
+
+-------------------------------------
+-- Path smoothing (bezier curves)
+-------------------------------------
+
 -- Bezier curve function; p0 is the start point, p1 is the control point, p2 is the end point, and t is the time.
 -- t ranges from 0 to 1, and represents the percentage of the path that has been travelled.
 local function bezierQuadratic(p0, p1, p2, t)
@@ -202,6 +207,27 @@ local function getBezierPoints(start, control, finish, numpoints)
     end
 end
 
+function PathManager.CanSeeBetweenAreaCenters(a, b, addheight)
+    local startPos = a:GetCenter()
+    local finish = b:GetCenter()
+    if addheight then
+        startPos.z = startPos.z + 32
+        finish.z = finish.z + 32
+    end
+
+    local trace = util.TraceLine({
+        start = startPos,
+        endpos = finish,
+        filter = nil,
+        mask = MASK_PLAYERSOLID
+    })
+
+    -- temporary debug line
+    TTTBots.DebugServer.DrawLineBetween(startPos, finish, Color(trace.Hit and 255 or 0, not trace.Hit and 255 or 0, 0, 255))
+
+    return not trace.Hit -- if we hit something, then we can't see between the two navareas, so return false
+end
+
 -- Smooths a path of CNavAreas using bezier curves. Returns a table of vectors.
 -- smoothness is an integer that represents the number of points to be generated between each navarea.
 function PathManager.SmoothPath(path, smoothness)
@@ -215,6 +241,19 @@ function PathManager.SmoothPath(path, smoothness)
         local p0 = path[i]:GetCenter()
         local p1 = path[i + 1]:GetCenter()
         local p2 = path[i + 2]:GetCenter()
+
+        local csbac = PathManager.CanSeeBetweenAreaCenters
+
+        -- Check we can see between all three navareas, if not then just add the 3 navarea centers to the path
+        if
+            (util.IsInWorld(p0) and util.IsInWorld(p1) and util.IsInWorld(p2))
+            and not csbac(path[i], path[i + 2], true)
+        then
+            table.insert(smoothPath, p0)
+            table.insert(smoothPath, p1)
+            table.insert(smoothPath, p2)
+            continue
+        end
 
         for j = 1, smoothness do
             local t = j / smoothness
@@ -233,6 +272,10 @@ function PathManager.SmoothPath(path, smoothness)
 
     return smoothPath
 end
+
+--------------------------------------
+-- Culling
+--------------------------------------
 
 -- Cull the cache of paths that are older than the cullSeconds, and cull the oldest if we have too many paths.
 function PathManager.CullCache()
