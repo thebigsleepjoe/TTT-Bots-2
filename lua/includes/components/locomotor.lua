@@ -125,9 +125,14 @@ function BotLocomotor:ShouldJumpBetweenPoints(a, b)
         filter = self.bot,
         mask = MASK_SOLID_BRUSHONLY
     })
-    local canSee = trce.HitPos:Distance(b) < 1
+    local obstructedCondition1 = (trce.HitPos:Distance(b) < 1)
 
-    return verticalCondition and not canSee
+    -- draw debug line
+    TTTBots.DebugServer.DrawLineBetween(a, trce.HitPos, Color(255, 0, 255))
+
+    local condition = verticalCondition-- and not obstructedCondition1
+    -- print(string.format("jumping=%s because verticalCondition=%s and not obstructedCondition1=%s", tostring(condition), tostring(verticalCondition), tostring(not canSee)))
+    return condition
 end
 
 function BotLocomotor:ShouldCrouchBetweenPoints(a, b)
@@ -226,7 +231,7 @@ function BotLocomotor:FollowPath()
     self:SetJumping(false)
     self:SetCrouching(false)
 
-    local smoothPath = TTTBots.PathManager.SmoothPath2(path, 8)
+    local smoothPath = TTTBots.PathManager.SmoothPath2(path, 3)
 
     if dvlpr then
         for i = 1, #smoothPath - 1 do
@@ -276,6 +281,11 @@ function BotLocomotor:StartCommand(cmd)
 
     local hasPath = self:ValidatePath()
     local dvlpr = GetConVar("ttt_bot_debug_pathfinding"):GetBool()
+
+    if self.bot:GetMoveType() == MOVETYPE_LADDER then
+        cmd:SetButtons(IN_FORWARD)
+        return
+    end
 
     -- SetButtons to IN_DUCK if crouch is true
     cmd:SetButtons(

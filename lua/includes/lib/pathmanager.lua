@@ -61,7 +61,7 @@ local function Astar( start, goal )
 
 		-- If the current navarea is the goal navarea, reconstruct and return the path
         if (current == goal) then
-            print("Found path! Total cost is " .. current:GetTotalCost() .. " and cost so far is " .. current:GetCostSoFar() .. ".")
+            --print("Found path! Total cost is " .. current:GetTotalCost() .. " and cost so far is " .. current:GetCostSoFar() .. ".")
 			return table.Reverse(reconstruct_path( cameFrom, current ))
 		end
 
@@ -311,6 +311,9 @@ function PathManager.SmoothPath2(path, smoothness)
         -- use :GetClosestPointOnArea(vec) to get the closest point on the past/future to our center
         local edge1 = path[i - 1]:GetClosestPointOnArea(center)
         local edge2 = path[i + 1]:GetClosestPointOnArea(center)
+
+        edge1.z = center.z -- this is so we don't have to worry about the z axis
+        edge2.z = center.z
 
         local visionTest = PathManager.CanSeeBetween(edge1, edge2, 32)
 
