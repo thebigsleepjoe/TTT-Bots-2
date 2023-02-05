@@ -45,8 +45,6 @@ function Lib.CreateBot(name)
         locomotor = TTTBots.Components.Locomotor:New(bot)
     }
 
-    print(string.format("%s created bot named %s", ply and ply:Nick() or "[Server]", bot:Nick()))
-
     return bot
 end
 

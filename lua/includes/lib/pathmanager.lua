@@ -60,7 +60,8 @@ local function Astar( start, goal )
 		local current = start:PopOpenList()
 
 		-- If the current navarea is the goal navarea, reconstruct and return the path
-		if ( current == goal ) then
+        if (current == goal) then
+            print("Found path! Total cost is " .. current:GetTotalCost() .. " and cost so far is " .. current:GetCostSoFar() .. ".")
 			return table.Reverse(reconstruct_path( cameFrom, current ))
 		end
 
@@ -84,8 +85,11 @@ local function Astar( start, goal )
                 neighbor:SetCostSoFar(newCostSoFar);
                 
                 -- Add a cost if we need to fall down to get to the neighbor
-                if (neighbor:ComputeGroundHeightChange(current) > 100) then
-                    neighbor:SetCostSoFar(neighbor:GetCostSoFar() + 1000);
+                local heightchange = neighbor:ComputeGroundHeightChange(current)
+                if (heightchange > 128) then -- > 2 ply heights
+                    neighbor:SetCostSoFar(heightchange ^ 1.5);
+                elseif (heightchange > 256) then -- do not fall if more than 4 ply heights
+                    neighbor:SetCostSoFar(1000000);
                 end
 
 				neighbor:SetTotalCost( newCostSoFar + heuristic_cost_estimate( neighbor, goal ) )
@@ -285,10 +289,28 @@ function PathManager.SmoothPath2(path, smoothness)
     local points = {}
     smoothness = math.max(smoothness, 3)
 
-    for i,area in ipairs(path) do
+    for i, area in ipairs(path) do
+        local tooSmallToSmooth = area:GetSizeX() < 64 or area:GetSizeY() < 64
+        if tooSmallToSmooth then
+            table.insert(points, area:GetCenter())
+            continue
+        end
+
         local center = area:GetCenter()
-        local edge1 = (i > 1) and path[i - 1]:GetClosestPointOnArea(center) or center
-        local edge2 = (i < #path) and path[i + 1]:GetClosestPointOnArea(center) or center
+
+        if (i == 1) then
+            table.insert(points, center)
+            table.insert(points, area:GetClosestPointOnArea(path[i + 1]:GetCenter()))
+            continue
+        elseif (i == #path) then
+            table.insert(points, area:GetClosestPointOnArea(path[i - 1]:GetCenter()))
+            table.insert(points, center)
+            continue
+        end
+
+        -- use :GetClosestPointOnArea(vec) to get the closest point on the past/future to our center
+        local edge1 = path[i - 1]:GetClosestPointOnArea(center)
+        local edge2 = path[i + 1]:GetClosestPointOnArea(center)
 
         local visionTest = PathManager.CanSeeBetween(edge1, edge2, 32)
 

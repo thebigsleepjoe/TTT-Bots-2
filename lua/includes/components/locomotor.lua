@@ -164,8 +164,6 @@ function BotLocomotor:UpdateMovement()
     self.forceForward = false
     if self.dontmove then return end
 
-
-    
     local followingPath = self:FollowPath() -- true if doing proper pathing
 
     -- Walk straight towards the goal if it doesn't require complex pathing.
@@ -205,7 +203,15 @@ function BotLocomotor:DetermineNextPos(pathVecs)
         end
     end
 
-    return closestVec, closestIndex
+    -- Re-add every point after closestIndex
+    local updatedPathVecs = {}
+    for i = closestIndex, #pathVecs do
+        table.insert(updatedPathVecs, pathVecs[i])
+    end
+
+    -- TODO: Cut corners if we can see the next point
+
+    return updatedPathVecs[2]
 end
 
 -- Determines how the bot navigates through its path once it has one.
@@ -220,7 +226,7 @@ function BotLocomotor:FollowPath()
     self:SetJumping(false)
     self:SetCrouching(false)
 
-    local smoothPath = TTTBots.PathManager.SmoothPath2(path, 4)
+    local smoothPath = TTTBots.PathManager.SmoothPath2(path, 8)
 
     if dvlpr then
         for i = 1, #smoothPath - 1 do
