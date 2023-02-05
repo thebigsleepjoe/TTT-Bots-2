@@ -138,6 +138,11 @@ function BotLocomotor:ShouldCrouchBetweenPoints(a, b)
     return (area1 and area1:IsCrouch()) or (area2 and area2:IsCrouch())
 end
 
+-- Wrapper for TTTBots.PathManager.BotIsCloseEnough(bot, pos)
+function BotLocomotor:CloseEnoughTo(pos)
+    return TTTBots.PathManager.BotIsCloseEnough(self.bot, pos)
+end
+
 -----------------------------------------------
 -- Tick-level functions
 -----------------------------------------------
@@ -159,9 +164,15 @@ function BotLocomotor:UpdateMovement()
     self.forceForward = false
     if self.dontmove then return end
 
-    local followingPath = self:FollowPath()
-    if not followingPath and self:ValidatePath() then
-        self:OrientTowardsPoint(self:GetGoalPos())
+
+    
+    local followingPath = self:FollowPath() -- true if doing proper pathing
+
+    -- Walk straight towards the goal if it doesn't require complex pathing.
+    local goal = self:GetGoalPos()
+
+    if goal and not followingPath and not self:CloseEnoughTo(goal)then
+        self:OrientTowardsPoint(goal)
         self.forceForward = true
     end
 end
@@ -178,6 +189,25 @@ function BotLocomotor:UpdatePath()
     end
 end
 
+function BotLocomotor:DetermineNextPos(pathVecs)
+    local bot = self.bot
+
+    -- start by just pathing towards the closest vector to us
+    local closestVec = pathVecs[1]
+    local closestDist = bot:GetPos():Distance(closestVec)
+    local closestIndex = 1
+    for i = 2, #pathVecs do
+        local dist = bot:GetPos():Distance(pathVecs[i])
+        if dist < closestDist then
+            closestDist = dist
+            closestVec = pathVecs[i]
+            closestIndex = i
+        end
+    end
+
+    return closestVec, closestIndex
+end
+
 -- Determines how the bot navigates through its path once it has one.
 function BotLocomotor:FollowPath()
     if not self:ValidatePath() then return false end
@@ -185,63 +215,40 @@ function BotLocomotor:FollowPath()
     local path = self.path
     local bot = self.bot
 
-    local nextPos = self:GetGoalPos()
+    if not self:ValidatePath() then return false end
 
-    -- If we have a path, follow it
-    if self:ValidatePath() then
-        self:SetJumping(false)
-        self:SetCrouching(false)
-        local smoothPath = TTTBots.PathManager.SmoothPath2(path, 4)
+    self:SetJumping(false)
+    self:SetCrouching(false)
 
-        if dvlpr then
-            for i = 1, #smoothPath - 1 do
-                TTTBots.DebugServer.DrawLineBetween(smoothPath[i], smoothPath[i + 1], Color(0, 125, 255))
-            end
+    local smoothPath = TTTBots.PathManager.SmoothPath2(path, 4)
+
+    if dvlpr then
+        for i = 1, #smoothPath - 1 do
+            TTTBots.DebugServer.DrawLineBetween(smoothPath[i], smoothPath[i + 1], Color(0, 125, 255))
         end
-
-        ----------------------------
-        -- nextpos assignment
-        ----------------------------
-
-        -- Walk towards the next node in the smoothPath that we can see
-        for i = 1, #smoothPath do
-            local nodePos = smoothPath[i]
-            nextPos = nodePos
-
-            -- disqualify this point and move on to next if we are within 64 units
-            if bot:GetPos():Distance(nodePos) < 64 then continue end
-
-
-            local trace = lib.TraceVisibilityLine(bot, true, nodePos)
-            --local traceFoot = lib.TraceVisibilityLine(bot, false, nodePos)
-
-            if not trace.Hit then -- If we can see the node, walk towards it
-                nextPos = smoothPath[i + 1]
-                if smoothPath[i + 2] then
-                    nextPos = smoothPath[i + 2]
-                end
-                break
-            end
-        end
-
-        if not nextPos then return false end
-
-        -- check if we should jump between our current position and nextPos
-        if self:ShouldJumpBetweenPoints(bot:GetPos(), nextPos) then
-            self:SetJumping(true)
-        end
-
-        --self:LerpLook(self.pathLookSpeed, nextPos)
-        self:OrientTowardsPoint(nextPos)
-
-        if dvlpr then
-            -- TTTBots.DebugServer.DrawSphere(nextPos, TTTBots.PathManager.completeRange, Color(255, 255, 0, 50))
-            local nextpostxt = string.format("NextPos (height difference is %s)", nextPos.z - bot:GetPos().z)
-            TTTBots.DebugServer.DrawText(nextPos, nextpostxt, Color(255, 255, 255))
-            TTTBots.DebugServer.DrawLineBetween(bot:GetPos(), nextPos, Color(255, 255, 255))
-        end
-        return true
     end
+
+    -- Walk towards the next node in the smoothPath that we can see
+    local nextPos = self:DetermineNextPos(smoothPath)
+
+    if not nextPos then return false end
+
+    -- check if we should jump between our current position and nextPos
+    if self:ShouldJumpBetweenPoints(bot:GetPos(), nextPos) then
+        self:SetJumping(true)
+    end
+
+    --self:LerpLook(self.pathLookSpeed, nextPos)
+    self:OrientTowardsPoint(nextPos)
+
+    if dvlpr then
+        -- TTTBots.DebugServer.DrawSphere(nextPos, TTTBots.PathManager.completeRange, Color(255, 255, 0, 50))
+        local nextpostxt = string.format("NextPos (height difference is %s)", nextPos.z - bot:GetPos().z)
+        TTTBots.DebugServer.DrawText(nextPos, nextpostxt, Color(255, 255, 255))
+        TTTBots.DebugServer.DrawLineBetween(bot:GetPos(), nextPos, Color(255, 255, 255))
+    end
+    
+    return true
 end
 
 -----------------------------------------------

@@ -15,7 +15,7 @@ TTTBots.PathManager = {}
 TTTBots.PathManager.cache = {}
 TTTBots.PathManager.cullSeconds = 5
 TTTBots.PathManager.maxCachedPaths = 200
-TTTBots.PathManager.completeRange = 100
+TTTBots.PathManager.completeRange = 32 -- 32 = half player height
 
 
 --[[ Define local A* functions ]]
@@ -352,3 +352,15 @@ end
 timer.Create("TTTBotsPathManagerCullCache", 5, 0, function ()
     PathManager.CullCache()
 end)
+
+--------------------------------------
+-- Utility functions, pathing-related
+--------------------------------------
+
+-- Check how close the bot is to the end of the path, return True if within completion distance completeRange
+function PathManager.BotIsCloseEnough(bot, vec)
+    local completeRange = PathManager.completeRange
+    local botpos = bot:GetPos()
+
+    return (vec:Distance(botpos) < completeRange)
+end
