@@ -59,6 +59,7 @@ function BotLocomotor:Initialize(bot)
     self.lookSpeed = 0 -- Current look speed (rate of lerp)
 
     self.strafe = nil -- "left" or "right" or nil
+    self.forceForward = false -- If true, then the bot will always move forward
 
     self.crouch = false
     self.jump = false
@@ -147,13 +148,21 @@ function BotLocomotor:Think()
     self:UpdateMovement()
 end
 
+-- Pretty much a wrapper for LerpLook, but may be more complex in the future.
+-- This is used to orient the movement/view angles towards a certain point. It does not handle any other movement alone.
+function BotLocomotor:OrientTowardsPoint(vec)
+    self:LerpLook(self.pathLookSpeed, vec)
+end
+
 -- Manage the movement; do not use CMoveData, use the bot's movement functions and fields instead.
 function BotLocomotor:UpdateMovement()
+    self.forceForward = false
     if self.dontmove then return end
 
-    -- If we have a path, follow it
-    if self:ValidatePath() then
-        self:FollowPath()
+    local followingPath = self:FollowPath()
+    if not followingPath and self:ValidatePath() then
+        self:OrientTowardsPoint(self:GetGoalPos())
+        self.forceForward = true
     end
 end
 
@@ -171,6 +180,7 @@ end
 
 -- Determines how the bot navigates through its path once it has one.
 function BotLocomotor:FollowPath()
+    if not self:ValidatePath() then return false end
     local dvlpr = GetConVar("ttt_bot_debug_pathfinding"):GetBool()
     local path = self.path
     local bot = self.bot
@@ -181,7 +191,7 @@ function BotLocomotor:FollowPath()
     if self:ValidatePath() then
         self:SetJumping(false)
         self:SetCrouching(false)
-        local smoothPath = TTTBots.PathManager.SmoothPath(path, 4)
+        local smoothPath = TTTBots.PathManager.SmoothPath2(path, 4)
 
         if dvlpr then
             for i = 1, #smoothPath - 1 do
@@ -190,17 +200,22 @@ function BotLocomotor:FollowPath()
         end
 
         ----------------------------
-        -- Begin following path
+        -- nextpos assignment
         ----------------------------
 
         -- Walk towards the next node in the smoothPath that we can see
         for i = 1, #smoothPath do
             local nodePos = smoothPath[i]
+            nextPos = nodePos
+
+            -- disqualify this point and move on to next if we are within 64 units
+            if bot:GetPos():Distance(nodePos) < 64 then continue end
+
 
             local trace = lib.TraceVisibilityLine(bot, true, nodePos)
-            local traceFoot = lib.TraceVisibilityLine(bot, false, nodePos)
+            --local traceFoot = lib.TraceVisibilityLine(bot, false, nodePos)
 
-            if not trace.Hit and not traceFoot.Hit then -- If we can see the node, walk towards it
+            if not trace.Hit then -- If we can see the node, walk towards it
                 nextPos = smoothPath[i + 1]
                 if smoothPath[i + 2] then
                     nextPos = smoothPath[i + 2]
@@ -209,14 +224,15 @@ function BotLocomotor:FollowPath()
             end
         end
 
-        if not nextPos then return end
+        if not nextPos then return false end
 
         -- check if we should jump between our current position and nextPos
         if self:ShouldJumpBetweenPoints(bot:GetPos(), nextPos) then
             self:SetJumping(true)
         end
 
-        self:LerpLook(self.pathLookSpeed, nextPos)
+        --self:LerpLook(self.pathLookSpeed, nextPos)
+        self:OrientTowardsPoint(nextPos)
 
         if dvlpr then
             -- TTTBots.DebugServer.DrawSphere(nextPos, TTTBots.PathManager.completeRange, Color(255, 255, 0, 50))
@@ -224,6 +240,7 @@ function BotLocomotor:FollowPath()
             TTTBots.DebugServer.DrawText(nextPos, nextpostxt, Color(255, 255, 255))
             TTTBots.DebugServer.DrawLineBetween(bot:GetPos(), nextPos, Color(255, 255, 255))
         end
+        return true
     end
 end
 
@@ -286,7 +303,7 @@ function BotLocomotor:StartCommand(cmd)
         or 0
 
     cmd:SetSideMove(side)
-    cmd:SetForwardMove(forward)
+    cmd:SetForwardMove(not self.forceForward and forward or 400)
 
     -- Set up movement to always be up
     cmd:SetUpMove(400)

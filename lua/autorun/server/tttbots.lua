@@ -63,10 +63,24 @@ hook.Add("StartCommand", "TTTBots_StartCommand", function(ply, cmd)
 end)
 
 
-timer.Create("TTTBots_ChangeGoal", 8, 0, function()
+timer.Create("TTTBots_ChangeGoal", 1, 0, function()
     for i,bot in pairs(player.GetBots()) do
         local locomotor = bot.components.locomotor
-        local randomSpawn = table.Random(ents.FindByClass("info_player_start"))
-        locomotor:SetGoalPos(randomSpawn:GetPos())
+
+        -- local spawns = ents.FindByClass("info_player_start")
+        -- for i,v in pairs(spawns) do
+        --     if v:GetPos():Distance(bot:GetPos()) < 100 then
+        --         table.remove(spawns, i)
+        --     end
+        -- end
+
+        -- locomotor:SetGoalPos(table.Random(spawns):GetPos())
+        
+        -- set goal to human player's aim position
+        local ply = player.GetHumans()[1]
+        if ply then
+            locomotor:SetGoalPos(ply:GetEyeTrace().HitPos)
+        end
+
     end
 end)

@@ -207,25 +207,30 @@ local function getBezierPoints(start, control, finish, numpoints)
     end
 end
 
-function PathManager.CanSeeBetweenAreaCenters(a, b, addheight)
-    local startPos = a:GetCenter()
-    local finish = b:GetCenter()
+function PathManager.CanSeeBetween(vecA, vecB, addheight)
+    local a = Vector(vecA.x, vecA.y, vecA.z)
+    local b = Vector(vecB.x, vecB.y, vecB.z)
+
     if addheight then
-        startPos.z = startPos.z + 32
-        finish.z = finish.z + 32
+        a.z = a.z + 32
+        b.z = b.z + 32
     end
 
     local trace = util.TraceLine({
-        start = startPos,
-        endpos = finish,
+        start = a,
+        endpos = b,
         filter = nil,
         mask = MASK_PLAYERSOLID
     })
 
-    -- temporary debug line
-    TTTBots.DebugServer.DrawLineBetween(startPos, finish, Color(trace.Hit and 255 or 0, not trace.Hit and 255 or 0, 0, 255))
+    return not trace.Hit, trace
+end
 
-    return not trace.Hit -- if we hit something, then we can't see between the two navareas, so return false
+function PathManager.CanSeeBetweenAreaCenters(a, b, addheight)
+    local startPos = a:GetCenter()
+    local finish = b:GetCenter()
+
+    return PathManager.CanSeeBetween(startPos, finish, addheight)
 end
 
 -- Smooths a path of CNavAreas using bezier curves. Returns a table of vectors.
@@ -271,6 +276,38 @@ function PathManager.SmoothPath(path, smoothness)
     end
 
     return smoothPath
+end
+
+-- Use a different smoothing algorithm to smooth the path.
+-- This will grab the edges of the navareas and use them to smooth the path, using the center of each navarea as the control.
+-- This is a bit more accurate than the SmoothPath function, but it is also more expensive.
+function PathManager.SmoothPath2(path, smoothness)
+    local points = {}
+    smoothness = math.max(smoothness, 3)
+
+    for i,area in ipairs(path) do
+        local center = area:GetCenter()
+        local edge1 = (i > 1) and path[i - 1]:GetClosestPointOnArea(center) or center
+        local edge2 = (i < #path) and path[i + 1]:GetClosestPointOnArea(center) or center
+
+        local visionTest = PathManager.CanSeeBetween(edge1, edge2, 32)
+
+        -- if visionTest then use bezier to smooth btwn edge1, edge2 with center as control. use smoothness to determine n of points
+        -- else then add each point raw w/o smoothing
+        if visionTest then
+            for j = 1, smoothness do
+                local t = j / smoothness
+                local point = bezierQuadratic(edge1, center, edge2, t)
+                table.insert(points, point)
+            end
+        else
+            table.insert(points, edge1)
+            table.insert(points, center)
+            table.insert(points, edge2)
+        end
+    end
+
+    return points
 end
 
 --------------------------------------
