@@ -18,10 +18,30 @@ TTTBots.PathManager.maxCachedPaths = 200
 TTTBots.PathManager.completeRange = 32 -- 32 = half player height
 
 
+--[[ Introduce new navmesh/navarea meta functions to make our lives easier ]]
+local ladderMeta = FindMetaTable("CNavLadder")
+
+function ladderMeta:GetCenter()
+    local start = self:GetBottom()
+    local ending = self:GetTop()
+
+    return (start + ending) / 2
+end
+
+function ladderMeta:IsLadder()
+    return true
+end
+
+local navMeta = FindMetaTable("CNavArea")
+
+function navMeta:IsLadder()
+    return false
+end
+
 --[[ Define local A* functions ]]
 
 -- A* Heuristic: Euclidean distance
-local function heuristic_cost_estimate( start, goal )
+local function heuristic_cost_estimate(start, goal)
 	return start:GetCenter():Distance( goal:GetCenter() )
 end
 
@@ -52,7 +72,7 @@ local function Astar( start, goal )
 	-- Set the cost so far and total cost of the start navarea
 	start:SetCostSoFar( 0 )
 	start:SetTotalCost( heuristic_cost_estimate( start, goal ) )
-	start:UpdateOnOpenList() 
+	start:UpdateOnOpenList()
 
 	-- Continue looping until the open list is empty
 	while ( not start:IsOpenListEmpty() ) do
@@ -61,14 +81,17 @@ local function Astar( start, goal )
 
 		-- If the current navarea is the goal navarea, reconstruct and return the path
         if (current == goal) then
-            --print("Found path! Total cost is " .. current:GetTotalCost() .. " and cost so far is " .. current:GetCostSoFar() .. ".")
 			return table.Reverse(reconstruct_path( cameFrom, current ))
 		end
 
 		current:AddToClosedList()
 
-		-- Examine each of the current navarea's neighbors
-		for k, neighbor in pairs( current:GetAdjacentAreas() ) do
+
+        local adjacents = current:GetAdjacentAreas()
+        --table.Add(adjacents, current:GetLadders())
+
+        -- Examine each of the current navarea's neighbors
+		for k, neighbor in pairs( adjacents ) do
 			-- Calculate the cost of reaching the neighbor from the start navarea
 			local newCostSoFar = current:GetCostSoFar() + heuristic_cost_estimate( current, neighbor )
 
