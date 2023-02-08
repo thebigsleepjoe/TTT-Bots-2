@@ -130,7 +130,7 @@ function BotLocomotor:ShouldJumpBetweenPoints(a, b)
     -- draw debug line
     TTTBots.DebugServer.DrawLineBetween(a, trce.HitPos, Color(255, 0, 255))
 
-    local condition = verticalCondition-- and not obstructedCondition1
+    local condition = verticalCondition-- or obstructedCondition1
     -- print(string.format("jumping=%s because verticalCondition=%s and not obstructedCondition1=%s", tostring(condition), tostring(verticalCondition), tostring(not canSee)))
     return condition
 end
@@ -166,6 +166,8 @@ end
 
 -- Manage the movement; do not use CMoveData, use the bot's movement functions and fields instead.
 function BotLocomotor:UpdateMovement()
+    self:SetJumping(false)
+    self:SetCrouching(false)
     self.forceForward = false
     if self.dontmove then return end
 
@@ -215,8 +217,14 @@ function BotLocomotor:DetermineNextPos(pathVecs)
     end
 
     -- TODO: Cut corners if we can see the next point
+    local selected = 2
 
-    return updatedPathVecs[2]
+    -- check if following point is within a crouch navarea. if so, then nextpos is the following point.
+    if #updatedPathVecs > selected + 1 and navmesh.GetNearestNavArea(updatedPathVecs[selected + 1]):IsCrouch() then
+        selected = selected + 1
+    end
+
+    return updatedPathVecs[selected]
 end
 
 -- Determines how the bot navigates through its path once it has one.
@@ -228,10 +236,7 @@ function BotLocomotor:FollowPath()
 
     if not self:ValidatePath() then return false end
 
-    self:SetJumping(false)
-    self:SetCrouching(false)
-
-    local smoothPath = TTTBots.PathManager.SmoothPath2(path, 3)
+    local smoothPath = TTTBots.PathManager.SmoothPathEdges(path)
 
     if dvlpr then
         for i = 1, #smoothPath - 1 do
@@ -249,7 +254,10 @@ function BotLocomotor:FollowPath()
         self:SetJumping(true)
     end
 
-    --self:LerpLook(self.pathLookSpeed, nextPos)
+    if self:ShouldCrouchBetweenPoints(bot:GetPos(), nextPos) then
+        self:SetCrouching(true)
+    end
+
     self:OrientTowardsPoint(nextPos)
 
     if dvlpr then
@@ -296,7 +304,7 @@ function BotLocomotor:StartCommand(cmd)
     -- The way jumping works is a little quirky, as it cannot be held down. We must release it occasionally
     if self:GetJumping() and (self.jumpReleaseTime < CurTime()) or self.jumpReleaseTime == nil then
         cmd:SetButtons(IN_JUMP, IN_DUCK)
-        self.jumpReleaseTime = CurTime() + 0.1
+        self.jumpReleaseTime = CurTime() + 0.5
         
         if dvlpr then
             TTTBots.DebugServer.DrawText(self.bot:GetPos(), "Crouch Jumping", Color(255, 255, 255))
@@ -313,7 +321,6 @@ function BotLocomotor:StartCommand(cmd)
     if lookPos ~= Vector(0, 0, 0) then
         local ang = (lookPos - self.bot:GetPos()):Angle()
         cmd:SetViewAngles(LerpAngle(0.5, cmd:GetViewAngles(), ang))
-        --self.bot:SetEyeAngles(ang)
         self.bot:SetEyeAngles(LerpAngle(0.1, self.bot:EyeAngles(), ang))
     end
 

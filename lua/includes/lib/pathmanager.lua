@@ -38,6 +38,10 @@ function navMeta:IsLadder()
     return false
 end
 
+function navMeta:IsCrouch()
+    return self:HasAttributes(NAV_MESH_CROUCH)
+end
+
 --[[ Define local A* functions ]]
 
 -- A* Heuristic: Euclidean distance
@@ -96,43 +100,45 @@ local function Astar( start, goal )
 			local newCostSoFar = current:GetCostSoFar() + heuristic_cost_estimate( current, neighbor )
 
 			-- Skip this neighbor if it is underwater
-			if ( neighbor:IsUnderwater() ) then
-				continue
-			end
+			-- if ( neighbor:IsUnderwater() ) then
+			-- 	continue
+			-- end
 			
 			-- Skip this neighbor if it has already been fully explored and has a lower cost
 			if ( ( neighbor:IsOpen() or neighbor:IsClosed() ) and neighbor:GetCostSoFar() <= newCostSoFar ) then
 				continue
-			else
-				-- Update the neighbor's cost so far and total cost
-                neighbor:SetCostSoFar(newCostSoFar);
-                
-                -- Add a cost if we need to fall down to get to the neighbor
-                local heightchange = neighbor:ComputeGroundHeightChange(current)
-                if (heightchange > 128) then -- > 2 ply heights
-                    neighbor:SetCostSoFar(heightchange ^ 1.5);
-                elseif (heightchange > 256) then -- do not fall if more than 4 ply heights
-                    neighbor:SetCostSoFar(1000000);
-                end
+            end
+            
+            -- Add a cost if we need to fall down to get to the neighbor
+            local heightchange = neighbor:ComputeGroundHeightChange(current)
+            if (heightchange > 128) then -- > 2 ply heights
+                newCostSoFar = newCostSoFar + (heightchange ^ 1.5);
+            elseif (heightchange > 256) then -- do not fall if more than 4 ply heights
+                newCostSoFar = newCostSoFar + (1000000);
+            end
 
-				neighbor:SetTotalCost( newCostSoFar + heuristic_cost_estimate( neighbor, goal ) )
+            newCostSoFar = newCostSoFar + (neighbor:IsUnderwater() and 50 or 0)
 
-				-- If the neighbor was on the closed list, remove it
-				if ( neighbor:IsClosed() ) then
-					neighbor:RemoveFromClosedList()
-				end
+            -- Update the neighbor's cost so far and total cost
+            neighbor:SetCostSoFar(newCostSoFar);
 
-				-- If the neighbor was on the open list, update its position on the list
-				if ( neighbor:IsOpen() ) then
-					neighbor:UpdateOnOpenList()
-				-- Otherwise, add the neighbor to the open list
-				else
-					neighbor:AddToOpenList()
-				end
+            neighbor:SetTotalCost( newCostSoFar + heuristic_cost_estimate( neighbor, goal ) )
 
-				-- Update the cameFrom table to reflect that the path to the neighbor goes through the current navarea
-				cameFrom[ neighbor:GetID() ] = current:GetID()
-			end
+            -- If the neighbor was on the closed list, remove it
+            if ( neighbor:IsClosed() ) then
+                neighbor:RemoveFromClosedList()
+            end
+
+            -- If the neighbor was on the open list, update its position on the list
+            if ( neighbor:IsOpen() ) then
+                neighbor:UpdateOnOpenList()
+            -- Otherwise, add the neighbor to the open list
+            else
+                neighbor:AddToOpenList()
+            end
+
+            -- Update the cameFrom table to reflect that the path to the neighbor goes through the current navarea
+            cameFrom[ neighbor:GetID() ] = current:GetID()
 		end
 	end
 
@@ -212,28 +218,6 @@ function PathManager.GetPath(startpos, finishpos)
 end
 
 
--------------------------------------
--- Path smoothing (bezier curves)
--------------------------------------
-
--- Bezier curve function; p0 is the start point, p1 is the control point, p2 is the end point, and t is the time.
--- t ranges from 0 to 1, and represents the percentage of the path that has been travelled.
-local function bezierQuadratic(p0, p1, p2, t)
-    local x = (1 - t) ^ 2 * p0.x + 2 * (1 - t) * t * p1.x + t ^ 2 * p2.x
-    local y = (1 - t) ^ 2 * p0.y + 2 * (1 - t) * t * p1.y + t ^ 2 * p2.y
-    local z = (1 - t) ^ 2 * p0.z + 2 * (1 - t) * t * p1.z + t ^ 2 * p2.z
-    return Vector(x, y, z)
-end
-
-local function getBezierPoints(start, control, finish, numpoints)
-    local points = {}
-    for i = 0, numpoints do
-        local t = i / numpoints
-        local point = bezierQuadratic(start, control, finish, t)
-        table.insert(points, point)
-    end
-end
-
 function PathManager.CanSeeBetween(vecA, vecB, addheight)
     local a = Vector(vecA.x, vecA.y, vecA.z)
     local b = Vector(vecB.x, vecB.y, vecB.z)
@@ -259,6 +243,29 @@ function PathManager.CanSeeBetweenAreaCenters(a, b, addheight)
 
     return PathManager.CanSeeBetween(startPos, finish, addheight)
 end
+
+-------------------------------------
+-- Path smoothing (bezier curves)
+-------------------------------------
+
+-- Bezier curve function; p0 is the start point, p1 is the control point, p2 is the end point, and t is the time.
+-- t ranges from 0 to 1, and represents the percentage of the path that has been travelled.
+local function bezierQuadratic(p0, p1, p2, t)
+    local x = (1 - t) ^ 2 * p0.x + 2 * (1 - t) * t * p1.x + t ^ 2 * p2.x
+    local y = (1 - t) ^ 2 * p0.y + 2 * (1 - t) * t * p1.y + t ^ 2 * p2.y
+    local z = (1 - t) ^ 2 * p0.z + 2 * (1 - t) * t * p1.z + t ^ 2 * p2.z
+    return Vector(x, y, z)
+end
+
+local function getBezierPoints(start, control, finish, numpoints)
+    local points = {}
+    for i = 0, numpoints do
+        local t = i / numpoints
+        local point = bezierQuadratic(start, control, finish, t)
+        table.insert(points, point)
+    end
+end
+
 
 -- Smooths a path of CNavAreas using bezier curves. Returns a table of vectors.
 -- smoothness is an integer that represents the number of points to be generated between each navarea.
@@ -335,8 +342,8 @@ function PathManager.SmoothPath2(path, smoothness)
         local edge1 = path[i - 1]:GetClosestPointOnArea(center)
         local edge2 = path[i + 1]:GetClosestPointOnArea(center)
 
-        edge1.z = center.z -- this is so we don't have to worry about the z axis
-        edge2.z = center.z
+        -- edge1.z = center.z -- this is so we don't have to worry about the z axis
+        -- edge2.z = center.z
 
         local visionTest = PathManager.CanSeeBetween(edge1, edge2, 32)
 
@@ -353,6 +360,35 @@ function PathManager.SmoothPath2(path, smoothness)
             table.insert(points, center)
             table.insert(points, edge2)
         end
+    end
+
+    return points
+end
+
+-- Use the edges to "smooth". Basically, does what SmoothPath2, but no bezier curves. Just the edges.
+function PathManager.SmoothPathEdges(path)
+    local points = {}
+
+    for i, area in ipairs(path) do
+        local tooSmallToSmooth = area:GetSizeX() < 64 or area:GetSizeY() < 64
+        if tooSmallToSmooth then
+            table.insert(points, area:GetCenter())
+            continue
+        end
+
+        local center = area:GetCenter()
+
+        if (i == 1) or (i == #path) then
+            table.insert(points, center)
+            continue
+        end
+
+        -- use :GetClosestPointOnArea(vec) to get the closest point on the past/future to our center
+        local edge1 = path[i - 1]:GetClosestPointOnArea(center)
+        local edge2 = path[i + 1]:GetClosestPointOnArea(center)
+
+        table.insert(points, edge1)
+        table.insert(points, edge2)
     end
 
     return points

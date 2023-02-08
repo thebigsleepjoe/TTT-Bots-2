@@ -62,8 +62,7 @@ hook.Add("StartCommand", "TTTBots_StartCommand", function(ply, cmd)
     end
 end)
 
-
-timer.Create("TTTBots_ChangeGoal", 0.2, 0, function()
+timer.Create("TTTBots_ChangeGoal", 16, 0, function()
     for i,bot in pairs(player.GetBots()) do
         local locomotor = bot.components.locomotor
 
@@ -76,11 +75,9 @@ timer.Create("TTTBots_ChangeGoal", 0.2, 0, function()
 
         -- locomotor:SetGoalPos(table.Random(spawns):GetPos())
         
-        -- set goal to human player's aim position
-        local ply = player.GetHumans()[1]
-        if ply then
-            locomotor:SetGoalPos(ply:GetEyeTrace().HitPos)
-        end
+        -- pick a random area
+        local area = table.Random(navmesh.GetAllNavAreas())
+        locomotor:SetGoalPos(area:GetCenter())
 
     end
 end)
