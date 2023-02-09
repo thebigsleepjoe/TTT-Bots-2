@@ -115,24 +115,37 @@ function BotLocomotor:WithinCompleteRange(pos)
     return self.bot:GetPos():Distance(pos) < TTTBots.PathManager.completeRange
 end
 
+-- Do a trace to check if our feet are obstructed, but our head is not.
+function BotLocomotor:CheckFeetAreObstructed()
+    local pos = self.bot:GetPos()
+    local bodyfacingdir = self.bot:GetAimVector()
+    -- disregard z
+    bodyfacingdir.z = 0
+
+    local startpos = pos + Vector(0, 0, 16)
+    local endpos = pos + bodyfacingdir*40
+
+    local trce = util.TraceLine({
+        start = startpos,
+        endpos = endpos,
+        filter = self.bot,
+        mask = MASK_SOLID_BRUSHONLY
+    })
+
+    -- draw debug line
+    TTTBots.DebugServer.DrawLineBetween(startpos, endpos, Color(255, 0, 255))
+
+    return trce.Hit
+end
+
 -- Return true if we should jump between vectors a and b. This is used for pathfinding.
 function BotLocomotor:ShouldJumpBetweenPoints(a, b)
     local verticalCondition = (b.z - a.z) > 8
 
-    local trce = util.TraceLine({
-        start = a,
-        endpos = b,
-        filter = self.bot,
-        mask = MASK_SOLID_BRUSHONLY
-    })
-    local obstructedCondition1 = (trce.HitPos:Distance(b) < 1)
 
-    -- draw debug line
-    TTTBots.DebugServer.DrawLineBetween(a, trce.HitPos, Color(255, 0, 255))
-
-    local condition = verticalCondition-- or obstructedCondition1
+    local condition = verticalCondition
     -- print(string.format("jumping=%s because verticalCondition=%s and not obstructedCondition1=%s", tostring(condition), tostring(verticalCondition), tostring(not canSee)))
-    return condition
+    return condition or self:CheckFeetAreObstructed()
 end
 
 function BotLocomotor:ShouldCrouchBetweenPoints(a, b)
@@ -304,7 +317,7 @@ function BotLocomotor:StartCommand(cmd)
     -- The way jumping works is a little quirky, as it cannot be held down. We must release it occasionally
     if self:GetJumping() and (self.jumpReleaseTime < CurTime()) or self.jumpReleaseTime == nil then
         cmd:SetButtons(IN_JUMP, IN_DUCK)
-        self.jumpReleaseTime = CurTime() + 0.5
+        self.jumpReleaseTime = CurTime() + 0.1
         
         if dvlpr then
             TTTBots.DebugServer.DrawText(self.bot:GetPos(), "Crouch Jumping", Color(255, 255, 255))

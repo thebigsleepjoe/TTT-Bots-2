@@ -59,7 +59,7 @@ function Lib.TraceVisibilityLine(player, fromEyes, finish)
         start = startPos,
         endpos = finish,
         filter = player,
-        mask = MASK_PLAYERSOLID
+        mask = MASK_ALL
     })
     return trace
 end

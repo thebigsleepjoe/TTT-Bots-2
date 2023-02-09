@@ -92,7 +92,19 @@ local function Astar( start, goal )
 
 
         local adjacents = current:GetAdjacentAreas()
-        --table.Add(adjacents, current:GetLadders())
+        for i,ladder in pairs(current:GetLadders()) do
+            local possible = {}
+            table.insert(possible, ladder:GetTopBehindArea())
+            table.insert(possible, ladder:GetTopLeftArea())
+            table.insert(possible, ladder:GetTopRightArea())
+            table.insert(possible, ladder:GetTopForwardArea())
+            table.insert(possible, ladder:GetBottomArea())
+            for k,neighbor in pairs(possible) do
+                if (neighbor) and neighbor ~= current then
+                    table.insert(adjacents, neighbor)
+                end
+            end
+        end
 
         -- Examine each of the current navarea's neighbors
 		for k, neighbor in pairs( adjacents ) do
@@ -231,7 +243,7 @@ function PathManager.CanSeeBetween(vecA, vecB, addheight)
         start = a,
         endpos = b,
         filter = nil,
-        mask = MASK_PLAYERSOLID
+        mask = MASK_ALL
     })
 
     return not trace.Hit, trace
