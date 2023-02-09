@@ -41,7 +41,7 @@ timer.Create("TTTBots_Tick", 0.1, 0, function()
     end
 
     for i,bot in pairs(player.GetBots()) do
-        TTTBots.DebugServer.RenderDebugFor(bot, { "all" })
+        -- TTTBots.DebugServer.RenderDebugFor(bot, { "all" })
 
         for i,component in pairs(bot.components) do
             component:Think()

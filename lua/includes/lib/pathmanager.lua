@@ -63,11 +63,11 @@ end
 
 local function Astar( start, goal )
 	-- Return false if either navarea is invalid or if start == goal
-	if ( not IsValid( start ) or not IsValid( goal ) ) then return false end 
-	if ( start == goal ) then return true end 
+	if ( not IsValid( start ) or not IsValid( goal ) ) then return false end
+	if ( start == goal ) then return true end
 
 	-- cameFrom is a table that will be used to reconstruct the path at the end
-	local cameFrom = {} 
+	local cameFrom = {}
 
 	-- Clear the search lists and add the start navarea to the open list
 	start:ClearSearchLists()
@@ -92,19 +92,6 @@ local function Astar( start, goal )
 
 
         local adjacents = current:GetAdjacentAreas()
-        for i,ladder in pairs(current:GetLadders()) do
-            local possible = {}
-            table.insert(possible, ladder:GetTopBehindArea())
-            table.insert(possible, ladder:GetTopLeftArea())
-            table.insert(possible, ladder:GetTopRightArea())
-            table.insert(possible, ladder:GetTopForwardArea())
-            table.insert(possible, ladder:GetBottomArea())
-            for k,neighbor in pairs(possible) do
-                if (neighbor) and neighbor ~= current then
-                    table.insert(adjacents, neighbor)
-                end
-            end
-        end
 
         -- Examine each of the current navarea's neighbors
 		for k, neighbor in pairs( adjacents ) do
@@ -157,6 +144,8 @@ local function Astar( start, goal )
 	-- Return false if no path was found
 	return false
 end
+
+
 
 local function AstarVector( start, goal )
 	-- Find the nearest navareas to the start and goal positions
@@ -401,6 +390,17 @@ function PathManager.SmoothPathEdges(path)
 
         table.insert(points, edge1)
         table.insert(points, edge2)
+    end
+
+    return points
+end
+
+function PathManager.SmoothPathCenters(path)
+    local points = {}
+
+    for i, area in ipairs(path) do
+        local center = area:GetCenter()
+        table.insert(points, center)
     end
 
     return points

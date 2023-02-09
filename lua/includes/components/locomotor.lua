@@ -46,13 +46,17 @@ function BotLocomotor:Initialize(bot)
     bot.components = bot.components or {}
     bot.components.locomotor = self
 
+    self.tick = 0 -- Tick counter
     self.bot = bot
 
     self.path = nil -- Current path
     self.pathinfo = nil
-    self.pathLookSpeed = 0.5 -- Look speed when following a path
+    self.pathLookSpeed = 0.7 -- Look speed when following a path
 
     self.goalPos = nil -- Current goal position, if any. If nil, then bot is not moving.
+
+    self.tryingMove = false -- If true, then the bot is trying to move to the goal position.
+    self.posOneSecAgo = nil -- Position of the bot one second ago. Used for pathfinding.
 
     self.lookPosOverride = nil -- Override look position, used for looking at people or objects, ! do not use for pathfinding !
     self.lookPos = Vector(0, 0, 0) -- Current look position, gets lerped to Override
@@ -84,7 +88,6 @@ function BotLocomotor:ValidatePath()
     end
 
     if failReason ~= "" then
-        -- print("Path failed: " .. failReason)
         self.path = nil
         self.pathinfo = nil
         return false
@@ -123,7 +126,7 @@ function BotLocomotor:CheckFeetAreObstructed()
     bodyfacingdir.z = 0
 
     local startpos = pos + Vector(0, 0, 16)
-    local endpos = pos + bodyfacingdir*40
+    local endpos = pos + bodyfacingdir*30
 
     local trce = util.TraceLine({
         start = startpos,
@@ -143,9 +146,8 @@ function BotLocomotor:ShouldJumpBetweenPoints(a, b)
     local verticalCondition = (b.z - a.z) > 8
 
 
-    local condition = verticalCondition
-    -- print(string.format("jumping=%s because verticalCondition=%s and not obstructedCondition1=%s", tostring(condition), tostring(verticalCondition), tostring(not canSee)))
-    return condition or self:CheckFeetAreObstructed()
+    local condition = verticalCondition or self:CheckFeetAreObstructed()
+    return condition
 end
 
 function BotLocomotor:ShouldCrouchBetweenPoints(a, b)
@@ -167,6 +169,7 @@ end
 
 -- Tick periodically. Do not tick per GM:StartCommand
 function BotLocomotor:Think()
+    self.tick = self.tick + 1
     self:UpdatePath()
     self:UpdateMovement()
 end
@@ -177,14 +180,81 @@ function BotLocomotor:OrientTowardsPoint(vec)
     self:LerpLook(self.pathLookSpeed, vec)
 end
 
+function BotLocomotor:Unstuck()
+    --[[
+        So we're stuck. Let's send 3x raycasts to figure out why.
+            Ray 1: Straight forward, at knee-height, 30 units long. Mask is everything
+            Ray 2: Straight left, at knee-height, 30 units long. Mask is everything
+            Ray 3: Straight right, at knee-height, 30 units long. Mask is everything
+        IF:
+            Ray 1: We should jump.
+            Ray 2: Strafe right
+            Ray 3: Strafe left
+    ]]
+    local kneePos = self.bot:GetPos() + Vector(0, 0, 16)
+    local bodyfacingdir = self.bot:GetAimVector()
+
+    local magnitude = 30
+    local forward = kneePos + (bodyfacingdir * magnitude)
+    local ang = (bodyfacingdir:Angle():Right() * magnitude * 2)
+    local left = kneePos + ang
+    local right = kneePos - ang
+
+    local trce1 = util.TraceLine({
+        start = kneePos,
+        endpos = forward,
+        filter = self.bot,
+        mask = MASK_ALL
+    })
+
+    local trce2 = util.TraceLine({
+        start = kneePos,
+        endpos = left,
+        filter = self.bot,
+        mask = MASK_ALL
+    })
+
+    local trce3 = util.TraceLine({
+        start = kneePos,
+        endpos = right,
+        filter = self.bot,
+        mask = MASK_ALL
+    })
+
+    -- draw debug lines
+    TTTBots.DebugServer.DrawLineBetween(kneePos, forward, Color(255, 0, 255))
+    TTTBots.DebugServer.DrawLineBetween(kneePos, left, Color(255, 0, 255))
+    TTTBots.DebugServer.DrawLineBetween(kneePos, right, Color(255, 0, 255))
+
+    self:SetJumping(false)
+    self:SetCrouching(false)
+    self:SetStrafe(nil)
+
+    self:SetJumping(trce1.Hit)
+    self:SetStrafe(
+        (trce2.Hit and "left") or
+        (trce3.Hit and "right") or
+        nil
+    )
+
+    if not (trce1.Hit or trce2.Hit or trce3.Hit) then
+        -- We are still stuck but we can't figure out why. Just strafe in a random direction based off of the current tick.
+        local direction = (self.tick % 20 == 0) and "left" or "right"
+        self:SetStrafe(direction)
+    end
+end
+
 -- Manage the movement; do not use CMoveData, use the bot's movement functions and fields instead.
 function BotLocomotor:UpdateMovement()
     self:SetJumping(false)
     self:SetCrouching(false)
+    self:SetStrafe(nil)
     self.forceForward = false
+    self.tryingMove = false
     if self.dontmove then return end
 
     local followingPath = self:FollowPath() -- true if doing proper pathing
+    self.tryingMove = followingPath
 
     -- Walk straight towards the goal if it doesn't require complex pathing.
     local goal = self:GetGoalPos()
@@ -192,7 +262,47 @@ function BotLocomotor:UpdateMovement()
     if goal and not followingPath and not self:CloseEnoughTo(goal)then
         self:OrientTowardsPoint(goal)
         self.forceForward = true
+        self.tryingMove = true
     end
+
+    -----------------------
+    -- Unstuck code
+    -----------------------
+
+    if not self.tryingMove then return end
+
+    -- If we're stuck, try to get unstuck.
+    self:RecordPosition()
+    if self:IsStuck() then
+        self:Unstuck()
+    end
+end
+
+-- Record the bot's position. This is used for getting the bot unstuck from weird situations.
+function BotLocomotor:RecordPosition()
+    if self.lastPositions == nil then self.lastPositions = {} end
+    table.insert(self.lastPositions, self.bot:GetPos())
+
+    if #self.lastPositions > 10 then
+        table.remove(self.lastPositions, 1)
+    end
+end
+
+-- Check if the bot is stuck. This is used for getting the bot unstuck from weird situations.
+function BotLocomotor:IsStuck()
+    if self.lastPositions == nil then return false end
+    if #self.lastPositions < 10 then return false end
+
+    local pos = self.bot:GetPos()
+    local avgPos = Vector(0, 0, 0)
+    for _, v in pairs(self.lastPositions) do
+        avgPos = avgPos + v
+    end
+    avgPos = avgPos / #self.lastPositions
+
+    local dist = pos:Distance(avgPos)
+
+    return dist < 8
 end
 
 -- Update the path. Requests a path from our current position to our goal position. Done as a tick-level function for performance reasons.
@@ -202,8 +312,14 @@ function BotLocomotor:UpdatePath()
 
     -- If we don't have a path, request one
     self.pathinfo = TTTBots.PathManager.RequestPath(self.bot:GetPos(), self:GetGoalPos())
-    if self.pathinfo then
+    self.smoothPath = nil
+    if self.pathinfo and type(self.pathinfo.path) == "table" then
         self.path = self.pathinfo.path
+        self.smoothPath = TTTBots.PathManager.SmoothPath2(self.path, 3)
+    else
+        self.pathinfo = nil
+        self.path = nil
+        self.smoothPath = nil
     end
 end
 
@@ -244,19 +360,21 @@ end
 function BotLocomotor:FollowPath()
     if not self:ValidatePath() then return false end
     local dvlpr = GetConVar("ttt_bot_debug_pathfinding"):GetBool()
-    local path = self.path
     local bot = self.bot
 
     if not self:ValidatePath() then return false end
 
-    local smoothPath = TTTBots.PathManager.SmoothPathEdges(path)
+    if (self.smoothPath == nil) then
+        self.smoothPath = TTTBots.PathManager.SmoothPath2(self.path, 3)
+    end
+
+    local smoothPath = self.smoothPath --TTTBots.PathManager.SmoothPath2(path, 3)
 
     if dvlpr then
         for i = 1, #smoothPath - 1 do
             TTTBots.DebugServer.DrawLineBetween(smoothPath[i], smoothPath[i + 1], Color(0, 125, 255))
         end
     end
-
     -- Walk towards the next node in the smoothPath that we can see
     local nextPos = self:DetermineNextPos(smoothPath)
 
@@ -277,7 +395,7 @@ function BotLocomotor:FollowPath()
         -- TTTBots.DebugServer.DrawSphere(nextPos, TTTBots.PathManager.completeRange, Color(255, 255, 0, 50))
         local nextpostxt = string.format("NextPos (height difference is %s)", nextPos.z - bot:GetPos().z)
         TTTBots.DebugServer.DrawText(nextPos, nextpostxt, Color(255, 255, 255))
-        TTTBots.DebugServer.DrawLineBetween(bot:GetPos(), nextPos, Color(255, 255, 255))
+        -- TTTBots.DebugServer.DrawLineBetween(bot:GetPos(), nextPos, Color(255, 255, 255))
     end
     
     return true
@@ -341,8 +459,8 @@ function BotLocomotor:StartCommand(cmd)
     local forward = hasPath and 400 or 0
 
     local side = cmd:GetSideMove()
-    side = (-400 and self.strafe == "left")
-        or (400 and self.strafe == "right")
+    side = (self:GetStrafe() == "left" and -400)
+        or (self:GetStrafe() == "right" and 400)
         or 0
 
     cmd:SetSideMove(side)
