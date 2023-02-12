@@ -645,6 +645,41 @@ local humannames = {
     "Zachary"
 }
 
+local namePrefixes = {
+    "The",
+    "A",
+    "An",
+    "Your",
+    "My",
+    "His",
+    "Her",
+    "Their",
+    "Our",
+    "Your",
+    "Blue",
+    "Red",
+    "Green",
+    "Yellow",
+    "Purple",
+    "Orange",
+    "Pink",
+    "Black",
+    "White",
+}
+
+local namePostfixes = {
+    "The Great",
+    "The Wise",
+    "The Brave",
+    ", M.D.",
+    ", Esq.",
+    "The Magnificent",
+    "(Retired)",
+    "The Terrible",
+    "(Stupid)",
+    "The Unfortunate",
+}
+
 -- Names suggested to me by community members.
 -- Thanks to all of you! <3
 -- WARNING: These names are not guaranteed to be safe for work, and many are offensive.
@@ -806,6 +841,8 @@ function Lib.GenerateName()
     local use_number = math.random(1, 100) > 80
     local use_adjective = math.random(1, 100) > 60
     local use_animal = math.random(1, 100) > 50 -- else use human name
+    local use_prefix = math.random(1, 100) > 80
+    local use_postfix = math.random(1, 100) > 80
 
     local use_community_name = GetConVar("ttt_bot_community_names"):GetBool() and math.random(1, 100) > 30
 
@@ -830,6 +867,14 @@ function Lib.GenerateName()
         end
     else
         name = name_override
+    end
+
+    if use_prefix then
+        name = namePrefixes[math.random(1, #namePrefixes)] .. name
+    end
+
+    if use_postfix then
+        name = name .. namePostfixes[math.random(1, #namePostfixes)]
     end
 
     if leetify then

@@ -43,8 +43,10 @@ concommand.Add("ttt_bot_kick", function(ply, cmd, args)
         return
     end
     for _, bot in pairs(player.GetBots()) do
-        if bot:Nick() == botname then
+        if bot:Nick() == botname or botname == "all" then
             bot:Kick("Kicked by " .. (ply and ply:Nick() or "[Server]") .. " using ttt_bot_kick")
+        end
+        if not botname == "all" then
             return
         end
     end

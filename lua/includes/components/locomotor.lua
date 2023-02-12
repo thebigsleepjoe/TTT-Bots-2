@@ -36,7 +36,7 @@ local BotLocomotor = TTTBots.Components.Locomotor
 
 function BotLocomotor:New(bot)
     local newLocomotor = {}
-    setmetatable(newLocomotor, self)
+    setmetatable(newLocomotor, BotLocomotor)
     self.__index = self
     self:Initialize(bot)
     return newLocomotor
@@ -45,6 +45,8 @@ end
 function BotLocomotor:Initialize(bot)
     bot.components = bot.components or {}
     bot.components.locomotor = self
+
+    self.componentID = string.format("locomotor (%s)", lib.GenerateID() ) -- Component ID, used for debugging
 
     self.tick = 0 -- Tick counter
     self.bot = bot
@@ -359,7 +361,7 @@ end
 -- Determines how the bot navigates through its path once it has one.
 function BotLocomotor:FollowPath()
     if not self:ValidatePath() then return false end
-    local dvlpr = GetConVar("ttt_bot_debug_pathfinding"):GetBool()
+    local dvlpr = lib.GetDebugFor("pathfinding")
     local bot = self.bot
 
     if not self:ValidatePath() then return false end
@@ -419,7 +421,7 @@ function BotLocomotor:StartCommand(cmd)
     if not lib.IsBotAlive(self.bot) then return end
 
     local hasPath = self:ValidatePath()
-    local dvlpr = GetConVar("ttt_bot_debug_pathfinding"):GetBool()
+    local dvlpr = lib.GetDebugFor("pathfinding")
 
     if self.bot:GetMoveType() == MOVETYPE_LADDER then
         cmd:SetButtons(IN_FORWARD)

@@ -13,6 +13,15 @@ function Lib.IsBotAlive(bot)
     return IsValid(bot) and not (bot:IsSpec() and bot:Alive())
 end
 
+-- Generate lowercase alphanumeric string of length 6
+function Lib.GenerateID()
+    local id = ""
+    for i = 1, 6 do
+        id = id .. string.char(math.random(97, 122))
+    end
+    return id
+end
+
 function Lib.PrintInitMessage()
     print("~~~~~~~~~~~~~~~~~~~~~")
     print("TTT Bots initialized!")
@@ -33,17 +42,33 @@ function Lib.CheckCompatibleGamemode()
     return table.HasValue(compatible, engine.ActiveGamemode())
 end
 
+function Lib.GetDebugFor(debugType)
+    local debugTypes = {
+        all = "ttt_bot_debug_all",
+        pathfinding = "ttt_bot_debug_pathfinding",
+        look = "ttt_bot_debug_look",
+    }
+    return GetConVar(debugTypes[debugType]):GetBool()
+end
+
 function Lib.CreateBot(name)
     if not Lib.CheckIfPlayerSlots() then
         TTTBots.Chat.BroadcastInChat("Somebody tried to add a bot, but there are not enough player slots.")
         return false
     end
-    name = name or TTTBots.Lib.GenerateName()
+    name = name or Lib.GenerateName()
     local bot = player.CreateNextBot(name)
 
     bot.components = {
         locomotor = TTTBots.Components.Locomotor:New(bot)
     }
+
+    local dvlpr = Lib.GetDebugFor("all")
+    if dvlpr then
+        for i,v in pairs(bot.components) do
+            print(string.format("Bot %s component '%s', ID is: %s", bot:Nick(), i, v.componentID))
+        end
+    end
 
     return bot
 end

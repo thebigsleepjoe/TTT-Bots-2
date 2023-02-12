@@ -61,6 +61,8 @@ local function reconstruct_path( cameFrom, current )
 	return total_path
 end
 
+--A* pathfinding algorithm, obsolete
+---@deprecated
 local function Astar( start, goal )
 	-- Return false if either navarea is invalid or if start == goal
 	if ( not IsValid( start ) or not IsValid( goal ) ) then return false end
@@ -145,7 +147,86 @@ local function Astar( start, goal )
 	return false
 end
 
+function TTTBots.PathManager.Astar2(start, goal)
+    if (not IsValid(start) or not IsValid(goal)) then return false end
+    if (start == nil) or (goal == nil) then return false end
+	if ( start == goal ) then return true end
 
+    local open = {
+        {area=start, cost=0},
+    }
+    local closed = {}
+
+    while (#open > 0) do
+        local current = table.remove(open, 1)
+        table.insert(closed, current)
+
+        if (current.area == goal) then
+            local path = {current.area}
+            while (current.parent) do
+                current = current.parent
+                table.insert(path, current.area)
+            end
+            return table.Reverse(path)
+        end
+
+        local adjacents = current.area:GetAdjacentAreas()
+        --local ladders = current.area:GetLadders()
+        table.Add(adjacents, ladders)
+
+        for k, neighbor in pairs(adjacents) do
+            local currentCost = current.cost + heuristic_cost_estimate(current.area, neighbor)
+
+            if neighbor:IsLadder() then
+                currentCost = currentCost + neighbor:GetLength()
+            else
+                local heightchange = neighbor:ComputeGroundHeightChange(current.area)
+                if (heightchange > 128) then -- > 2 ply heights
+                    currentCost = currentCost + (heightchange ^ 1.5);
+                elseif (heightchange > 256) then -- do not fall if more than 4 ply heights
+                    currentCost = currentCost + (1000000);
+                end
+
+                currentCost = currentCost + (neighbor:IsUnderwater() and 50 or 0)
+            end
+
+            local found = false
+            for k, v in pairs(open) do
+                if (v.area == neighbor) then
+                    if (v.cost > currentCost) then
+                        v.cost = currentCost
+                        v.parent = current
+                    end
+                    found = true
+                    break
+                end
+            end
+
+            if (found) then continue end
+
+            for k, v in pairs(closed) do
+                if (v.area == neighbor) then
+                    if (v.cost > currentCost) then
+                        v.cost = currentCost
+                        v.parent = current
+                        table.insert(open, v)
+                        table.remove(closed, k)
+                    end
+                    found = true
+                    break
+                end
+            end
+
+            if (found) then continue end
+
+            table.insert(open, {area=neighbor, cost=currentCost, parent=current})
+        end
+
+        table.sort(open, function(a, b) return a.cost < b.cost end)
+    end
+
+    return false
+end
 
 local function AstarVector( start, goal )
 	-- Find the nearest navareas to the start and goal positions
@@ -153,7 +234,7 @@ local function AstarVector( start, goal )
 	local goalArea = navmesh.GetNearestNavArea( goal )
 
 	-- Find a path between the start and goal navareas
-	return Astar( startArea, goalArea )
+	return TTTBots.PathManager.Astar2( startArea, goalArea )
 end
 
 
@@ -189,7 +270,7 @@ function PathManager.GeneratePath(startpos, finishpos)
     local goalArea = navmesh.GetNearestNavArea(finishpos)
 
     -- Find a path between the start and goal navareas
-    local path = Astar(startArea, goalArea)
+    local path = PathManager.Astar2(startArea, goalArea)
     if not path then return false end
 
     local pathinfo = {
@@ -267,6 +348,58 @@ local function getBezierPoints(start, control, finish, numpoints)
     end
 end
 
+-- Processes a table of vectors and returns a table of vectors that are placed on the navmesh,
+-- at least 32 units from the edges of the navmesh.
+function PathManager.PlacePointsOnNavarea(vectors)
+    local points = {}
+
+    for i = 1, #vectors do
+        local point = vectors[i]
+        local navarea = navmesh.GetNearestNavArea(point)
+
+        if not navarea then continue end
+
+        local center = navarea:GetCenter()
+        local extents = navarea:GetExtents()
+
+        local x = math.Clamp(point.x, center.x - extents.x + 32, center.x + extents.x - 32)
+        local y = math.Clamp(point.y, center.y - extents.y + 32, center.y + extents.y - 32)
+        local z = math.Clamp(point.z, center.z - extents.z + 32, center.z + extents.z - 32)
+
+        table.insert(points, Vector(x, y, z))
+    end
+
+    return points
+end
+
+--- This function will return a path based off the requested algorithm.
+--- Possible algorithms are: "smoothpath", "smoothpath2", "smoothpathedges", "smoothpathcenters"
+---@param smoothness integer The number of points to be generated between each navarea, if the algorithm uses it. 3 is the best value.
+function PathManager.GetSmoothedPath(path, algorithm, smoothness)
+    -- each algorithm is the name of a function in the PathManager table,
+    local algos = {
+        smoothpath = {
+            func = PathManager.SmoothPath,
+            vals = {path, smoothness or 3}
+        },
+        smoothpath2 = {
+            func = PathManager.SmoothPath2,
+            vals = {path, smoothness or 3}
+        },
+        smoothpathedges = {
+            func = PathManager.SmoothPathEdges,
+            vals = {path}
+        },
+        smoothpathcenters = {
+            func = PathManager.SmoothPathCenters,
+            vals = {path}
+        }
+    }
+
+    local algo = algos[algorithm]
+    if not algo then error(string.format("Attempt to use non-existant algorithm, '%s'", algorithm)) end
+    return algo.func(table.unpack(algo.vals))
+end
 
 -- Smooths a path of CNavAreas using bezier curves. Returns a table of vectors.
 -- smoothness is an integer that represents the number of points to be generated between each navarea.

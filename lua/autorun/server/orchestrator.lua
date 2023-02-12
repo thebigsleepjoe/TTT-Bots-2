@@ -35,7 +35,7 @@ print("good to go")
 
 -- Bot behavior
 timer.Create("TTTBots_Tick", 0.1, 0, function()
-    if GetConVar("ttt_bot_debug_all"):GetBool() then
+    if Lib.GetDebugFor("all") then
         RunConsoleCommand("ttt_idle_limit", "999999")
         RunConsoleCommand("developer", "1")
     end
