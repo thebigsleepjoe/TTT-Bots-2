@@ -36,9 +36,16 @@ local BotLocomotor = TTTBots.Components.Locomotor
 
 function BotLocomotor:New(bot)
     local newLocomotor = {}
-    setmetatable(newLocomotor, BotLocomotor)
-    self.__index = self
-    self:Initialize(bot)
+    setmetatable(newLocomotor, {
+        __index = function(t, k) return BotLocomotor[k] end,
+    })
+    newLocomotor:Initialize(bot)
+
+    local dbg = lib.GetDebugFor("all")
+    if dbg then
+        print("Initialized locomotor for bot ".. bot:Nick())
+    end
+
     return newLocomotor
 end
 

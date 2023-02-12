@@ -32,6 +32,52 @@ function ladderMeta:IsLadder()
     return true
 end
 
+function ladderMeta:GetConnectionTypeBetween(other)
+    return "walk"
+end
+
+function ladderMeta:GetAdjacentAreas()
+    local adjacents = {
+        self:GetBottomArea(),
+        self:GetTopBehindArea(),
+        self:GetTopForwardArea(),
+        self:GetTopLeftArea(),
+        self:GetTopRightArea(),
+    }
+
+    local adjacentsFilter = {}
+    for i,area in pairs(adjacents) do
+        if (area) then
+            table.insert(adjacentsFilter, area)
+        end
+    end
+    
+    return adjacents
+end
+
+function ladderMeta:GetLadders()
+    return {}
+end
+
+-- same as CNavArea's function, get distance between GetCenter()'s
+function ladderMeta:ComputeGroundHeightChange(other)
+    return self:GetCenter().z - other:GetCenter().z
+end
+
+function ladderMeta:GetClosestPointOnArea(vec)
+    local bottom = self:GetBottom()
+    local top = self:GetTop()
+
+    local distTop = vec:Distance(top)
+    local distBottom = vec:Distance(bottom)
+
+    if (distTop < distBottom) then
+        return top
+    else
+        return bottom
+    end
+end
+
 local navMeta = FindMetaTable("CNavArea")
 
 function navMeta:IsLadder()
@@ -40,6 +86,20 @@ end
 
 function navMeta:IsCrouch()
     return self:HasAttributes(NAV_MESH_CROUCH)
+end
+
+-- Infer the type of connection between two navareas
+function navMeta:GetConnectionTypeBetween(other)
+    local heightDiff = self:ComputeGroundHeightChange(other)
+    if other:IsLadder() then return "ladder" end
+
+    if heightDiff == 0 then
+        return "walk"
+    elseif heightDiff > 32 then
+        return "jump"
+    elseif heightDiff < -32 then
+        return "drop"
+    end
 end
 
 --[[ Define local A* functions ]]
@@ -59,92 +119,6 @@ local function reconstruct_path( cameFrom, current )
 		table.insert( total_path, navmesh.GetNavAreaByID( current ) )
     end
 	return total_path
-end
-
---A* pathfinding algorithm, obsolete
----@deprecated
-local function Astar( start, goal )
-	-- Return false if either navarea is invalid or if start == goal
-	if ( not IsValid( start ) or not IsValid( goal ) ) then return false end
-	if ( start == goal ) then return true end
-
-	-- cameFrom is a table that will be used to reconstruct the path at the end
-	local cameFrom = {}
-
-	-- Clear the search lists and add the start navarea to the open list
-	start:ClearSearchLists()
-	start:AddToOpenList()
-
-	-- Set the cost so far and total cost of the start navarea
-	start:SetCostSoFar( 0 )
-	start:SetTotalCost( heuristic_cost_estimate( start, goal ) )
-	start:UpdateOnOpenList()
-
-	-- Continue looping until the open list is empty
-	while ( not start:IsOpenListEmpty() ) do
-		-- Pop the navarea with the lowest total cost off the open list and add it to the closed list
-		local current = start:PopOpenList()
-
-		-- If the current navarea is the goal navarea, reconstruct and return the path
-        if (current == goal) then
-			return table.Reverse(reconstruct_path( cameFrom, current ))
-		end
-
-		current:AddToClosedList()
-
-
-        local adjacents = current:GetAdjacentAreas()
-
-        -- Examine each of the current navarea's neighbors
-		for k, neighbor in pairs( adjacents ) do
-			-- Calculate the cost of reaching the neighbor from the start navarea
-			local newCostSoFar = current:GetCostSoFar() + heuristic_cost_estimate( current, neighbor )
-
-			-- Skip this neighbor if it is underwater
-			-- if ( neighbor:IsUnderwater() ) then
-			-- 	continue
-			-- end
-			
-			-- Skip this neighbor if it has already been fully explored and has a lower cost
-			if ( ( neighbor:IsOpen() or neighbor:IsClosed() ) and neighbor:GetCostSoFar() <= newCostSoFar ) then
-				continue
-            end
-            
-            -- Add a cost if we need to fall down to get to the neighbor
-            local heightchange = neighbor:ComputeGroundHeightChange(current)
-            if (heightchange > 128) then -- > 2 ply heights
-                newCostSoFar = newCostSoFar + (heightchange ^ 1.5);
-            elseif (heightchange > 256) then -- do not fall if more than 4 ply heights
-                newCostSoFar = newCostSoFar + (1000000);
-            end
-
-            newCostSoFar = newCostSoFar + (neighbor:IsUnderwater() and 50 or 0)
-
-            -- Update the neighbor's cost so far and total cost
-            neighbor:SetCostSoFar(newCostSoFar);
-
-            neighbor:SetTotalCost( newCostSoFar + heuristic_cost_estimate( neighbor, goal ) )
-
-            -- If the neighbor was on the closed list, remove it
-            if ( neighbor:IsClosed() ) then
-                neighbor:RemoveFromClosedList()
-            end
-
-            -- If the neighbor was on the open list, update its position on the list
-            if ( neighbor:IsOpen() ) then
-                neighbor:UpdateOnOpenList()
-            -- Otherwise, add the neighbor to the open list
-            else
-                neighbor:AddToOpenList()
-            end
-
-            -- Update the cameFrom table to reflect that the path to the neighbor goes through the current navarea
-            cameFrom[ neighbor:GetID() ] = current:GetID()
-		end
-	end
-
-	-- Return false if no path was found
-	return false
 end
 
 function TTTBots.PathManager.Astar2(start, goal)
@@ -171,7 +145,7 @@ function TTTBots.PathManager.Astar2(start, goal)
         end
 
         local adjacents = current.area:GetAdjacentAreas()
-        --local ladders = current.area:GetLadders()
+        local ladders = current.area:GetLadders()
         table.Add(adjacents, ladders)
 
         for k, neighbor in pairs(adjacents) do
@@ -180,11 +154,18 @@ function TTTBots.PathManager.Astar2(start, goal)
             if neighbor:IsLadder() then
                 currentCost = currentCost + neighbor:GetLength()
             else
-                local heightchange = neighbor:ComputeGroundHeightChange(current.area)
+                local heightchange = current.area:ComputeGroundHeightChange(neighbor)
                 if (heightchange > 128) then -- > 2 ply heights
                     currentCost = currentCost + (heightchange ^ 1.5);
                 elseif (heightchange > 256) then -- do not fall if more than 4 ply heights
                     currentCost = currentCost + (1000000);
+                end
+
+                local connectionType = current.area:GetConnectionTypeBetween(neighbor)
+                if (connectionType == "jump") then
+                    currentCost = currentCost + 75
+                elseif (connectionType == "drop") then
+                    currentCost = currentCost + 50
                 end
 
                 currentCost = currentCost + (neighbor:IsUnderwater() and 50 or 0)
@@ -454,6 +435,23 @@ function PathManager.SmoothPath2(path, smoothness)
     smoothness = math.max(smoothness, 3)
 
     for i, area in ipairs(path) do
+        if area:IsLadder() then
+            -- table.insert(points, area:GetBottom())
+            -- table.insert(points, area:GetTop())
+            local top = area:GetTop()
+            local bottom = area:GetBottom()
+            
+            TTTBots.DebugServer.DrawLineBetween(top, bottom, Color(0, 0, 0))
+
+            table.insert(points, area:GetCenter())
+            -- table.insert(points, top)
+            -- table.insert(points, bottom)
+
+
+            continue
+        end
+
+
         local tooSmallToSmooth = area:GetSizeX() < 64 or area:GetSizeY() < 64
         if tooSmallToSmooth then
             table.insert(points, area:GetCenter())
