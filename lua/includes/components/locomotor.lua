@@ -127,6 +127,10 @@ function BotLocomotor:WithinCompleteRange(pos)
     return self.bot:GetPos():Distance(pos) < TTTBots.PathManager.completeRange
 end
 
+function BotLocomotor:IsOnLadder()
+    return self.bot:GetMoveType() == MOVETYPE_LADDER
+end
+
 -- Do a trace to check if our feet are obstructed, but our head is not.
 function BotLocomotor:CheckFeetAreObstructed()
     local pos = self.bot:GetPos()
@@ -332,7 +336,10 @@ function BotLocomotor:UpdatePath()
     end
 end
 
-function BotLocomotor:DetermineNextPos(pathVecs)
+function BotLocomotor:DetermineNextPos(pathVecs, areas)
+    if pathVecs == nil or areas == nil or #pathVecs == 0 then
+        return false
+    end
     local bot = self.bot
 
     -- start by just pathing towards the closest vector to us
@@ -341,7 +348,7 @@ function BotLocomotor:DetermineNextPos(pathVecs)
     local closestIndex = 1
     for i = 2, #pathVecs do
         local dist = bot:GetPos():Distance(pathVecs[i])
-        if dist < closestDist then
+        if dist < closestDist and not TTTBots.PathManager.BotIsCloseEnough(bot, pathVecs[i]) then
             closestDist = dist
             closestVec = pathVecs[i]
             closestIndex = i
@@ -350,8 +357,10 @@ function BotLocomotor:DetermineNextPos(pathVecs)
 
     -- Re-add every point after closestIndex
     local updatedPathVecs = {}
+    local updatedAreas = {}
     for i = closestIndex, #pathVecs do
         table.insert(updatedPathVecs, pathVecs[i])
+        table.insert(updatedAreas, areas[i])
     end
 
     -- TODO: Cut corners if we can see the next point
@@ -359,6 +368,10 @@ function BotLocomotor:DetermineNextPos(pathVecs)
 
     -- check if following point is within a crouch navarea. if so, then nextpos is the following point.
     if #updatedPathVecs > selected + 1 and navmesh.GetNearestNavArea(updatedPathVecs[selected + 1]):IsCrouch() then
+        selected = selected + 1
+    end
+
+    if updatedAreas[selected + 1] and updatedAreas[selected]:GetConnectionTypeBetween(updatedAreas[selected + 1]) == "jump" then
         selected = selected + 1
     end
 
@@ -373,11 +386,14 @@ function BotLocomotor:FollowPath()
 
     if not self:ValidatePath() then return false end
 
-    if (self.smoothPath == nil) then
-        self.smoothPath = TTTBots.PathManager.SmoothPath2(self.path, 3)
+    if (self.smoothPath == nil or self.areas == nil) then
+        local sp, ars = TTTBots.PathManager.SmoothPath2(self.path, 3)
+        self.smoothPath = sp
+        self.areas = ars
     end
 
     local smoothPath = self.smoothPath --TTTBots.PathManager.SmoothPath2(path, 3)
+    local areas = self.areas
 
     if dvlpr then
         for i = 1, #smoothPath - 1 do
@@ -385,7 +401,7 @@ function BotLocomotor:FollowPath()
         end
     end
     -- Walk towards the next node in the smoothPath that we can see
-    local nextPos = self:DetermineNextPos(smoothPath)
+    local nextPos = self:DetermineNextPos(smoothPath, areas)
 
     if not nextPos then return false end
 
@@ -430,10 +446,6 @@ function BotLocomotor:StartCommand(cmd)
     local hasPath = self:ValidatePath()
     local dvlpr = lib.GetDebugFor("pathfinding")
 
-    if self.bot:GetMoveType() == MOVETYPE_LADDER then
-        cmd:SetButtons(IN_FORWARD)
-        return
-    end
 
     -- SetButtons to IN_DUCK if crouch is true
     cmd:SetButtons(
@@ -454,7 +466,7 @@ function BotLocomotor:StartCommand(cmd)
     -- Set viewangles to lookPos, and lerp to override if not nil
     local lookPos = self.lookPos
     if self.lookPosOverride then
-        lookPos = LerpVector(FrameTime() * self.lookSpeed, lookPos, self.lookPosOverride)
+        lookPos = LerpVector(self.lookSpeed, lookPos, self.lookPosOverride)
     end
 
     -- if lookPos is (0, 0, 0) then skip
@@ -472,6 +484,16 @@ function BotLocomotor:StartCommand(cmd)
         or (self:GetStrafe() == "right" and 400)
         or 0
 
+    if self:IsOnLadder() then -- Ladder movement
+        cmd:ClearButtons()
+        cmd:SetButtons(IN_FORWARD)
+
+        if side ~= 0 and self:IsOnLadder() then
+            cmd:SetButtons(side < 0 and IN_LEFT or IN_RIGHT, IN_BACK)
+        end
+        return
+    end
+    
     cmd:SetSideMove(side)
     cmd:SetForwardMove(not self.forceForward and forward or 400)
 

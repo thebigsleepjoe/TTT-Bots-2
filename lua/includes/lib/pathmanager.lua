@@ -100,6 +100,8 @@ function navMeta:GetConnectionTypeBetween(other)
     elseif heightDiff < -32 then
         return "drop"
     end
+
+    return "walk" -- idk, just walk
 end
 
 --[[ Define local A* functions ]]
@@ -169,6 +171,10 @@ function TTTBots.PathManager.Astar2(start, goal)
                 end
 
                 currentCost = currentCost + (neighbor:IsUnderwater() and 50 or 0)
+
+                if (neighbor:IsCrouch()) then
+                    currentCost = currentCost + 50
+                end
             end
 
             local found = false
@@ -378,13 +384,17 @@ function PathManager.SmoothPath2(path, smoothness)
 
             -- if we're closer to the top, then we want to go DOWN the ladder
             if topdist < bottomdist then
-                table.insert(points, area:GetBottom())
+                TTTBots.DebugServer.DrawLineBetween(lastcenter, top, Color(255, 0, 0))
+
+                table.insert(points, top)
                 table.insert(points, area:GetCenter())
-                table.insert(points, area:GetTop())
+                table.insert(points, bottom)
             else
-                table.insert(points, area:GetTop())
+                TTTBots.DebugServer.DrawLineBetween(lastcenter, bottom, Color(255, 0, 0))
+
+                table.insert(points, bottom)
                 table.insert(points, area:GetCenter())
-                table.insert(points, area:GetBottom())
+                table.insert(points, top)
             end
 
             table.insert(areas, area)
