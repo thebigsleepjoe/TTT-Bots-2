@@ -354,16 +354,16 @@ function PathManager.PlacePointsOnNavarea(vectors)
     return points
 end
 
---- This function will return a path based off the requested algorithm.
---- Possible algorithms are: "smoothpath", "smoothpath2", "smoothpathedges", "smoothpathcenters"
+-- Returns a processed, smooth path using the SmoothPath2 algorithm.
+---@param path table A table of navareas and navladders that composes a real path.
 ---@param smoothness integer The number of points to be generated between each navarea, if the algorithm uses it. 3 is the best value.
 function PathManager.GetSmoothedPath(path, smoothness)
-    -- each algorithm is the name of a function in the PathManager table,
+    -- place on points on navmesh using PathManager.PlacePointsOnNavarea
+    local path, areas = PathManager.SmoothPath2(path, smoothness)
 
-    local algo = PathManager.SmoothPath2
-    -- Todo: place on points on navmesh using PathManager.PlacePointsOnNavarea
+    path = PathManager.PlacePointsOnNavarea(path)
 
-    return algo.func(table.unpack(algo.vals))
+    return path, areas
 end
 
 -- Use a different smoothing algorithm to smooth the path.
