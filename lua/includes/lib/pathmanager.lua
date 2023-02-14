@@ -137,7 +137,6 @@ function TTTBots.PathManager.Astar2(start, goal)
 
         if (current.area == goal) then
             local path = {current.area}
-            print("Cost of path " .. current.cost)
             while (current.parent) do
                 current = current.parent
                 table.insert(path, current.area)
@@ -321,25 +320,18 @@ local function bezierQuadratic(p0, p1, p2, t)
     return Vector(x, y, z)
 end
 
-local function getBezierPoints(start, control, finish, numpoints)
-    local points = {}
-    for i = 0, numpoints do
-        local t = i / numpoints
-        local point = bezierQuadratic(start, control, finish, t)
-        table.insert(points, point)
-    end
-end
-
 -- Processes a table of vectors and returns a table of vectors that are placed on the navmesh,
 -- at least 32 units from the edges of the navmesh.
-function PathManager.PlacePointsOnNavarea(vectors)
+function PathManager.PlacePointsOnNavarea(vectors, areas)
     local points = {}
 
     for i = 1, #vectors do
         local point = vectors[i]
-        local navarea = navmesh.GetNearestNavArea(point)
-
+        local navarea = areas[i]
         if not navarea then continue end
+
+        local areaOfArea = navarea:GetArea()
+        if areaOfArea < 1000 then continue end
 
         local center = navarea:GetCenter()
         local extents = navarea:GetExtents()
@@ -361,14 +353,13 @@ function PathManager.GetSmoothedPath(path, smoothness)
     -- place on points on navmesh using PathManager.PlacePointsOnNavarea
     local path, areas = PathManager.SmoothPath2(path, smoothness)
 
-    path = PathManager.PlacePointsOnNavarea(path)
+    path = PathManager.PlacePointsOnNavarea(path, areas)
 
     return path, areas
 end
 
 -- Use a different smoothing algorithm to smooth the path.
 -- This will grab the edges of the navareas and use them to smooth the path, using the center of each navarea as the control.
--- This is a bit more accurate than the SmoothPath function, but it is also more expensive.
 function PathManager.SmoothPath2(path, smoothness)
     local points = {}
     local areas = {} -- keep track of the navareas that we're using
@@ -376,7 +367,6 @@ function PathManager.SmoothPath2(path, smoothness)
     smoothness = math.max(smoothness, 3)
 
     for i, area in ipairs(path) do
-        local nStartingPoints = #points
         if area:IsLadder() then
             local lastcenter = path[i - 1]:GetCenter()
 
@@ -397,6 +387,10 @@ function PathManager.SmoothPath2(path, smoothness)
                 table.insert(points, area:GetBottom())
             end
 
+            table.insert(areas, area)
+            table.insert(areas, area)
+            table.insert(areas, area)
+
 
             continue
         end
@@ -405,6 +399,8 @@ function PathManager.SmoothPath2(path, smoothness)
         local tooSmallToSmooth = area:GetSizeX() < 64 or area:GetSizeY() < 64
         if tooSmallToSmooth then
             table.insert(points, area:GetCenter())
+
+            table.insert(areas, area)
             continue
         end
 
@@ -413,10 +409,16 @@ function PathManager.SmoothPath2(path, smoothness)
         if (i == 1) then
             table.insert(points, center)
             table.insert(points, area:GetClosestPointOnArea(path[i + 1]:GetCenter()))
+
+            table.insert(areas, area)
+            table.insert(areas, area)
             continue
         elseif (i == #path) then
             table.insert(points, area:GetClosestPointOnArea(path[i - 1]:GetCenter()))
             table.insert(points, center)
+            
+            table.insert(areas, area)
+            table.insert(areas, area)
             continue
         end
 
@@ -436,21 +438,21 @@ function PathManager.SmoothPath2(path, smoothness)
                 local t = j / smoothness
                 local point = bezierQuadratic(edge1, center, edge2, t)
                 table.insert(points, point)
+                table.insert(areas, area)
             end
         else
             table.insert(points, edge1)
             table.insert(points, center)
             table.insert(points, edge2)
-        end
-
-        -- Now add the area to the list of areas we're using, however many times we inserted points
-        for i = nStartingPoints, #points do
+            
+            table.insert(areas, area)
+            table.insert(areas, area)
             table.insert(areas, area)
         end
     end
 
     if #points ~= #areas then
-        error("PathManager.SmoothPath2: #points ~= #areas")
+        error("PathManager.SmoothPath2: #points ~= #areas | ".. #points .. "/" .. #areas)
     end
 
     return points, areas
