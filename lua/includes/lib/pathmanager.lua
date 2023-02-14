@@ -357,75 +357,13 @@ end
 --- This function will return a path based off the requested algorithm.
 --- Possible algorithms are: "smoothpath", "smoothpath2", "smoothpathedges", "smoothpathcenters"
 ---@param smoothness integer The number of points to be generated between each navarea, if the algorithm uses it. 3 is the best value.
-function PathManager.GetSmoothedPath(path, algorithm, smoothness)
+function PathManager.GetSmoothedPath(path, smoothness)
     -- each algorithm is the name of a function in the PathManager table,
-    local algos = {
-        smoothpath = {
-            func = PathManager.SmoothPath,
-            vals = {path, smoothness or 3}
-        },
-        smoothpath2 = {
-            func = PathManager.SmoothPath2,
-            vals = {path, smoothness or 3}
-        },
-        smoothpathedges = {
-            func = PathManager.SmoothPathEdges,
-            vals = {path}
-        },
-        smoothpathcenters = {
-            func = PathManager.SmoothPathCenters,
-            vals = {path}
-        }
-    }
 
-    local algo = algos[algorithm]
-    if not algo then error(string.format("Attempt to use non-existant algorithm, '%s'", algorithm)) end
+    local algo = PathManager.SmoothPath2
+    -- Todo: place on points on navmesh using PathManager.PlacePointsOnNavarea
+
     return algo.func(table.unpack(algo.vals))
-end
-
--- Smooths a path of CNavAreas using bezier curves. Returns a table of vectors.
--- smoothness is an integer that represents the number of points to be generated between each navarea.
-function PathManager.SmoothPath(path, smoothness)
-    -- The start is the center of the first navarea, the control point is the center of the second navarea, and the end is the center of the third navarea.
-
-    local smoothPath = {}
-    local n = 0 -- track number of points for next step
-
-    for i = 1, #path-2, 3 do
-        n = n + 1
-        local p0 = path[i]:GetCenter()
-        local p1 = path[i + 1]:GetCenter()
-        local p2 = path[i + 2]:GetCenter()
-
-        local csbac = PathManager.CanSeeBetweenAreaCenters
-
-        -- Check we can see between all three navareas, if not then just add the 3 navarea centers to the path
-        if
-            (util.IsInWorld(p0) and util.IsInWorld(p1) and util.IsInWorld(p2))
-            and not csbac(path[i], path[i + 2], true)
-        then
-            table.insert(smoothPath, p0)
-            table.insert(smoothPath, p1)
-            table.insert(smoothPath, p2)
-            continue
-        end
-
-        for j = 1, smoothness do
-            local t = j / smoothness
-            local point = bezierQuadratic(p0, p1, p2, t)
-            table.insert(smoothPath, point)
-        end
-    end
-
-    -- If the path is not divisible by 3, then we need to add the last navarea(s) to the path.
-    if #path % 3 == 1 then
-        table.insert(smoothPath, path[#path]:GetCenter())
-    elseif #path % 3 == 2 then
-        table.insert(smoothPath, path[#path - 1]:GetCenter())
-        table.insert(smoothPath, path[#path]:GetCenter())
-    end
-
-    return smoothPath
 end
 
 -- Use a different smoothing algorithm to smooth the path.
@@ -434,9 +372,11 @@ end
 function PathManager.SmoothPath2(path, smoothness)
     local points = {}
     local areas = {} -- keep track of the navareas that we're using
+
     smoothness = math.max(smoothness, 3)
 
     for i, area in ipairs(path) do
+        local nStartingPoints = #points
         if area:IsLadder() then
             local lastcenter = path[i - 1]:GetCenter()
 
@@ -502,49 +442,18 @@ function PathManager.SmoothPath2(path, smoothness)
             table.insert(points, center)
             table.insert(points, edge2)
         end
-    end
 
-    return points
-end
-
--- Use the edges to "smooth". Basically, does what SmoothPath2, but no bezier curves. Just the edges.
-function PathManager.SmoothPathEdges(path)
-    local points = {}
-
-    for i, area in ipairs(path) do
-        local tooSmallToSmooth = area:GetSizeX() < 64 or area:GetSizeY() < 64
-        if tooSmallToSmooth then
-            table.insert(points, area:GetCenter())
-            continue
+        -- Now add the area to the list of areas we're using, however many times we inserted points
+        for i = nStartingPoints, #points do
+            table.insert(areas, area)
         end
-
-        local center = area:GetCenter()
-
-        if (i == 1) or (i == #path) then
-            table.insert(points, center)
-            continue
-        end
-
-        -- use :GetClosestPointOnArea(vec) to get the closest point on the past/future to our center
-        local edge1 = path[i - 1]:GetClosestPointOnArea(center)
-        local edge2 = path[i + 1]:GetClosestPointOnArea(center)
-
-        table.insert(points, edge1)
-        table.insert(points, edge2)
     end
 
-    return points
-end
-
-function PathManager.SmoothPathCenters(path)
-    local points = {}
-
-    for i, area in ipairs(path) do
-        local center = area:GetCenter()
-        table.insert(points, center)
+    if #points ~= #areas then
+        error("PathManager.SmoothPath2: #points ~= #areas")
     end
 
-    return points
+    return points, areas
 end
 
 --------------------------------------
