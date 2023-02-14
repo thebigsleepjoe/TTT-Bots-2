@@ -433,6 +433,7 @@ end
 -- This is a bit more accurate than the SmoothPath function, but it is also more expensive.
 function PathManager.SmoothPath2(path, smoothness)
     local points = {}
+    local areas = {} -- keep track of the navareas that we're using
     smoothness = math.max(smoothness, 3)
 
     for i, area in ipairs(path) do
@@ -455,8 +456,6 @@ function PathManager.SmoothPath2(path, smoothness)
                 table.insert(points, area:GetCenter())
                 table.insert(points, area:GetBottom())
             end
-            -- table.insert(points, top)
-            -- table.insert(points, bottom)
 
 
             continue
