@@ -371,7 +371,15 @@ function BotLocomotor:DetermineNextPos(pathVecs, areas)
         selected = selected + 1
     end
 
-    if updatedAreas[selected + 1] and updatedAreas[selected]:GetConnectionTypeBetween(updatedAreas[selected + 1]) == "jump" then
+    if
+        updatedAreas[selected + 1]
+        and not updatedAreas[selected + 1]:IsLadder()
+        and updatedAreas[selected]:GetConnectionTypeBetween(updatedAreas[selected + 1]) == "jump"
+    then
+        selected = selected + 1
+    end
+
+    if self:IsOnLadder() then
         selected = selected + 1
     end
 
@@ -485,12 +493,12 @@ function BotLocomotor:StartCommand(cmd)
         or 0
 
     if self:IsOnLadder() then -- Ladder movement
-        cmd:ClearButtons()
+        -- cmd:ClearButtons()
         cmd:SetButtons(IN_FORWARD)
 
-        if side ~= 0 and self:IsOnLadder() then
-            cmd:SetButtons(side < 0 and IN_LEFT or IN_RIGHT, IN_BACK)
-        end
+        -- if side ~= 0 and self:IsOnLadder() then
+        --     cmd:SetButtons(side < 0 and IN_LEFT or IN_RIGHT, IN_BACK, IN_JUMP)
+        -- end
         return
     end
     

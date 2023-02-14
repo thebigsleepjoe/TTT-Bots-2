@@ -830,6 +830,11 @@ function Lib.LeetSpeak(txt)
     return newtxt
 end
 
+local function checkChars(str)
+    -- check if less than 15 characters, return true if so
+    return string.len(str) < 15
+end
+
 function Lib.GenerateName()
     local human_name = humannames[math.random(1, #humannames)]
     local animal_name = animalnames[math.random(1, #animalnames)]
@@ -837,7 +842,7 @@ function Lib.GenerateName()
     local name_override = communitynames[math.random(1, #communitynames)]
 
     local number = math.random(1, 9999)
-    local leetify = math.random(1, 100) > 90
+    local leetify = math.random(1, 100) > 94
     local use_number = math.random(1, 100) > 80
     local use_adjective = math.random(1, 100) > 60
     local use_animal = math.random(1, 100) > 50 -- else use human name
@@ -869,12 +874,12 @@ function Lib.GenerateName()
         name = name_override
     end
 
-    if use_prefix then
-        name = namePrefixes[math.random(1, #namePrefixes)] .. name
+    if use_prefix and checkChars(name) then
+        name = namePrefixes[math.random(1, #namePrefixes)] .. " " .. name
     end
 
-    if use_postfix then
-        name = name .. namePostfixes[math.random(1, #namePostfixes)]
+    if use_postfix and checkChars(name) then
+        name = name .. " " .. namePostfixes[math.random(1, #namePostfixes)]
     end
 
     if leetify then
