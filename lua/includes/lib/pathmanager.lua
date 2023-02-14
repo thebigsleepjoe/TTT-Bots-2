@@ -137,6 +137,7 @@ function TTTBots.PathManager.Astar2(start, goal)
 
         if (current.area == goal) then
             local path = {current.area}
+            print("Cost of path " .. current.cost)
             while (current.parent) do
                 current = current.parent
                 table.insert(path, current.area)
@@ -156,7 +157,7 @@ function TTTBots.PathManager.Astar2(start, goal)
             else
                 local heightchange = current.area:ComputeGroundHeightChange(neighbor)
                 if (heightchange > 128) then -- > 2 ply heights
-                    currentCost = currentCost + (heightchange ^ 1.5);
+                    currentCost = currentCost + (heightchange ^ 2);
                 elseif (heightchange > 256) then -- do not fall if more than 4 ply heights
                     currentCost = currentCost + (1000000);
                 end
@@ -436,14 +437,24 @@ function PathManager.SmoothPath2(path, smoothness)
 
     for i, area in ipairs(path) do
         if area:IsLadder() then
-            -- table.insert(points, area:GetBottom())
-            -- table.insert(points, area:GetTop())
+            local lastcenter = path[i - 1]:GetCenter()
+
             local top = area:GetTop()
             local bottom = area:GetBottom()
-            
-            TTTBots.DebugServer.DrawLineBetween(top, bottom, Color(0, 0, 0))
 
-            table.insert(points, area:GetCenter())
+            local topdist = lastcenter:Distance(top)
+            local bottomdist = lastcenter:Distance(bottom)
+
+            -- if we're closer to the top, then we want to go DOWN the ladder
+            if topdist < bottomdist then
+                table.insert(points, area:GetBottom())
+                table.insert(points, area:GetCenter())
+                table.insert(points, area:GetTop())
+            else
+                table.insert(points, area:GetTop())
+                table.insert(points, area:GetCenter())
+                table.insert(points, area:GetBottom())
+            end
             -- table.insert(points, top)
             -- table.insert(points, bottom)
 
