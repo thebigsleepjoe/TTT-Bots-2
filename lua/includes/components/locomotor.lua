@@ -6,12 +6,7 @@ How this is used:
     1) Create a new locomotor component and assign it to the bot. This is done automatically when a bot is created.
     2) Every GM:StartCommand, Locomotor:StartCommand(CMD) is ran. This will set the bot's movement and look angles.
     3) Every TTT Bot tick, Locomotor:Think() is ran. This will set the bot's movement and look angles.
-
-To update look angles:
-    1) Locomotor:SetLookPosOverride(pos) will set the look position to the given position. This will override the look position. T
-        This is used for aiming at players or objects. If this is nil, then the look position will be the goal position.
-    2) Locomotor:ClearLookPosOverride() will clear the look position override, and the bot will look at the goal position.
-        Sets lookPosOverride to nil.
+            Movement and look angles are INDEPENDENT as of now. This means that the bot can be moving and looking at different things.
 
 To update the path goal, use Locomotor:SetGoalPos(pos). This will set the goal position to the given position. This will override the look position.
     This is used for pathfinding. If this is nil, then the bot will not move.
@@ -25,9 +20,6 @@ To update the path goal, use Locomotor:SetGoalPos(pos). This will set the goal p
 -----------------------------------------------
 -- Utility functions
 -----------------------------------------------
-
--- Component to manage the movement and look angles of the bot.
-
 TTTBots.Components = TTTBots.Components or {}
 TTTBots.Components.Locomotor = {}
 
@@ -60,16 +52,19 @@ function BotLocomotor:Initialize(bot)
 
     self.path = nil -- Current path
     self.pathinfo = nil
-    self.pathLookSpeed = 0.7 -- Look speed when following a path
+    self.pathTurnSpeed = 0.7 -- Look speed when following a path
 
     self.goalPos = nil -- Current goal position, if any. If nil, then bot is not moving.
 
     self.tryingMove = false -- If true, then the bot is trying to move to the goal position.
     self.posOneSecAgo = nil -- Position of the bot one second ago. Used for pathfinding.
 
-    self.lookPosOverride = nil -- Override look position, used for looking at people or objects, ! do not use for pathfinding !
-    self.lookPos = Vector(0, 0, 0) -- Current look position, gets lerped to Override
-    self.lookSpeed = 0 -- Current look speed (rate of lerp)
+    self.lookPosOverride = nil -- Override look position, this is only used from outside of this component. Like aiming at a player.
+    self.lookLerpSpeed = 0 -- Current look speed (rate of lerp)
+    self.lookPos = nil -- Current look position, gets lerped to Override, or to another location if no override is set.
+
+    self.movementVec = Vector(0, 0, 0) -- Current look position, gets lerped to Override
+    self.moveLerpSpeed = 0 -- Current look speed (rate of lerp)
 
     self.strafe = nil -- "left" or "right" or nil
     self.forceForward = false -- If true, then the bot will always move forward
@@ -104,14 +99,15 @@ function BotLocomotor:ValidatePath()
     return true
 end
 
--- Getters and setters, just for external neatness and ease of use.
+-- Getters and setters, just for formality and easy reading.
 function BotLocomotor:SetCrouching(bool) self.crouch = bool end
 function BotLocomotor:SetJumping(bool) self.jump = bool end
 function BotLocomotor:SetCanMove(bool) self.dontmove = not bool end
--- Set a look override, we will use the look override to override viewangles. Actual look angle is lerped to the override using lookSpeed.
+-- Set a look override, we will use the look override to override viewangles. Actual look angle is lerped to the override using moveLerpSpeed.
 function BotLocomotor:SetLookPosOverride(pos) self.lookPosOverride = pos end
+function BotLocomotor:SetCurrentLookPos(pos) self.lookPos = pos end
 function BotLocomotor:ClearLookPosOverride() self.lookPosOverride = nil end
-function BotLocomotor:SetLookSpeed(speed) self.lookSpeed = speed end
+function BotLocomotor:SetMoveLerpSpeed(speed) self.moveLerpSpeed = speed end
 function BotLocomotor:SetStrafe(value) self.strafe = value end
 function BotLocomotor:SetGoalPos(pos) self.goalPos = pos end
 
@@ -119,7 +115,8 @@ function BotLocomotor:GetCrouching() return self.crouch end
 function BotLocomotor:GetJumping() return self.jump end
 function BotLocomotor:GetCanMove() return not self.dontmove end
 function BotLocomotor:GetLookPosOverride() return self.lookPosOverride end
-function BotLocomotor:GetLookSpeed() return self.lookSpeed end
+function BotLocomotor:GetCurrentLookPos() return self.lookPos end
+function BotLocomotor:GetMoveLerpSpeed() return self.moveLerpSpeed end
 function BotLocomotor:GetStrafe() return self.strafe end
 function BotLocomotor:GetGoalPos() return self.goalPos end
 
@@ -130,11 +127,10 @@ end
 function BotLocomotor:IsOnLadder()
     return self.bot:GetMoveType() == MOVETYPE_LADDER
 end
-
 -- Do a trace to check if our feet are obstructed, but our head is not.
 function BotLocomotor:CheckFeetAreObstructed()
     local pos = self.bot:GetPos()
-    local bodyfacingdir = self.bot:GetAimVector()
+    local bodyfacingdir = self.moveNormal or Vector(0, 0, 0)
     -- disregard z
     bodyfacingdir.z = 0
 
@@ -183,16 +179,23 @@ end
 -- Tick periodically. Do not tick per GM:StartCommand
 function BotLocomotor:Think()
     self.tick = self.tick + 1
-    self:UpdatePath()
-    self:UpdateMovement()
+    self:UpdatePath()       -- Update the path that the bot is following, so that we can move along it.
+    self:UpdateMovement()   -- Update the invisible angle that the bot moves at, and make it move.
+    self:UpdateViewAngles() -- Update the visible angle that the bot looks at. This is for cosmetic and aiming purposes.
 end
 
--- Pretty much a wrapper for LerpLook, but may be more complex in the future.
--- This is used to orient the movement/view angles towards a certain point. It does not handle any other movement alone.
-function BotLocomotor:OrientTowardsPoint(vec)
-    self:LerpLook(self.pathLookSpeed, vec)
-end
+function BotLocomotor:UpdateViewAngles()
+    -- self.lookPosOverride = nil -- Override look position, this is only used from outside of this component. Like aiming at a player.
+    -- self.lookLerpSpeed = 0 -- Current look speed (rate of lerp)
+    -- self.lookPos = nil -- Current look position, gets lerped to Override, or to another location if no override is set.
 
+
+    -- TODO: Make this work with pathfinding
+    local override = self:GetLookPosOverride()
+    local lookPos = self.lookPos or Vector(0, 0, 0)
+    local lookLerpSpeed = self.lookLerpSpeed or 0
+    local smoothPath = self.smoothPath or {}
+end
 function BotLocomotor:Unstuck()
     --[[
         So we're stuck. Let's send 3x raycasts to figure out why.
@@ -273,7 +276,7 @@ function BotLocomotor:UpdateMovement()
     local goal = self:GetGoalPos()
 
     if goal and not followingPath and not self:CloseEnoughTo(goal)then
-        self:OrientTowardsPoint(goal)
+        self:LerpMovement(self.pathTurnSpeed, goal)
         self.forceForward = true
         self.tryingMove = true
     end
@@ -363,7 +366,6 @@ function BotLocomotor:DetermineNextPos(pathVecs, areas)
         table.insert(updatedAreas, areas[i])
     end
 
-    -- TODO: Cut corners if we can see the next point
     local selected = 2
 
     -- check if following point is within a crouch navarea. if so, then nextpos is the following point.
@@ -379,9 +381,9 @@ function BotLocomotor:DetermineNextPos(pathVecs, areas)
         selected = selected + 1
     end
 
-    if self:IsOnLadder() then
-        selected = selected + 1
-    end
+    -- if self:IsOnLadder() then
+    --     selected = selected + 1
+    -- end
 
     return updatedPathVecs[selected]
 end
@@ -410,6 +412,7 @@ function BotLocomotor:FollowPath()
     end
     -- Walk towards the next node in the smoothPath that we can see
     local nextPos = self:DetermineNextPos(smoothPath, areas)
+    self.nextPos = nextPos
 
     if not nextPos then return false end
 
@@ -422,7 +425,7 @@ function BotLocomotor:FollowPath()
         self:SetCrouching(true)
     end
 
-    self:OrientTowardsPoint(nextPos)
+    self:LerpMovement(self.pathTurnSpeed, nextPos)
 
     if dvlpr then
         -- TTTBots.DebugServer.DrawSphere(nextPos, TTTBots.PathManager.completeRange, Color(255, 255, 0, 50))
@@ -439,11 +442,9 @@ end
 -----------------------------------------------
 
 --- Lerp look towards the goal position
-function BotLocomotor:LerpLook(factor, goal)
-    if self.lookPosOverride and self.lookPosOverride ~= goal then return end
-    self.lookPos = LerpVector(factor, self.lookPos, goal)
+function BotLocomotor:LerpMovement(factor, goal)
+    self.movementVec = LerpVector(factor, self.movementVec, goal)
 end
-
 
 function BotLocomotor:StartCommand(cmd)
     cmd:ClearButtons()
@@ -471,17 +472,12 @@ function BotLocomotor:StartCommand(cmd)
         end
     end
 
-    -- Set viewangles to lookPos, and lerp to override if not nil
-    local lookPos = self.lookPos
-    if self.lookPosOverride then
-        lookPos = LerpVector(self.lookSpeed, lookPos, self.lookPosOverride)
-    end
-
-    -- if lookPos is (0, 0, 0) then skip
-    if lookPos ~= Vector(0, 0, 0) then
-        local ang = (lookPos - self.bot:GetPos()):Angle()
-        cmd:SetViewAngles(LerpAngle(0.5, cmd:GetViewAngles(), ang))
-        self.bot:SetEyeAngles(LerpAngle(0.1, self.bot:EyeAngles(), ang))
+    local movementVec = self.movementVec
+    if movementVec ~= Vector(0, 0, 0) then
+        local ang = (movementVec - self.bot:GetPos()):Angle()
+        --cmd:SetViewAngles(LerpAngle(0.5, cmd:GetViewAngles(), ang))
+        cmd:SetViewAngles(ang)
+        -- self.bot:SetEyeAngles(LerpAngle(0.1, self.bot:EyeAngles(), ang))
     end
 
     -- Set forward and side movement
@@ -493,15 +489,11 @@ function BotLocomotor:StartCommand(cmd)
         or 0
 
     if self:IsOnLadder() then -- Ladder movement
-        -- cmd:ClearButtons()
         cmd:SetButtons(IN_FORWARD)
 
-        -- if side ~= 0 and self:IsOnLadder() then
-        --     cmd:SetButtons(side < 0 and IN_LEFT or IN_RIGHT, IN_BACK, IN_JUMP)
-        -- end
         return
     end
-    
+
     cmd:SetSideMove(side)
     cmd:SetForwardMove(not self.forceForward and forward or 400)
 
@@ -510,5 +502,5 @@ function BotLocomotor:StartCommand(cmd)
 
 
 
-
+    self.moveNormal = cmd:GetViewAngles():Forward()
 end

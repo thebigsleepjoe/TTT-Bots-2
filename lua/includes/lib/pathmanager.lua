@@ -111,18 +111,6 @@ local function heuristic_cost_estimate(start, goal)
 	return start:GetCenter():Distance( goal:GetCenter() )
 end
 
--- using CNavAreas as table keys doesn't work, we use IDs
-local function reconstruct_path( cameFrom, current )
-	local total_path = { current }
-
-	current = current:GetID()
-	while ( cameFrom[ current ] ) do
-		current = cameFrom[ current ]
-		table.insert( total_path, navmesh.GetNavAreaByID( current ) )
-    end
-	return total_path
-end
-
 function TTTBots.PathManager.Astar2(start, goal)
     if (not IsValid(start) or not IsValid(goal)) then return false end
     if (start == nil) or (goal == nil) then return false end
@@ -433,8 +421,8 @@ function PathManager.SmoothPath2(path, smoothness)
         end
 
         -- use :GetClosestPointOnArea(vec) to get the closest point on the past/future to our center
-        local edge1 = path[i - 1]:GetClosestPointOnArea(center)
-        local edge2 = path[i + 1]:GetClosestPointOnArea(center)
+        local edge1 = area:GetClosestPointOnArea(path[i + -1]:GetCenter()) --path[i - 1]:GetClosestPointOnArea(center)
+        local edge2 = area:GetClosestPointOnArea(path[i + 1]:GetCenter())  --path[i + 1]:GetClosestPointOnArea(center)
 
         -- edge1.z = center.z -- this is so we don't have to worry about the z axis
         -- edge2.z = center.z
