@@ -124,6 +124,22 @@ function BotLocomotor:WithinCompleteRange(pos)
     return self.bot:GetPos():Distance(pos) < TTTBots.PathManager.completeRange
 end
 
+function BotLocomotor:GetClosestLadder()
+    local closestLadder = nil
+    local closestDist = 99999
+    for i = 1, 100 do
+        local ladder = navmesh.GetNavLadderByID(i)
+        if ladder then
+            local dist = ladder:GetCenter():Distance(self.bot:GetPos())
+            if dist < closestDist then
+                closestLadder = ladder
+                closestDist = dist
+            end
+        end
+    end
+    return closestLadder, closestDist
+end
+
 function BotLocomotor:IsOnLadder()
     return self.bot:GetMoveType() == MOVETYPE_LADDER
 end
@@ -181,21 +197,9 @@ function BotLocomotor:Think()
     self.tick = self.tick + 1
     self:UpdatePath()       -- Update the path that the bot is following, so that we can move along it.
     self:UpdateMovement()   -- Update the invisible angle that the bot moves at, and make it move.
-    self:UpdateViewAngles() -- Update the visible angle that the bot looks at. This is for cosmetic and aiming purposes.
+    --self:UpdateViewAngles() -- Update the visible angle that the bot looks at. This is for cosmetic and aiming purposes.
 end
 
-function BotLocomotor:UpdateViewAngles()
-    -- self.lookPosOverride = nil -- Override look position, this is only used from outside of this component. Like aiming at a player.
-    -- self.lookLerpSpeed = 0 -- Current look speed (rate of lerp)
-    -- self.lookPos = nil -- Current look position, gets lerped to Override, or to another location if no override is set.
-
-
-    -- TODO: Make this work with pathfinding
-    local override = self:GetLookPosOverride()
-    local lookPos = self.lookPos or Vector(0, 0, 0)
-    local lookLerpSpeed = self.lookLerpSpeed or 0
-    local smoothPath = self.smoothPath or {}
-end
 function BotLocomotor:Unstuck()
     --[[
         So we're stuck. Let's send 3x raycasts to figure out why.
@@ -275,10 +279,15 @@ function BotLocomotor:UpdateMovement()
     -- Walk straight towards the goal if it doesn't require complex pathing.
     local goal = self:GetGoalPos()
 
-    if goal and not followingPath and not self:CloseEnoughTo(goal)then
-        self:LerpMovement(self.pathTurnSpeed, goal)
-        self.forceForward = true
-        self.tryingMove = true
+    if goal and not followingPath and not self:CloseEnoughTo(goal) then
+        -- check goal navarea is same as bot:GetPos() nav area
+        local botArea = navmesh.GetNearestNavArea(self.bot:GetPos())
+        local goalArea = navmesh.GetNearestNavArea(goal)
+        if (botArea == goalArea) then
+            self:LerpMovement(self.pathTurnSpeed, goal)
+            self.forceForward = true
+            self.tryingMove = true
+        end
     end
 
     -----------------------
@@ -381,6 +390,11 @@ function BotLocomotor:DetermineNextPos(pathVecs, areas)
         selected = selected + 1
     end
 
+    if self:IsOnLadder() then
+        local ladder = self:GetClosestLadder()
+        if ladder then return ladder:GetTop() end
+    end
+
     -- if self:IsOnLadder() then
     --     selected = selected + 1
     -- end
@@ -441,6 +455,36 @@ end
 -- CMoveData-related functions
 -----------------------------------------------
 
+function BotLocomotor:UpdateViewAngles(cmd)
+    -- self.lookPosOverride = nil -- Override look position, this is only used from outside of this component. Like aiming at a player.
+    -- self.lookLerpSpeed = 0 -- Current look speed (rate of lerp)
+    -- self.lookPos = nil -- Current look position, gets lerped to Override, or to another location if no override is set.
+
+
+    -- TODO: Make this work with pathfinding
+    local override = self:GetLookPosOverride()
+    local lookLerpSpeed = self.lookLerpSpeed or 0
+    local smoothPath = self.smoothPath or {}
+    local goal = self.goalPos
+
+    self.lookPos = self.lookPos
+
+    if override then
+        self.lookPos = override
+        return
+    end
+
+    self.lookPos = goal
+
+    local closestLadder = self:GetClosestLadder()
+    if self:IsOnLadder() and closestLadder then self.lookPos = (closestLadder:GetTop() + Vector( 0, 0, 500)) end
+
+    if not self.lookPos then return end
+
+    self.bot:SetEyeAngles((self.lookPos - self.bot:GetPos()):Angle())
+    --cmd:SetViewAngles((self.lookPos - self.bot:GetPos()):Angle())
+end
+
 --- Lerp look towards the goal position
 function BotLocomotor:LerpMovement(factor, goal)
     self.movementVec = LerpVector(factor, self.movementVec, goal)
@@ -479,6 +523,8 @@ function BotLocomotor:StartCommand(cmd)
         cmd:SetViewAngles(ang)
         -- self.bot:SetEyeAngles(LerpAngle(0.1, self.bot:EyeAngles(), ang))
     end
+
+    self:UpdateViewAngles(cmd)
 
     -- Set forward and side movement
     local forward = hasPath and 400 or 0
