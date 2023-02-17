@@ -10,7 +10,11 @@ include("includes/lib/debugserver.lua")
 
 -- Initialize command libraries
 include("includes/commands/chatcommands.lua")
-include("includes/commands/cvarscommands.lua")
+include("includes/commands/cvars.lua")
+include("includes/commands/concommands.lua")
+
+-- Future modules:
+-- 
 
 -- Shorthands
 local Lib = TTTBots.Lib

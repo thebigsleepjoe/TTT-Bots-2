@@ -88,3 +88,46 @@ function Lib.TraceVisibilityLine(player, fromEyes, finish)
     })
     return trace
 end
+
+function Lib.GetClosestLadder(pos)
+    local closestLadder = nil
+    local closestDist = 99999
+    for i = 1, 100 do
+        local ladder = navmesh.GetNavLadderByID(i)
+        if ladder then
+            local dist = ladder:GetCenter():Distance(pos)
+            if dist < closestDist then
+                closestLadder = ladder
+                closestDist = dist
+            end
+        end
+    end
+    return closestLadder, closestDist
+end
+
+-- Functionally the same as navmesh.GetNavArea(pos), but includes ladder areas.
+function Lib.GetNearestNavArea(pos)
+    local closestCNavArea = navmesh.GetNearestNavArea(pos)
+    local closestLadder = Lib.GetClosestLadder(pos)
+
+    -- Compare closestCNavArea and closestLadder's :GetCenter() to pos
+    if closestCNavArea and closestLadder then
+        local cnavDist = closestCNavArea:GetCenter():Distance(pos)
+        local ladderDist = closestLadder:GetCenter():Distance(pos)
+        if cnavDist < ladderDist then
+            return closestCNavArea
+        else
+            return closestLadder
+        end
+    end
+
+    if not closestCNavArea and closestLadder then
+        return closestLadder
+    end
+
+    if closestCNavArea and not closestLadder then
+        return closestCNavArea
+    end
+
+    error("This map is not supported by TTT Bots, it needs a navigational mesh.")
+end

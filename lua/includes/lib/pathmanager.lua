@@ -203,16 +203,6 @@ function TTTBots.PathManager.Astar2(start, goal)
     return false
 end
 
-local function AstarVector( start, goal )
-	-- Find the nearest navareas to the start and goal positions
-	local startArea = navmesh.GetNearestNavArea( start )
-	local goalArea = navmesh.GetNearestNavArea( goal )
-
-	-- Find a path between the start and goal navareas
-	return TTTBots.PathManager.Astar2( startArea, goalArea )
-end
-
-
 --[[]]
 
 
@@ -241,8 +231,8 @@ end
 -- This function is only used internally, and should not be called from outside the PathManager file.
 function PathManager.GeneratePath(startpos, finishpos)
     -- Find the nearest navareas to the start and goal positions
-    local startArea = navmesh.GetNearestNavArea(startpos)
-    local goalArea = navmesh.GetNearestNavArea(finishpos)
+    local startArea = TTTBots.Lib.GetNearestNavArea(startpos)
+    local goalArea = TTTBots.Lib.GetNearestNavArea(finishpos)
 
     -- Find a path between the start and goal navareas
     local path = PathManager.Astar2(startArea, goalArea)
@@ -266,8 +256,8 @@ end
 -- Return an existing pathinfo for a path between two vectors, or false if it doesn't exist.
 -- Used internally in the RequestPath function, prefer to use RequestPath instead.
 function PathManager.GetPath(startpos, finishpos)
-    local nav1 = navmesh.GetNearestNavArea(startpos)
-    local nav2 = navmesh.GetNearestNavArea(finishpos)
+    local nav1 = TTTBots.Lib.GetNearestNavArea(startpos)
+    local nav2 = TTTBots.Lib.GetNearestNavArea(finishpos)
     if not nav1 or not nav2 then return false end
 
     local pathinfo = PathManager.cache[nav1:GetID() .. "-" .. nav2:GetID()]
@@ -362,6 +352,11 @@ function PathManager.SmoothPath2(path, smoothness)
 
     for i, area in ipairs(path) do
         if area:IsLadder() then
+            if not path[i - 1] then
+                table.insert(points, area:GetCenter())
+                table.insert(areas, area)
+                continue
+            end
             local lastcenter = path[i - 1]:GetCenter()
 
             local top = area:GetTop()

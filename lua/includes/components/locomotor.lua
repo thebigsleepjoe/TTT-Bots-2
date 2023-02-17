@@ -125,19 +125,7 @@ function BotLocomotor:WithinCompleteRange(pos)
 end
 
 function BotLocomotor:GetClosestLadder()
-    local closestLadder = nil
-    local closestDist = 99999
-    for i = 1, 100 do
-        local ladder = navmesh.GetNavLadderByID(i)
-        if ladder then
-            local dist = ladder:GetCenter():Distance(self.bot:GetPos())
-            if dist < closestDist then
-                closestLadder = ladder
-                closestDist = dist
-            end
-        end
-    end
-    return closestLadder, closestDist
+    return lib.GetClosestLadder(self.bot:GetPos())
 end
 
 function BotLocomotor:IsOnLadder()
@@ -392,7 +380,7 @@ function BotLocomotor:DetermineNextPos(pathVecs, areas)
 
     if self:IsOnLadder() then
         local ladder = self:GetClosestLadder()
-        if ladder then return ladder:GetTop() end
+        if ladder then return ladder:GetCenter() end
     end
 
     -- if self:IsOnLadder() then
@@ -477,7 +465,27 @@ function BotLocomotor:UpdateViewAngles(cmd)
     self.lookPos = goal
 
     local closestLadder = self:GetClosestLadder()
-    if self:IsOnLadder() and closestLadder then self.lookPos = (closestLadder:GetTop() + Vector( 0, 0, 500)) end
+    if self:IsOnLadder() and closestLadder then
+        -- Average the positions of the next 3 points in the smoothPath
+        local average = Vector(0, 0, 0)
+        for i = 1, 3 do
+            if smoothPath[i] then
+                average = average + smoothPath[i]
+            end
+        end
+        average = average / 3
+        TTTBots.DebugServer.DrawSphere(average, 10, Color(255, 0, 0))
+
+        -- Check if the average is above or below the center of the ladder
+        local pointIsBelow = (average.z < closestLadder:GetCenter().z)
+
+        local offset = Vector(0, 0, 500)
+        if pointIsBelow then
+            offset = offset * -1
+        end
+
+        self.lookPos = (closestLadder:GetTop() + offset)
+    end
 
     if not self.lookPos then return end
 
