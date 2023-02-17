@@ -131,3 +131,9 @@ function Lib.GetNearestNavArea(pos)
 
     error("This map is not supported by TTT Bots, it needs a navigational mesh.")
 end
+
+-- Wrapper for "ttt_bot_" + name convars
+-- Prepends "ttt_bot_" to the name of the convar, and returns the boolean value of the convar.
+function Lib.GetConVarBool(name)
+   return GetConVar("ttt_bot_" .. name):GetBool()
+end

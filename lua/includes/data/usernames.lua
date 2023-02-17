@@ -1,4 +1,4 @@
-local adjectives = {
+TTTBots.Lib.adjectives = {
     "Adorable",
     "Aggressive",
     "Agreeable",
@@ -229,8 +229,7 @@ local adjectives = {
     "Zonked",
     "Zooted"
 }
-
-local animalnames = {
+TTTBots.Lib.animalNames = {
     "Aardvark",
     "Albatross",
     "Alligator",
@@ -457,8 +456,7 @@ local animalnames = {
     "Yak",
     "Zebra"
 }
-
-local humannames = {
+TTTBots.Lib.humanNames = {
     "Aaron",
     "Abigail",
     "Adam",
@@ -644,8 +642,7 @@ local humannames = {
     "William",
     "Zachary"
 }
-
-local namePrefixes = {
+TTTBots.Lib.namePrefixes = {
     "The",
     "A",
     "An",
@@ -666,8 +663,7 @@ local namePrefixes = {
     "Black",
     "White",
 }
-
-local namePostfixes = {
+TTTBots.Lib.namePostfixes = {
     "The Great",
     "The Wise",
     "The Brave",
@@ -683,7 +679,7 @@ local namePostfixes = {
 -- Names suggested to me by community members.
 -- Thanks to all of you! <3
 -- WARNING: These names are not guaranteed to be safe for work, and many are offensive.
-local communitynames = {
+TTTBots.Lib.communityNames = {
     "Chairdolf Sitler",
     "De_way",
     "Broseph Stalin",
@@ -799,6 +795,10 @@ local communitynames = {
     "homies"
 }
 
+-- TODO: This is where the user will be able to add their own custom names.
+-- It will be read from a \n delimited .txt file.
+TTTBots.Lib.customNames = {}
+
 
 local Lib = TTTBots.Lib
 
@@ -836,10 +836,12 @@ local function checkChars(str)
 end
 
 function Lib.GenerateName()
-    local human_name = humannames[math.random(1, #humannames)]
-    local animal_name = animalnames[math.random(1, #animalnames)]
-    local adjective = adjectives[math.random(1, #adjectives)]
-    local name_override = communitynames[math.random(1, #communitynames)]
+    local GetCVB = Lib.GetConVarBool
+
+    local human_name = TTTBots.Lib.humanNames[math.random(1, #TTTBots.Lib.humanNames)]
+    local animal_name = TTTBots.Lib.animalNames[math.random(1, #TTTBots.Lib.animalNames)]
+    local adjective = TTTBots.Lib.adjectives[math.random(1, #TTTBots.Lib.adjectives)]
+    local name_override = TTTBots.Lib.communityNames[math.random(1, #TTTBots.Lib.communityNames)]
 
     local number = math.random(1, 9999)
     local leetify = math.random(1, 100) > 94
@@ -849,9 +851,9 @@ function Lib.GenerateName()
     local use_prefix = math.random(1, 100) > 80
     local use_postfix = math.random(1, 100) > 80
 
-    local use_community_name = GetConVar("ttt_bot_community_names"):GetBool() and math.random(1, 100) > 30
+    local use_community_name = GetCVB("names_allowcommunity") and math.random(1, 100) > 30
 
-    -- 1 = all caps, 2-5 = normal, 6-8 = no caps
+    -- 1 = all caps, 2-5 = normal, 6-8 = no caps (fr fr)
     local capitalization = math.random(1, 8)
 
     local name = ""
@@ -875,11 +877,11 @@ function Lib.GenerateName()
     end
 
     if use_prefix and checkChars(name) then
-        name = namePrefixes[math.random(1, #namePrefixes)] .. " " .. name
+        name = TTTBots.Lib.namePrefixes[math.random(1, #TTTBots.Lib.namePrefixes)] .. " " .. name
     end
 
     if use_postfix and checkChars(name) then
-        name = name .. " " .. namePostfixes[math.random(1, #namePostfixes)]
+        name = name .. " " .. TTTBots.Lib.namePostfixes[math.random(1, #TTTBots.Lib.namePostfixes)]
     end
 
     if leetify then
