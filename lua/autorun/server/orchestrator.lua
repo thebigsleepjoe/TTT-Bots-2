@@ -14,7 +14,8 @@ include("includes/commands/cvars.lua")
 include("includes/commands/concommands.lua")
 
 -- Future modules:
--- 
+-- Bot speech manager, for playing voice lines and chatting in-game when something happens
+-- (will figure out more later)
 
 -- Shorthands
 local Lib = TTTBots.Lib
