@@ -391,6 +391,7 @@ function PathManager.SmoothPath2(path, smoothness)
 
         local tooSmallToSmooth = area:GetSizeX() < 64 or area:GetSizeY() < 64
         if tooSmallToSmooth then
+            TTTBots.DebugServer.DrawText(area:GetCenter(), "(TS2S)", Color(255, 255, 255))
             table.insert(points, area:GetCenter())
 
             table.insert(areas, area)
@@ -402,6 +403,8 @@ function PathManager.SmoothPath2(path, smoothness)
         if (i == 1) then
             table.insert(points, center)
             table.insert(points, area:GetClosestPointOnArea(path[i + 1]:GetCenter()))
+            TTTBots.DebugServer.DrawText(center, "(Start) A", Color(255, 255, 255))
+            TTTBots.DebugServer.DrawText(area:GetClosestPointOnArea(path[i + 1]:GetCenter()), "(Start) B", Color(255, 255, 255))
 
             table.insert(areas, area)
             table.insert(areas, area)
@@ -409,6 +412,8 @@ function PathManager.SmoothPath2(path, smoothness)
         elseif (i == #path) then
             table.insert(points, area:GetClosestPointOnArea(path[i - 1]:GetCenter()))
             table.insert(points, center)
+            TTTBots.DebugServer.DrawText(area:GetClosestPointOnArea(path[i - 1]:GetCenter()), "(End) A", Color(255, 255, 255))
+            TTTBots.DebugServer.DrawText(center, "(End) B", Color(255, 255, 255))
             
             table.insert(areas, area)
             table.insert(areas, area)
@@ -416,7 +421,7 @@ function PathManager.SmoothPath2(path, smoothness)
         end
 
         -- use :GetClosestPointOnArea(vec) to get the closest point on the past/future to our center
-        local edge1 = area:GetClosestPointOnArea(path[i + -1]:GetCenter()) --path[i - 1]:GetClosestPointOnArea(center)
+        local edge1 = area:GetClosestPointOnArea(path[i - 1]:GetCenter()) --path[i - 1]:GetClosestPointOnArea(center)
         local edge2 = area:GetClosestPointOnArea(path[i + 1]:GetCenter())  --path[i + 1]:GetClosestPointOnArea(center)
 
         -- edge1.z = center.z -- this is so we don't have to worry about the z axis
@@ -426,14 +431,15 @@ function PathManager.SmoothPath2(path, smoothness)
 
         -- if visionTest then use bezier to smooth btwn edge1, edge2 with center as control. use smoothness to determine n of points
         -- else then add each point raw w/o smoothing
-        if visionTest then
+        --if visionTest then
             for j = 1, smoothness do
                 local t = j / smoothness
                 local point = bezierQuadratic(edge1, center, edge2, t)
                 table.insert(points, point)
                 table.insert(areas, area)
+                TTTBots.DebugServer.DrawText(point, "Smoothed: " .. tostring(j), Color(255, 255, 255))
             end
-        else
+        --[[else
             table.insert(points, edge1)
             table.insert(points, center)
             table.insert(points, edge2)
@@ -441,7 +447,7 @@ function PathManager.SmoothPath2(path, smoothness)
             table.insert(areas, area)
             table.insert(areas, area)
             table.insert(areas, area)
-        end
+        end]]
     end
 
     if #points ~= #areas then

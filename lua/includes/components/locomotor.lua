@@ -52,7 +52,7 @@ function BotLocomotor:Initialize(bot)
 
     self.path = nil -- Current path
     self.pathinfo = nil
-    self.pathTurnSpeed = 0.7 -- Look speed when following a path
+    self.pathTurnSpeed = 0.6 -- Movement angle turn speed when following a path
 
     self.goalPos = nil -- Current goal position, if any. If nil, then bot is not moving.
 
