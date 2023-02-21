@@ -155,16 +155,16 @@ function TTTBots.PathManager.Astar2(start, goal)
             else
                 local heightchange = current.area:ComputeGroundHeightChange(neighbor)
                 if (heightchange > 128) then -- > 2 ply heights
-                    currentCost = currentCost + (heightchange ^ 2);
+                    currentCost = currentCost + (heightchange ^ 3);
                 elseif (heightchange > 256) then -- do not fall if more than 4 ply heights
-                    currentCost = currentCost + (1000000);
+                    currentCost = currentCost + (100000000);
                 end
 
                 local connectionType = current.area:GetConnectionTypeBetween(neighbor)
                 if (connectionType == "jump") then
-                    currentCost = currentCost + 75
+                    currentCost = currentCost + 175
                 elseif (connectionType == "fall") then
-                    currentCost = currentCost + 50
+                    currentCost = currentCost + 150
                 end
 
                 currentCost = currentCost + (neighbor:IsUnderwater() and 50 or 0)
@@ -471,11 +471,12 @@ function TTTBots.PathManager.PreparePathForLocomotor(path)
                         -- c.)
                     else
                         local cedge = currentnode:GetConnectingEdge(lastnode)
+                        local movetype = (currentnode:IsCrouch() and "crouch" or "walk")
                         -- i.) and iv.)
                         table.insert(points, {
                             pos = cedge,
                             area = currentnode,
-                            type = (currentnode:IsCrouch() and "crouch" or "walk"),
+                            type = (not currentnode:IsUnderwater() and movetype or "swim"),
                         })
 
                         -- Todo: The pathfinding needs to not jump up ramps or stairs.
