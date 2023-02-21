@@ -77,6 +77,8 @@ function ladderMeta:GetClosestPointOnArea(vec)
     end
 end
 
+function ladderMeta:IsCrouch() return false end
+
 local navMeta = FindMetaTable("CNavArea")
 
 function navMeta:IsLadder()
@@ -97,7 +99,7 @@ function navMeta:GetConnectionTypeBetween(other)
     elseif heightDiff > 32 then
         return "jump"
     elseif heightDiff < -32 then
-        return "drop"
+        return "fall"
     end
 
     return "walk" -- idk, just walk
@@ -161,7 +163,7 @@ function TTTBots.PathManager.Astar2(start, goal)
                 local connectionType = current.area:GetConnectionTypeBetween(neighbor)
                 if (connectionType == "jump") then
                     currentCost = currentCost + 75
-                elseif (connectionType == "drop") then
+                elseif (connectionType == "fall") then
                     currentCost = currentCost + 50
                 end
 
@@ -380,6 +382,8 @@ function TTTBots.PathManager.PreparePathForLocomotor(path)
                 c.) If the prior node is not a ladder, and the current one is not a ladder:
                     i.) Add the navmeta:GetConnectingEdge() point to the path. This is very simple, and is the most common case.
                     ii.) Check if we need to jump between the last navarea and this one.
+                    iii.) Check if we need to fall between the last navarea and this one.
+                    iv.) Check if we need to crouch on this navarea.
     ]]
     for i = 1, #path do
         local lastnode = i > 1 and path[i - 1] or nil
@@ -466,15 +470,26 @@ function TTTBots.PathManager.PreparePathForLocomotor(path)
 
                         -- c.)
                     else
-                        -- i.)
+                        local cedge = currentnode:GetConnectingEdge(lastnode)
+                        -- i.) and iv.)
                         table.insert(points, {
-                            pos = currentnode:GetConnectingEdge(lastnode),
+                            pos = cedge,
                             area = currentnode,
-                            type = "walk",
+                            type = (currentnode:IsCrouch() and "crouch" or "walk"),
                         })
+
+                        -- Todo: The pathfinding needs to not jump up ramps or stairs.
+                        -- We need it to be as sensitive as it currently is, but not jump up ramps or stairs.
 
                         -- ii.)
                         if lastnode:GetCenter().z - currentnode:GetCenter().z > 64 then
+                            table.insert(points, {
+                                pos = currentnode:GetCenter(),
+                                area = currentnode,
+                                type = "fall",
+                            })
+                            -- iii.)
+                        elseif currentnode:GetCenter().z - lastnode:GetCenter().z > 16 then
                             table.insert(points, {
                                 pos = currentnode:GetCenter(),
                                 area = currentnode,
@@ -580,7 +595,8 @@ timer.Create("_____DebugPathDraw", 0.1, 0, function()
                 fall = Color(255, 0, 0),
                 crouch = Color(0, 255, 0),
             }
-            TTTBots.DebugServer.DrawLineBetween(v.pos, v.pos + Vector(0, 0, 100), cols[v.type])
+            TTTBots.DebugServer.DrawLineBetween(v.pos, v.pos + Vector(0, 0, 100),
+                ((i == 1) and Color(0, 255, 0)) or cols[v.type])
             if preparedpath[i - 1] then
                 TTTBots.DebugServer.DrawLineBetween(preparedpath[i - 1].pos, v.pos, cols[v.type])
             end
