@@ -28,7 +28,8 @@ if Lib.CheckCompatibleGamemode() then
         Lib.PrintInitMessage()
         Chat.BroadcastGreeting()
     else
-        Chat.BroadcastInChat("There are no player slots available! You cannot use the TTT Bots mod. Please start up a server to use this mod.")
+        Chat.BroadcastInChat(
+            "There are no player slots available! You cannot use the TTT Bots mod. Please start up a server to use this mod.")
     end
 else
     print("Gamemode is not compatible with TTT Bots. Shutting up to prevent console spam.")
@@ -45,15 +46,13 @@ timer.Create("TTTBots_Tick", 0.1, 0, function()
         RunConsoleCommand("developer", "1")
     end
 
-    for i,bot in pairs(player.GetBots()) do
+    for i, bot in pairs(player.GetBots()) do
         -- TTTBots.DebugServer.RenderDebugFor(bot, { "all" })
 
-        for i,component in pairs(bot.components) do
+        for i, component in pairs(bot.components) do
             component:Think()
         end
-
     end
-
 end)
 
 -- GM:StartCommand
@@ -68,16 +67,15 @@ hook.Add("StartCommand", "TTTBots_StartCommand", function(ply, cmd)
 end)
 
 timer.Create("TTTBots_ChangeGoal", 1, 0, function()
-    for i,bot in pairs(player.GetBots()) do
+    for i, bot in pairs(player.GetBots()) do
         local locomotor = bot.components.locomotor
-        
+
         -- get look vector of human
         local pos = player.GetHumans()[1]:GetEyeTrace().HitPos
         locomotor:SetGoalPos(pos)
-        
+
         -- pick a random area
         -- local area = table.Random(navmesh.GetAllNavAreas())
         -- locomotor:SetGoalPos(area:GetCenter())
-
     end
 end)

@@ -10,7 +10,6 @@ TODO goals for pathmanager:
 
     - Once a path is generated, store its output in the bot's LatestPath field.
 ]]
-
 TTTBots.PathManager = {}
 TTTBots.PathManager.cache = {}
 TTTBots.PathManager.cullSeconds = 5
@@ -46,12 +45,12 @@ function ladderMeta:GetAdjacentAreas()
     }
 
     local adjacentsFilter = {}
-    for i,area in pairs(adjacents) do
+    for i, area in pairs(adjacents) do
         if (area) then
             table.insert(adjacentsFilter, area)
         end
     end
-    
+
     return adjacents
 end
 
@@ -104,20 +103,28 @@ function navMeta:GetConnectionTypeBetween(other)
     return "walk" -- idk, just walk
 end
 
---[[ Define local A* functions ]]
+--- Retrieve the connecting point between two navareas
+function navMeta:GetConnectingEdge(other)
+    local edge = self:GetClosestPointOnArea(other:GetCenter())
+    -- snap edge onto other's navarea
+    local otherEdge = other:GetClosestPointOnArea(edge)
 
+    return otherEdge
+end
+
+--[[ Define local A* functions ]]
 -- A* Heuristic: Euclidean distance
 local function heuristic_cost_estimate(start, goal)
-	return start:GetCenter():Distance( goal:GetCenter() )
+    return start:GetCenter():Distance(goal:GetCenter())
 end
 
 function TTTBots.PathManager.Astar2(start, goal)
     if (not IsValid(start) or not IsValid(goal)) then return false end
     if (start == nil) or (goal == nil) then return false end
-	if ( start == goal ) then return true end
+    if (start == goal) then return true end
 
     local open = {
-        {area=start, cost=0},
+        { area = start, cost = 0 },
     }
     local closed = {}
 
@@ -126,7 +133,7 @@ function TTTBots.PathManager.Astar2(start, goal)
         table.insert(closed, current)
 
         if (current.area == goal) then
-            local path = {current.area}
+            local path = { current.area }
             while (current.parent) do
                 current = current.parent
                 table.insert(path, current.area)
@@ -194,7 +201,7 @@ function TTTBots.PathManager.Astar2(start, goal)
 
             if (found) then continue end
 
-            table.insert(open, {area=neighbor, cost=currentCost, parent=current})
+            table.insert(open, { area = neighbor, cost = currentCost, parent = current })
         end
 
         table.sort(open, function(a, b) return a.cost < b.cost end)
@@ -204,21 +211,17 @@ function TTTBots.PathManager.Astar2(start, goal)
 end
 
 --[[]]
-
-
-local PathManager = TTTBots.PathManager
-
 -- Request the creation of a path between two vectors. Returns pathinfo, which contains the path as a table of CNavAreas and the time of generation.
 -- If it already exists, then return the cached path.
-function PathManager.RequestPath(startpos, finishpos)
+function TTTBots.PathManager.RequestPath(startpos, finishpos)
     -- Check if the path already exists in the cache
-    local path = PathManager.GetPath(startpos, finishpos)
+    local path = TTTBots.PathManager.GetPath(startpos, finishpos)
     if path then
         return path
     end
 
     -- If it doesn't exist, generate it
-    local path = PathManager.GeneratePath(startpos, finishpos)
+    local path = TTTBots.PathManager.GeneratePath(startpos, finishpos)
     if path then
         return path
     end
@@ -228,26 +231,26 @@ function PathManager.RequestPath(startpos, finishpos)
 end
 
 -- See the RequestPath function for external use.
--- This function is only used internally, and should not be called from outside the PathManager file.
-function PathManager.GeneratePath(startpos, finishpos)
+-- This function is only used internally, and should not be called from outside the TTTBots.PathManager file.
+function TTTBots.PathManager.GeneratePath(startpos, finishpos)
     -- Find the nearest navareas to the start and goal positions
     local startArea = TTTBots.Lib.GetNearestNavArea(startpos)
     local goalArea = TTTBots.Lib.GetNearestNavArea(finishpos)
 
     -- Find a path between the start and goal navareas
-    local path = PathManager.Astar2(startArea, goalArea)
+    local path = TTTBots.PathManager.Astar2(startArea, goalArea)
     if not path then return false end
 
     local pathinfo = {
         path = path,
         generatedAt = CurTime(),
-        TimeSince = function (self)
+        TimeSince = function(self)
             return CurTime() - self.generatedAt
         end
     }
 
     -- Cache the path
-    PathManager.cache[startArea:GetID() .. "-" .. goalArea:GetID()] = pathinfo
+    TTTBots.PathManager.cache[startArea:GetID() .. "-" .. goalArea:GetID()] = pathinfo
 
     -- Return the pathinfo table
     return pathinfo
@@ -255,17 +258,16 @@ end
 
 -- Return an existing pathinfo for a path between two vectors, or false if it doesn't exist.
 -- Used internally in the RequestPath function, prefer to use RequestPath instead.
-function PathManager.GetPath(startpos, finishpos)
+function TTTBots.PathManager.GetPath(startpos, finishpos)
     local nav1 = TTTBots.Lib.GetNearestNavArea(startpos)
     local nav2 = TTTBots.Lib.GetNearestNavArea(finishpos)
     if not nav1 or not nav2 then return false end
 
-    local pathinfo = PathManager.cache[nav1:GetID() .. "-" .. nav2:GetID()]
+    local pathinfo = TTTBots.PathManager.cache[nav1:GetID() .. "-" .. nav2:GetID()]
     return pathinfo
 end
 
-
-function PathManager.CanSeeBetween(vecA, vecB, addheight)
+function TTTBots.PathManager.CanSeeBetween(vecA, vecB, addheight)
     local a = Vector(vecA.x, vecA.y, vecA.z)
     local b = Vector(vecB.x, vecB.y, vecB.z)
 
@@ -284,11 +286,11 @@ function PathManager.CanSeeBetween(vecA, vecB, addheight)
     return not trace.Hit, trace
 end
 
-function PathManager.CanSeeBetweenAreaCenters(a, b, addheight)
+function TTTBots.PathManager.CanSeeBetweenAreaCenters(a, b, addheight)
     local startPos = a:GetCenter()
     local finish = b:GetCenter()
 
-    return PathManager.CanSeeBetween(startPos, finish, addheight)
+    return TTTBots.PathManager.CanSeeBetween(startPos, finish, addheight)
 end
 
 -------------------------------------
@@ -306,7 +308,7 @@ end
 
 -- Processes a table of vectors and returns a table of vectors that are placed on the navmesh,
 -- at least 32 units from the edges of the navmesh.
-function PathManager.PlacePointsOnNavarea(vectors, areas)
+function TTTBots.PathManager.PlacePointsOnNavarea(vectors, areas)
     local points = {}
 
     for i = 1, #vectors do
@@ -330,131 +332,162 @@ function PathManager.PlacePointsOnNavarea(vectors, areas)
     return points
 end
 
--- Returns a processed, smooth path using the SmoothPath2 algorithm.
----@param path table A table of navareas and navladders that composes a real path.
----@param smoothness integer The number of points to be generated between each navarea, if the algorithm uses it. 3 is the best value.
-function PathManager.GetSmoothedPath(path, smoothness)
-    -- place on points on navmesh using PathManager.PlacePointsOnNavarea
-    local path, areas = PathManager.SmoothPath2(path, smoothness)
-
-    path = PathManager.PlacePointsOnNavarea(path, areas)
-
-    return path, areas
+---@deprecated
+function TTTBots.PathManager.GetSmoothedPath(path, smoothness)
+    error("Depricated function")
 end
 
--- Use a different smoothing algorithm to smooth the path.
--- This will grab the edges of the navareas and use them to smooth the path, using the center of each navarea as the control.
-function PathManager.SmoothPath2(path, smoothness)
+--- Use a simple algorithm to smooth the path. Calculate connection types between each navarea, and use that to determine
+--- how to smooth the path, and instruct the navigator on what to do.
+---@param path table Table of CNavAreas and CNavLadders that compose a real path, from start to finish.
+---@return table PreparedPath table of vectors and how to navigate them.
+function TTTBots.PathManager.PreparePathForLocomotor(path)
+    --[[
+        Point example:
+        {
+            pos = Vector(0, 0, 0),
+            area = navarea,
+            type = "jump" or "ladder" or "walk" or "fall", (if we have to do X to get here from the last point)
+            ladder_dir = "up" or "down", (if ladder, else nil)
+        }
+    ]]
     local points = {}
-    local areas = {} -- keep track of the navareas that we're using
 
-    smoothness = math.max(smoothness, 3)
+    if path == nil or type(path) ~= "table" or #path == 0 then return points end
 
-    for i, area in ipairs(path) do
-        if area:IsLadder() then
-            if not path[i - 1] then
-                table.insert(points, area:GetCenter())
-                table.insert(areas, area)
-                continue
-            end
-            local lastcenter = path[i - 1]:GetCenter()
+    --[[
 
-            local top = area:GetTop()
-            local bottom = area:GetBottom()
+        Basic Pathing:
+            The way pathing works is that we add the connecting position between the current node and the last one.
+            For instance, if the last node was a ladder and the path was supposed to move downwards,
+            we add the GetBottom() position of the ladder.
 
-            local topdist = lastcenter:Distance(top)
-            local bottomdist = lastcenter:Distance(bottom)
+            Here's a more algorithmic way of explaining it:
 
-            -- if we're closer to the top, then we want to go DOWN the ladder
-            if topdist < bottomdist then
-                TTTBots.DebugServer.DrawLineBetween(lastcenter, top, Color(255, 0, 0))
+            1.) If this is the first node, add the center point of the navarea to the path.
+            2.) If this is the last node, add the center point of the navarea to the path.
+            3.) If this is a middle node (not first nor center):
+                a.) If the prior node is a ladder:
+                    i.) First determine what direction the ladder is supposed to be going.
+                        This can be done by checking if the 2nd to last area (must be a cnavarea) is above or below the ladder's GetCenter().
+                    ii.) If the 2nd to last area is above the ladder, the ladder is going down. Otherwise, up. And the placement of the
+                        point is respective to that.
 
-                table.insert(points, top)
-                table.insert(points, area:GetCenter())
-                table.insert(points, bottom)
+                b.) If the prior node is not a ladder, but the current one IS:
+                    i.) Determine the direction of the ladder, same as above.
+                    ii.) Add the point to the path, respective to the direction of the ladder.
+
+                c.) If the prior node is not a ladder, and the current one is not a ladder:
+                    i.) Add the navmeta:GetConnectingEdge() point to the path. This is very simple, and is the most common case.
+                    ii.) Check if we need to jump between the last navarea and this one.
+    ]]
+    for i = 1, #path do
+        local lastnode = i > 1 and path[i - 1] or nil
+        local currentnode = path[i]
+        local nextnode = i ~= #path and path[i + 1] or nil
+
+        -- 1.)
+        if i == 1 then
+            table.insert(points, {
+                pos = currentnode:GetCenter(),
+                area = currentnode,
+                type = "walk",
+            })
+
+            -- 2.)
+        else
+            if i == #path then
+                table.insert(points, {
+                    pos = currentnode:GetCenter(),
+                    area = currentnode,
+                    type = "walk",
+                })
+
+                -- 3.)
             else
-                TTTBots.DebugServer.DrawLineBetween(lastcenter, bottom, Color(255, 0, 0))
+                -- a.)
+                if lastnode:IsLadder() then
+                    local ladder = lastnode
+                    local ladder_dir = nil
 
-                table.insert(points, bottom)
-                table.insert(points, area:GetCenter())
-                table.insert(points, top)
+                    -- i.)
+                    if lastnode:GetCenter().z > currentnode:GetCenter().z then
+                        ladder_dir = "down"
+                    else
+                        ladder_dir = "up"
+                    end
+
+                    -- ii.)
+                    if ladder_dir == "down" then
+                        table.insert(points, {
+                            pos = ladder:GetBottom(),
+                            area = ladder,
+                            type = "ladder",
+                            ladder_dir = "down",
+                        })
+                    else
+                        table.insert(points, {
+                            pos = ladder:GetTop(),
+                            area = ladder,
+                            type = "ladder",
+                            ladder_dir = "up",
+                        })
+                    end
+
+                    -- b.)
+                else
+                    if currentnode:IsLadder() then
+                        local ladder = currentnode
+                        local ladder_dir = nil
+
+                        -- i.)
+                        if currentnode:GetCenter().z > nextnode:GetCenter().z then
+                            ladder_dir = "down"
+                        else
+                            ladder_dir = "up"
+                        end
+
+                        -- ii.)
+                        if ladder_dir == "down" then
+                            table.insert(points, {
+                                pos = ladder:GetBottom(),
+                                area = ladder,
+                                type = "ladder",
+                                ladder_dir = "down",
+                            })
+                        else
+                            table.insert(points, {
+                                pos = ladder:GetTop(),
+                                area = ladder,
+                                type = "ladder",
+                                ladder_dir = "up",
+                            })
+                        end
+
+                        -- c.)
+                    else
+                        -- i.)
+                        table.insert(points, {
+                            pos = currentnode:GetConnectingEdge(lastnode),
+                            area = currentnode,
+                            type = "walk",
+                        })
+
+                        -- ii.)
+                        if lastnode:GetCenter().z - currentnode:GetCenter().z > 64 then
+                            table.insert(points, {
+                                pos = currentnode:GetCenter(),
+                                area = currentnode,
+                                type = "jump",
+                            })
+                        end
+                    end
+                end
             end
-
-            table.insert(areas, area)
-            table.insert(areas, area)
-            table.insert(areas, area)
-
-
-            continue
         end
-
-
-        local tooSmallToSmooth = area:GetSizeX() < 64 or area:GetSizeY() < 64
-        if tooSmallToSmooth then
-            TTTBots.DebugServer.DrawText(area:GetCenter(), "(TS2S)", Color(255, 255, 255))
-            table.insert(points, area:GetCenter())
-
-            table.insert(areas, area)
-            continue
-        end
-
-        local center = area:GetCenter()
-
-        if (i == 1) then
-            table.insert(points, center)
-            table.insert(points, area:GetClosestPointOnArea(path[i + 1]:GetCenter()))
-            TTTBots.DebugServer.DrawText(center, "(Start) A", Color(255, 255, 255))
-            TTTBots.DebugServer.DrawText(area:GetClosestPointOnArea(path[i + 1]:GetCenter()), "(Start) B", Color(255, 255, 255))
-
-            table.insert(areas, area)
-            table.insert(areas, area)
-            continue
-        elseif (i == #path) then
-            table.insert(points, area:GetClosestPointOnArea(path[i - 1]:GetCenter()))
-            table.insert(points, center)
-            TTTBots.DebugServer.DrawText(area:GetClosestPointOnArea(path[i - 1]:GetCenter()), "(End) A", Color(255, 255, 255))
-            TTTBots.DebugServer.DrawText(center, "(End) B", Color(255, 255, 255))
-            
-            table.insert(areas, area)
-            table.insert(areas, area)
-            continue
-        end
-
-        -- use :GetClosestPointOnArea(vec) to get the closest point on the past/future to our center
-        local edge1 = area:GetClosestPointOnArea(path[i - 1]:GetCenter()) --path[i - 1]:GetClosestPointOnArea(center)
-        local edge2 = area:GetClosestPointOnArea(path[i + 1]:GetCenter())  --path[i + 1]:GetClosestPointOnArea(center)
-
-        -- edge1.z = center.z -- this is so we don't have to worry about the z axis
-        -- edge2.z = center.z
-
-        local visionTest = PathManager.CanSeeBetween(edge1, edge2, 32)
-
-        -- if visionTest then use bezier to smooth btwn edge1, edge2 with center as control. use smoothness to determine n of points
-        -- else then add each point raw w/o smoothing
-        --if visionTest then
-            for j = 1, smoothness do
-                local t = j / smoothness
-                local point = bezierQuadratic(edge1, center, edge2, t)
-                table.insert(points, point)
-                table.insert(areas, area)
-                TTTBots.DebugServer.DrawText(point, "Smoothed: " .. tostring(j), Color(255, 255, 255))
-            end
-        --[[else
-            table.insert(points, edge1)
-            table.insert(points, center)
-            table.insert(points, edge2)
-            
-            table.insert(areas, area)
-            table.insert(areas, area)
-            table.insert(areas, area)
-        end]]
     end
 
-    if #points ~= #areas then
-        error("PathManager.SmoothPath2: #points ~= #areas | ".. #points .. "/" .. #areas)
-    end
-
-    return points, areas
+    return points
 end
 
 --------------------------------------
@@ -462,11 +495,11 @@ end
 --------------------------------------
 
 -- Cull the cache of paths that are older than the cullSeconds, and cull the oldest if we have too many paths.
-function PathManager.CullCache()
-    local cullSeconds = PathManager.cullSeconds
-    local maxPaths = PathManager.maxCachedPaths
+function TTTBots.PathManager.CullCache()
+    local cullSeconds = TTTBots.PathManager.cullSeconds
+    local maxPaths = TTTBots.PathManager.maxCachedPaths
 
-    local paths = PathManager.cache
+    local paths = TTTBots.PathManager.cache
     local pathsToCull = {}
 
     -- Find paths that are older than cullSeconds
@@ -496,8 +529,8 @@ function PathManager.CullCache()
 end
 
 -- Create timer to cull paths every 5 seconds
-timer.Create("TTTBotsPathManagerCullCache", 5, 0, function ()
-    PathManager.CullCache()
+timer.Create("TTTBotsPathManagerCullCache", 5, 0, function()
+    TTTBots.PathManager.CullCache()
 end)
 
 --------------------------------------
@@ -505,9 +538,52 @@ end)
 --------------------------------------
 
 -- Check how close the bot is to the end of the path, return True if within completion distance completeRange
-function PathManager.BotIsCloseEnough(bot, vec)
-    local completeRange = PathManager.completeRange
+function TTTBots.PathManager.BotIsCloseEnough(bot, vec)
+    local completeRange = TTTBots.PathManager.completeRange
     local botpos = bot:GetPos()
 
     return (vec:Distance(botpos) < completeRange)
 end
+
+local path
+
+timer.Create("_____DebugPathMake", 10, 0, function()
+    local randomnav1 = table.Random(navmesh.GetAllNavAreas())
+    local randomnav2 = table.Random(navmesh.GetAllNavAreas())
+    path = TTTBots.PathManager.RequestPath(
+        randomnav1:GetCenter(),
+        randomnav2:GetCenter()
+    )
+    if type(path) == "table" then
+        path = path.path
+    end
+end)
+
+timer.Create("_____DebugPathDraw", 0.1, 0, function()
+    if type(path) == "table" then
+        local preparedpath = TTTBots.PathManager.PreparePathForLocomotor(path)
+
+        for i, v in ipairs(preparedpath) do
+            --[[
+            v =
+            {
+                pos = Vector(0, 0, 0),
+                area = navarea,
+                type = "jump" or "ladder" or "walk" or "fall", (if we have to do X to get here from the last point)
+                ladder_dir = "up" or "down", (if ladder, else nil)
+            }
+            ]]
+            local cols = {
+                jump = Color(0, 255, 255),
+                ladder = Color(255, 0, 255),
+                walk = Color(255, 255, 0),
+                fall = Color(255, 0, 0),
+                crouch = Color(0, 255, 0),
+            }
+            TTTBots.DebugServer.DrawLineBetween(v.pos, v.pos + Vector(0, 0, 100), cols[v.type])
+            if preparedpath[i - 1] then
+                TTTBots.DebugServer.DrawLineBetween(preparedpath[i - 1].pos, v.pos, cols[v.type])
+            end
+        end
+    end
+end)
