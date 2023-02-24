@@ -247,7 +247,8 @@ function TTTBots.PathManager.GeneratePath(startpos, finishpos)
         generatedAt = CurTime(),
         TimeSince = function(self)
             return CurTime() - self.generatedAt
-        end
+        end,
+        preparedPath = path and type(path) == "table" and TTTBots.PathManager.PreparePathForLocomotor(path)
     }
 
     -- Cache the path

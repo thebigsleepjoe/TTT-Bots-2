@@ -28,8 +28,9 @@ function Lib.PrintInitMessage()
     print(format("Version: %s", TTTBots.Version))
     print(format("Number of players: %s/%s", #player.GetAll(), game.MaxPlayers()))
     print(format("Gamemode: %s", engine.ActiveGamemode()) ..
-        " | (Compatible = " .. tostring(Lib.CheckCompatibleGamemode()) .. ")")
-    print("NOTE: If you are reading this as a dedicated server owner, you cannot use chat commands remotely, your character must be in the server for that. You may still use concommands.")
+    " | (Compatible = " .. tostring(Lib.CheckCompatibleGamemode()) .. ")")
+    print(
+        "NOTE: If you are reading this as a dedicated server owner, you cannot use chat commands remotely, your character must be in the server for that. You may still use concommands.")
     print("~~~~~~~~~~~~~~~~~~~~~")
 end
 
@@ -65,7 +66,7 @@ function Lib.CreateBot(name)
 
     local dvlpr = Lib.GetDebugFor("all")
     if dvlpr then
-        for i,v in pairs(bot.components) do
+        for i, v in pairs(bot.components) do
             print(string.format("Bot %s component '%s', ID is: %s", bot:Nick(), i, v.componentID))
         end
     end
@@ -135,5 +136,22 @@ end
 -- Wrapper for "ttt_bot_" + name convars
 -- Prepends "ttt_bot_" to the name of the convar, and returns the boolean value of the convar.
 function Lib.GetConVarBool(name)
-   return GetConVar("ttt_bot_" .. name):GetBool()
+    return GetConVar("ttt_bot_" .. name):GetBool()
+end
+
+function Lib.WeightedVectorMean(tbl)
+    --[[
+        tbl example = {
+            { vector = Vector(0, 0, 0), weight = 1 },
+            { vector = Vector(0, 0, 0), weight = 1 },
+            { vector = Vector(0, 0, 0), weight = 1 },
+        }
+    ]]
+    local sum = Vector(0, 0, 0)
+    local totalWeight = 0
+    for i, v in pairs(tbl) do
+        sum = sum + (v.vector * v.weight)
+        totalWeight = totalWeight + v.weight
+    end
+    return sum / totalWeight
 end

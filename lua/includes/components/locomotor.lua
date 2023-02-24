@@ -16,7 +16,6 @@ To update the path goal, use Locomotor:SetGoalPos(pos). This will set the goal p
 
 
 ]]
-
 -----------------------------------------------
 -- Utility functions
 -----------------------------------------------
@@ -35,7 +34,7 @@ function BotLocomotor:New(bot)
 
     local dbg = lib.GetDebugFor("all")
     if dbg then
-        print("Initialized locomotor for bot ".. bot:Nick())
+        print("Initialized locomotor for bot " .. bot:Nick())
     end
 
     return newLocomotor
@@ -45,7 +44,7 @@ function BotLocomotor:Initialize(bot)
     bot.components = bot.components or {}
     bot.components.locomotor = self
 
-    self.componentID = string.format("locomotor (%s)", lib.GenerateID() ) -- Component ID, used for debugging
+    self.componentID = string.format("locomotor (%s)", lib.GenerateID()) -- Component ID, used for debugging
 
     self.tick = 0 -- Tick counter
     self.bot = bot
@@ -73,22 +72,22 @@ function BotLocomotor:Initialize(bot)
     self.jump = false
     self.dontmove = false
 end
+
 -- Validate the path's integrity. Returns false if path is invalid, info is invalid, or path is too old. Then, sets path and pathinfo to nil.
 -- Else returns true.
 function BotLocomotor:ValidatePath()
-
     -- This is ugly, but it works and it is easy to read.
     local failReason = ""
     if not self.path then -- No path
         failReason = "No path"
     elseif type(self.path) == "boolean" then -- Path is a boolean
         failReason = "Path is a boolean"
-    -- elseif not IsValid(self.path) then -- Path is invalid
-    --     failReason = "Path is invalid; value is " .. tostring(self.path)
-    -- elseif not IsValid(self.pathinfo) then -- Path info is invalid
-    --     failReason = "Path info is invalid"
-    -- elseif self.pathinfo:TimeSince() > TTTBots.PathManager.cullSeconds then -- Path info is too old
-    --     failReason = "Path info is too old"
+        -- elseif not IsValid(self.path) then -- Path is invalid
+        --     failReason = "Path is invalid; value is " .. tostring(self.path)
+        -- elseif not IsValid(self.pathinfo) then -- Path info is invalid
+        --     failReason = "Path info is invalid"
+        -- elseif self.pathinfo:TimeSince() > TTTBots.PathManager.cullSeconds then -- Path info is too old
+        --     failReason = "Path info is too old"
     end
 
     if failReason ~= "" then
@@ -101,24 +100,43 @@ end
 
 -- Getters and setters, just for formality and easy reading.
 function BotLocomotor:SetCrouching(bool) self.crouch = bool end
+
 function BotLocomotor:SetJumping(bool) self.jump = bool end
+
 function BotLocomotor:SetCanMove(bool) self.dontmove = not bool end
+
 -- Set a look override, we will use the look override to override viewangles. Actual look angle is lerped to the override using moveLerpSpeed.
 function BotLocomotor:SetLookPosOverride(pos) self.lookPosOverride = pos end
+
 function BotLocomotor:SetCurrentLookPos(pos) self.lookPos = pos end
+
 function BotLocomotor:ClearLookPosOverride() self.lookPosOverride = nil end
+
 function BotLocomotor:SetMoveLerpSpeed(speed) self.moveLerpSpeed = speed end
+
 function BotLocomotor:SetStrafe(value) self.strafe = value end
+
 function BotLocomotor:SetGoalPos(pos) self.goalPos = pos end
 
+function BotLocomotor:SetUsing(bool) self.emulateInUse = bool end
+
 function BotLocomotor:GetCrouching() return self.crouch end
+
 function BotLocomotor:GetJumping() return self.jump end
+
 function BotLocomotor:GetCanMove() return not self.dontmove end
+
 function BotLocomotor:GetLookPosOverride() return self.lookPosOverride end
+
 function BotLocomotor:GetCurrentLookPos() return self.lookPos end
+
 function BotLocomotor:GetMoveLerpSpeed() return self.moveLerpSpeed end
+
 function BotLocomotor:GetStrafe() return self.strafe end
+
 function BotLocomotor:GetGoalPos() return self.goalPos end
+
+function BotLocomotor:GetUsing() return self.emulateInUse end
 
 function BotLocomotor:WithinCompleteRange(pos)
     return self.bot:GetPos():Distance(pos) < TTTBots.PathManager.completeRange
@@ -131,6 +149,7 @@ end
 function BotLocomotor:IsOnLadder()
     return self.bot:GetMoveType() == MOVETYPE_LADDER
 end
+
 -- Do a trace to check if our feet are obstructed, but our head is not.
 function BotLocomotor:CheckFeetAreObstructed()
     local pos = self.bot:GetPos()
@@ -139,7 +158,7 @@ function BotLocomotor:CheckFeetAreObstructed()
     bodyfacingdir.z = 0
 
     local startpos = pos + Vector(0, 0, 16)
-    local endpos = pos + bodyfacingdir*30
+    local endpos = pos + bodyfacingdir * 30
 
     local trce = util.TraceLine({
         start = startpos,
@@ -176,6 +195,43 @@ function BotLocomotor:CloseEnoughTo(pos)
     return TTTBots.PathManager.BotIsCloseEnough(self.bot, pos)
 end
 
+--- Detect if there is a door ahead of us. Do this by running a trace w a mask that factors in everything. If so, then return the door.
+function BotLocomotor:DetectDoorAhead()
+    local pos = self.bot:EyePos()
+    local bodyfacingdir = self.moveNormal or Vector(0, 0, 0)
+
+    local trace = util.TraceLine({
+        start = pos,
+        endpos = pos + bodyfacingdir * 80,
+        filter = self.bot,
+        mask = MASK_ALL
+    })
+
+    if trace.Hit and trace.Entity and trace.Entity:IsDoor() then
+        return trace.Entity
+    end
+
+    return false
+end
+
+--- Used to prevent spamming of doors.
+--- Calling this function returns a bool. True if can use again. If it returns true, it starts the timer.
+--- Otherwise it returns false, and does nothing
+function BotLocomotor:UseTimer()
+    local useTimer = (self.canUseAgain == nil and true) or self.canUseAgain
+
+    if useTimer then
+        self.canUseAgain = false
+        timer.Simple(2, function()
+            self.canUseAgain = true
+        end)
+
+        return true
+    end
+
+    return false
+end
+
 -----------------------------------------------
 -- Tick-level functions
 -----------------------------------------------
@@ -183,8 +239,8 @@ end
 -- Tick periodically. Do not tick per GM:StartCommand
 function BotLocomotor:Think()
     self.tick = self.tick + 1
-    self:UpdatePath()       -- Update the path that the bot is following, so that we can move along it.
-    self:UpdateMovement()   -- Update the invisible angle that the bot moves at, and make it move.
+    self:UpdatePath() -- Update the path that the bot is following, so that we can move along it.
+    self:UpdateMovement() -- Update the invisible angle that the bot moves at, and make it move.
     --self:UpdateViewAngles() -- Update the visible angle that the bot looks at. This is for cosmetic and aiming purposes.
 end
 
@@ -257,6 +313,7 @@ function BotLocomotor:UpdateMovement()
     self:SetJumping(false)
     self:SetCrouching(false)
     self:SetStrafe(nil)
+    self:SetUsing(false)
     self.forceForward = false
     self.tryingMove = false
     if self.dontmove then return end
@@ -285,9 +342,18 @@ function BotLocomotor:UpdateMovement()
     if not self.tryingMove then return end
 
     -- If we're stuck, try to get unstuck.
-    self:RecordPosition()
+    if self.tick % 3 == 1 then self:RecordPosition() end
     if self:IsStuck() then
         self:Unstuck()
+    end
+
+    -----------------------
+    -- Door code
+    -----------------------
+
+    local door = self:DetectDoorAhead()
+    if door then
+        self:SetUsing(true)
     end
 end
 
@@ -325,69 +391,46 @@ function BotLocomotor:UpdatePath()
 
     -- If we don't have a path, request one
     self.pathinfo = TTTBots.PathManager.RequestPath(self.bot:GetPos(), self:GetGoalPos())
-    self.smoothPath = nil
     if self.pathinfo and type(self.pathinfo.path) == "table" then
         self.path = self.pathinfo.path
-        self.smoothPath = TTTBots.PathManager.SmoothPath2(self.path, 3)
     else
         self.pathinfo = nil
         self.path = nil
-        self.smoothPath = nil
     end
 end
 
-function BotLocomotor:DetermineNextPos(pathVecs, areas)
-    if pathVecs == nil or areas == nil or #pathVecs == 0 then
-        return false
-    end
-    local bot = self.bot
+function BotLocomotor:DetermineNextPos()
+    local preparedPath = self.pathinfo and self.pathinfo.preparedPath or nil
+    if not preparedPath then return nil end
 
-    -- start by just pathing towards the closest vector to us
-    local closestVec = pathVecs[1]
-    local closestDist = bot:GetPos():Distance(closestVec)
-    local closestIndex = 1
-    for i = 2, #pathVecs do
-        local dist = bot:GetPos():Distance(pathVecs[i])
-        if dist < closestDist and not TTTBots.PathManager.BotIsCloseEnough(bot, pathVecs[i]) then
+    --[[
+        A prepared path is a table of tables. Each element is formatted, so:
+        {
+            pos = Vector(0, 0, 0)
+            area = navarea
+            type = "jump" or "ladder" or "walk" or "fall" or "swim" or "crouch"
+            ladder_dir = "up" or "down" (if ladder, else nil)
+        }
+    ]]
+    --local nextPos = preparedPath[1].pos
+    local closestPos = nil
+    local closestDist = nil
+    local closestI = nil
+    local botPos = self.bot:GetPos()
+
+    for i = 1, #preparedPath do
+        local pos = preparedPath[i].pos
+        local dist = botPos:Distance(pos)
+        if closestDist == nil or dist < closestDist then
+            closestPos = pos
             closestDist = dist
-            closestVec = pathVecs[i]
-            closestIndex = i
+            closestI = i
         end
     end
 
-    -- Re-add every point after closestIndex
-    local updatedPathVecs = {}
-    local updatedAreas = {}
-    for i = closestIndex, #pathVecs do
-        table.insert(updatedPathVecs, pathVecs[i])
-        table.insert(updatedAreas, areas[i])
-    end
+    local nextPos = #preparedPath ~= closestI and preparedPath[closestI + 1].pos or closestPos
 
-    local selected = 2
-
-    -- check if following point is within a crouch navarea. if so, then nextpos is the following point.
-    if #updatedPathVecs > selected + 1 and navmesh.GetNearestNavArea(updatedPathVecs[selected + 1]):IsCrouch() then
-        selected = selected + 1
-    end
-
-    if
-        updatedAreas[selected + 1]
-        and not updatedAreas[selected + 1]:IsLadder()
-        and updatedAreas[selected]:GetConnectionTypeBetween(updatedAreas[selected + 1]) == "jump"
-    then
-        selected = selected + 1
-    end
-
-    if self:IsOnLadder() then
-        local ladder = self:GetClosestLadder()
-        if ladder then return ladder:GetCenter() end
-    end
-
-    -- if self:IsOnLadder() then
-    --     selected = selected + 1
-    -- end
-
-    return updatedPathVecs[selected]
+    return nextPos
 end
 
 -- Determines how the bot navigates through its path once it has one.
@@ -398,22 +441,16 @@ function BotLocomotor:FollowPath()
 
     if not self:ValidatePath() then return false end
 
-    if (self.smoothPath == nil or self.areas == nil) then
-        local sp, ars = TTTBots.PathManager.SmoothPath2(self.path, 3)
-        self.smoothPath = sp
-        self.areas = ars
-    end
-
-    local smoothPath = self.smoothPath --TTTBots.PathManager.SmoothPath2(path, 3)
+    local preparedPath = self.pathinfo.preparedPath
     local areas = self.areas
 
     if dvlpr then
-        for i = 1, #smoothPath - 1 do
-            TTTBots.DebugServer.DrawLineBetween(smoothPath[i], smoothPath[i + 1], Color(0, 125, 255))
+        for i = 1, #preparedPath - 1 do
+            TTTBots.DebugServer.DrawLineBetween(preparedPath[i].pos, preparedPath[i + 1].pos, Color(0, 125, 255))
         end
     end
-    -- Walk towards the next node in the smoothPath that we can see
-    local nextPos = self:DetermineNextPos(smoothPath, areas)
+
+    local nextPos = self:DetermineNextPos()
     self.nextPos = nextPos
 
     if not nextPos then return false end
@@ -435,7 +472,7 @@ function BotLocomotor:FollowPath()
         TTTBots.DebugServer.DrawText(nextPos, nextpostxt, Color(255, 255, 255))
         -- TTTBots.DebugServer.DrawLineBetween(bot:GetPos(), nextPos, Color(255, 255, 255))
     end
-    
+
     return true
 end
 
@@ -455,14 +492,23 @@ function BotLocomotor:UpdateViewAngles(cmd)
     local smoothPath = self.smoothPath or {}
     local goal = self.goalPos
 
-    self.lookPos = self.lookPos
-
     if override then
         self.lookPos = override
         return
     end
 
     self.lookPos = goal
+
+    if self.nextPos then
+        self.lookPos = lib.WeightedVectorMean({
+            { vector = self.nextPos, weight = 0.5 },
+            { vector = goal,         weight = 1.5 }
+        })
+
+        if self:IsStuck() then
+            self.lookPos = self.nextPos
+        end
+    end
 
     local closestLadder = self:GetClosestLadder()
     if self:IsOnLadder() and closestLadder then
@@ -516,9 +562,9 @@ function BotLocomotor:StartCommand(cmd)
     -- Set buttons for jumping if :GetJumping() is true
     -- The way jumping works is a little quirky, as it cannot be held down. We must release it occasionally
     if self:GetJumping() and (self.jumpReleaseTime < CurTime()) or self.jumpReleaseTime == nil then
-        cmd:SetButtons(IN_JUMP, IN_DUCK)
+        cmd:SetButtons(IN_JUMP + IN_DUCK)
         self.jumpReleaseTime = CurTime() + 0.1
-        
+
         if dvlpr then
             TTTBots.DebugServer.DrawText(self.bot:GetPos(), "Crouch Jumping", Color(255, 255, 255))
         end
@@ -554,7 +600,12 @@ function BotLocomotor:StartCommand(cmd)
     -- Set up movement to always be up
     cmd:SetUpMove(400)
 
-
+    if self:GetUsing() and self:UseTimer() then
+        if dvlpr then
+            TTTBots.DebugServer.DrawText(self.bot:GetPos(), "Opening door", Color(255, 255, 255))
+        end
+        cmd:SetButtons(cmd:GetButtons() + IN_USE)
+    end
 
     self.moveNormal = cmd:GetViewAngles():Forward()
 end
