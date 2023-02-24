@@ -573,9 +573,7 @@ function BotLocomotor:StartCommand(cmd)
     local movementVec = self.movementVec
     if movementVec ~= Vector(0, 0, 0) then
         local ang = (movementVec - self.bot:GetPos()):Angle()
-        --cmd:SetViewAngles(LerpAngle(0.5, cmd:GetViewAngles(), ang))
-        cmd:SetViewAngles(ang)
-        -- self.bot:SetEyeAngles(LerpAngle(0.1, self.bot:EyeAngles(), ang))
+        cmd:SetViewAngles(ang) -- This is actually the movement angles, not the view angles. It's confusingly named.
     end
 
     self:UpdateViewAngles(cmd)
