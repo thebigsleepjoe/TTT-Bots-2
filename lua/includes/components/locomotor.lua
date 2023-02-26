@@ -650,16 +650,17 @@ Example stuckBots table:
 {
     ["botname"] = {
         stuckPos = Vector(0, 0, 0),
-        stuckTime = 0
+        stuckTime = 0,
+        ply = <Player>
     }
 }
 
-Example commonStuckPositions table: (every position within 128 units of center is considered related)
+Example commonStuckPositions table: (every position within 200 units of center is considered related)
 {
     {
         center = Vector(0, 0, 0), -- center of the position
-        timesStuck = 1, -- how many times a bot has been stuck near this position
         timeLost = 0, -- how much time, in man-seconds, has been lost near this position
+        cnavarea = <CNavArea>, -- the CNavArea that this position is in
     }
 }
 ]]
@@ -672,6 +673,7 @@ timer.Create("TTTBots.Locomotor.StuckTracker", 1, 0, function()
     -- Update stuckBots table
     ---------------------------
     for i, bot in pairs(bots) do
+        if not lib.IsBotAlive(bot) then continue end
         local locomotor = bot.components.locomotor
         local botname = bot:Nick()
 
@@ -682,6 +684,7 @@ timer.Create("TTTBots.Locomotor.StuckTracker", 1, 0, function()
 
         local stuck = locomotor:IsStuck()
         local stuckPos = bot:GetPos()
+        local stuckTime = 1
 
         if not stuck then
             if stuckBots[botname] then stuckBots[botname] = nil end
@@ -689,25 +692,35 @@ timer.Create("TTTBots.Locomotor.StuckTracker", 1, 0, function()
             if not stuckBots[botname] then
                 stuckBots[botname] = {
                     stuckPos = stuckPos,
-                    stuckTime = 1
+                    stuckTime = stuckTime,
+                    ply = bot
                 }
             else
                 stuckBots[botname].stuckPos = stuckPos
                 stuckBots[botname].stuckTime = stuckBots[botname].stuckTime + 1
+
+                stuckTime = stuckBots[botname].stuckTime
             end
+        end
+
+        local shouldUnstuck = (stuckTime > 5)
+
+        if shouldUnstuck then
+            local cnavarea = navmesh.GetNearestNavArea(stuckPos)
+            local randomPos = cnavarea:GetRandomPoint()
+            bot:SetPos(randomPos + Vector(0, 0, 32))
         end
     end
 
     ---------------------------
-    -- Update commonStuckPositions table using stuckBots
+    -- Update/create commonStuckPositions table using stuckBots
     ---------------------------
-    for botname, bot in pairs(stuckBots) do
-        local stuckPos = bot.stuckPos
+    for botname, botinfo in pairs(stuckBots) do
+        local stuckPos = botinfo.stuckPos
 
         local found = false
         for i, pos in pairs(commonStucks) do
-            if pos.center:Distance(stuckPos) < 128 then
-                pos.timesStuck = pos.timesStuck + 1
+            if pos.center:Distance(stuckPos) < 200 then
                 pos.timeLost = pos.timeLost + 1
                 if not table.HasValue(pos.victims, botname) then table.insert(pos.victims, botname) end
                 found = true
@@ -718,9 +731,9 @@ timer.Create("TTTBots.Locomotor.StuckTracker", 1, 0, function()
         if not found then
             table.insert(commonStucks, {
                 center = stuckPos,
-                timesStuck = 1,
                 timeLost = 1,
-                victims = { botname }
+                victims = { botname },
+                cnavarea = navmesh.GetNearestNavArea(stuckPos)
             })
         end
     end

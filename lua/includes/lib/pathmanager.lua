@@ -65,11 +65,25 @@ function ladderMeta:GetClosestPointOnArea(vec)
     end
 end
 
+function ladderMeta:GetPossibleStuckCost() return 0 end
+
 function ladderMeta:IsCrouch() return false end
 
 function ladderMeta:GetPortals() return {} end
 
 local navMeta = FindMetaTable("CNavArea")
+
+function navMeta:GetPossibleStuckCost()
+    local commonStucks = TTTBots.Components.Locomotor.commonStuckPositions
+    for i, tbl in pairs(commonStucks) do
+        local cnav = tbl.cnavarea
+        if cnav == self then
+            return tbl.stuckTime
+        end
+    end
+
+    return 0
+end
 
 function navMeta:IsLadder()
     return false
@@ -165,37 +179,40 @@ function TTTBots.PathManager.Astar2(start, goal)
         table.Add(adjacents, portals)
 
         for k, neighbor in pairs(adjacents) do
-            local currentCost = current.cost + heuristic_cost_estimate(current.area, neighbor)
+            local neighborCost = current.cost + heuristic_cost_estimate(current.area, neighbor)
 
             if neighbor:IsLadder() then
-                currentCost = currentCost + (neighbor:GetLength() / 2) -- we want to prioritize ladders
+                neighborCost = neighborCost + (neighbor:GetLength() / 2) -- we want to prioritize ladders
             else
                 local heightchange = current.area:ComputeGroundHeightChange(neighbor)
                 if (heightchange > 128) then -- > 2 ply heights
-                    currentCost = currentCost + (heightchange ^ 3);
+                    neighborCost = neighborCost + (heightchange ^ 3);
                 elseif (heightchange > 256) then -- do not fall if more than 4 ply heights
-                    currentCost = currentCost + (100000000);
+                    neighborCost = neighborCost + (100000000);
                 end
+
+                local stuckCost = neighbor:GetPossibleStuckCost()
+                neighborCost = neighborCost + ((stuckCost or 0) * 5)
 
                 local connectionType = current.area:GetConnectionTypeBetween(neighbor)
                 if (connectionType == "jump") then
-                    currentCost = currentCost + 175
+                    neighborCost = neighborCost + 175
                 elseif (connectionType == "fall") then
-                    currentCost = currentCost + 150
+                    neighborCost = neighborCost + 150
                 end
 
-                currentCost = currentCost + (neighbor:IsUnderwater() and 50 or 0)
+                neighborCost = neighborCost + (neighbor:IsUnderwater() and 50 or 0)
 
                 if (neighbor:IsCrouch()) then
-                    currentCost = currentCost + 50
+                    neighborCost = neighborCost + 50
                 end
             end
 
             local found = false
             for k, v in pairs(open) do
                 if (v.area == neighbor) then
-                    if (v.cost > currentCost) then
-                        v.cost = currentCost
+                    if (v.cost > neighborCost) then
+                        v.cost = neighborCost
                         v.parent = current
                     end
                     found = true
@@ -207,8 +224,8 @@ function TTTBots.PathManager.Astar2(start, goal)
 
             for k, v in pairs(closed) do
                 if (v.area == neighbor) then
-                    if (v.cost > currentCost) then
-                        v.cost = currentCost
+                    if (v.cost > neighborCost) then
+                        v.cost = neighborCost
                         v.parent = current
                         table.insert(open, v)
                         table.remove(closed, k)
@@ -220,7 +237,7 @@ function TTTBots.PathManager.Astar2(start, goal)
 
             if (found) then continue end
 
-            table.insert(open, { area = neighbor, cost = currentCost, parent = current })
+            table.insert(open, { area = neighbor, cost = neighborCost, parent = current })
         end
 
         table.sort(open, function(a, b) return a.cost < b.cost end)
