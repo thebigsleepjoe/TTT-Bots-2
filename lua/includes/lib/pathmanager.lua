@@ -229,10 +229,23 @@ function TTTBots.PathManager.Astar2(start, goal)
     return false
 end
 
+TTTBots.PathManager.ImpossiblePaths = {}
+
 --[[]]
 -- Request the creation of a path between two vectors. Returns pathinfo, which contains the path as a table of CNavAreas and the time of generation.
 -- If it already exists, then return the cached path.
 function TTTBots.PathManager.RequestPath(startpos, finishpos)
+    if not startpos or not finishpos then return false end
+    local sa = navmesh.GetNearestNavArea(startpos)
+    local fa = navmesh.GetNearestNavArea(finishpos)
+
+    local pid = sa:GetID() .. "to" .. fa:GetID()
+
+    -- Do not generate a path if we've already tried one between these points and failed.
+    if TTTBots.PathManager.ImpossiblePaths[pid] then
+        return false
+    end
+
     -- Check if the path already exists in the cache
     local path = TTTBots.PathManager.GetPath(startpos, finishpos)
     if path then
@@ -245,7 +258,8 @@ function TTTBots.PathManager.RequestPath(startpos, finishpos)
         return path
     end
 
-    -- If it still doesn't exist, return false
+    -- If it still doesn't exist, return false, and add it to the impossible paths table
+    TTTBots.PathManager.ImpossiblePaths[pid] = true
     return false
 end
 
