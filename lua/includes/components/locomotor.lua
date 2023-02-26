@@ -60,7 +60,8 @@ function BotLocomotor:Initialize(bot)
 
     self.lookPosOverride = nil -- Override look position, this is only used from outside of this component. Like aiming at a player.
     self.lookLerpSpeed = 0 -- Current look speed (rate of lerp)
-    self.lookPos = nil -- Current look position, gets lerped to Override, or to another location if no override is set.
+    self.lookPosGoal = nil -- The current goal position to look at
+    self.lookPos = nil -- Current look position, gets lerped to Override, or to self.lookPosGoal.
 
     self.movementVec = Vector(0, 0, 0) -- Current look position, gets lerped to Override
     self.moveLerpSpeed = 0 -- Current look speed (rate of lerp)
@@ -98,6 +99,19 @@ function BotLocomotor:ValidatePath()
     return true
 end
 
+function BotLocomotor:UpdateLookPos()
+    if self.lookPosOverride then
+        self.lookPos = LerpVector(self.lookLerpSpeed, self:GetCurrentLookPos(), self:GetLookPosOverride())
+        return
+    end
+
+    if self.lookPosGoal then
+        self.lookPos = LerpVector(self.lookLerpSpeed, self:GetCurrentLookPos(), self:GetLookPosGoal())
+    end
+
+    self.bot:SetEyeAngles((self.lookPos - self.bot:EyePos()):Angle())
+end
+
 -- Getters and setters, just for formality and easy reading.
 function BotLocomotor:SetCrouching(bool) self.crouch = bool end
 
@@ -108,7 +122,10 @@ function BotLocomotor:SetCanMove(bool) self.dontmove = not bool end
 -- Set a look override, we will use the look override to override viewangles. Actual look angle is lerped to the override using moveLerpSpeed.
 function BotLocomotor:SetLookPosOverride(pos) self.lookPosOverride = pos end
 
+---@deprecated Don't use. It works, but just don't use it. It's too abrupt.
 function BotLocomotor:SetCurrentLookPos(pos) self.lookPos = pos end
+
+function BotLocomotor:SetLookPosGoal(pos) self.lookPosGoal = pos end
 
 function BotLocomotor:ClearLookPosOverride() self.lookPosOverride = nil end
 
@@ -128,7 +145,9 @@ function BotLocomotor:GetCanMove() return not self.dontmove end
 
 function BotLocomotor:GetLookPosOverride() return self.lookPosOverride end
 
-function BotLocomotor:GetCurrentLookPos() return self.lookPos end
+function BotLocomotor:GetLookPosGoal() return self.lookPosGoal end
+
+function BotLocomotor:GetCurrentLookPos() return self.lookPosGoal end
 
 function BotLocomotor:GetMoveLerpSpeed() return self.moveLerpSpeed end
 
@@ -158,7 +177,7 @@ function BotLocomotor:CheckFeetAreObstructed()
     bodyfacingdir.z = 0
 
     local startpos = pos + Vector(0, 0, 16)
-    local endpos = pos + bodyfacingdir * 30
+    local endpos = pos + Vector(0, 0, 16) + bodyfacingdir * 30
 
     local trce = util.TraceLine({
         start = startpos,
@@ -174,12 +193,16 @@ function BotLocomotor:CheckFeetAreObstructed()
 end
 
 -- Return true if we should jump between vectors a and b. This is used for pathfinding.
-function BotLocomotor:ShouldJumpBetweenPoints(a, b)
-    local verticalCondition = (b.z - a.z) > 8
+-- function BotLocomotor:ShouldJumpBetweenPoints(a, b)
+--     local verticalCondition = (b.z - a.z) > 8
 
 
-    local condition = verticalCondition or self:CheckFeetAreObstructed()
-    return condition
+--     local condition = verticalCondition or self:CheckFeetAreObstructed()
+--     return condition
+-- end
+
+function BotLocomotor:ShouldJump()
+    return self:CheckFeetAreObstructed()
 end
 
 function BotLocomotor:ShouldCrouchBetweenPoints(a, b)
@@ -195,20 +218,32 @@ function BotLocomotor:CloseEnoughTo(pos)
     return TTTBots.PathManager.BotIsCloseEnough(self.bot, pos)
 end
 
---- Detect if there is a door ahead of us. Do this by running a trace w a mask that factors in everything. If so, then return the door.
+--- Detect if there is a door ahead of us. Runs two traces, one for moveangles and one for viewangles. If so, then return the door.
 function BotLocomotor:DetectDoorAhead()
     local pos = self.bot:EyePos()
     local bodyfacingdir = self.moveNormal or Vector(0, 0, 0)
+    local lookPos = self:GetCurrentLookPos()
 
-    local trace = util.TraceLine({
+    local movetrace = util.TraceLine({
         start = pos,
         endpos = pos + bodyfacingdir * 80,
         filter = self.bot,
         mask = MASK_ALL
     })
 
-    if trace.Hit and trace.Entity and trace.Entity:IsDoor() then
-        return trace.Entity
+    if movetrace.Hit and movetrace.Entity and movetrace.Entity:IsDoor() then
+        return movetrace.Entity
+    end
+
+    local viewtrace = util.TraceLine({
+        start = pos,
+        endpos = lookPos,
+        filter = self.bot,
+        mask = MASK_ALL
+    })
+
+    if viewtrace.Hit and viewtrace.Entity and viewtrace.Entity:IsDoor() then
+        return viewtrace.Entity
     end
 
     return false
@@ -455,8 +490,7 @@ function BotLocomotor:FollowPath()
 
     if not nextPos then return false end
 
-    -- check if we should jump between our current position and nextPos
-    if self:ShouldJumpBetweenPoints(bot:GetPos(), nextPos) then
+    if self:ShouldJump() then
         self:SetJumping(true)
     end
 
@@ -481,62 +515,57 @@ end
 -----------------------------------------------
 
 function BotLocomotor:UpdateViewAngles(cmd)
-    -- self.lookPosOverride = nil -- Override look position, this is only used from outside of this component. Like aiming at a player.
-    -- self.lookLerpSpeed = 0 -- Current look speed (rate of lerp)
-    -- self.lookPos = nil -- Current look position, gets lerped to Override, or to another location if no override is set.
-
-
-    -- TODO: Make this work with pathfinding
     local override = self:GetLookPosOverride()
     local lookLerpSpeed = self.lookLerpSpeed or 0
     local smoothPath = self.smoothPath or {}
     local goal = self.goalPos
 
     if override then
-        self.lookPos = override
+        self.lookPosGoal = override
         return
     end
 
-    self.lookPos = goal
+    self.lookPosGoal = goal
 
     if self.nextPos then
-        self.lookPos = lib.WeightedVectorMean({
-            { vector = self.nextPos, weight = 0.5 },
-            { vector = goal,         weight = 1.5 }
-        })
+        self.lookPosGoal = goal
+        -- self.lookPosGoal = lib.WeightedVectorMean({
+        --     { vector = self.nextPos, weight = 0.5 },
+        --     { vector = goal,         weight = 1.5 }
+        -- })
 
         if self:IsStuck() then
-            self.lookPos = self.nextPos
+            self.lookPosGoal = self.nextPos
         end
     end
 
     local closestLadder = self:GetClosestLadder()
     if self:IsOnLadder() and closestLadder then
         -- Average the positions of the next 3 points in the smoothPath
-        local average = Vector(0, 0, 0)
-        for i = 1, 3 do
-            if smoothPath[i] then
-                average = average + smoothPath[i]
-            end
-        end
-        average = average / 3
-        TTTBots.DebugServer.DrawSphere(average, 10, Color(255, 0, 0))
+        -- local average = Vector(0, 0, 0)
+        -- for i = 1, 3 do
+        --     if smoothPath[i] then
+        --         average = average + smoothPath[i]
+        --     end
+        -- end
+        -- average = average / 3
+        -- TTTBots.DebugServer.DrawSphere(average, 10, Color(255, 0, 0))
 
-        -- Check if the average is above or below the center of the ladder
-        local pointIsBelow = (average.z < closestLadder:GetCenter().z)
+        -- -- Check if the average is above or below the center of the ladder
+        -- local pointIsBelow = (average.z < closestLadder:GetCenter().z)
 
         local offset = Vector(0, 0, 500)
-        if pointIsBelow then
-            offset = offset * -1
-        end
+        -- if pointIsBelow then
+        --     offset = offset * -1
+        -- end
 
-        self.lookPos = (closestLadder:GetTop() + offset)
+        -- self.lookPosGoal = (closestLadder:GetTop() + offset)
+        self.lookPosGoal = (self.nextPos or closestLadder:GetTop()) + offset
     end
 
-    if not self.lookPos then return end
+    if not self.lookPosGoal then return end
 
-    self.bot:SetEyeAngles((self.lookPos - self.bot:GetPos()):Angle())
-    --cmd:SetViewAngles((self.lookPos - self.bot:GetPos()):Angle())
+    self:UpdateLookPos()
 end
 
 --- Lerp look towards the goal position
@@ -587,7 +616,9 @@ function BotLocomotor:StartCommand(cmd)
         or 0
 
     if self:IsOnLadder() then -- Ladder movement
-        cmd:SetButtons(IN_FORWARD)
+        local strafe_dir = (self:GetStrafe() == "left" and IN_MOVELEFT) or (self:GetStrafe() == "right" and IN_MOVERIGHT) or
+            0
+        cmd:SetButtons(IN_FORWARD + strafe_dir)
 
         return
     end
@@ -607,3 +638,105 @@ function BotLocomotor:StartCommand(cmd)
 
     self.moveNormal = cmd:GetViewAngles():Forward()
 end
+
+---------------------------------
+-- Other utils
+---------------------------------
+
+TTTBots.Components.Locomotor.commonStuckPositions = {}
+TTTBots.Components.Locomotor.stuckBots = {}
+--[[
+Example stuckBots table:
+{
+    ["botname"] = {
+        stuckPos = Vector(0, 0, 0),
+        stuckTime = 0
+    }
+}
+
+Example commonStuckPositions table: (every position within 128 units of center is considered related)
+{
+    {
+        center = Vector(0, 0, 0), -- center of the position
+        timesStuck = 1, -- how many times a bot has been stuck near this position
+        timeLost = 0, -- how much time, in man-seconds, has been lost near this position
+    }
+}
+]]
+timer.Create("TTTBots.Locomotor.StuckTracker", 1, 0, function()
+    local stuckBots = TTTBots.Components.Locomotor.stuckBots
+    local commonStucks = TTTBots.Components.Locomotor.commonStuckPositions
+    local bots = player.GetBots()
+
+    ---------------------------
+    -- Update stuckBots table
+    ---------------------------
+    for i, bot in pairs(bots) do
+        local locomotor = bot.components.locomotor
+        local botname = bot:Nick()
+
+        if not locomotor then
+            print("No loco for " .. bot:Nick())
+            continue
+        end
+
+        local stuck = locomotor:IsStuck()
+        local stuckPos = bot:GetPos()
+
+        if not stuck then
+            if stuckBots[botname] then stuckBots[botname] = nil end
+        else
+            if not stuckBots[botname] then
+                stuckBots[botname] = {
+                    stuckPos = stuckPos,
+                    stuckTime = 1
+                }
+            else
+                stuckBots[botname].stuckPos = stuckPos
+                stuckBots[botname].stuckTime = stuckBots[botname].stuckTime + 1
+            end
+        end
+    end
+
+    ---------------------------
+    -- Update commonStuckPositions table using stuckBots
+    ---------------------------
+    for botname, bot in pairs(stuckBots) do
+        local stuckPos = bot.stuckPos
+
+        local found = false
+        for i, pos in pairs(commonStucks) do
+            if pos.center:Distance(stuckPos) < 128 then
+                pos.timesStuck = pos.timesStuck + 1
+                pos.timeLost = pos.timeLost + 1
+                if not table.HasValue(pos.victims, botname) then table.insert(pos.victims, botname) end
+                found = true
+                break
+            end
+        end
+
+        if not found then
+            table.insert(commonStucks, {
+                center = stuckPos,
+                timesStuck = 1,
+                timeLost = 1,
+                victims = { botname }
+            })
+        end
+    end
+end)
+
+
+timer.Create("TTTBots.Locomotor.StuckTracker.Debug", 0.1, 0, function()
+    if not lib.GetConVarBool("debug_stuckpositions") then return end
+    local drawText = TTTBots.DebugServer.DrawText -- (pos, text, color)
+    local f = string.format
+
+    local commonStucks = TTTBots.Components.Locomotor.commonStuckPositions
+
+    for i, pos in pairs(commonStucks) do
+        drawText(pos.center,
+            f("STUCK AREA (lost %d seconds | %d victims)", pos.timeLost, pos.victims and #pos.victims or 0),
+            Color(255, 255, 255, 50))
+    end
+end)

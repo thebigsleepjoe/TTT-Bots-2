@@ -45,7 +45,7 @@ end
 
 function Lib.GetDebugFor(debugType)
     local debugTypes = {
-        all = "ttt_bot_debug_all",
+        all = "ttt_bot_debug_misc",
         pathfinding = "ttt_bot_debug_pathfinding",
         look = "ttt_bot_debug_look",
     }

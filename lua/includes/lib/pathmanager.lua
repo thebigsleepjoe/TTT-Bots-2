@@ -67,6 +67,8 @@ end
 
 function ladderMeta:IsCrouch() return false end
 
+function ladderMeta:GetPortals() return {} end
+
 local navMeta = FindMetaTable("CNavArea")
 
 function navMeta:IsLadder()
@@ -75,6 +77,20 @@ end
 
 function navMeta:IsCrouch()
     return self:HasAttributes(NAV_MESH_CROUCH)
+end
+
+--- Get the list of portals connected to us. Always returns a table
+--- @return table table table of portals
+function navMeta:GetPortals()
+    local portals = TTTBots.PathManager.GetPortals()
+
+    for i, v in pairs(portals) do
+        if v.portal_cnavarea == self then
+            return { v.destination_cnavarea }
+        end
+    end
+
+    return {}
 end
 
 -- Infer the type of connection between two navareas
@@ -144,7 +160,9 @@ function TTTBots.PathManager.Astar2(start, goal)
 
         local adjacents = current.area:GetAdjacentAreas()
         local ladders = current.area:GetLadders()
+        local portals = current.area:GetPortals()
         table.Add(adjacents, ladders)
+        table.Add(adjacents, portals)
 
         for k, neighbor in pairs(adjacents) do
             local currentCost = current.cost + heuristic_cost_estimate(current.area, neighbor)
@@ -481,6 +499,17 @@ function TTTBots.PathManager.PreparePathForLocomotor(path)
                             area = currentnode,
                             type = mtype,
                         })
+
+                        -- check if the area of the area is over 200^2
+                        local area = currentnode:GetSizeX() * currentnode:GetSizeY()
+                        if area > 40000 then
+                            -- add the center
+                            table.insert(points, {
+                                pos = currentnode:GetCenter(),
+                                area = currentnode,
+                                type = "walk",
+                            })
+                        end
                     end
                 end
             end
@@ -543,4 +572,46 @@ function TTTBots.PathManager.BotIsCloseEnough(bot, vec)
     local botpos = bot:GetPos()
 
     return (vec:Distance(botpos) < completeRange)
+end
+
+--- Gets the "portals" (trigger_teleport's and their linked destinations)
+function TTTBots.PathManager.GetPortals()
+    local possible_portals = ents.FindByClass("trigger_teleport")
+    local portals = {}
+    --[[
+        Example portal: {
+            portal = <Entity:trigger_teleport>,
+            portal_no = <Number>,
+            portal_pos = <Vector>,
+            portal_cnavarea = <NavArea>,
+            destination = <Entity:info_teleport_destination>,
+            destination_pos = <Vector>,
+            destination_cnavarea = <NavArea>,
+        }
+    ]]
+    for portal_no, portal in ipairs(possible_portals) do
+        local portal_pos = portal:GetPos()
+        local portal_cnavarea = navmesh.GetNearestNavArea(portal_pos)
+
+        local dest_name = portal:GetKeyValues()["target"]
+
+        local destinationExists = dest_name ~= nil and ents.FindByName(dest_name) ~= nil
+        if not destinationExists then continue end
+
+        local destination = ents.FindByName(dest_name)[1]
+        local destination_pos = destination:GetPos()
+        local destination_cnavarea = navmesh.GetNearestNavArea(destination_pos)
+
+        table.insert(portals, {
+            portal = portal,
+            portal_no = portal_no,
+            portal_pos = portal_pos,
+            portal_cnavarea = portal_cnavarea,
+            destination = destination,
+            destination_pos = destination_pos,
+            destination_cnavarea = destination_cnavarea,
+        })
+    end
+
+    return portals
 end
