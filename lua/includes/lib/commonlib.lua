@@ -160,3 +160,15 @@ function Lib.WeightedVectorMean(tbl)
     end
     return sum / totalWeight
 end
+
+---@return function milliseconds Returns a function that returns the time elapsed since the function was called.
+function Lib.Profiler(name)
+    local startTime = SysTime()
+    return function()
+        local ms = (SysTime() - startTime) * 1000
+        if (ms < 0.1) then return 0.1 end
+
+        print(string.format("Profiler '%s' took %s ms.", name, ms))
+        return SysTime() - startTime
+    end
+end
