@@ -456,11 +456,19 @@ function BotLocomotor:DetermineNextPos()
     for i = 1, #preparedPath do
         local pos = preparedPath[i].pos
         local dist = botPos:Distance(pos)
-        if closestDist == nil or dist < closestDist then
+        local visionCheck = util.TraceLine({
+                start = botPos,
+                endpos = pos,
+                filter = self.bot
+            }).Hit == false
+
+        if closestDist == nil or (dist < closestDist and visionCheck) then
             closestPos = pos
             closestDist = dist
             closestI = i
         end
+
+        if not visionCheck then break end
     end
 
     local nextPos = #preparedPath ~= closestI and preparedPath[closestI + 1].pos or closestPos
@@ -481,7 +489,8 @@ function BotLocomotor:FollowPath()
 
     if dvlpr then
         for i = 1, #preparedPath - 1 do
-            TTTBots.DebugServer.DrawLineBetween(preparedPath[i].pos, preparedPath[i + 1].pos, Color(0, 125, 255))
+            local p1 = i == 1 and bot:GetPos() or preparedPath[i].pos
+            TTTBots.DebugServer.DrawLineBetween(p1, preparedPath[i + 1].pos, Color(0, 125, 255))
         end
     end
 
@@ -703,12 +712,12 @@ timer.Create("TTTBots.Locomotor.StuckTracker", 1, 0, function()
             end
         end
 
-        local shouldUnstuck = (stuckTime > 5)
+        local shouldUnstuck = (stuckTime > 3)
 
         if shouldUnstuck then
             local cnavarea = navmesh.GetNearestNavArea(stuckPos)
             local randomPos = cnavarea:GetRandomPoint()
-            bot:SetPos(randomPos + Vector(0, 0, 32))
+            bot:SetPos(randomPos + Vector(0, 0, 2))
         end
     end
 

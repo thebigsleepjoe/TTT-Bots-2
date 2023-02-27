@@ -111,6 +111,11 @@ function Lib.GetNearestNavArea(pos)
     local closestCNavArea = navmesh.GetNearestNavArea(pos)
     local closestLadder = Lib.GetClosestLadder(pos)
 
+    -- First, check if we are within the boundes of closestCNavArea.
+    if closestCNavArea and closestCNavArea:IsOverlapping(pos, 64) then
+        return closestCNavArea
+    end
+
     -- Compare closestCNavArea and closestLadder's :GetCenter() to pos
     if closestCNavArea and closestLadder then
         local cnavDist = closestCNavArea:GetCenter():Distance(pos)

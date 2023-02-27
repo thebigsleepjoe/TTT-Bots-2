@@ -182,7 +182,7 @@ function TTTBots.PathManager.Astar2(start, goal)
             local neighborCost = current.cost + heuristic_cost_estimate(current.area, neighbor)
 
             if neighbor:IsLadder() then
-                neighborCost = neighborCost + (neighbor:GetLength() / 2) -- we want to prioritize ladders
+                neighborCost = neighborCost + (neighbor:GetLength()) * 2
             else
                 local heightchange = current.area:ComputeGroundHeightChange(neighbor)
                 if (heightchange > 128) then -- > 2 ply heights
