@@ -161,14 +161,16 @@ function Lib.WeightedVectorMean(tbl)
     return sum / totalWeight
 end
 
+---@param name string name of the profiler
+---@param donotprint boolean if not nil/false, the profiler will not print the time elapsed
 ---@return function milliseconds Returns a function that returns the time elapsed since the function was called.
-function Lib.Profiler(name)
+function Lib.Profiler(name, donotprint)
     local startTime = SysTime()
     return function()
         local ms = (SysTime() - startTime) * 1000
-        if (ms < 0.1) then return 0.1 end
+        if (ms < 0.1) then ms = 0.1 end
 
-        print(string.format("Profiler '%s' took %s ms.", name, ms))
-        return SysTime() - startTime
+        if not donotprint then print(string.format("Profiler '%s' took %s ms.", name, ms)) end
+        return ms
     end
 end

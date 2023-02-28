@@ -109,8 +109,8 @@ end
 
 -- Infer the type of connection between two navareas
 function navMeta:GetConnectionTypeBetween(other)
-    local heightDiff = self:ComputeAdjacentConnectionHeightChange(other)
     if other:IsLadder() then return "ladder" end
+    local heightDiff = self:ComputeAdjacentConnectionHeightChange(other)
 
     -- Todo: The pathfinding needs to not jump up ramps or stairs.
     -- We need it to be as sensitive as it currently is, but not jump up ramps or stairs.
@@ -143,41 +143,68 @@ function navMeta:GetConnectingEdge(other)
     return otherEdge
 end
 
---[[ Define local A* functions ]]
--- A* Heuristic: Euclidean distance
-local function heuristic_cost_estimate(start, goal)
-    return start:GetCenter():Distance(goal:GetCenter())
+local function heuristic_cost_estimate(current, goal)
+    -- local h = current:GetCenter():Distance(goal:GetCenter())
+    -- Manhattan distance
+    local h = math.abs(current:GetCenter().x - goal:GetCenter().x) + math.abs(current:GetCenter().y - goal:GetCenter().y)
+
+    if (current:IsLadder() or goal:IsLadder()) then return h * 1.0 end
+
+    -- check if current and neighbor are underwater and add extra cost if true
+    if current:IsUnderwater() and goal:IsUnderwater() then
+        h = h + 50
+    end
+
+    return h * 1.0
+end
+
+local function distance_between(area1, area2)
+    local connectionType = area1:GetConnectionTypeBetween(area2)
+    local cost = 0
+
+    local centerDist = area1:GetCenter():Distance(area2:GetCenter())
+
+    if (connectionType == "walk") then
+        cost = centerDist
+    elseif (connectionType == "crouch") then
+        cost = centerDist * 2
+    elseif (connectionType == "jump") then
+        cost = centerDist * 1.5
+    elseif (connectionType == "fall") then
+        cost = centerDist * 4
+    elseif (connectionType == "ladder") then
+        cost = centerDist * 1.5
+    elseif (connectionType == "swim") then
+        cost = centerDist * 2
+    end
+
+    return cost
 end
 
 function TTTBots.PathManager.Astar2(start, goal)
-    if (not IsValid(start) or not IsValid(goal)) then return false end
-    if (start == nil) or (goal == nil) then return false end
-    if (start == goal) then return true end
-    local P_Astar2 = TTTBots.Lib.Profiler("Astar2") -- Profiler
-    local neighborsCounted = 0 -- Profiler
-    local totalNeighbors = #navmesh.GetAllNavAreas() -- Profiler
+    local P_Astar2 = TTTBots.Lib.Profiler("Astar2", true)
+    local closedSet = {}
+    local openSet = { { area = start, cost = 0, fScore = heuristic_cost_estimate(start, goal) } }
+    local neighborsCounted = 0
+    local totalNeighbors = navmesh.GetNavAreaCount()
 
-    local open = {
-        { area = start, cost = 0 },
-    }
-    local closed = {}
-
-    while (#open > 0) do
-        local current = table.remove(open, 1)
-        table.insert(closed, current)
+    while (#openSet > 0) do
+        local current = openSet[1]
+        table.remove(openSet, 1)
+        table.insert(closedSet, current.area)
 
         if (current.area == goal) then
-            local P_Rebuild = TTTBots.Lib.Profiler("Rebuild") -- Profiler
             local path = { current.area }
             while (current.parent) do
                 current = current.parent
-                table.insert(path, current.area)
+                table.insert(path, 1, current.area)
             end
-
-            P_Rebuild() -- Profiler
-            P_Astar2() -- Profiler
-            print(string.format("Astar2: %d/%d neighbors counted.", neighborsCounted, totalNeighbors))
-            return table.Reverse(path)
+            local ms = P_Astar2()
+            local avgms = ms / neighborsCounted
+            print(string.format("Nodes visited: %d/%d. Took %d ms, which avg. %dms per 10 neighbors", neighborsCounted,
+                totalNeighbors,
+                ms, avgms * 10))
+            return path
         end
 
         local adjacents = current.area:GetAdjacentAreas()
@@ -185,87 +212,42 @@ function TTTBots.PathManager.Astar2(start, goal)
         local portals = current.area:GetPortals()
         table.Add(adjacents, ladders)
         table.Add(adjacents, portals)
-        for k, neighbor in pairs(adjacents) do
-            -- check if this neighbor is already in the closed list
-            for k, closedArea in pairs(closed) do
-                if (closedArea.area == neighbor) then
-                    break
-                end
-            end
 
-            neighborsCounted = neighborsCounted + 1 -- Profiler
-            local P_Neighbor = TTTBots.Lib.Profiler("Neighbor") -- Profiler
-            local neighborCost = current.cost + heuristic_cost_estimate(current.area, neighbor)
+        for _, neighbor in pairs(adjacents) do
+            if (not table.HasValue(closedSet, neighbor)) then
+                neighborsCounted = neighborsCounted + 1
+                local tentative_gScore = current.cost + distance_between(current.area, neighbor)
+                local tentative_fScore = tentative_gScore + heuristic_cost_estimate(neighbor, goal)
 
-            if neighbor:IsLadder() then
-                neighborCost = neighborCost + (neighbor:GetLength()) * 2
-            else
-                local P_CalcCost = TTTBots.Lib.Profiler("Calculate Cost") -- Profiler
-                -- local heightchange = current.area:ComputeGroundHeightChange(neighbor)
-                -- if (heightchange > 128) then -- > 2 ply heights
-                --     neighborCost = neighborCost + (6000);
-                -- elseif (heightchange > 256) then -- do not fall if more than 4 ply heights
-                --     neighborCost = neighborCost + (100000000);
-                -- end
+                local neighborInOpenSet = false
+                local neighborIndex = 0
 
-                local stuckCost = neighbor:GetPossibleStuckCost()
-                neighborCost = neighborCost + ((stuckCost or 0) * 5)
-
-                -- local connectionType = current.area:GetConnectionTypeBetween(neighbor)
-                -- if (connectionType == "jump") then
-                --     neighborCost = neighborCost + 175
-                -- elseif (connectionType == "fall") then
-                --     neighborCost = neighborCost + 150
-                -- end
-
-                neighborCost = neighborCost + (neighbor:IsUnderwater() and 50 or 0)
-
-                if (neighbor:IsCrouch()) then
-                    neighborCost = neighborCost + 50
-                end
-                P_CalcCost() -- Profiler
-            end
-
-            local found = false
-            for k, v in pairs(open) do
-                if (v.area == neighbor) then
-                    if (v.cost > neighborCost) then
-                        v.cost = neighborCost
-                        v.parent = current
+                for i, n in ipairs(openSet) do
+                    if (n.area == neighbor) then
+                        neighborInOpenSet = true
+                        neighborIndex = i
+                        break
                     end
-                    found = true
-                    break
+                end
+
+                if (not neighborInOpenSet) then
+                    table.insert(openSet,
+                        { area = neighbor, cost = tentative_gScore, fScore = tentative_fScore, parent = current })
+                elseif (tentative_fScore < openSet[neighborIndex].fScore) then
+                    openSet[neighborIndex].cost = tentative_gScore
+                    openSet[neighborIndex].fScore = tentative_fScore
+                    openSet[neighborIndex].parent = current
                 end
             end
-
-            if (found) then continue end
-
-            for k, v in pairs(closed) do
-                if (v.area == neighbor) then
-                    if (v.cost > neighborCost) then
-                        v.cost = neighborCost
-                        v.parent = current
-                        table.insert(open, v)
-                        table.remove(closed, k)
-                    end
-                    found = true
-                    break
-                end
-            end
-
-            P_Neighbor() -- Profiler
-            if (found) then continue end
-
-            table.insert(open, { area = neighbor, cost = neighborCost, parent = current })
         end
 
-        local P_Sorting = TTTBots.Lib.Profiler("Sort Costs") -- Profiler
-        table.sort(open, function(a, b) return a.cost < b.cost end)
-        P_Sorting() -- Profiler
+        table.sort(openSet, function(a, b) return a.fScore < b.fScore end)
     end
 
-    P_Astar2() -- Profiler
-    print(string.format("Astar2: %d/%d neighbors counted.", neighborsCounted, totalNeighbors))
+    local ms = P_Astar2()
+    local avgms = ms / neighborsCounted
+    print(string.format("Nodes visited: %d/%d. Took %d ms, which avg. %dms/neighbor", neighborsCounted, totalNeighbors,
+        ms, avgms))
     return false
 end
 
