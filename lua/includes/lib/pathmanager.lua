@@ -188,6 +188,8 @@ function TTTBots.PathManager.Astar2(start, goal)
     local neighborsCounted = 0
     local totalNeighbors = navmesh.GetNavAreaCount()
 
+    if start == goal then return false end
+
     while (#openSet > 0) do
         local current = openSet[1]
         table.remove(openSet, 1)

@@ -59,7 +59,7 @@ function BotLocomotor:Initialize(bot)
     self.posOneSecAgo = nil -- Position of the bot one second ago. Used for pathfinding.
 
     self.lookPosOverride = nil -- Override look position, this is only used from outside of this component. Like aiming at a player.
-    self.lookLerpSpeed = 0 -- Current look speed (rate of lerp)
+    self.lookLerpSpeed = 0.05 -- Current look speed (rate of lerp)
     self.lookPosGoal = nil -- The current goal position to look at
     self.lookPos = nil -- Current look position, gets lerped to Override, or to self.lookPosGoal.
 
@@ -108,7 +108,6 @@ function BotLocomotor:UpdateLookPos()
     if self.lookPosGoal then
         self.lookPos = LerpVector(self.lookLerpSpeed, self:GetCurrentLookPos(), self:GetLookPosGoal())
     end
-
     self.bot:SetEyeAngles((self.lookPos - self.bot:EyePos()):Angle())
 end
 
@@ -147,7 +146,7 @@ function BotLocomotor:GetLookPosOverride() return self.lookPosOverride end
 
 function BotLocomotor:GetLookPosGoal() return self.lookPosGoal end
 
-function BotLocomotor:GetCurrentLookPos() return self.lookPosGoal end
+function BotLocomotor:GetCurrentLookPos() return self.lookPos or self.bot:GetEyeTrace().HitPos end
 
 function BotLocomotor:GetMoveLerpSpeed() return self.moveLerpSpeed end
 
@@ -452,17 +451,18 @@ function BotLocomotor:DetermineNextPos()
     local closestDist = nil
     local closestI = nil
     local botPos = self.bot:GetPos()
+    local tooCloseDist = 32
 
     for i = 1, #preparedPath do
         local pos = preparedPath[i].pos
         local dist = botPos:Distance(pos)
         local visionCheck = util.TraceLine({
                 start = botPos,
-                endpos = pos,
+                endpos = pos + Vector(0, 0, 24),
                 filter = self.bot
             }).Hit == false
 
-        if closestDist == nil or (dist < closestDist and visionCheck) then
+        if (closestDist == nil or (dist < closestDist and visionCheck)) then
             closestPos = pos
             closestDist = dist
             closestI = i
@@ -471,9 +471,14 @@ function BotLocomotor:DetermineNextPos()
         if not visionCheck then break end
     end
 
-    local nextPos = #preparedPath ~= closestI and preparedPath[closestI + 1].pos or closestPos
+    closestI = closestI + 1
 
-    return nextPos
+    -- local nextPos = closestI and #preparedPath ~= closestI and preparedPath[closestI + 1].pos or closestPos
+    local nextPosI = closestI and #preparedPath ~= closestI and closestI + 1 or closestI
+    local nextPos = closestI and preparedPath[closestI] or closestPos
+    if type(nextPos) == "table" then nextPos = nextPos.pos end
+
+    return nextPos, nextPosI
 end
 
 -- Determines how the bot navigates through its path once it has one.
@@ -494,8 +499,9 @@ function BotLocomotor:FollowPath()
         end
     end
 
-    local nextPos = self:DetermineNextPos()
+    local nextPos, nextPosI = self:DetermineNextPos()
     self.nextPos = nextPos
+    self.nextPosI = nextPosI
 
     if not nextPos then return false end
 
@@ -526,7 +532,7 @@ end
 function BotLocomotor:UpdateViewAngles(cmd)
     local override = self:GetLookPosOverride()
     local lookLerpSpeed = self.lookLerpSpeed or 0
-    local smoothPath = self.smoothPath or {}
+    local preparedPath = self.pathinfo and self.pathinfo.preparedPath or nil
     local goal = self.goalPos
 
     if override then
@@ -537,7 +543,28 @@ function BotLocomotor:UpdateViewAngles(cmd)
     self.lookPosGoal = goal
 
     if self.nextPos then
-        self.lookPosGoal = goal
+        if not preparedPath then
+            self.lookPosGoal = goal
+        else
+            local nextPos = self.nextPos
+            if #preparedPath > self.nextPosI + 2 then
+                local off = lib.OffsetForGround
+
+                local secondPos = preparedPath[self.nextPosI + 1].pos
+                local thirdPos = preparedPath[self.nextPosI + 2].pos
+                self.lookPosGoal = lib.WeightedVectorMean({
+                    { vector = off(nextPos),   weight = 1.5 },
+                    { vector = off(secondPos), weight = 0.9 },
+                    { vector = off(thirdPos),  weight = 0.6 },
+                    { vector = off(goal),      weight = 0.5 }
+                })
+            else -- If there are less than 3 points left in the path
+                --self.lookPosGoal = goal
+                -- Let's look in the direction of the goal, as if it were outwards another few hundred units.
+                local dir = (goal - self.bot:GetPos()):GetNormalized()
+                self.lookPosGoal = self.bot:GetPos() + dir * 500
+            end
+        end
         -- self.lookPosGoal = lib.WeightedVectorMean({
         --     { vector = self.nextPos, weight = 0.5 },
         --     { vector = goal,         weight = 1.5 }

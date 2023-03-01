@@ -174,3 +174,25 @@ function Lib.Profiler(name, donotprint)
         return ms
     end
 end
+
+--- Returns a vector that is offset from the ground at either eye-level or crouch-level.
+--- If dotrace, then it will trace upward from the ground to determine if this needs crouch-level.
+--- If not dotrace, then just +32 to the Z
+---@param vec Vector
+---@param doTrace boolean
+---@return Vector
+function Lib.OffsetForGround(vec, doTrace)
+    local offset = Vector(0, 0, 32)
+    if doTrace then
+        local trace = util.TraceLine({
+            start = vec,
+            endpos = vec + Vector(0, 0, 64),
+            mask = MASK_SOLID_BRUSHONLY
+        })
+        if trace.Hit then
+            offset = Vector(0, 0, 16)
+        end
+    end
+
+    return vec + offset
+end
