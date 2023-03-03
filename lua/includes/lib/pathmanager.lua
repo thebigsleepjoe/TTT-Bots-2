@@ -184,7 +184,6 @@ end
 --- Never call directly, do PathManager.RequestPath, and the path will be generated.
 ---@return boolean|table result false if no path found nor possible, else output a table of navareas
 function TTTBots.PathManager.Astar2(start, goal)
-    print("(ASTAR2)")
     -- local P_Astar2 = TTTBots.Lib.Profiler("Astar2", true)
     local closedSet = {}
     local openSet = { { area = start, cost = 0, fScore = heuristic_cost_estimate(start, goal) } }
@@ -714,7 +713,7 @@ hook.Add("Tick", "TTTBots.PathManager.PathCoroutine", function()
         queuedPath.path = coroutine.create(TTTBots.PathManager.Astar2)
     end
 
-    print(fr("Generating path of ID %s for bot %s.", queuedPath.pathID, queuedPath.owner:Nick()))
+    -- print(fr("Generating path of ID %s for bot %s.", queuedPath.pathID, queuedPath.owner:Nick()))
     local noErrs, result = coroutine.resume(queuedPath.path, queuedPath.startArea, queuedPath.finishArea)
 
     if not noErrs then print("Had errors generating;", result) end
@@ -722,23 +721,25 @@ hook.Add("Tick", "TTTBots.PathManager.PathCoroutine", function()
         local path = result
         local pathID = queuedPath.pathID
         local owner = queuedPath.owner
+        local preparedPath = (path and type(path) == "table" and TTTBots.PathManager.PreparePathForLocomotor(path)) or
+            nil
 
-        print("Result of generation was " .. tostring(result) .. " (type " .. type(result) .. ")")
+        -- print("Result of generation was " .. tostring(result) .. " (type " .. type(result) .. ")")
 
         -- Cache the path
         TTTBots.PathManager.cachedPaths[pathID] = {
             path = path,
             generatedAt = CurTime(),
             TimeSince = function(self) return CurTime() - self.generatedAt end,
-            preparedPath = path and type(path) == "table" and TTTBots.PathManager.PreparePathForLocomotor(path)
+            preparedPath = preparedPath
         }
 
         -- Remove the path from the queue
         table.remove(queued, 1)
 
-        print(fr("Path of ID %s for bot '%s' generated at %d", pathID, owner:Nick(), CurTime()))
+        -- print(fr("Path of ID %s for bot '%s' generated at %d", pathID, owner:Nick(), CurTime()))
     elseif result == "cannot resume dead coroutine" then
-        print("Cannot resume dead coroutine, removing path from queue.")
+        -- print("Cannot resume dead coroutine, removing path from queue.")
         table.remove(queued, 1)
     end
 end)

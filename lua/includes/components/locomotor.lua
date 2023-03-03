@@ -270,8 +270,9 @@ end
 -- Tick periodically. Do not tick per GM:StartCommand
 function BotLocomotor:Think()
     self.tick = self.tick + 1
-    self:UpdatePath() -- Update the path that the bot is following, so that we can move along it.
+    local status = self:UpdatePath() -- Update the path that the bot is following, so that we can move along it.
     self:UpdateMovement() -- Update the invisible angle that the bot moves at, and make it move.
+    print("<Locomotor> Status is " .. status)
     --self:UpdateViewAngles() -- Update the visible angle that the bot looks at. This is for cosmetic and aiming purposes.
 end
 
@@ -424,12 +425,18 @@ function BotLocomotor:UpdatePath()
     if self:GetGoalPos() == nil then return "no_goalpos" end
     if not lib.IsBotAlive(self.bot) then return "bot_dead" end
 
+    local path = self:GetPath()
+    local goalNav = navmesh.GetNearestNavArea(self:GetGoalPos())
+
+    if (self:HasPath() and path[#path] ~= goalNav) then
+        return "pathing_currently"
+    end
+
     -- If we don't have a path, request one
     local pathid, path, status = TTTBots.PathManager.RequestPath(self.bot, self.bot:GetPos(), self:GetGoalPos(), false)
-    print(pathid, path, status)
 
     local fr = string.format
-    print(fr("<Locomotor> Path status for bot %s: %s", self.bot:Nick(), status))
+    -- print(fr("<Locomotor> Path status for bot %s: %s", self.bot:Nick(), status))
 
     if (path == false) then -- path is impossible
         self.cantReachGoal = true
@@ -443,8 +450,8 @@ function BotLocomotor:UpdatePath()
         self.path = {
             path = path,
             pathid = pathid,
-            preparedPath = TTTBots.PathManager.PreparePathForLocomotor(path),
-            pathIndex = 1,
+            preparedPath = path.preparedPath,
+            pathIndex = 1, -- the index of the next path node to go to
             owner = self.bot,
         }
         self.pathWaiting = false
@@ -454,6 +461,7 @@ end
 
 function BotLocomotor:DetermineNextPos()
     local preparedPath = self:HasPath() and self:GetPath().preparedPath
+    local purePath = self:GetPath()
     if not preparedPath then return nil end
 
     --[[
@@ -490,7 +498,12 @@ function BotLocomotor:DetermineNextPos()
         if not visionCheck then break end
     end
 
-    closestI = (closestI or 1) + 1
+    if (closestI <= purePath.pathIndex) then
+        closestI = purePath.pathIndex + 1
+        purePath.pathIndex = closestI
+    end
+
+    -- closestI = (closestI or 1) + 1
 
     -- local nextPos = closestI and #preparedPath ~= closestI and preparedPath[closestI + 1].pos or closestPos
     local nextPosI = closestI and #preparedPath ~= closestI and closestI + 1 or closestI
@@ -509,7 +522,7 @@ function BotLocomotor:FollowPath()
     local preparedPath = self:GetPath().preparedPath
     -- PrintTable(self:GetPath())
 
-    if dvlpr then
+    if dvlpr and preparedPath then
         for i = 1, #preparedPath - 1 do
             local p1 = i == 1 and bot:GetPos() or preparedPath[i].pos
             TTTBots.DebugServer.DrawLineBetween(p1, preparedPath[i + 1].pos, Color(0, 125, 255))
