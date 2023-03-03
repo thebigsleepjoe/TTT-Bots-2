@@ -361,7 +361,7 @@ function BotLocomotor:UpdateMovement()
         local botArea = navmesh.GetNearestNavArea(self.bot:GetPos())
         local goalArea = navmesh.GetNearestNavArea(goal)
         if (botArea == goalArea) then
-            self:LerpMovement(self.pathLookSpeed, goal)
+            self:LerpMovement(0.5, goal)
             self.forceForward = true
             self.tryingMove = true
         end
@@ -459,6 +459,25 @@ function BotLocomotor:UpdatePath()
     end
 end
 
+local function getClosestI(preparedPath, botPos, shouldTestLOS)
+    local closestDist = math.huge
+    local closestI = nil
+    for i = 1, #preparedPath do
+        local dist = botPos:Distance(preparedPath[i].pos)
+        local visionTest = util.TraceLine({
+            start = botPos + Vector(0, 0, 16),
+            endpos = preparedPath[i].pos + Vector(0, 0, 16),
+            mask = MASK_SOLID_BRUSHONLY,
+        })
+        if dist < closestDist then
+            if shouldTestLOS and visionTest.Hit then continue end
+            closestDist = dist
+            closestI = i
+        end
+    end
+    return closestI
+end
+
 function BotLocomotor:DetermineNextPos()
     local preparedPath = self:HasPath() and self:GetPath().preparedPath
     local purePath = self:GetPath()
@@ -473,42 +492,19 @@ function BotLocomotor:DetermineNextPos()
             ladder_dir = "up" or "down" (if ladder, else nil)
         }
     ]]
-    --local nextPos = preparedPath[1].pos
-    local closestPos = nil
-    local closestDist = nil
-    local closestI = nil
-    local botPos = self.bot:GetPos()
-    local tooCloseDist = 32
+    local nextPos, nextPosI = nil, nil
+    local bot = self.bot
 
-    for i = 1, #preparedPath do
-        local pos = preparedPath[i].pos
-        local dist = botPos:Distance(pos)
-        local visionCheck = util.TraceLine({
-                start = botPos,
-                endpos = pos + Vector(0, 0, 24),
-                filter = self.bot
-            }).Hit == false
-
-        if (closestDist == nil or (dist < closestDist and visionCheck)) then
-            closestPos = pos
-            closestDist = dist
-            closestI = i
-        end
-
-        if not visionCheck then break end
+    local closestI = getClosestI(preparedPath, bot:GetPos(), true)
+    if not closestI then closestI = getClosestI(preparedPath, bot:GetPos(), false) end
+    if not closestI then
+        print("ERR: NO NEAREST POINT?")
+        return nil
     end
 
-    if (closestI <= purePath.pathIndex) then
-        closestI = purePath.pathIndex + 1
-        purePath.pathIndex = closestI
-    end
-
-    -- closestI = (closestI or 1) + 1
-
-    -- local nextPos = closestI and #preparedPath ~= closestI and preparedPath[closestI + 1].pos or closestPos
-    local nextPosI = closestI and #preparedPath ~= closestI and closestI + 1 or closestI
-    local nextPos = closestI and preparedPath[closestI] or closestPos
-    if type(nextPos) == "table" then nextPos = nextPos.pos end
+    local nextI = closestI < #preparedPath and closestI + 1 or closestI
+    local nextPos = preparedPath[nextI].pos
+    local nextPosI = nextI
 
     return nextPos, nextPosI
 end
@@ -543,8 +539,6 @@ function BotLocomotor:FollowPath()
         self:SetCrouching(true)
     end
 
-    self:LerpMovement(self.pathLookSpeed, nextPos)
-
     if dvlpr then
         -- TTTBots.DebugServer.DrawSphere(nextPos, TTTBots.PathManager.completeRange, Color(255, 255, 0, 50))
         local nextpostxt = string.format("NextPos (height difference is %s)", nextPos.z - bot:GetPos().z)
@@ -564,6 +558,7 @@ function BotLocomotor:UpdateViewAngles(cmd)
     local lookLerpSpeed = self.lookLerpSpeed or 0
     local preparedPath = self:HasPath() and self:GetPath().preparedPath
     local goal = self.goalPos
+    local completeRange = 48
 
     if override then
         self.lookPosGoal = override
@@ -583,10 +578,10 @@ function BotLocomotor:UpdateViewAngles(cmd)
                 local secondPos = preparedPath[self.nextPosI + 1].pos
                 local thirdPos = preparedPath[self.nextPosI + 2].pos
                 self.lookPosGoal = lib.WeightedVectorMean({
-                    { vector = off(nextPos),   weight = 1.5 },
-                    { vector = off(secondPos), weight = 0.9 },
-                    { vector = off(thirdPos),  weight = 0.6 },
-                    { vector = off(goal),      weight = 0.5 }
+                    { vector = off(nextPos), weight = 1.5 },
+                    --     { vector = off(secondPos), weight = 0.9 },
+                    --     { vector = off(thirdPos),  weight = 0.6 },
+                    --     { vector = off(goal),      weight = 0.5 }
                 })
             else -- If there are less than 3 points left in the path
                 --self.lookPosGoal = goal
@@ -636,7 +631,7 @@ end
 
 --- Lerp look towards the goal position
 function BotLocomotor:LerpMovement(factor, goal)
-    self.movementVec = LerpVector(factor, self.movementVec, goal)
+    self.movementVec = goal --LerpVector(factor, self.movementVec, goal)
 end
 
 function BotLocomotor:StartCommand(cmd)
@@ -671,7 +666,7 @@ function BotLocomotor:StartCommand(cmd)
         cmd:SetViewAngles(ang) -- This is actually the movement angles, not the view angles. It's confusingly named.
     end
 
-    self:UpdateViewAngles(cmd)
+    self:UpdateViewAngles(cmd) -- The real view angles
 
     -- Set forward and side movement
     local forward = hasPath and 400 or 0

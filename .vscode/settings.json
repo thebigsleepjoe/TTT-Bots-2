@@ -5,6 +5,8 @@
         "navmesh",
         "Angle",
         "Vector",
-        "CurTime"
+        "CurTime",
+        "util",
+        "MASK_SOLID_BRUSHONLY"
     ]
 }
