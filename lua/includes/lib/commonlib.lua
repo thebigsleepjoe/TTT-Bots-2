@@ -144,6 +144,18 @@ function Lib.GetConVarBool(name)
     return GetConVar("ttt_bot_" .. name):GetBool()
 end
 
+--- Wrapper for "ttt_bot_" + name convars
+--- Prepends "ttt_bot_" to the name of the convar, and returns the integer value of the convar.
+function Lib.GetConVarInt(name)
+    return GetConVar("ttt_bot_" .. name):GetInt()
+end
+
+--- Wrapper for "ttt_bot_" + name convars
+--- Prepends "ttt_bot_" to the name of the convar, and returns the float value of the convar.
+function Lib.GetConVarFloat(name)
+    return GetConVar("ttt_bot_" .. name):GetFloat()
+end
+
 function Lib.WeightedVectorMean(tbl)
     --[[
         tbl example = {

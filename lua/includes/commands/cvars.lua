@@ -24,3 +24,9 @@ CreateConVar("ttt_bot_debug_misc", "1", FCVAR,
     "Enables misc debug. Requires built-in developer convar to be 1.")
 CreateConVar("ttt_bot_debug_stuckpositions", "1", FCVAR,
     "Enables debug for stuck positions. Requires built-in developer convar to be 1.")
+
+-- Pathfinding cvars
+CreateConVar("ttt_bot_pathfinding_cpf", "50", FCVAR,
+    "How many pathfinding calculations to do per frame. Higher values = more CPU usage, but faster pathfinding.")
+CreateConVar("ttt_bot_pathfinding_cpf_scaling", "1", FCVAR,
+    "Should we dynamically multiply the pathfinding calculations per frame by the number of bots? (e.g. 50 cpf * 2 bots = 100 cpf)")

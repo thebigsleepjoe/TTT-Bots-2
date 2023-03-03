@@ -50,8 +50,8 @@ function BotLocomotor:Initialize(bot)
     self.bot = bot
 
     self.path = nil -- Current path
-    self.pathinfo = nil
-    self.pathTurnSpeed = 0.6 -- Movement angle turn speed when following a path
+    self.pathingRandomAngle = Angle() -- Random angle used for viewangles when pathing
+    self.pathLookSpeed = 0.05 -- Movement angle turn speed when following a path
 
     self.goalPos = nil -- Current goal position, if any. If nil, then bot is not moving.
 
@@ -74,29 +74,26 @@ function BotLocomotor:Initialize(bot)
     self.dontmove = false
 end
 
--- Validate the path's integrity. Returns false if path is invalid, info is invalid, or path is too old. Then, sets path and pathinfo to nil.
--- Else returns true.
-function BotLocomotor:ValidatePath()
-    -- This is ugly, but it works and it is easy to read.
-    local failReason = ""
-    if not self.path then -- No path
-        failReason = "No path"
-    elseif type(self.path) == "boolean" then -- Path is a boolean
-        failReason = "Path is a boolean"
-        -- elseif not IsValid(self.path) then -- Path is invalid
-        --     failReason = "Path is invalid; value is " .. tostring(self.path)
-        -- elseif not IsValid(self.pathinfo) then -- Path info is invalid
-        --     failReason = "Path info is invalid"
-        -- elseif self.pathinfo:TimeSince() > TTTBots.PathManager.cullSeconds then -- Path info is too old
-        --     failReason = "Path info is too old"
-    end
+--- Returns a table of the path generation info. The actual path is stored in a key called "path"
+---@return table
+function BotLocomotor:GetPath()
+    return self.path
+end
 
-    if failReason ~= "" then
-        self.path = nil
-        self.pathinfo = nil
-        return false
-    end
-    return true
+---@return boolean
+function BotLocomotor:HasPath()
+    return self.path ~= nil
+end
+
+---@return boolean
+function BotLocomotor:WaitingForPath()
+    return self.pathWaiting
+end
+
+---@deprecated
+---@see TTTBots.Components.Locomotor.HasPath
+function BotLocomotor:ValidatePath()
+    error("Deprecated function. Use HasPath instead.")
 end
 
 function BotLocomotor:UpdateLookPos()
@@ -106,7 +103,7 @@ function BotLocomotor:UpdateLookPos()
     end
 
     if self.lookPosGoal then
-        self.lookPos = LerpVector(self.lookLerpSpeed, self:GetCurrentLookPos(), self:GetLookPosGoal())
+        self.lookPos = LerpVector(self.pathLookSpeed, self:GetCurrentLookPos(), self:GetLookPosGoal())
     end
     self.bot:SetEyeAngles((self.lookPos - self.bot:EyePos()):Angle())
 end
@@ -363,7 +360,7 @@ function BotLocomotor:UpdateMovement()
         local botArea = navmesh.GetNearestNavArea(self.bot:GetPos())
         local goalArea = navmesh.GetNearestNavArea(goal)
         if (botArea == goalArea) then
-            self:LerpMovement(self.pathTurnSpeed, goal)
+            self:LerpMovement(self.pathLookSpeed, goal)
             self.forceForward = true
             self.tryingMove = true
         end
@@ -418,23 +415,45 @@ function BotLocomotor:IsStuck()
     return dist < 8
 end
 
--- Update the path. Requests a path from our current position to our goal position. Done as a tick-level function for performance reasons.
+--- Update the path. Requests a path from our current position to our goal position.
+---@return string status Status of the pathing, mostly flavor/debugging text.
 function BotLocomotor:UpdatePath()
-    -- if self:ValidatePath() then return end THIS IS NOT NECESSARY, as we will just update the path if it is invalid.
-    if self:GetGoalPos() == nil then return end
+    self.cantReachGoal = false
+    self.pathWaiting = false
+    if self.dontmove then return "dont_move" end
+    if self:GetGoalPos() == nil then return "no_goalpos" end
+    if not lib.IsBotAlive(self.bot) then return "bot_dead" end
 
     -- If we don't have a path, request one
-    self.pathinfo = TTTBots.PathManager.RequestPath(self.bot:GetPos(), self:GetGoalPos())
-    if self.pathinfo and type(self.pathinfo.path) == "table" then
-        self.path = self.pathinfo.path
-    else
-        self.pathinfo = nil
+    local pathid, path, status = TTTBots.PathManager.RequestPath(self.bot, self.bot:GetPos(), self:GetGoalPos(), false)
+    print(pathid, path, status)
+
+    local fr = string.format
+    print(fr("<Locomotor> Path status for bot %s: %s", self.bot:Nick(), status))
+
+    if (path == false) then -- path is impossible
+        self.cantReachGoal = true
         self.path = nil
+        return "path_impossible"
+    elseif (path == true) then -- path is pending
+        self.path = nil
+        self.pathWaiting = true
+        return "path_pending"
+    else -- path is a table
+        self.path = {
+            path = path,
+            pathid = pathid,
+            preparedPath = TTTBots.PathManager.PreparePathForLocomotor(path),
+            pathIndex = 1,
+            owner = self.bot,
+        }
+        self.pathWaiting = false
+        return "path_ready"
     end
 end
 
 function BotLocomotor:DetermineNextPos()
-    local preparedPath = self.pathinfo and self.pathinfo.preparedPath or nil
+    local preparedPath = self:HasPath() and self:GetPath().preparedPath
     if not preparedPath then return nil end
 
     --[[
@@ -471,7 +490,7 @@ function BotLocomotor:DetermineNextPos()
         if not visionCheck then break end
     end
 
-    closestI = closestI + 1
+    closestI = (closestI or 1) + 1
 
     -- local nextPos = closestI and #preparedPath ~= closestI and preparedPath[closestI + 1].pos or closestPos
     local nextPosI = closestI and #preparedPath ~= closestI and closestI + 1 or closestI
@@ -483,14 +502,12 @@ end
 
 -- Determines how the bot navigates through its path once it has one.
 function BotLocomotor:FollowPath()
-    if not self:ValidatePath() then return false end
+    if not self:HasPath() then return false end
     local dvlpr = lib.GetDebugFor("pathfinding")
     local bot = self.bot
 
-    if not self:ValidatePath() then return false end
-
-    local preparedPath = self.pathinfo.preparedPath
-    local areas = self.areas
+    local preparedPath = self:GetPath().preparedPath
+    -- PrintTable(self:GetPath())
 
     if dvlpr then
         for i = 1, #preparedPath - 1 do
@@ -513,7 +530,7 @@ function BotLocomotor:FollowPath()
         self:SetCrouching(true)
     end
 
-    self:LerpMovement(self.pathTurnSpeed, nextPos)
+    self:LerpMovement(self.pathLookSpeed, nextPos)
 
     if dvlpr then
         -- TTTBots.DebugServer.DrawSphere(nextPos, TTTBots.PathManager.completeRange, Color(255, 255, 0, 50))
@@ -532,7 +549,7 @@ end
 function BotLocomotor:UpdateViewAngles(cmd)
     local override = self:GetLookPosOverride()
     local lookLerpSpeed = self.lookLerpSpeed or 0
-    local preparedPath = self.pathinfo and self.pathinfo.preparedPath or nil
+    local preparedPath = self:HasPath() and self:GetPath().preparedPath
     local goal = self.goalPos
 
     if override then
@@ -615,7 +632,7 @@ function BotLocomotor:StartCommand(cmd)
     if self.dontmove then return end
     if not lib.IsBotAlive(self.bot) then return end
 
-    local hasPath = self:ValidatePath()
+    local hasPath = self:HasPath()
     local dvlpr = lib.GetDebugFor("pathfinding")
 
 

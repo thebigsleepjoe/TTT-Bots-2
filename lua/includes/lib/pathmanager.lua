@@ -1,5 +1,4 @@
 TTTBots.PathManager = {}
-TTTBots.PathManager.cache = {}
 TTTBots.PathManager.cullSeconds = 5
 TTTBots.PathManager.maxCachedPaths = 200
 TTTBots.PathManager.completeRange = 32 -- 32 = half player height
@@ -181,16 +180,30 @@ local function distance_between(area1, area2)
     return cost
 end
 
+--- Coroutine function that calculates paths
+--- Never call directly, do PathManager.RequestPath, and the path will be generated.
+---@return boolean|table result false if no path found nor possible, else output a table of navareas
 function TTTBots.PathManager.Astar2(start, goal)
-    local P_Astar2 = TTTBots.Lib.Profiler("Astar2", true)
+    print("(ASTAR2)")
+    -- local P_Astar2 = TTTBots.Lib.Profiler("Astar2", true)
     local closedSet = {}
     local openSet = { { area = start, cost = 0, fScore = heuristic_cost_estimate(start, goal) } }
     local neighborsCounted = 0
     local totalNeighbors = navmesh.GetNavAreaCount()
+    -- Coroutine
+    local cpf = TTTBots.Lib.GetConVarInt("pathfinding_cpf") *
+        (TTTBots.Lib.GetConVarBool("pathfinding_cpf_scaling") and #player.GetBots() or 1)
+    local cn = 0
 
     if start == goal then return false end
 
     while (#openSet > 0) do
+        cn = cn + 1
+        if (cn % cpf == 0) then
+            print("Yielding Astar2")
+            coroutine.yield(cn)
+        end
+        ----------------------------------
         local current = openSet[1]
         table.remove(openSet, 1)
         table.insert(closedSet, current.area)
@@ -201,11 +214,7 @@ function TTTBots.PathManager.Astar2(start, goal)
                 current = current.parent
                 table.insert(path, 1, current.area)
             end
-            local ms = P_Astar2()
-            local avgms = ms / neighborsCounted
-            print(string.format("Nodes visited: %d/%d. Took %d ms, which avg. %dms per 10 neighbors", neighborsCounted,
-                totalNeighbors,
-                ms, avgms * 10))
+            print("Returning path of length " .. #path .. " from Astar2")
             return path
         end
 
@@ -246,83 +255,111 @@ function TTTBots.PathManager.Astar2(start, goal)
         table.sort(openSet, function(a, b) return a.fScore < b.fScore end)
     end
 
-    local ms = P_Astar2()
-    local avgms = ms / neighborsCounted
-    print(string.format("Nodes visited: %d/%d. Took %d ms, which avg. %dms/neighbor", neighborsCounted, totalNeighbors,
-        ms, avgms))
+    -- local ms = P_Astar2()
+    -- local avgms = ms / neighborsCounted
+    -- print(string.format("Nodes visited: %d/%d. Took %d ms, which avg. %dms/neighbor", neighborsCounted, totalNeighbors,
+    --     ms, avgms))
+    print("Couldn't generate a path")
     return false
 end
 
-TTTBots.PathManager.ImpossiblePaths = {}
+--- Table of paths to calculate. First come, first served
+TTTBots.PathManager.cachedPaths = {}
+TTTBots.PathManager.queuedPaths = {}
+TTTBots.PathManager.impossiblePaths = {}
+TTTBots.PathManager.botPathCooldowns = {} -- table of bots on cooldowns, player obj as key, curtime as value
 
---[[]]
--- Request the creation of a path between two vectors. Returns pathinfo, which contains the path as a table of CNavAreas and the time of generation.
--- If it already exists, then return the cached path.
-function TTTBots.PathManager.RequestPath(startpos, finishpos)
-    if not startpos or not finishpos then return false end
-    local sa = navmesh.GetNearestNavArea(startpos)
-    local fa = navmesh.GetNearestNavArea(finishpos)
-
-    local pid = sa:GetID() .. "to" .. fa:GetID()
-
-    -- Do not generate a path if we've already tried one between these points and failed.
-    if TTTBots.PathManager.ImpossiblePaths[pid] then
+--- Returns true if the bot is on cooldown, false otherwise
+function TTTBots.PathManager.BotIsOnCooldown(bot)
+    local cooldown = TTTBots.PathManager.botPathCooldowns[bot]
+    if (not cooldown) or cooldown < CurTime() then
         return false
     end
-
-    -- Check if the path already exists in the cache
-    local path = TTTBots.PathManager.GetPath(startpos, finishpos)
-    if path then
-        return path
-    end
-
-    -- If it doesn't exist, generate it
-    local path = TTTBots.PathManager.GeneratePath(startpos, finishpos)
-    if path then
-        return path
-    end
-
-    -- If it still doesn't exist, return false, and add it to the impossible paths table
-    TTTBots.PathManager.ImpossiblePaths[pid] = true
-    return false
+    return true
 end
 
--- See the RequestPath function for external use.
--- This function is only used internally, and should not be called from outside the TTTBots.PathManager file.
-function TTTBots.PathManager.GeneratePath(startpos, finishpos)
-    -- Find the nearest navareas to the start and goal positions
-    local startArea = TTTBots.Lib.GetNearestNavArea(startpos)
-    local goalArea = TTTBots.Lib.GetNearestNavArea(finishpos)
-
-    -- Find a path between the start and goal navareas
-    local path = TTTBots.PathManager.Astar2(startArea, goalArea)
-    if not path then return false end
-
-    local pathinfo = {
-        path = path,
-        generatedAt = CurTime(),
-        TimeSince = function(self)
-            return CurTime() - self.generatedAt
-        end,
-        preparedPath = path and type(path) == "table" and TTTBots.PathManager.PreparePathForLocomotor(path)
-    }
-
-    -- Cache the path
-    TTTBots.PathManager.cache[startArea:GetID() .. "-" .. goalArea:GetID()] = pathinfo
-
-    -- Return the pathinfo table
-    return pathinfo
+--- Places the bot on cooldown if it isn't already. Returns true if is **not** on cooldown (can path), and false otherwise.
+---@param bot any The bot to place on cooldown
+---@return boolean isOnCooldown Whether the bot is on cooldown or not. Regardless, it will be AFTER this call.
+function TTTBots.PathManager.CreateBotCooldown(bot)
+    local onCooldown = TTTBots.PathManager.BotIsOnCooldown(bot)
+    if (not onCooldown) then
+        TTTBots.PathManager.botPathCooldowns[bot] = CurTime() + TTTBots.Lib.GetConVarInt("pathfinding_cooldown")
+    end
+    return not onCooldown
 end
 
--- Return an existing pathinfo for a path between two vectors, or false if it doesn't exist.
--- Used internally in the RequestPath function, prefer to use RequestPath instead.
-function TTTBots.PathManager.GetPath(startpos, finishpos)
-    local nav1 = TTTBots.Lib.GetNearestNavArea(startpos)
-    local nav2 = TTTBots.Lib.GetNearestNavArea(finishpos)
-    if not nav1 or not nav2 then return false end
+function TTTBots.PathManager.RemoveBotCooldown(bot)
+    TTTBots.PathManager.botPathCooldowns[bot] = nil
+end
 
-    local pathinfo = TTTBots.PathManager.cache[nav1:GetID() .. "-" .. nav2:GetID()]
-    return pathinfo
+local function getQueuedPathFor(player)
+    for i, path in ipairs(TTTBots.PathManager.queuedPaths) do
+        if (path.owner == player) then
+            return path, i
+        end
+    end
+end
+--[[]]
+--- Request the creation of a path between two vectors, or areas, if you already have them.
+--- This does not immediately return the path unless it has already been generated, instead, it is handled by the coroutine Astar2 fn.
+--- Returns false as the path if it is impossible to reach the goal, and true if the path is being calculated/queued.
+--- Otherwise it's the path.
+-------
+--- This function does no calculations on its own, this handles queueing and allows you to spam it without making errors.
+-------
+---@param owner Player The player owner to attribute this to. This is REQUIRED, and prevents bots from making multiple paths at the same time.
+---@param startPos any Vector (or CNavArea if isAreas==true)
+---@param finishPos any Vector (or CNavArea if isAreas==true)
+---@param isAreas boolean
+---@return string pathID, boolean|table<CNavArea> path, string status
+function TTTBots.PathManager.RequestPath(owner, startPos, finishPos, isAreas)
+    if not startPos or not finishPos then
+        error(
+            "No startPos and/or finishPos, keep your functions safe from this error.")
+    end
+    if not TTTBots.Lib.IsBotAlive(owner) then
+        error(
+            "The bot you are generating a path for is dead. Your path generation should be made safer.")
+    end
+
+    local startArea = (isAreas and startPos) or navmesh.GetNearestNavArea(startPos)
+    local finishArea = (isAreas and finishPos) or navmesh.GetNearestNavArea(finishPos)
+    local pathID = startArea:GetID() .. "to" .. finishArea:GetID()
+
+    local isImpossible = TTTBots.PathManager.impossiblePaths[pathID] ~= nil
+    local existingPath = TTTBots.PathManager.cachedPaths[pathID]
+    local queuedPath, pathNumber = getQueuedPathFor(owner)
+
+    if isImpossible then return pathID, false, "impossible" end
+    if existingPath then return pathID, existingPath, "path_exists" end
+    if queuedPath and queuedPath.pathID == pathID then return pathID, true, "queued_already" end
+
+    -- if TTTBots.PathManager.BotIsOnCooldown(owner) and (existingPath) then
+    --     return pathID, true, "bot_on_cooldown"
+    -- end
+
+    if queuedPath and queuedPath.pathID ~= pathID then
+        table.remove(TTTBots.PathManager.queuedPaths, pathNumber)
+        table.insert(TTTBots.PathManager.queuedPaths, {
+            owner = owner,
+            pathID = pathID,
+            startArea = startArea,
+            finishArea = finishArea,
+            path = nil,
+        })
+        return pathID, true, "queue_replaced"
+    end
+
+    -- We can only reach this point if the path is not queued, not cached, and not impossible.
+    table.insert(TTTBots.PathManager.queuedPaths, {
+        owner = owner,
+        pathID = pathID,
+        startArea = startArea,
+        finishArea = finishArea,
+        path = nil,
+    })
+    return pathID, true, "queued_now"
 end
 
 function TTTBots.PathManager.CanSeeBetween(vecA, vecB, addheight)
@@ -390,11 +427,6 @@ function TTTBots.PathManager.PlacePointsOnNavarea(vectors, areas)
     return points
 end
 
----@deprecated
-function TTTBots.PathManager.GetSmoothedPath(path, smoothness)
-    error("Depricated function")
-end
-
 --- Use a simple algorithm to smooth the path. Calculate connection types between each navarea, and use that to determine
 --- how to smooth the path, and instruct the navigator on what to do.
 ---@param path table Table of CNavAreas and CNavLadders that compose a real path, from start to finish.
@@ -414,32 +446,24 @@ function TTTBots.PathManager.PreparePathForLocomotor(path)
     if path == nil or type(path) ~= "table" or #path == 0 then return points end
 
     --[[
+        1.) If this is the first node, add the center point of the navarea to the path.
+        2.) If this is the last node, add the center point of the navarea to the path.
+        3.) If this is a middle node (not first nor center):
+            a.) If the prior node is a ladder:
+                i.) First determine what direction the ladder is supposed to be going.
+                    This can be done by checking if the 2nd to last area (must be a cnavarea) is above or below the ladder's GetCenter().
+                ii.) If the 2nd to last area is above the ladder, the ladder is going down. Otherwise, up. And the placement of the
+                    point is respective to that.
 
-        Basic Pathing:
-            The way pathing works is that we add the connecting position between the current node and the last one.
-            For instance, if the last node was a ladder and the path was supposed to move downwards,
-            we add the GetBottom() position of the ladder.
+            b.) If the prior node is not a ladder, but the current one IS:
+                i.) Determine the direction of the ladder, same as above.
+                ii.) Add the point to the path, respective to the direction of the ladder.
 
-            Here's a more algorithmic way of explaining it:
-
-            1.) If this is the first node, add the center point of the navarea to the path.
-            2.) If this is the last node, add the center point of the navarea to the path.
-            3.) If this is a middle node (not first nor center):
-                a.) If the prior node is a ladder:
-                    i.) First determine what direction the ladder is supposed to be going.
-                        This can be done by checking if the 2nd to last area (must be a cnavarea) is above or below the ladder's GetCenter().
-                    ii.) If the 2nd to last area is above the ladder, the ladder is going down. Otherwise, up. And the placement of the
-                        point is respective to that.
-
-                b.) If the prior node is not a ladder, but the current one IS:
-                    i.) Determine the direction of the ladder, same as above.
-                    ii.) Add the point to the path, respective to the direction of the ladder.
-
-                c.) If the prior node is not a ladder, and the current one is not a ladder:
-                    i.) Add the navmeta:GetConnectingEdge() point to the path. This is very simple, and is the most common case.
-                    ii.) Check if we need to jump between the last navarea and this one.
-                    iii.) Check if we need to fall between the last navarea and this one.
-                    iv.) Check if we need to crouch on this navarea.
+            c.) If the prior node is not a ladder, and the current one is not a ladder:
+                i.) Add the navmeta:GetConnectingEdge() point to the path. This is very simple, and is the most common case.
+                ii.) Check if we need to jump between the last navarea and this one.
+                iii.) Check if we need to fall between the last navarea and this one.
+                iv.) Check if we need to crouch on this navarea.
     ]]
     for i = 1, #path do
         local secondlastnode = i > 2 and path[i - 2] or nil
@@ -566,7 +590,7 @@ function TTTBots.PathManager.CullCache()
     local cullSeconds = TTTBots.PathManager.cullSeconds
     local maxPaths = TTTBots.PathManager.maxCachedPaths
 
-    local paths = TTTBots.PathManager.cache
+    local paths = TTTBots.PathManager.cachedPaths
     local pathsToCull = {}
 
     -- Find paths that are older than cullSeconds
@@ -653,3 +677,68 @@ function TTTBots.PathManager.GetPortals()
 
     return portals
 end
+
+--- Hook for pathing coroutine
+hook.Add("Tick", "TTTBots.PathManager.PathCoroutine", function()
+    --[[
+        Putting this comment here because I'm not sure where else to put it.
+
+        Queued path structure:
+        local queuedPath = {
+            owner = owner,
+            pathID = pathID,
+            startArea = startArea,
+            finishArea = finishArea,
+            path = nil,
+        }
+
+        Cached path structure:
+        local pathinfo = {
+            path = path,
+            generatedAt = CurTime(),
+            TimeSince = function(self)
+                return CurTime() - self.generatedAt
+            end,
+            preparedPath = path and type(path) == "table" and TTTBots.PathManager.PreparePathForLocomotor(path)
+        }
+    ]]
+    local queued = TTTBots.PathManager.queuedPaths
+    local fr = string.format
+    if #queued == 0 then
+        return
+    end
+
+    local queuedPath = queued[1]
+
+    if queuedPath.path == nil then
+        queuedPath.path = coroutine.create(TTTBots.PathManager.Astar2)
+    end
+
+    print(fr("Generating path of ID %s for bot %s.", queuedPath.pathID, queuedPath.owner:Nick()))
+    local noErrs, result = coroutine.resume(queuedPath.path, queuedPath.startArea, queuedPath.finishArea)
+
+    if not noErrs then print("Had errors generating;", result) end
+    if (type(result) == "boolean" or type(result) == "table") then
+        local path = result
+        local pathID = queuedPath.pathID
+        local owner = queuedPath.owner
+
+        print("Result of generation was " .. tostring(result) .. " (type " .. type(result) .. ")")
+
+        -- Cache the path
+        TTTBots.PathManager.cachedPaths[pathID] = {
+            path = path,
+            generatedAt = CurTime(),
+            TimeSince = function(self) return CurTime() - self.generatedAt end,
+            preparedPath = path and type(path) == "table" and TTTBots.PathManager.PreparePathForLocomotor(path)
+        }
+
+        -- Remove the path from the queue
+        table.remove(queued, 1)
+
+        print(fr("Path of ID %s for bot '%s' generated at %d", pathID, owner:Nick(), CurTime()))
+    elseif result == "cannot resume dead coroutine" then
+        print("Cannot resume dead coroutine, removing path from queue.")
+        table.remove(queued, 1)
+    end
+end)

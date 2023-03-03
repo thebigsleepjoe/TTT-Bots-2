@@ -1,6 +1,10 @@
 {
     "Lua.diagnostics.globals": [
         "continue",
-        "IsValid"
+        "IsValid",
+        "navmesh",
+        "Angle",
+        "Vector",
+        "CurTime"
     ]
 }
