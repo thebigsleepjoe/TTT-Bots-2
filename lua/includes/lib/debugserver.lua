@@ -180,6 +180,22 @@ function TTTBots.DebugServer.DrawCross(pos, size, color)
         })
 end
 
+function TTTBots.DebugServer.DrawBox(posA, posB, color)
+    if not (posA and posB and color) then return end
+
+    local posA_rounded = Vector(math.Round(posA.x), math.Round(posA.y), math.Round(posA.z))
+    local posB_rounded = Vector(math.Round(posB.x), math.Round(posB.y), math.Round(posB.z))
+
+    DebugServer.ChangeDrawData("box_" .. tostring(posA) .. tostring(posB),
+        {
+            type = "box",
+            start = posA_rounded,
+            ending = posB_rounded,
+            color = color,
+            width = 5
+        })
+end
+
 -- Send latest draw data to clients every 0.1 seconds
 timer.Create("TTTBots_SendDrawData", 0.1, 0, function()
     DebugServer.SendDrawData()
