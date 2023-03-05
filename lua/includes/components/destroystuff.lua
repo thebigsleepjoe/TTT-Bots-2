@@ -45,6 +45,10 @@ function BotDestroyStuff:Think()
     print("BotDestroyStuff:Think()")
 end
 
+----------------------------------------
+-- STATIC METHODS / FIELDS
+----------------------------------------
+
 BotDestroyStuff.Breakables = BotDestroyStuff.Breakables or {}
 BotDestroyStuff.Unbreakables = BotDestroyStuff.Unbreakables or {}
 
