@@ -1,4 +1,3 @@
-
 local drawdata = {}
 --[[
     {
@@ -23,7 +22,6 @@ local drawdata = {}
         }
     }
 ]]
-
 net.Receive("TTTBots_DrawData", function()
     local bytes_amt = net.ReadUInt(32)
     local compressed_data = net.ReadData(bytes_amt)
@@ -39,8 +37,9 @@ net.Receive("TTTBots_DrawData", function()
             debugoverlay.Text(data.pos, data.text, 0.1, false)
         elseif data.type == "sphere" then
             debugoverlay.Sphere(data.pos, data.radius, 0.1, data.color, true)
+        elseif data.type == "cross" then
+            debugoverlay.Cross(data.pos, data.size, 0.1, data.color, true)
         end
-        
     end
 end)
 

@@ -27,8 +27,6 @@ TTTBots.DebugServer = {
         }
     }
 ]]
-
-
 local DebugServer = TTTBots.DebugServer
 
 function DebugServer.ChangeDrawData(identifier, newdata)
@@ -41,10 +39,10 @@ function DebugServer.SendDrawData()
     local compressed_data = util.Compress(uncompressed_data)
     local bytes_amt = string.len(compressed_data)
 
-    
+
     net.Start("TTTBots_DrawData")
-        net.WriteUInt(bytes_amt, 32)
-        net.WriteData(compressed_data, bytes_amt)
+    net.WriteUInt(bytes_amt, 32)
+    net.WriteData(compressed_data, bytes_amt)
     net.Broadcast()
 
     DebugServer.data = {}
@@ -52,7 +50,9 @@ end
 
 -- Settings:
 -- {"look", "target", "path", "all"}
+---@deprecated
 function TTTBots.DebugServer.RenderDebugFor(bot, settings)
+    ErrorNoHalt("Unsupported draw call; drawing anyway.")
     -- Check if "developer" convar is set to 1, spare resources if not
     if not GetConVar("developer"):GetBool() then return end
 
@@ -63,7 +63,9 @@ function TTTBots.DebugServer.RenderDebugFor(bot, settings)
     if all or has(settings, "path") then TTTBots.DebugServer.DrawCurrentPathFor(bot) end
 end
 
+---@deprecated
 function TTTBots.DebugServer.DrawBotLook(bot)
+    ErrorNoHalt("Unsupported draw call; drawing anyway.")
     if not GetConVar("ttt_bot_debug_look"):GetBool() then return end
 
     local start = bot:GetShootPos()
@@ -82,16 +84,18 @@ function TTTBots.DebugServer.DrawBotLook(bot)
     end
 
     DebugServer.ChangeDrawData("botlook_" .. bot:Nick(),
-    {
-        type = "line",
-        start = start,
-        ending = endpos,
-        color = Color(0, 255, 0, 255),
-        width = 5
+        {
+            type = "line",
+            start = start,
+            ending = endpos,
+            color = Color(0, 255, 0, 255),
+            width = 5
         })
 end
 
+---@deprecated
 function TTTBots.DebugServer.DrawCurrentPathFor(bot)
+    ErrorNoHalt("Unsupported draw call; drawing anyway.")
     local pathinfo = bot.components.locomotor.pathinfo
     if not pathinfo or not pathinfo.path then return end
 
@@ -100,58 +104,79 @@ function TTTBots.DebugServer.DrawCurrentPathFor(bot)
 
     if type(path) ~= "table" then return end
 
-    for i=1,table.Count(path)-1 do
+    for i = 1, table.Count(path) - 1 do
         local start = path[i]:GetCenter()
         local ending = path[i + 1]:GetCenter()
 
         local colorOffset = (age / TTTBots.PathManager.cullSeconds) * 255
 
         DebugServer.ChangeDrawData("path_" .. bot:Nick() .. i,
-        {
-            type = "line",
-            start = start,
-            ending = ending,
-            color = Color(255 - colorOffset, 0, colorOffset, 255),
-            width = 15
+            {
+                type = "line",
+                start = start,
+                ending = ending,
+                color = Color(255 - colorOffset, 0, colorOffset, 255),
+                width = 15
             })
     end
-
 end
 
 function TTTBots.DebugServer.DrawLineBetween(start, finish, color)
     if not (start and finish and color) then return end
 
+    local start_rounded = Vector(math.Round(start.x), math.Round(start.y), math.Round(start.z))
+    local finish_rounded = Vector(math.Round(finish.x), math.Round(finish.y), math.Round(finish.z))
+
     DebugServer.ChangeDrawData("line_" .. tostring(start) .. tostring(finish),
-    {
-        type = "line",
-        start = start,
-        ending = finish,
-        color = color,
-        width = 5
+        {
+            type = "line",
+            start = start_rounded,
+            ending = finish_rounded,
+            color = color,
+            width = 5
         })
 end
 
 function TTTBots.DebugServer.DrawSphere(pos, radius, color)
     if not (pos and radius and color) then return end
 
+    local pos_rounded = Vector(math.Round(pos.x), math.Round(pos.y), math.Round(pos.z))
+
     DebugServer.ChangeDrawData("sphere_" .. tostring(pos) .. tostring(radius),
-    {
-        type = "sphere",
-        pos = pos,
-        radius = radius,
-        color = color,
-        width = 5
+        {
+            type = "sphere",
+            pos = pos_rounded,
+            radius = radius,
+            color = color,
+            width = 5
         })
 end
 
-function TTTBots.DebugServer.DrawText(pos, text, color)
-    if not (pos and text and color) then return end
+--- note: cannot pass color, it will always be white with black outline
+function TTTBots.DebugServer.DrawText(pos, text)
+    if not (pos and text) then return end
+
+    local pos_rounded = Vector(math.Round(pos.x), math.Round(pos.y), math.Round(pos.z))
 
     DebugServer.ChangeDrawData("text_" .. tostring(pos) .. tostring(text),
-    {
-        type = "text",
-        pos = pos,
-        text = text
+        {
+            type = "text",
+            pos = pos_rounded,
+            text = text
+        })
+end
+
+function TTTBots.DebugServer.DrawCross(pos, size, color)
+    if not (pos and size and color) then return end
+
+    local pos_rounded = Vector(math.Round(pos.x), math.Round(pos.y), math.Round(pos.z))
+
+    DebugServer.ChangeDrawData("cross_" .. tostring(pos) .. tostring(size),
+        {
+            type = "cross",
+            pos = pos_rounded,
+            size = size,
+            color = color
         })
 end
 

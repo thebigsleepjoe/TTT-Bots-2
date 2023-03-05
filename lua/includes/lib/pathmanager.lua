@@ -199,10 +199,9 @@ function TTTBots.PathManager.Astar2(start, goal)
     while (#openSet > 0) do
         cn = cn + 1
         if (cn % cpf == 0) then
-            print("Yielding Astar2")
             coroutine.yield(cn)
         end
-        ----------------------------------
+        ---------------------------------- end coroutine stuff
         local current = openSet[1]
         table.remove(openSet, 1)
         table.insert(closedSet, current.area)
@@ -213,7 +212,6 @@ function TTTBots.PathManager.Astar2(start, goal)
                 current = current.parent
                 table.insert(path, 1, current.area)
             end
-            print("Returning path of length " .. #path .. " from Astar2")
             return path
         end
 
@@ -254,11 +252,6 @@ function TTTBots.PathManager.Astar2(start, goal)
         table.sort(openSet, function(a, b) return a.fScore < b.fScore end)
     end
 
-    -- local ms = P_Astar2()
-    -- local avgms = ms / neighborsCounted
-    -- print(string.format("Nodes visited: %d/%d. Took %d ms, which avg. %dms/neighbor", neighborsCounted, totalNeighbors,
-    --     ms, avgms))
-    print("Couldn't generate a path")
     return false
 end
 

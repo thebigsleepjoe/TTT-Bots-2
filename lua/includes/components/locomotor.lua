@@ -63,8 +63,8 @@ function BotLocomotor:Initialize(bot)
     self.lookPosGoal = nil -- The current goal position to look at
     self.lookPos = nil -- Current look position, gets lerped to Override, or to self.lookPosGoal.
 
-    self.movementVec = Vector(0, 0, 0) -- Current look position, gets lerped to Override
-    self.moveLerpSpeed = 0 -- Current look speed (rate of lerp)
+    self.movementVec = Vector(0, 0, 0) -- Current movement position, gets lerped to Override
+    self.moveLerpSpeed = 0 -- Current movement speed (rate of lerp)
 
     self.strafe = nil -- "left" or "right" or nil
     self.forceForward = false -- If true, then the bot will always move forward
@@ -82,7 +82,13 @@ end
 
 ---@return boolean
 function BotLocomotor:HasPath()
-    return self.path ~= nil
+    return type(self.path) == "table" and type(self.path.path) == "table"
+end
+
+function BotLocomotor:GetPathLength()
+    if not self:HasPath() then return 0 end
+    -- # operator does not work here for some reason so count the old way
+    return table.Count(self.path.path)
 end
 
 ---@return boolean
@@ -188,28 +194,18 @@ function BotLocomotor:CheckFeetAreObstructed()
     return trce.Hit
 end
 
--- Return true if we should jump between vectors a and b. This is used for pathfinding.
--- function BotLocomotor:ShouldJumpBetweenPoints(a, b)
---     local verticalCondition = (b.z - a.z) > 8
-
-
---     local condition = verticalCondition or self:CheckFeetAreObstructed()
---     return condition
--- end
-
 function BotLocomotor:ShouldJump()
     return self:CheckFeetAreObstructed()
 end
 
 function BotLocomotor:ShouldCrouchBetweenPoints(a, b)
-    -- mostly just check if the closest area to a or b has a crouch flag
     local area1 = navmesh.GetNearestNavArea(a)
     local area2 = navmesh.GetNearestNavArea(b)
 
     return (area1 and area1:IsCrouch()) or (area2 and area2:IsCrouch())
 end
 
--- Wrapper for TTTBots.PathManager.BotIsCloseEnough(bot, pos)
+--- Wrapper for TTTBots.PathManager.BotIsCloseEnough(bot, pos)
 function BotLocomotor:CloseEnoughTo(pos)
     return TTTBots.PathManager.BotIsCloseEnough(self.bot, pos)
 end
@@ -267,13 +263,11 @@ end
 -- Tick-level functions
 -----------------------------------------------
 
--- Tick periodically. Do not tick per GM:StartCommand
+--- Tick periodically. Do not tick per GM:StartCommand
 function BotLocomotor:Think()
     self.tick = self.tick + 1
     local status = self:UpdatePath() -- Update the path that the bot is following, so that we can move along it.
     self:UpdateMovement() -- Update the invisible angle that the bot moves at, and make it move.
-    print("<Locomotor> Status is " .. status)
-    --self:UpdateViewAngles() -- Update the visible angle that the bot looks at. This is for cosmetic and aiming purposes.
 end
 
 function BotLocomotor:Unstuck()
@@ -318,9 +312,13 @@ function BotLocomotor:Unstuck()
     })
 
     -- draw debug lines
-    TTTBots.DebugServer.DrawLineBetween(kneePos, forward, Color(255, 0, 255))
-    TTTBots.DebugServer.DrawLineBetween(kneePos, left, Color(255, 0, 255))
-    TTTBots.DebugServer.DrawLineBetween(kneePos, right, Color(255, 0, 255))
+    -- TTTBots.DebugServer.DrawLineBetween(kneePos, forward, Color(255, 0, 255))
+    -- TTTBots.DebugServer.DrawLineBetween(kneePos, left, Color(255, 0, 255))
+    -- TTTBots.DebugServer.DrawLineBetween(kneePos, right, Color(255, 0, 255))
+    local dvlpr = lib.GetConVarBool("debug_pathfinding")
+    if dvlpr then
+        TTTBots.DebugServer.DrawText(kneePos, string.format("%s's stuck!", self.bot:Nick()), Color(255, 0, 255))
+    end
 
     self:SetJumping(false)
     self:SetCrouching(false)
@@ -340,8 +338,9 @@ function BotLocomotor:Unstuck()
     end
 end
 
--- Manage the movement; do not use CMoveData, use the bot's movement functions and fields instead.
+--- Manage the movement; do not use CMoveData, use the bot's movement functions and fields instead.
 function BotLocomotor:UpdateMovement()
+    local dbg_um = true
     self:SetJumping(false)
     self:SetCrouching(false)
     self:SetStrafe(nil)
@@ -389,7 +388,7 @@ function BotLocomotor:UpdateMovement()
     end
 end
 
--- Record the bot's position. This is used for getting the bot unstuck from weird situations.
+--- Record the bot's position. This is used for getting the bot unstuck from weird situations.
 function BotLocomotor:RecordPosition()
     if self.lastPositions == nil then self.lastPositions = {} end
     table.insert(self.lastPositions, self.bot:GetPos())
@@ -399,7 +398,7 @@ function BotLocomotor:RecordPosition()
     end
 end
 
--- Check if the bot is stuck. This is used for getting the bot unstuck from weird situations.
+--- Check if the bot is stuck. This is used for getting the bot unstuck from weird situations.
 function BotLocomotor:IsStuck()
     if self.lastPositions == nil then return false end
     if #self.lastPositions < 10 then return false end
@@ -427,8 +426,8 @@ function BotLocomotor:UpdatePath()
 
     local path = self:GetPath()
     local goalNav = navmesh.GetNearestNavArea(self:GetGoalPos())
-
-    if (self:HasPath() and path[#path] ~= goalNav) then
+    local pathLength = self:GetPathLength()
+    if (self:HasPath() and pathLength > 0 and path.path[self:GetPathLength()] == goalNav) then
         return "pathing_currently"
     end
 
@@ -436,7 +435,6 @@ function BotLocomotor:UpdatePath()
     local pathid, path, status = TTTBots.PathManager.RequestPath(self.bot, self.bot:GetPos(), self:GetGoalPos(), false)
 
     local fr = string.format
-    -- print(fr("<Locomotor> Path status for bot %s: %s", self.bot:Nick(), status))
 
     if (path == false) then -- path is impossible
         self.cantReachGoal = true
@@ -555,10 +553,8 @@ end
 
 function BotLocomotor:UpdateViewAngles(cmd)
     local override = self:GetLookPosOverride()
-    local lookLerpSpeed = self.lookLerpSpeed or 0
     local preparedPath = self:HasPath() and self:GetPath().preparedPath
     local goal = self.goalPos
-    local completeRange = 48
 
     if override then
         self.lookPosGoal = override
@@ -568,9 +564,7 @@ function BotLocomotor:UpdateViewAngles(cmd)
     self.lookPosGoal = goal
 
     if self.nextPos then
-        if not preparedPath then
-            self.lookPosGoal = goal
-        else
+        if preparedPath then
             local nextPos = self.nextPos
             if #preparedPath > self.nextPosI + 2 then
                 local off = lib.OffsetForGround
@@ -631,7 +625,10 @@ end
 
 --- Lerp look towards the goal position
 function BotLocomotor:LerpMovement(factor, goal)
+    if not goal then return end
+
     self.movementVec = goal --LerpVector(factor, self.movementVec, goal)
+    local dvlpr = lib.GetDebugFor("pathfinding")
 end
 
 function BotLocomotor:StartCommand(cmd)
@@ -660,10 +657,19 @@ function BotLocomotor:StartCommand(cmd)
         end
     end
 
-    local movementVec = self.movementVec
-    if movementVec ~= Vector(0, 0, 0) then
-        local ang = (movementVec - self.bot:GetPos()):Angle()
+    -- local movementVec = self.movementVec
+    if self:HasPath() then
+        self:LerpMovement(0.01, self.nextPos)
+    end
+
+    if self.movementVec ~= Vector(0, 0, 0) then
+        local ang = (self.movementVec - self.bot:GetPos()):Angle()
         cmd:SetViewAngles(ang) -- This is actually the movement angles, not the view angles. It's confusingly named.
+    end
+
+    if dvlpr then
+        -- Draw small debug sphere on movementVec
+        TTTBots.DebugServer.DrawCross(self.movementVec, 10, Color(255, 0, 0))
     end
 
     self:UpdateViewAngles(cmd) -- The real view angles
