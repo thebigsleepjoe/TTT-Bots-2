@@ -360,7 +360,7 @@ function BotLocomotor:UpdateMovement()
         local botArea = navmesh.GetNearestNavArea(self.bot:GetPos())
         local goalArea = navmesh.GetNearestNavArea(goal)
         if (botArea == goalArea) then
-            self:LerpMovement(0.5, goal)
+            self:LerpMovement(0.1, goal)
             self.forceForward = true
             self.tryingMove = true
         end
@@ -627,7 +627,7 @@ end
 function BotLocomotor:LerpMovement(factor, goal)
     if not goal then return end
 
-    self.movementVec = goal --LerpVector(factor, self.movementVec, goal)
+    self.movementVec = LerpVector(factor, self.movementVec, goal)
     local dvlpr = lib.GetDebugFor("pathfinding")
 end
 
@@ -659,17 +659,12 @@ function BotLocomotor:StartCommand(cmd)
 
     -- local movementVec = self.movementVec
     if self:HasPath() then
-        self:LerpMovement(0.01, self.nextPos)
+        self:LerpMovement(0.1, self.nextPos)
     end
 
     if self.movementVec ~= Vector(0, 0, 0) then
         local ang = (self.movementVec - self.bot:GetPos()):Angle()
         cmd:SetViewAngles(ang) -- This is actually the movement angles, not the view angles. It's confusingly named.
-    end
-
-    if dvlpr then
-        -- Draw small debug sphere on movementVec
-        TTTBots.DebugServer.DrawCross(self.movementVec, 10, Color(255, 0, 0))
     end
 
     self:UpdateViewAngles(cmd) -- The real view angles
