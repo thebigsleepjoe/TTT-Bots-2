@@ -1,44 +1,44 @@
 TTTBots.Components = TTTBots.Components or {}
-TTTBots.Components.DestroyStuff = {}
+TTTBots.Components.ObstacleTracker = {}
 
 local lib = TTTBots.Lib
-local BotDestroyStuff = TTTBots.Components.DestroyStuff
+local BotObstacleTracker = TTTBots.Components.ObstacleTracker
 
-function BotDestroyStuff:New(bot)
-    local newDestroyStuff = {}
-    setmetatable(newDestroyStuff, {
-        __index = function(t, k) return BotDestroyStuff[k] end,
+function BotObstacleTracker:New(bot)
+    local newObstacleTracker = {}
+    setmetatable(newObstacleTracker, {
+        __index = function(t, k) return BotObstacleTracker[k] end,
     })
-    newDestroyStuff:Initialize(bot)
+    newObstacleTracker:Initialize(bot)
 
     local dbg = lib.GetDebugFor("all")
     if dbg then
-        print("Initialized DestroyStuff for bot " .. bot:Nick())
+        print("Initialized ObstacleTracker for bot " .. bot:Nick())
     end
 
-    return newDestroyStuff
+    return newObstacleTracker
 end
 
-function BotDestroyStuff:Initialize(bot)
+function BotObstacleTracker:Initialize(bot)
     bot.components = bot.components or {}
-    bot.components.DestroyStuff = self
+    bot.components.ObstacleTracker = self
 
-    self.componentID = string.format("DestroyStuff (%s)", lib.GenerateID()) -- Component ID, used for debugging
+    self.componentID = string.format("ObstacleTracker (%s)", lib.GenerateID()) -- Component ID, used for debugging
 
     self.tick = 0 -- Tick counter
     self.bot = bot
     self.disabled = false
 end
 
-function BotDestroyStuff:Disable()
+function BotObstacleTracker:Disable()
     self.disabled = true
 end
 
-function BotDestroyStuff:Enable()
+function BotObstacleTracker:Enable()
     self.disabled = false
 end
 
-function BotDestroyStuff:GetBlockingBreakable()
+function BotObstacleTracker:GetBlockingBreakable()
     local normal = self.bot.components.locomotor.moveNormal
     if not normal then
         return
@@ -53,31 +53,36 @@ function BotDestroyStuff:GetBlockingBreakable()
     })
 
     if trace.Hit and trace.Entity then
-        -- check if trace.Entity is in the BotDestroyStuff.Breakables table
-        return table.HasValue(BotDestroyStuff.Breakables, trace.Entity) and trace.Entity or nil
+        -- check if trace.Entity is in the BotObstacleTracker.Breakables table
+        return table.HasValue(BotObstacleTracker.Breakables, trace.Entity) and trace.Entity or nil
     end
 end
 
-function BotDestroyStuff:Think()
+function BotObstacleTracker:Think()
     if self.disabled then return end
     self.tick = self.tick + 1
 
-    local blocking = self:GetBlockingBreakable()
-    if blocking then
-        print("Blocking prop!")
-        -- self.bot.components.locomotor:Stop()
-        -- self.bot.components.locomotor:Face(blocking:GetPos())
+    if self.tick % 3 == 0 then
+        self.blocking = self:GetBlockingBreakable()
     end
+end
+
+function BotObstacleTracker:IsPathBlocked()
+    return (self.blocking ~= nil) and IsValid(self.blocking)
+end
+
+function BotObstacleTracker:GetBlocking()
+    return self.blocking
 end
 
 ----------------------------------------
 -- STATIC METHODS / FIELDS
 ----------------------------------------
 
-BotDestroyStuff.Breakables = BotDestroyStuff.Breakables or {}
-BotDestroyStuff.Unbreakables = BotDestroyStuff.Unbreakables or {}
+BotObstacleTracker.Breakables = BotObstacleTracker.Breakables or {}
+BotObstacleTracker.Unbreakables = BotObstacleTracker.Unbreakables or {}
 
-timer.Create("TTTBots.Components.DestroyStuff_Breakables", 1.5, 0, function()
+timer.Create("TTTBots.Components.ObstacleTracker_Breakables", 1.5, 0, function()
     local db_break = {}
     local db_unbreak = {}
 
@@ -104,21 +109,21 @@ timer.Create("TTTBots.Components.DestroyStuff_Breakables", 1.5, 0, function()
 
     print(#db_break .. " breakables, " .. #db_unbreak .. " unbreakables.")
 
-    BotDestroyStuff.Breakables = db_break
-    BotDestroyStuff.Unbreakables = db_unbreak
+    BotObstacleTracker.Breakables = db_break
+    BotObstacleTracker.Unbreakables = db_unbreak
 end)
 
-timer.Create("TTTBots.Components.DestroyStuff_Breakables_draw", 0.1, 0, function()
+timer.Create("TTTBots.Components.ObstacleTracker_Breakables_draw", 0.1, 0, function()
     if not lib.GetConVarBool("debug_obstacles") then return end
 
-    for i, breakable in pairs(BotDestroyStuff.Breakables) do
+    for i, breakable in pairs(BotObstacleTracker.Breakables) do
         if not IsValid(breakable) then continue end
         local vec = breakable:GetPos()
         local minVec, maxVec = breakable:OBBMins(), breakable:OBBMaxs()
         TTTBots.DebugServer.DrawBox(vec, minVec, maxVec, Color(255, 0, 0, 0))
     end
 
-    for i, unbreakable in pairs(BotDestroyStuff.Unbreakables) do
+    for i, unbreakable in pairs(BotObstacleTracker.Unbreakables) do
         if not IsValid(unbreakable) then continue end
         local vec = unbreakable:GetPos()
 

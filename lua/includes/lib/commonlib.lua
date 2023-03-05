@@ -4,7 +4,7 @@ include("includes/data/usernames.lua")
 
 -- Import components for bot creation
 include("includes/components/locomotor.lua")
-include("includes/components/destroystuff.lua")
+include("includes/components/ObstacleTracker.lua")
 
 local Lib = TTTBots.Lib
 local format = string.format
@@ -63,7 +63,7 @@ function Lib.CreateBot(name)
 
     bot.components = {
         locomotor = TTTBots.Components.Locomotor:New(bot),
-        destroystuff = TTTBots.Components.DestroyStuff:New(bot)
+        ObstacleTracker = TTTBots.Components.ObstacleTracker:New(bot)
     }
 
     local dvlpr = Lib.GetDebugFor("all")
