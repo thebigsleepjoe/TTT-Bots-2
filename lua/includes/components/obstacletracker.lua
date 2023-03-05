@@ -21,9 +21,9 @@ end
 
 function BotObstacleTracker:Initialize(bot)
     bot.components = bot.components or {}
-    bot.components.ObstacleTracker = self
+    bot.components.obstacletracker = self
 
-    self.componentID = string.format("ObstacleTracker (%s)", lib.GenerateID()) -- Component ID, used for debugging
+    self.componentID = string.format("obstalcetracker (%s)", lib.GenerateID()) -- Component ID, used for debugging
 
     self.tick = 0 -- Tick counter
     self.bot = bot

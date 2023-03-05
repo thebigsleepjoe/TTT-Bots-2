@@ -13,6 +13,9 @@ include("includes/commands/chatcommands.lua")
 include("includes/commands/cvars.lua")
 include("includes/commands/concommands.lua")
 
+-- Initialize behaviors
+include("includes/behaviors/main.lua")
+
 -- Future modules:
 -- Bot speech manager, for playing voice lines and chatting in-game when something happens
 -- (will figure out more later)
