@@ -180,17 +180,19 @@ function TTTBots.DebugServer.DrawCross(pos, size, color)
         })
 end
 
-function TTTBots.DebugServer.DrawBox(posA, posB, color)
-    if not (posA and posB and color) then return end
+function TTTBots.DebugServer.DrawBox(origin, mins, maxs, color)
+    if not (origin and mins and maxs and color) then return end
 
-    local posA_rounded = Vector(math.Round(posA.x), math.Round(posA.y), math.Round(posA.z))
-    local posB_rounded = Vector(math.Round(posB.x), math.Round(posB.y), math.Round(posB.z))
+    local origin_rounded = Vector(math.Round(origin.x), math.Round(origin.y), math.Round(origin.z))
+    local mins_rounded = Vector(math.Round(mins.x), math.Round(mins.y), math.Round(mins.z))
+    local maxs_rounded = Vector(math.Round(maxs.x), math.Round(maxs.y), math.Round(maxs.z))
 
-    DebugServer.ChangeDrawData("box_" .. tostring(posA) .. tostring(posB),
+    DebugServer.ChangeDrawData("box_" .. tostring(origin_rounded),
         {
             type = "box",
-            start = posA_rounded,
-            ending = posB_rounded,
+            origin = origin_rounded,
+            maxs = maxs_rounded,
+            mins = mins_rounded,
             color = color,
             width = 5
         })

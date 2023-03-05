@@ -24,6 +24,8 @@ CreateConVar("ttt_bot_debug_misc", "1", FCVAR,
     "Enables misc debug. Requires built-in developer convar to be 1.")
 CreateConVar("ttt_bot_debug_stuckpositions", "1", FCVAR,
     "Enables debug for stuck positions. Requires built-in developer convar to be 1.")
+CreateConVar("ttt_bot_debug_obstacles", "1", FCVAR,
+    "Enables debug for recognized obstacles. Requires built-in developer convar to be 1.")
 
 -- Pathfinding cvars
 CreateConVar("ttt_bot_pathfinding_cpf", "50", FCVAR,
