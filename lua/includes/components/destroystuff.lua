@@ -52,19 +52,19 @@ timer.Create("TTTBots.Components.DestroyStuff_Breakables", 1.5, 0, function()
     local db_break = {}
     local db_unbreak = {}
 
+    local dbg = lib.GetConVarBool("debug_obstacles")
+
     for _, entity in pairs(ents.FindByClass("func_breakable")) do
         table.insert(db_break, entity)
+        if dbg then print("Registered a breakable brush: " .. entity:GetClass()) end
     end
 
     for _, entity in pairs(ents.FindByClass("func_breakable_surf")) do
         table.insert(db_break, entity)
+        if dbg then print("Registered a breakable brush: " .. entity:GetClass()) end
     end
 
     for _, entity in pairs(ents.FindByClass("prop_physics")) do
-        if entity:GetCollisionGroup() == COLLISION_GROUP_BREAKABLE_GLASS then
-            table.insert(db_break, entity)
-        end
-
         local vals = entity:GetKeyValues()
         if vals.health and vals.health > 1 then
             table.insert(db_break, entity)

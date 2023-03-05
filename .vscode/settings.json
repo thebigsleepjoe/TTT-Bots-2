@@ -7,6 +7,9 @@
         "Vector",
         "CurTime",
         "util",
-        "MASK_SOLID_BRUSHONLY"
+        "MASK_SOLID_BRUSHONLY",
+        "timer",
+        "ents",
+        "Color"
     ]
 }
