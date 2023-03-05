@@ -10,6 +10,7 @@
         "MASK_SOLID_BRUSHONLY",
         "timer",
         "ents",
-        "Color"
+        "Color",
+        "player"
     ]
 }

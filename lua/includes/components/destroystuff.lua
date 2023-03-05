@@ -38,11 +38,36 @@ function BotDestroyStuff:Enable()
     self.disabled = false
 end
 
+function BotDestroyStuff:GetBlockingBreakable()
+    local normal = self.bot.components.locomotor.moveNormal
+    if not normal then
+        return
+    end
+
+    local start = self.bot:GetPos() + Vector(0, 0, 16)
+    local endpos = (self.bot:GetPos() + Vector(0, 0, 16)) + normal * 50
+    local trace = util.TraceLine({
+        start = start,
+        endpos = endpos,
+        filter = self.bot
+    })
+
+    if trace.Hit and trace.Entity then
+        -- check if trace.Entity is in the BotDestroyStuff.Breakables table
+        return table.HasValue(BotDestroyStuff.Breakables, trace.Entity) and trace.Entity or nil
+    end
+end
+
 function BotDestroyStuff:Think()
     if self.disabled then return end
     self.tick = self.tick + 1
 
-    print("BotDestroyStuff:Think()")
+    local blocking = self:GetBlockingBreakable()
+    if blocking then
+        print("Blocking prop!")
+        -- self.bot.components.locomotor:Stop()
+        -- self.bot.components.locomotor:Face(blocking:GetPos())
+    end
 end
 
 ----------------------------------------
