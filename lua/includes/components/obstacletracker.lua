@@ -1,5 +1,5 @@
 TTTBots.Components = TTTBots.Components or {}
-TTTBots.Components.ObstacleTracker = {}
+TTTBots.Components.ObstacleTracker = TTTBots.Components.ObstacleTracker or {}
 
 local lib = TTTBots.Lib
 local BotObstacleTracker = TTTBots.Components.ObstacleTracker
@@ -20,6 +20,7 @@ function BotObstacleTracker:New(bot)
 end
 
 function BotObstacleTracker:Initialize(bot)
+    print("Initializing")
     bot.components = bot.components or {}
     bot.components.obstacletracker = self
 
@@ -28,6 +29,8 @@ function BotObstacleTracker:Initialize(bot)
     self.tick = 0 -- Tick counter
     self.bot = bot
     self.disabled = false
+
+    print(self.Think)
 end
 
 function BotObstacleTracker:Disable()

@@ -179,7 +179,7 @@ function BotLocomotor:CheckFeetAreObstructed()
     bodyfacingdir.z = 0
 
     local startpos = pos + Vector(0, 0, 16)
-    local endpos = pos + Vector(0, 0, 16) + bodyfacingdir * 30
+    local endpos = pos + Vector(0, 0, 8) + bodyfacingdir * 30
 
     local trce = util.TraceLine({
         start = startpos,
@@ -647,7 +647,7 @@ function BotLocomotor:StartCommand(cmd)
         cmd:SetViewAngles(ang) -- This is actually the movement angles, not the view angles. It's confusingly named.
     end
 
-    if self:GetGoalPos() and self.bot:GetPos():Distance(self:GetGoalPos()) < 10 then
+    if self:GetGoalPos() and self.bot:GetPos():Distance(self:GetGoalPos()) < 16 then
         self.movementVec = Vector(0, 0, 0)
     end
 

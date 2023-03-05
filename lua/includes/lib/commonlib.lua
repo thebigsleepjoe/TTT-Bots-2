@@ -4,7 +4,7 @@ include("includes/data/usernames.lua")
 
 -- Import components for bot creation
 include("includes/components/locomotor.lua")
-include("includes/components/ObstacleTracker.lua")
+include("includes/components/obstacletracker.lua")
 
 local Lib = TTTBots.Lib
 local format = string.format
