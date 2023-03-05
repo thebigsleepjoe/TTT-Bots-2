@@ -61,6 +61,28 @@ function BotObstacleTracker:GetBlockingBreakable()
     end
 end
 
+--- Gets the nearby obstacles to the bot (breakable and unbreakable)
+---@param radius number The radius to search in, can be nil (default is 100)
+function BotObstacleTracker:GetNearbyObstacles(radius)
+    local nearby = {}
+    local pos = self.bot:GetPos()
+    radius = radius or 100
+
+    local all = {}
+    table.Add(all, BotObstacleTracker.Breakables)
+    table.Add(all, BotObstacleTracker.Unbreakables)
+
+    for _, obstacle in pairs(all) do
+        if not IsValid(obstacle) then continue end
+        local vec = obstacle:GetPos()
+        if vec:Distance(pos) < radius then
+            table.insert(nearby, obstacle)
+        end
+    end
+
+    return nearby
+end
+
 function BotObstacleTracker:Think()
     if self.disabled then return end
     self.tick = self.tick + 1

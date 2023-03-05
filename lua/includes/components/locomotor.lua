@@ -308,6 +308,51 @@ function BotLocomotor:AvoidPlayers()
     end
 end
 
+--- Fetch obstacle props from our obstacletracker component, and determine best strafe direction to nearest prop
+function BotLocomotor:AvoidObstacles()
+    if self.dontAvoid then return end
+    local pos = self.bot:GetPos()
+    local bodyfacingdir = self.moveNormal or Vector(0, 0, 0)
+    local avgNearby = Vector(0, 0, 0)
+    local nearbyCount = 0
+
+    --- :GetNearbyObstacles()
+    for _, ent in pairs(self.bot.components.obstacletracker:GetNearbyObstacles()) do
+        local entpos = ent:GetPos()
+        local dist = pos:Distance(entpos)
+
+        if dist < 64 then
+            local dir = (pos - entpos):GetNormalized()
+            local dot = dir:Dot(bodyfacingdir)
+
+            if dot > 0 then
+                self:SetStrafe("left")
+                -- TTTBots.DebugServer.DrawLineBetween(pos, self.bot:GetPos() - self.bot:GetRight() * 100, Color(255, 0, 0))
+            else
+                self:SetStrafe("right")
+                -- TTTBots.DebugServer.DrawLineBetween(pos, self.bot:GetPos() + self.bot:GetRight() * 100, Color(255, 0, 0))
+            end
+        end
+
+        avgNearby = avgNearby + entpos
+        nearbyCount = nearbyCount + 1
+    end
+
+    if nearbyCount > 0 then
+        avgNearby = avgNearby / nearbyCount
+        local dir = (pos - avgNearby):GetNormalized()
+        local dot = dir:Dot(bodyfacingdir)
+
+        if dot > 0 then
+            self:SetStrafe("left")
+            -- TTTBots.DebugServer.DrawLineBetween(pos, self.bot:GetPos() - self.bot:GetRight() * 100, Color(255, 0, 0))
+        else
+            self:SetStrafe("right")
+            -- TTTBots.DebugServer.DrawLineBetween(pos, self.bot:GetPos() + self.bot:GetRight() * 100, Color(255, 0, 0))
+        end
+    end
+end
+
 function BotLocomotor:Unstuck()
     --[[
         So we're stuck. Let's send 3x raycasts to figure out why.
@@ -416,6 +461,7 @@ function BotLocomotor:UpdateMovement()
         self:Unstuck()
     end
 
+    self:AvoidObstacles()
     self:AvoidPlayers()
 
     -----------------------

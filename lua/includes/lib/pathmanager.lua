@@ -332,6 +332,7 @@ function TTTBots.PathManager.RequestPath(owner, startPos, finishPos, isAreas)
 
     local startArea = (isAreas and startPos) or navmesh.GetNearestNavArea(startPos)
     local finishArea = (isAreas and finishPos) or navmesh.GetNearestNavArea(finishPos)
+    if not startArea or not finishArea then return end
     local pathID = startArea:GetID() .. "to" .. finishArea:GetID()
 
     local isImpossible = TTTBots.PathManager.impossiblePaths[pathID] ~= nil
