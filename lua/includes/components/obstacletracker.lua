@@ -11,7 +11,7 @@ function BotObstacleTracker:New(bot)
     })
     newObstacleTracker:Initialize(bot)
 
-    local dbg = lib.GetDebugFor("all")
+    local dbg = lib.GetConVarBool("debug_misc")
     if dbg then
         print("Initialized ObstacleTracker for bot " .. bot:Nick())
     end

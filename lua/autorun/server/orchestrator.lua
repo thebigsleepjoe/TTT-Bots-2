@@ -53,6 +53,10 @@ timer.Create("TTTBots_Tick", 0.1, 0, function()
         -- TTTBots.DebugServer.RenderDebugFor(bot, { "all" })
 
         for i, component in pairs(bot.components) do
+            if component.Think == nil then
+                print("No think")
+                continue
+            end
             component:Think()
         end
     end

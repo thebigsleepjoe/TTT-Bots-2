@@ -14,6 +14,21 @@ function ladderMeta:GetCenter()
     return (start + ending) / 2
 end
 
+--- Get the top of the ladder offset by the forward normal vector
+function ladderMeta:GetTop2()
+    local top = self:GetTop()
+    local forward = self:GetNormal()
+
+    return top + forward * 12
+end
+
+function ladderMeta:GetBottom2()
+    local bottom = self:GetBottom()
+    local forward = self:GetNormal()
+
+    return bottom + forward * 12
+end
+
 function ladderMeta:IsLadder()
     return true
 end
@@ -497,14 +512,14 @@ function TTTBots.PathManager.PreparePathForLocomotor(path)
                     -- ii.)
                     if ladder_dir == "down" then
                         table.insert(points, {
-                            pos = ladder:GetBottom(),
+                            pos = ladder:GetBottom2(),
                             area = ladder,
                             type = "ladder",
                             ladder_dir = "down",
                         })
                     else
                         table.insert(points, {
-                            pos = ladder:GetTop(),
+                            pos = ladder:GetTop2(),
                             area = ladder,
                             type = "ladder",
                             ladder_dir = "up",
@@ -527,14 +542,14 @@ function TTTBots.PathManager.PreparePathForLocomotor(path)
                         -- ii.)
                         if ladder_dir == "down" then
                             table.insert(points, {
-                                pos = ladder:GetBottom(),
+                                pos = ladder:GetTop2(),
                                 area = ladder,
                                 type = "ladder",
                                 ladder_dir = "down",
                             })
                         else
                             table.insert(points, {
-                                pos = ladder:GetTop(),
+                                pos = ladder:GetBottom2(),
                                 area = ladder,
                                 type = "ladder",
                                 ladder_dir = "up",

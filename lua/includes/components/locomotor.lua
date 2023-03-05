@@ -32,7 +32,7 @@ function BotLocomotor:New(bot)
     })
     newLocomotor:Initialize(bot)
 
-    local dbg = lib.GetDebugFor("all")
+    local dbg = lib.GetConVarBool("debug_misc")
     if dbg then
         print("Initialized locomotor for bot " .. bot:Nick())
     end
@@ -594,28 +594,8 @@ function BotLocomotor:UpdateViewAngles(cmd)
         end
     end
 
-    local closestLadder = self:GetClosestLadder()
-    if self:IsOnLadder() and closestLadder then
-        -- Average the positions of the next 3 points in the smoothPath
-        -- local average = Vector(0, 0, 0)
-        -- for i = 1, 3 do
-        --     if smoothPath[i] then
-        --         average = average + smoothPath[i]
-        --     end
-        -- end
-        -- average = average / 3
-        -- TTTBots.DebugServer.DrawSphere(average, 10, Color(255, 0, 0))
-
-        -- -- Check if the average is above or below the center of the ladder
-        -- local pointIsBelow = (average.z < closestLadder:GetCenter().z)
-
-        local offset = Vector(0, 0, 500)
-        -- if pointIsBelow then
-        --     offset = offset * -1
-        -- end
-
-        -- self.lookPosGoal = (closestLadder:GetTop() + offset)
-        self.lookPosGoal = (self.nextPos or closestLadder:GetTop()) + offset
+    if self:IsOnLadder() then
+        self.lookPosGoal = self.nextPos
     end
 
     if not self.lookPosGoal then return end
@@ -667,10 +647,14 @@ function BotLocomotor:StartCommand(cmd)
         cmd:SetViewAngles(ang) -- This is actually the movement angles, not the view angles. It's confusingly named.
     end
 
+    if self:GetGoalPos() and self.bot:GetPos():Distance(self:GetGoalPos()) < 10 then
+        self.movementVec = Vector(0, 0, 0)
+    end
+
     self:UpdateViewAngles(cmd) -- The real view angles
 
     -- Set forward and side movement
-    local forward = hasPath and 400 or 0
+    local forward = self.movementVec == Vector(0, 0, 0) and 0 or 400
 
     local side = cmd:GetSideMove()
     side = (self:GetStrafe() == "left" and -400)
