@@ -63,7 +63,7 @@ function Lib.CreateBot(name)
 
     bot.components = {
         locomotor = TTTBots.Components.Locomotor:New(bot),
-        destroystuff = TTTBots.Components.Destroystuff:New(bot)
+        destroystuff = TTTBots.Components.DestroyStuff:New(bot)
     }
 
     local dvlpr = Lib.GetDebugFor("all")

@@ -87,12 +87,14 @@ timer.Create("TTTBots.Components.DestroyStuff_Breakables_draw", 0.1, 0, function
     if not lib.GetConVarBool("debug_obstacles") then return end
 
     for i, breakable in pairs(BotDestroyStuff.Breakables) do
+        if not IsValid(breakable) then continue end
         local vec = breakable:GetPos()
         local minVec, maxVec = breakable:OBBMins(), breakable:OBBMaxs()
         TTTBots.DebugServer.DrawBox(vec, minVec, maxVec, Color(255, 0, 0, 0))
     end
 
     for i, unbreakable in pairs(BotDestroyStuff.Unbreakables) do
+        if not IsValid(unbreakable) then continue end
         local vec = unbreakable:GetPos()
 
         local minVec, maxVec = unbreakable:OBBMins(), unbreakable:OBBMaxs()
