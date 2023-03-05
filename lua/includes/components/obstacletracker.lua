@@ -107,7 +107,9 @@ timer.Create("TTTBots.Components.ObstacleTracker_Breakables", 1.5, 0, function()
         end
     end
 
-    print(#db_break .. " breakables, " .. #db_unbreak .. " unbreakables.")
+    if dbg then
+        print(#db_break .. " breakables, " .. #db_unbreak .. " unbreakables.")
+    end
 
     BotObstacleTracker.Breakables = db_break
     BotObstacleTracker.Unbreakables = db_unbreak
