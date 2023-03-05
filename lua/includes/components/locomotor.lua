@@ -159,6 +159,16 @@ function BotLocomotor:GetGoalPos() return self.goalPos end
 
 function BotLocomotor:GetUsing() return self.emulateInUse end
 
+--- Prop and player avoidance
+function BotLocomotor:EnableAvoidance()
+    self.dontAvoid = false
+end
+
+--- Prop and player avoidance
+function BotLocomotor:DisableAvoidance()
+    self.dontAvoid = true
+end
+
 function BotLocomotor:WithinCompleteRange(pos)
     return self.bot:GetPos():Distance(pos) < TTTBots.PathManager.completeRange
 end
@@ -270,6 +280,34 @@ function BotLocomotor:Think()
     self:UpdateMovement() -- Update the invisible angle that the bot moves at, and make it move.
 end
 
+--- Gets nearby players then determines the best direction to strafe to avoid them.
+function BotLocomotor:AvoidPlayers()
+    if self.dontAvoid then return end
+    local plys = player.GetAll()
+    local pos = self.bot:GetPos()
+    local bodyfacingdir = self.moveNormal or Vector(0, 0, 0)
+
+    for _, ply in pairs(plys) do
+        if ply == self.bot then continue end
+
+        local plypos = ply:GetPos()
+        local dist = pos:Distance(plypos)
+
+        if dist < 64 then
+            local dir = (pos - plypos):GetNormalized()
+            local dot = dir:Dot(bodyfacingdir)
+
+            if dot > 0 then
+                self:SetStrafe("left")
+                -- TTTBots.DebugServer.DrawLineBetween(pos, self.bot:GetPos() - self.bot:GetRight() * 100, Color(255, 0, 0))
+            else
+                self:SetStrafe("right")
+                -- TTTBots.DebugServer.DrawLineBetween(pos, self.bot:GetPos() + self.bot:GetRight() * 100, Color(255, 0, 0))
+            end
+        end
+    end
+end
+
 function BotLocomotor:Unstuck()
     --[[
         So we're stuck. Let's send 3x raycasts to figure out why.
@@ -377,6 +415,8 @@ function BotLocomotor:UpdateMovement()
     if self:IsStuck() then
         self:Unstuck()
     end
+
+    self:AvoidPlayers()
 
     -----------------------
     -- Door code
