@@ -115,12 +115,10 @@ timer.Create("TTTBots.Components.ObstacleTracker_Breakables", 1.5, 0, function()
 
     for _, entity in pairs(ents.FindByClass("func_breakable")) do
         table.insert(db_break, entity)
-        if dbg then print("Registered a breakable brush: " .. entity:GetClass()) end
     end
 
     for _, entity in pairs(ents.FindByClass("func_breakable_surf")) do
         table.insert(db_break, entity)
-        if dbg then print("Registered a breakable brush: " .. entity:GetClass()) end
     end
 
     for _, entity in pairs(ents.FindByClass("prop_physics")) do

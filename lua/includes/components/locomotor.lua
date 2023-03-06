@@ -153,7 +153,7 @@ end
 function BotLocomotor:GetPathLength()
     if not self:HasPath() then return 0 end
     -- # operator does not work here for some reason so count the old way
-    return table.Count(self.path.path)
+    return table.Count(self.path.path.path)
 end
 
 ---@return boolean
@@ -266,7 +266,7 @@ function BotLocomotor:CheckFeetAreObstructed()
     -- draw debug line
     --TTTBots.DebugServer.DrawLineBetween(startpos, endpos, Color(255, 0, 255))
 
-    return trce.Hit
+    return trce.Hit and not (trce.Entity and (trce.Entity:IsPlayer() or trce.Entity:IsDoor()))
 end
 
 function BotLocomotor:ShouldJump()
@@ -288,29 +288,23 @@ end
 --- Detect if there is a door ahead of us. Runs two traces, one for moveangles and one for viewangles. If so, then return the door.
 function BotLocomotor:DetectDoorAhead()
     local pos = self.bot:EyePos()
-    local bodyfacingdir = self:GetMoveNormal() or Vector(0, 0, 0)
-    local lookPos = self:GetCurrentLookPos()
+    local nextPos = self.nextPos
 
-    local movetrace = util.TraceLine({
+    if not nextPos then return end
+
+    local npTrace = util.TraceLine({
         start = pos,
-        endpos = pos + bodyfacingdir * 120,
+        endpos = nextPos,
         filter = self.bot,
-        mask = MASK_ALL
+        mask = MASK_SOLID_BRUSHONLY
     })
 
-    if movetrace.Hit and movetrace.Entity and movetrace.Entity:IsDoor() then
-        return movetrace.Entity
-    end
+    if npTrace.Hit then
+        local ent = npTrace.Entity
 
-    local viewtrace = util.TraceLine({
-        start = pos,
-        endpos = lookPos,
-        filter = self.bot,
-        mask = MASK_ALL
-    })
-
-    if viewtrace.Hit and viewtrace.Entity and viewtrace.Entity:IsDoor() then
-        return viewtrace.Entity
+        if IsValid(ent) and ent:IsDoor() then
+            return ent
+        end
     end
 
     return false
@@ -452,7 +446,7 @@ function BotLocomotor:Unstuck()
     self:SetCrouching(false)
     self:SetStrafe(nil)
 
-    self:SetJumping(trce1.Hit)
+    self:SetJumping(trce1.Hit and not (trce1.Entity and (trce1.Entity:IsPlayer() or trce1.Entity:IsDoor())))
     self:SetStrafe(
         (trce2.Hit and "left") or
         (trce3.Hit and "right") or
@@ -474,6 +468,7 @@ function BotLocomotor:UpdateMovement()
     self:SetStrafe(nil)
     self:SetUsing(false)
     self:OverrideMoveNormal(nil)
+    self:StopPriorityMovement()
     self.forceForward = false
     self.tryingMove = false
     if self.dontmove then return end
@@ -563,9 +558,10 @@ function BotLocomotor:UpdatePath()
     local path = self:GetPath()
     local goalNav = navmesh.GetNearestNavArea(self:GetGoalPos())
     local pathLength = self:GetPathLength()
-    if (self:HasPath() and pathLength > 0 and path.path[self:GetPathLength()] == goalNav) then
+    if (self:HasPath() and pathLength > 0 and path.path.path[self:GetPathLength()] == goalNav) then
         return "pathing_currently"
     end
+
 
     -- If we don't have a path, request one
     local pathid, path, status = TTTBots.PathManager.RequestPath(self.bot, self.bot:GetPos(), self:GetGoalPos(), false)
@@ -788,7 +784,7 @@ function BotLocomotor:StartCommand(cmd)
         -- if moveNormalOverride then
         --     ang = moveNormalOverride:Angle()
         -- end
-        TTTBots.DebugServer.DrawCross(self.movementVec, 10, Color(255, 255, 255))
+        TTTBots.DebugServer.DrawCross(self.movementVec, 5, Color(255, 255, 255))
         cmd:SetViewAngles(ang) -- This is actually the movement angles, not the view angles. It's confusingly named.
     end
 
