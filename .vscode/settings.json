@@ -12,6 +12,7 @@
         "ents",
         "Color",
         "player",
-        "include"
+        "include",
+        "IsEntity"
     ]
 }

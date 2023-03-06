@@ -1,4 +1,3 @@
-
 --# Local Variables
 local Lib = TTTBots.Lib
 
@@ -54,4 +53,22 @@ concommand.Add("ttt_bot_debug_locomotor", function(ply, cmd, args)
         if not bot then return end
         ply:SetPos(bot:GetPos() + Vector(0, 0, 50))
     end)
+end)
+
+concommand.Add("ttt_bot_nav_cullconnections", function(ply, cmd, args)
+    -- For each node in the navmesh, get its adjacents. Calculate the edge-to-edge distance between the two nodes.
+    -- if it's jumping more than 40 units, then it's not a valid connection. Remove it.
+    local navmesh = navmesh.GetAllNavAreas()
+    local nBogus = 0
+    for i, node in pairs(navmesh) do
+        local adjacents = node:GetAdjacentAreas()
+        for i, adjacent in pairs(adjacents) do
+            local heightChange = node:ComputeAdjacentConnectionHeightChange(adjacent)
+            if heightChange > 40 then
+                node:Disconnect(adjacent)
+                nBogus = nBogus + 1
+            end
+        end
+    end
+    print("Number of bogus connections removed: " .. nBogus)
 end)

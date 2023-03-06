@@ -19,7 +19,7 @@ function ladderMeta:GetTop2()
     local top = self:GetTop()
     local forward = self:GetNormal()
 
-    return top + forward * 12
+    return top + Vector(0, 0, 32) + forward * 12
 end
 
 function ladderMeta:GetBottom2()
@@ -169,7 +169,13 @@ local function heuristic_cost_estimate(current, goal)
         h = h + 50
     end
 
-    return h * 1.0
+    if current:IsLadder() or goal:IsLadder() then return h end
+
+    if current:ComputeAdjacentConnectionHeightChange(goal) > 100 then
+        h = h + 5000000
+    end
+
+    return h
 end
 
 local function distance_between(area1, area2)

@@ -63,8 +63,11 @@ function BotLocomotor:Initialize(bot)
     self.lookPosGoal = nil -- The current goal position to look at
     self.lookPos = nil -- Current look position, gets lerped to Override, or to self.lookPosGoal.
 
+    self.movePriorityVec = nil -- Current movement priority vector, overrides movementVec if not nil
     self.movementVec = Vector(0, 0, 0) -- Current movement position, gets lerped to Override
     self.moveLerpSpeed = 0 -- Current movement speed (rate of lerp)
+    self.moveNormal = Vector(0, 0, 0) -- Current movement normal, functionally this is read-only.
+    self.moveNormalOverride = nil -- Override movement normal, mostly used within this component.
 
     self.strafe = nil -- "left" or "right" or nil
     self.forceForward = false -- If true, then the bot will always move forward
@@ -72,6 +75,68 @@ function BotLocomotor:Initialize(bot)
     self.crouch = false
     self.jump = false
     self.dontmove = false
+end
+
+function BotLocomotor:GetWhereStandForDoor(door)
+    if not IsValid(door) then return end
+    if not IsEntity(door) then return end
+    -- stand in front of the door
+    local eyePos = self.bot:EyePos()
+    local doorPos = door:GetPos()
+    local trace = util.TraceLine({
+        start = eyePos,
+        endpos = doorPos,
+        filter = self.bot,
+        mask = MASK_SOLID,
+    })
+    if not trace.Hit then return end
+
+    local hitNormal = trace.HitNormal
+
+    -- The size of the side with the biggest width. This will essentially tell us how far to stand back.
+    local widestAmt = math.max(door:OBBMaxs().x, door:OBBMaxs().y, door:OBBMaxs().z)
+    local doorCenter = door:WorldSpaceCenter()
+    local standPos = doorCenter + (hitNormal * widestAmt)
+    local standPosNav = navmesh.GetNearestNavArea(standPos)
+    if not standPosNav then return end
+
+    local standPosSnapped = standPosNav:GetClosestPointOnArea(standPos)
+    return standPosSnapped
+end
+
+function BotLocomotor:GetMoveNormal()
+    if self.moveNormalOverride then return self.moveNormalOverride end
+    return self.moveNormal
+end
+
+function BotLocomotor:GetMoveNormalOverride()
+    return self.moveNormalOverride
+end
+
+function BotLocomotor:OverrideMoveNormal(vec)
+    self.moveNormalOverride = vec
+end
+
+function BotLocomotor:GetPriorityGoal()
+    return self.movePriorityVec or false
+end
+
+--- Functionally assigns movePriorityVec to the given vector, if not within a certain range
+---@param vec Vector
+---@param range number defaults to 32
+function BotLocomotor:SetPriorityGoal(vec, range)
+    if not vec then return end
+    range = range or 32
+
+    local dist = self.bot:GetPos():Distance(vec)
+    if dist < range then return end
+
+    self.movePriorityVec = vec
+end
+
+--- Functionally sets movePriorityVec to nil.
+function BotLocomotor:StopPriorityMovement()
+    self.movePriorityVec = nil
 end
 
 --- Returns a table of the path generation info. The actual path is stored in a key called "path"
@@ -184,7 +249,7 @@ end
 -- Do a trace to check if our feet are obstructed, but our head is not.
 function BotLocomotor:CheckFeetAreObstructed()
     local pos = self.bot:GetPos()
-    local bodyfacingdir = self.moveNormal or Vector(0, 0, 0)
+    local bodyfacingdir = self:GetMoveNormal() or Vector(0, 0, 0)
     -- disregard z
     bodyfacingdir.z = 0
 
@@ -199,7 +264,7 @@ function BotLocomotor:CheckFeetAreObstructed()
     })
 
     -- draw debug line
-    TTTBots.DebugServer.DrawLineBetween(startpos, endpos, Color(255, 0, 255))
+    --TTTBots.DebugServer.DrawLineBetween(startpos, endpos, Color(255, 0, 255))
 
     return trce.Hit
 end
@@ -223,12 +288,12 @@ end
 --- Detect if there is a door ahead of us. Runs two traces, one for moveangles and one for viewangles. If so, then return the door.
 function BotLocomotor:DetectDoorAhead()
     local pos = self.bot:EyePos()
-    local bodyfacingdir = self.moveNormal or Vector(0, 0, 0)
+    local bodyfacingdir = self:GetMoveNormal() or Vector(0, 0, 0)
     local lookPos = self:GetCurrentLookPos()
 
     local movetrace = util.TraceLine({
         start = pos,
-        endpos = pos + bodyfacingdir * 80,
+        endpos = pos + bodyfacingdir * 120,
         filter = self.bot,
         mask = MASK_ALL
     })
@@ -259,7 +324,7 @@ function BotLocomotor:UseTimer()
 
     if useTimer then
         self.canUseAgain = false
-        timer.Simple(2, function()
+        timer.Simple(1.2, function()
             self.canUseAgain = true
         end)
 
@@ -285,7 +350,7 @@ function BotLocomotor:AvoidPlayers()
     if self.dontAvoid then return end
     local plys = player.GetAll()
     local pos = self.bot:GetPos()
-    local bodyfacingdir = self.moveNormal or Vector(0, 0, 0)
+    local bodyfacingdir = self:GetMoveNormal() or Vector(0, 0, 0)
 
     for _, ply in pairs(plys) do
         if ply == self.bot then continue end
@@ -308,32 +373,17 @@ function BotLocomotor:AvoidPlayers()
     end
 end
 
---- Fetch obstacle props from our obstacletracker component, and determine best strafe direction to nearest prop
+--- Fetch obstacle props from our obstacletracker component, and modify the moveNormal
 function BotLocomotor:AvoidObstacles()
     if self.dontAvoid then return end
     local pos = self.bot:GetPos()
-    local bodyfacingdir = self.moveNormal or Vector(0, 0, 0)
+    local bodyfacingdir = self:GetMoveNormal() or Vector(0, 0, 0)
     local avgNearby = Vector(0, 0, 0)
     local nearbyCount = 0
 
-    --- :GetNearbyObstacles()
     for _, ent in pairs(self.bot.components.obstacletracker:GetNearbyObstacles()) do
+        if ent:GetClass() ~= "prop_physics" then continue end
         local entpos = ent:GetPos()
-        local dist = pos:Distance(entpos)
-
-        if dist < 64 then
-            local dir = (pos - entpos):GetNormalized()
-            local dot = dir:Dot(bodyfacingdir)
-
-            if dot > 0 then
-                self:SetStrafe("left")
-                -- TTTBots.DebugServer.DrawLineBetween(pos, self.bot:GetPos() - self.bot:GetRight() * 100, Color(255, 0, 0))
-            else
-                self:SetStrafe("right")
-                -- TTTBots.DebugServer.DrawLineBetween(pos, self.bot:GetPos() + self.bot:GetRight() * 100, Color(255, 0, 0))
-            end
-        end
-
         avgNearby = avgNearby + entpos
         nearbyCount = nearbyCount + 1
     end
@@ -343,13 +393,8 @@ function BotLocomotor:AvoidObstacles()
         local dir = (pos - avgNearby):GetNormalized()
         local dot = dir:Dot(bodyfacingdir)
 
-        if dot > 0 then
-            self:SetStrafe("left")
-            -- TTTBots.DebugServer.DrawLineBetween(pos, self.bot:GetPos() - self.bot:GetRight() * 100, Color(255, 0, 0))
-        else
-            self:SetStrafe("right")
-            -- TTTBots.DebugServer.DrawLineBetween(pos, self.bot:GetPos() + self.bot:GetRight() * 100, Color(255, 0, 0))
-        end
+        self:OverrideMoveNormal((bodyfacingdir + dir) * 0.5)
+        TTTBots.DebugServer.DrawLineBetween(pos, pos + self.moveNormal * 100, Color(255, 0, 0))
     end
 end
 
@@ -428,6 +473,7 @@ function BotLocomotor:UpdateMovement()
     self:SetCrouching(false)
     self:SetStrafe(nil)
     self:SetUsing(false)
+    self:OverrideMoveNormal(nil)
     self.forceForward = false
     self.tryingMove = false
     if self.dontmove then return end
@@ -443,8 +489,9 @@ function BotLocomotor:UpdateMovement()
         local botArea = navmesh.GetNearestNavArea(self.bot:GetPos())
         local goalArea = navmesh.GetNearestNavArea(goal)
         if (botArea == goalArea) then
-            self:LerpMovement(0.1, goal)
-            self.forceForward = true
+            --self:LerpMovement(0.1, goal)
+            self:SetPriorityGoal(goal)
+            -- self.forceForward = true
             self.tryingMove = true
         end
     end
@@ -471,6 +518,9 @@ function BotLocomotor:UpdateMovement()
     local door = self:DetectDoorAhead()
     if door then
         self:SetUsing(true)
+
+        local vec = self:GetWhereStandForDoor(door)
+        if vec then self:SetPriorityGoal(vec) end
     end
 end
 
@@ -522,7 +572,7 @@ function BotLocomotor:UpdatePath()
 
     local fr = string.format
 
-    if (path == false) then -- path is impossible
+    if (path == false or path == nil) then -- path is impossible
         self.cantReachGoal = true
         self.path = nil
         return "path_impossible"
@@ -723,13 +773,22 @@ function BotLocomotor:StartCommand(cmd)
         end
     end
 
-    -- local movementVec = self.movementVec
-    if self:HasPath() then
+    if self:HasPath() and not self:GetPriorityGoal() then
         self:LerpMovement(0.1, self.nextPos)
+    elseif self:GetPriorityGoal() then
+        self:LerpMovement(0.1, self:GetPriorityGoal())
+        TTTBots.DebugServer.DrawCross(self.movePriorityVec, 10, Color(0, 255, 255))
     end
+
+
 
     if self.movementVec ~= Vector(0, 0, 0) then
         local ang = (self.movementVec - self.bot:GetPos()):Angle()
+        -- local moveNormalOverride = self:GetMoveNormalOverride()
+        -- if moveNormalOverride then
+        --     ang = moveNormalOverride:Angle()
+        -- end
+        TTTBots.DebugServer.DrawCross(self.movementVec, 10, Color(255, 255, 255))
         cmd:SetViewAngles(ang) -- This is actually the movement angles, not the view angles. It's confusingly named.
     end
 
@@ -839,8 +898,10 @@ timer.Create("TTTBots.Locomotor.StuckTracker", 1, 0, function()
 
         if shouldUnstuck then
             local cnavarea = navmesh.GetNearestNavArea(stuckPos)
-            local randomPos = cnavarea:GetRandomPoint()
-            bot:SetPos(randomPos + Vector(0, 0, 2))
+            if cnavarea then
+                local randomPos = cnavarea:GetRandomPoint()
+                bot:SetPos(randomPos + Vector(0, 0, 2))
+            end
         end
     end
 
