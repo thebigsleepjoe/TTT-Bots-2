@@ -1,4 +1,6 @@
 util.AddNetworkString("TTTBots_DrawData")
+util.AddNetworkString("TTTBots_ClientData")
+util.AddNetworkString("TTTBots_RequestData")
 
 TTTBots.DebugServer = {
     data = {}

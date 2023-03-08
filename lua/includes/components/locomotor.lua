@@ -153,6 +153,7 @@ end
 function BotLocomotor:GetPathLength()
     if not self:HasPath() then return 0 end
     if type(self:GetPath()) ~= "table" then return 0 end
+    if not (self.path and self.path.path and self.path.path.path and type(self.path.path.path) == "table") then return 0 end
     -- # operator does not work here for some reason so count the old way
     return table.Count(self.path.path.path)
 end
@@ -662,6 +663,14 @@ function BotLocomotor:DetermineNextPos()
     end
 
     local nextI = closestI < #preparedPath and closestI + 1 or closestI
+
+    -- for safety: check distance to next point, if we're within 32 units of closestI then we should increment nextI
+    local distToNext = bot:GetPos():Distance(preparedPath[nextI].pos)
+    print("distToNext", distToNext)
+    if distToNext < 96 then
+        nextI = nextI < #preparedPath and nextI + 1 or nextI
+    end
+
     local nextPos = preparedPath[nextI].pos
     local nextPosI = nextI
 

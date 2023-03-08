@@ -191,8 +191,8 @@ local function heuristic_cost_estimate(current, goal)
 
     if current:IsLadder() or goal:IsLadder() then return h end
 
-    if current:ComputeAdjacentConnectionHeightChange(goal) > 100 then
-        h = h + 5000000
+    if current:ComputeAdjacentConnectionHeightChange(goal) < -100 then
+        h = h + 5000000 -- Hugely deprioritize falling from dangerous heights
     end
 
     return h
@@ -592,14 +592,23 @@ function TTTBots.PathManager.PreparePathForLocomotor(path)
                             lastnode:GetConnectionTypeBetween(currentnode) or "walk"]]
                         local mtype = secondlastnode and not secondlastnode:IsLadder() and
                             secondlastnode:GetConnectionTypeBetween(lastnode) or "walk"
-                        table.insert(points, {
-                            pos = cedge,
-                            area = currentnode,
-                            type = mtype,
-                        })
 
-                        -- check if the area of the area is over 200^2
                         local area = currentnode:GetSizeX() * currentnode:GetSizeY()
+
+                        if (mtype ~= "fall" or area < 500) then
+                            table.insert(points, {
+                                pos = currentnode:GetCenter(),
+                                area = currentnode,
+                                type = mtype,
+                            })
+                        else
+                            table.insert(points, {
+                                pos = cedge,
+                                area = currentnode,
+                                type = mtype,
+                            })
+                        end
+
                         if area > 40000 then
                             -- add the center
                             table.insert(points, {
