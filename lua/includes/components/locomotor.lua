@@ -96,7 +96,7 @@ function BotLocomotor:GetWhereStandForDoor(door)
     -- The size of the side with the biggest width. This will essentially tell us how far to stand back.
     local widestAmt = math.max(door:OBBMaxs().x, door:OBBMaxs().y, door:OBBMaxs().z)
     local doorCenter = door:WorldSpaceCenter()
-    local standPos = doorCenter + (hitNormal * widestAmt)
+    local standPos = doorCenter + (hitNormal * widestAmt * 1.2)
     local standPosNav = navmesh.GetNearestNavArea(standPos)
     if not standPosNav then return end
 
@@ -152,6 +152,7 @@ end
 
 function BotLocomotor:GetPathLength()
     if not self:HasPath() then return 0 end
+    if type(self:GetPath()) ~= "table" then return 0 end
     -- # operator does not work here for some reason so count the old way
     return table.Count(self.path.path.path)
 end
@@ -260,7 +261,7 @@ function BotLocomotor:CheckFeetAreObstructed()
         start = startpos,
         endpos = endpos,
         filter = self.bot,
-        mask = MASK_SOLID_BRUSHONLY
+        mask = MASK_SOLID_BRUSHONLY + MASK_SHOT_HULL
     })
 
     -- draw debug line
@@ -536,7 +537,7 @@ function BotLocomotor:UpdateMovement()
         self:SetUsing(true)
         if not self.doorStandPos then
             local vec = self:GetWhereStandForDoor(door)
-            local duration = 0.3
+            local duration = 0.7
             self:TimedVariable("doorStandPos", vec, duration)
             self:TimedVariable("targetDoor", door, duration)
         end

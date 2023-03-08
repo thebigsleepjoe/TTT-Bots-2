@@ -19,6 +19,26 @@ function ladderMeta:GetTop2()
     local top = self:GetTop()
     local forward = self:GetNormal()
 
+    -- limit the z of the top to its highest top area
+    local areas = {
+        self:GetTopBehindArea(),
+        self:GetTopForwardArea(),
+        self:GetTopLeftArea(),
+        self:GetTopRightArea(),
+    }
+
+    local highest = top.z
+    for i, area in pairs(areas) do
+        if (area) then
+            local center = area:GetCenter()
+            if (center.z > highest) then
+                highest = center.z
+            end
+        end
+    end
+
+    top.z = highest
+
     return top + Vector(0, 0, 32) + forward * 12
 end
 
@@ -337,7 +357,7 @@ function TTTBots.PathManager.RequestPath(owner, startPos, finishPos, isAreas)
     end
 
     local startArea = (isAreas and startPos) or
-        TTTBots.Lib.GetNearestNavArea(startPos) --navmesh.GetNearestNavArea(startPos)
+        TTTBots.Lib.GetNearestNavArea(startPos)  --navmesh.GetNearestNavArea(startPos)
     local finishArea = (isAreas and finishPos) or
         TTTBots.Lib.GetNearestNavArea(finishPos) --navmesh.GetNearestNavArea(finishPos)
     if not startArea or not finishArea then return end
