@@ -310,22 +310,29 @@ function BotLocomotor:DetectDoorAhead()
     return false
 end
 
+--- Sets a variable to a value for a certain amount of time. Useful for temporary positioning, and +use timing.
+---@param name string Name of the variable to set
+---@param value any Value to set the variable to
+---@param time number Time in seconds
+function BotLocomotor:TimedVariable(name, value, time)
+    self[name] = value
+
+    timer.Simple(time, function()
+        self[name] = nil
+    end)
+
+    return value
+end
+
 --- Used to prevent spamming of doors.
 --- Calling this function returns a bool. True if can use again. If it returns true, it starts the timer.
 --- Otherwise it returns false, and does nothing
-function BotLocomotor:UseTimer()
-    local useTimer = (self.canUseAgain == nil and true) or self.canUseAgain
+function BotLocomotor:DoorTimer()
+    -- use TimedVariable instead
+    if self.cantUseAgain then return false end
 
-    if useTimer then
-        self.canUseAgain = false
-        timer.Simple(1.2, function()
-            self.canUseAgain = true
-        end)
-
-        return true
-    end
-
-    return false
+    self:TimedVariable("cantUseAgain", true, 1.2)
+    return true
 end
 
 -----------------------------------------------

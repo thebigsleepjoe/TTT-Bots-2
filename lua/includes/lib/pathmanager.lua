@@ -336,8 +336,10 @@ function TTTBots.PathManager.RequestPath(owner, startPos, finishPos, isAreas)
             "The bot you are generating a path for is dead. Your path generation should be made safer.")
     end
 
-    local startArea = (isAreas and startPos) or navmesh.GetNearestNavArea(startPos)
-    local finishArea = (isAreas and finishPos) or navmesh.GetNearestNavArea(finishPos)
+    local startArea = (isAreas and startPos) or
+        TTTBots.Lib.GetNearestNavArea(startPos) --navmesh.GetNearestNavArea(startPos)
+    local finishArea = (isAreas and finishPos) or
+        TTTBots.Lib.GetNearestNavArea(finishPos) --navmesh.GetNearestNavArea(finishPos)
     if not startArea or not finishArea then return end
     local pathID = startArea:GetID() .. "to" .. finishArea:GetID()
 
