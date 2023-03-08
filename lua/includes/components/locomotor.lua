@@ -489,6 +489,7 @@ function BotLocomotor:UpdateMovement()
     self:SetUsing(false)
     self:OverrideMoveNormal(nil)
     self:StopPriorityMovement()
+    self:SetLookPosOverride(nil)
     self.forceForward = false
     self.tryingMove = false
     if self.dontmove then return end
@@ -533,9 +534,16 @@ function BotLocomotor:UpdateMovement()
     local door = self:DetectDoorAhead()
     if door then
         self:SetUsing(true)
+        if not self.doorStandPos then
+            local vec = self:GetWhereStandForDoor(door)
+            local duration = 0.3
+            self:TimedVariable("doorStandPos", vec, duration)
+            self:TimedVariable("targetDoor", door, duration)
+        end
 
-        local vec = self:GetWhereStandForDoor(door)
-        if vec then self:SetPriorityGoal(vec) end
+        -- Above if sttement ensures doorStandPos is not nil
+        self:SetPriorityGoal(self.doorStandPos, 8)
+        self:SetLookPosOverride(door:WorldSpaceCenter())
     end
 end
 
