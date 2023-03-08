@@ -327,7 +327,7 @@ end
 --- Used to prevent spamming of doors.
 --- Calling this function returns a bool. True if can use again. If it returns true, it starts the timer.
 --- Otherwise it returns false, and does nothing
-function BotLocomotor:DoorTimer()
+function BotLocomotor:DoorOpenTimer()
     -- use TimedVariable instead
     if self.cantUseAgain then return false end
 
@@ -823,7 +823,7 @@ function BotLocomotor:StartCommand(cmd)
     -- Set up movement to always be up
     cmd:SetUpMove(400)
 
-    if self:GetUsing() and self:UseTimer() then
+    if self:GetUsing() and self:DoorOpenTimer() then
         if dvlpr then
             TTTBots.DebugServer.DrawText(self.bot:GetPos(), "Opening door", Color(255, 255, 255))
         end
