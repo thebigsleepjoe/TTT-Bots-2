@@ -46,31 +46,31 @@ function BotLocomotor:Initialize(bot)
 
     self.componentID = string.format("locomotor (%s)", lib.GenerateID()) -- Component ID, used for debugging
 
-    self.tick = 0 -- Tick counter
+    self.tick = 0                                                        -- Tick counter
     self.bot = bot
 
-    self.path = nil -- Current path
-    self.pathingRandomAngle = Angle() -- Random angle used for viewangles when pathing
-    self.pathLookSpeed = 0.05 -- Movement angle turn speed when following a path
+    self.path = nil                    -- Current path
+    self.pathingRandomAngle = Angle()  -- Random angle used for viewangles when pathing
+    self.pathLookSpeed = 0.05          -- Movement angle turn speed when following a path
 
-    self.goalPos = nil -- Current goal position, if any. If nil, then bot is not moving.
+    self.goalPos = nil                 -- Current goal position, if any. If nil, then bot is not moving.
 
-    self.tryingMove = false -- If true, then the bot is trying to move to the goal position.
-    self.posOneSecAgo = nil -- Position of the bot one second ago. Used for pathfinding.
+    self.tryingMove = false            -- If true, then the bot is trying to move to the goal position.
+    self.posOneSecAgo = nil            -- Position of the bot one second ago. Used for pathfinding.
 
-    self.lookPosOverride = nil -- Override look position, this is only used from outside of this component. Like aiming at a player.
-    self.lookLerpSpeed = 0.05 -- Current look speed (rate of lerp)
-    self.lookPosGoal = nil -- The current goal position to look at
-    self.lookPos = nil -- Current look position, gets lerped to Override, or to self.lookPosGoal.
+    self.lookPosOverride = nil         -- Override look position, this is only used from outside of this component. Like aiming at a player.
+    self.lookLerpSpeed = 0.05          -- Current look speed (rate of lerp)
+    self.lookPosGoal = nil             -- The current goal position to look at
+    self.lookPos = nil                 -- Current look position, gets lerped to Override, or to self.lookPosGoal.
 
-    self.movePriorityVec = nil -- Current movement priority vector, overrides movementVec if not nil
+    self.movePriorityVec = nil         -- Current movement priority vector, overrides movementVec if not nil
     self.movementVec = Vector(0, 0, 0) -- Current movement position, gets lerped to Override
-    self.moveLerpSpeed = 0 -- Current movement speed (rate of lerp)
-    self.moveNormal = Vector(0, 0, 0) -- Current movement normal, functionally this is read-only.
-    self.moveNormalOverride = nil -- Override movement normal, mostly used within this component.
+    self.moveLerpSpeed = 0             -- Current movement speed (rate of lerp)
+    self.moveNormal = Vector(0, 0, 0)  -- Current movement normal, functionally this is read-only.
+    self.moveNormalOverride = nil      -- Override movement normal, mostly used within this component.
 
-    self.strafe = nil -- "left" or "right" or nil
-    self.forceForward = false -- If true, then the bot will always move forward
+    self.strafe = nil                  -- "left" or "right" or nil
+    self.forceForward = false          -- If true, then the bot will always move forward
 
     self.crouch = false
     self.jump = false
@@ -324,15 +324,28 @@ function BotLocomotor:TimedVariable(name, value, time)
     return value
 end
 
+--- If the timed variable is not nil, return true. Otherwise, start the timer and return false.
+--- To ONLY get the variable, just do self[name]. This function is only for setting the variable and returning its current setting.
+---@param name string
+---@param value any
+---@param time number
+---@return boolean Output True if the variable is already set, false if it is not.
+function BotLocomotor:GetSetTimedVariable(name, value, time)
+    if self[name] then return true end
+
+    self:TimedVariable(name, value, time)
+    return false
+end
+
 --- Used to prevent spamming of doors.
 --- Calling this function returns a bool. True if can use again. If it returns true, it starts the timer.
 --- Otherwise it returns false, and does nothing
 function BotLocomotor:DoorOpenTimer()
-    -- use TimedVariable instead
-    if self.cantUseAgain then return false end
+    -- if self.cantUseAgain then return false end
 
-    self:TimedVariable("cantUseAgain", true, 1.2)
-    return true
+    -- self:TimedVariable("cantUseAgain", true, 1.2)
+    -- return true
+    return not self:GetSetTimedVariable("cantUseAgain", true, 1.2)
 end
 
 -----------------------------------------------
@@ -343,7 +356,7 @@ end
 function BotLocomotor:Think()
     self.tick = self.tick + 1
     local status = self:UpdatePath() -- Update the path that the bot is following, so that we can move along it.
-    self:UpdateMovement() -- Update the invisible angle that the bot moves at, and make it move.
+    self:UpdateMovement()            -- Update the invisible angle that the bot moves at, and make it move.
 end
 
 --- Gets nearby players then determines the best direction to strafe to avoid them.
