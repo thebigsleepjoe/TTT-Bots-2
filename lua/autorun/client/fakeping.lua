@@ -116,7 +116,7 @@ end
 
 HijackScoreboard()
 
--- we hijack the scoreboard and do this manually because it likes to update
+-- we hijack the scoreboard AND do this manually because it likes to update
 -- the ping of the bots to 0 when it is closed
 timer.Create("TTTBots.Client.FakePing2", 0.01, 0, function()
     local pnl = GAMEMODE:GetScoreboardPanel()
