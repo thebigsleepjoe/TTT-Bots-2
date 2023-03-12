@@ -1,4 +1,10 @@
---- TTT2 Implementation of the FakePing module
+local function CheckCompatibleGamemode() -- ripped from CommonLib
+    local compatible = { "terrortown" }
+    return table.HasValue(compatible, engine.ActiveGamemode())
+end
+
+if not CheckCompatibleGamemode() then return end
+
 local scoreboard = TTTScoreboard
 
 local function getChildByName(panel, name)
