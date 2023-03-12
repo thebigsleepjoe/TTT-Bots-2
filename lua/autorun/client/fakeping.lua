@@ -96,7 +96,6 @@ local function _sbfunc()
 end
 
 local function HijackScoreboard(tries)
-    print("Attempting scoreboard hijack")
     if not scoreboard and tries < 30 then
         timer.Simple(0.1, function()
             HijackScoreboard((tries or 0) + 1)
@@ -105,7 +104,6 @@ local function HijackScoreboard(tries)
     end
 
     if not timer.Exists("TTTScoreboardUpdater") then
-        print "no timer"
         return
     end
 
