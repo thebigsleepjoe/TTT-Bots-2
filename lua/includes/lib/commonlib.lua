@@ -5,6 +5,7 @@ include("includes/data/usernames.lua")
 -- Import components for bot creation
 include("includes/components/locomotor.lua")
 include("includes/components/obstacletracker.lua")
+include("includes/components/fakeping.lua")
 
 local Lib = TTTBots.Lib
 local format = string.format
@@ -29,7 +30,7 @@ function Lib.PrintInitMessage()
     print(format("Version: %s", TTTBots.Version))
     print(format("Number of players: %s/%s", #player.GetAll(), game.MaxPlayers()))
     print(format("Gamemode: %s", engine.ActiveGamemode()) ..
-    " | (Compatible = " .. tostring(Lib.CheckCompatibleGamemode()) .. ")")
+        " | (Compatible = " .. tostring(Lib.CheckCompatibleGamemode()) .. ")")
     print(
         "NOTE: If you are reading this as a dedicated server owner, you cannot use chat commands remotely, your character must be in the server for that. You may still use concommands.")
     print("~~~~~~~~~~~~~~~~~~~~~")
@@ -63,7 +64,8 @@ function Lib.CreateBot(name)
 
     bot.components = {
         locomotor = TTTBots.Components.Locomotor:New(bot),
-        obstacletracker = TTTBots.Components.ObstacleTracker:New(bot)
+        obstacletracker = TTTBots.Components.ObstacleTracker:New(bot),
+        fakeping = TTTBots.Components.FakePing:New(bot),
     }
 
     local dvlpr = Lib.GetDebugFor("all")

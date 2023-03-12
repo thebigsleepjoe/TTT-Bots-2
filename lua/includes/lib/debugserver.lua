@@ -35,11 +35,17 @@ function DebugServer.ChangeDrawData(identifier, newdata)
     DebugServer.data[identifier] = newdata
 end
 
-function DebugServer.SendDrawData()
-    -- net.WriteTable()
-    local uncompressed_data = util.TableToJSON(DebugServer.data)
+function DebugServer.GetCompressedTable(tbl)
+    local uncompressed_data = util.TableToJSON(tbl)
     local compressed_data = util.Compress(uncompressed_data)
     local bytes_amt = string.len(compressed_data)
+
+    return compressed_data, bytes_amt
+end
+
+function DebugServer.SendDrawData()
+    -- net.WriteTable()
+    local compressed_data, bytes_amt = DebugServer.GetCompressedTable(DebugServer.data)
 
 
     net.Start("TTTBots_DrawData")
@@ -49,6 +55,36 @@ function DebugServer.SendDrawData()
 
     DebugServer.data = {}
 end
+
+-- Recieve net request "TTTBots_RequestData"
+net.Receive("TTTBots_RequestData", function(len, ply)
+    if not ply:IsSuperAdmin() then return end
+    local botData = {} -- todo
+
+    for i, bot in pairs(player.GetBots()) do
+        if not (bot and bot.components and bot.components.locomotor) then continue end
+        local locomotor = bot.components.locomotor
+        -- todo more components
+
+        botData[bot:Nick()] = {
+            locomotor = {
+                strafe_dir = locomotor:GetStrafe(),
+                hasPath = locomotor:HasPath(),
+                pathLength = locomotor:GetPathLength(),
+                goalPos = locomotor:GetGoalPos(),
+                closestI = locomotor.closestI,
+                targetDoor = locomotor.targetDoor,
+            }
+        }
+    end
+
+    local compressed, byte_amt = DebugServer.GetCompressedTable(botData)
+
+    net.Start("TTTBots_ClientData")
+    net.WriteUInt(byte_amt, 32)
+    net.WriteData(compressed, byte_amt)
+    net.Send(ply)
+end)
 
 -- Settings:
 -- {"look", "target", "path", "all"}

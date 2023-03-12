@@ -661,12 +661,13 @@ function BotLocomotor:DetermineNextPos()
         print("ERR: NO NEAREST POINT?")
         return nil
     end
+    self.closestI = closestI
 
     local nextI = closestI < #preparedPath and closestI + 1 or closestI
 
     -- for safety: check distance to next point, if we're within 32 units of closestI then we should increment nextI
     local distToNext = bot:GetPos():Distance(preparedPath[nextI].pos)
-    print("distToNext", distToNext)
+    -- print("distToNext", distToNext)
     if distToNext < 96 then
         nextI = nextI < #preparedPath and nextI + 1 or nextI
     end
