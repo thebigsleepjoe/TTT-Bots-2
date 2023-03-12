@@ -15,35 +15,7 @@ local function printChildrenNames(panel)
     end
 end
 
-
-local function _sbfunc()
-    local pnl = GAMEMODE:GetScoreboardPanel()
-
-    if not IsValid(pnl) then return end
-    pnl:UpdateScoreboard()
-
-    for _, group in pairs(pnl.ply_groups) do
-        if IsValid(group) then
-            for _, row in pairs(group.rows) do
-                local pingLabel = row.cols[1]
-                local player = row.Player
-                if not pingLabel or not player or not IsValid(player) then continue end
-                if not player:IsBot() then continue end
-
-                pingLabel:SetText(39)
-                row:LayoutColumns()
-            end
-        end
-    end
-
-    -- Fake pings --
-    -- local TTTPlayerFrame = getChildByName(pnl, "TTTPlayerFrame")
-    -- local Panel = getChildByName(TTTPlayerFrame, "Panel")
-    -- -- printChildrenNames(TTTPlayerFrame)
-    -- printChildrenNames(Panel)
-end
-
-local function GetAvgHumanPing()
+local function GetAvgHumanPing(min)
     local total = 0
     local count = 0
 
@@ -55,7 +27,66 @@ local function GetAvgHumanPing()
     end
     if count == 0 then return 0 end
 
-    return total / count
+    local amt = math.Round(total / count)
+    if min then
+        return math.max(min, amt)
+    end
+
+    return amt
+end
+
+local playerPings = {
+    -- [nick] = { ping = 0, lastUpdate = 0 } (update very 2 - 3 seconds)
+}
+
+local function GetPingForPlayer(nick)
+    local baseline = GetAvgHumanPing(50)
+    local ping = playerPings[nick]
+    if not ping then
+        ping = { ping = baseline, lastUpdate = CurTime() }
+        playerPings[nick] = ping
+    end
+
+    if CurTime() - ping.lastUpdate > 2 + (math.random(1, 10) / 10) then
+        local fakeSpike = math.random(0, 100) < 20
+        local randomness = math.random(-17, 17) * (fakeSpike and 2 or 1)
+        if fakeSpike then randomness = math.abs(randomness) end
+
+        ping.ping = math.max(5, baseline + randomness)
+        ping.lastUpdate = CurTime()
+    end
+
+    return ping.ping
+end
+
+local function UpdatePings()
+    local pnl = GAMEMODE:GetScoreboardPanel()
+    if not IsValid(pnl) then return end
+
+    for _, group in pairs(pnl.ply_groups) do
+        if IsValid(group) then
+            for _, row in pairs(group.rows) do
+                local pingLabel = row.cols[1]
+                local player = row.Player
+                if not pingLabel or not player or not IsValid(player) then continue end
+                if not player:IsBot() then continue end
+
+                local ping = GetPingForPlayer(player:Nick())
+
+                pingLabel:SetText(ping)
+                row:LayoutColumns()
+            end
+        end
+    end
+end
+
+local function _sbfunc()
+    local pnl = GAMEMODE:GetScoreboardPanel()
+
+    if not IsValid(pnl) then return end
+    pnl:UpdateScoreboard()
+
+    UpdatePings()
 end
 
 local function HijackScoreboard(tries)
@@ -78,3 +109,11 @@ local function HijackScoreboard(tries)
 end
 
 HijackScoreboard()
+
+-- we hijack the scoreboard and do this manually because it likes to update
+-- the ping of the bots to 0 when it is closed
+timer.Create("TTTBots.Client.FakePing2", 0.01, 0, function()
+    local pnl = GAMEMODE:GetScoreboardPanel()
+    if not (IsValid(pnl) and pnl:IsVisible()) then return end
+    UpdatePings()
+end)
