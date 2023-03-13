@@ -15,12 +15,6 @@ local function getChildByName(panel, name)
     end
 end
 
-local function printChildrenNames(panel)
-    for i, v in pairs(panel:GetChildren()) do
-        print(v:GetName())
-    end
-end
-
 local function GetAvgHumanPing(min)
     local total = 0
     local count = 0
