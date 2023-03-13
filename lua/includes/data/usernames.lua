@@ -1001,7 +1001,7 @@ local function checkChars(str)
     -- check if less than 15 characters, return true if so
     return string.len(str) < 15
 end
-
+-- regex to select all text:
 function Lib.GenerateName()
     local GetCVB = Lib.GetConVarBool
 
@@ -1018,7 +1018,7 @@ function Lib.GenerateName()
     local use_animal = math.random(1, 100) > 50 -- else use human name
 
     local use_community_name = GetCVB("names_allowcommunity") and
-    (GetCVB("names_communityonly") or math.random(1, 100) > 30)
+        (GetCVB("names_communityonly") or math.random(1, 100) > 30)
     local use_generic_override = GetCVB("names_allowgeneric") and math.random(1, 100) > 30
 
     local noSpaces = not GetCVB("names_canusespaces")
