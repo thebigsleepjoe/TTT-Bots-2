@@ -6,7 +6,7 @@ local FCVAR = FCVAR_ARCHIVE + FCVAR_NOTIFY + FCVAR_REPLICATED + FCVAR_LUA_SERVER
 -- Naming cvars
 CreateConVar("ttt_bot_names_allowcommunity", "1", FCVAR,
     "Enables community-suggested names, replacing many auto-generated names. WARNING: Potentially offensive, not family-friendly.")
-CreateConVar("ttt_bots_names_communityonly", "1", FCVAR,
+CreateConVar("ttt_bot_names_communityonly", "1", FCVAR,
     "Disables auto-generated names, only using community-suggested names. NOTE: ttt_bot_names_allowcommunity must be enabled.")
 CreateConVar("ttt_bot_names_canleetify", "1", FCVAR,
     "Enables leetifying of ALL names. (e.g. 'John' -> 'j0hn'). See ttt_bot_names_leetify_chance.")

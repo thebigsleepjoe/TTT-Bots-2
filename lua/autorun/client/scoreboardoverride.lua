@@ -90,6 +90,7 @@ local function _sbfunc()
 end
 
 local function HijackScoreboard(tries)
+    tries = tries or 0
     if not scoreboard and tries < 30 then
         timer.Simple(0.1, function()
             HijackScoreboard((tries or 0) + 1)
@@ -115,3 +116,47 @@ timer.Create("TTTBots.Client.FakePing2", 0.01, 0, function()
     if not (IsValid(pnl) and pnl:IsVisible()) then return end
     UpdatePings()
 end)
+
+local function syncBotAvatars()
+    local pnl = GAMEMODE:GetScoreboardPanel()
+    if not IsValid(pnl) then return end
+
+    net.Start("SyncBotAvatarNumbers")
+    net.SendToServer()
+end
+
+net.Receive("SyncBotAvatarNumbers", function(len, ply)
+    local avatars_nicks = net.ReadTable()
+    local pnl = GAMEMODE:GetScoreboardPanel()
+    if not IsValid(pnl) then return end
+
+    for _, group in pairs(pnl.ply_groups) do
+        if IsValid(group) then
+            for _, row in pairs(group.rows) do
+                local player = row.Player
+                if not player or not IsValid(player) then continue end
+                if not player:IsBot() then continue end
+
+                --local avatar = getChildByName(row, "Avatar")
+                local avatar = row.avatar
+                if not avatar then continue end
+                local avatarNumber = avatars_nicks[player:Nick()]
+                if not avatarNumber then continue end
+                if avatar.IsFakeAvatar and not avatar.IsFakeAvatar() then continue end
+
+                avatar = vgui.Create("DImage", row)
+                avatar:SetSize(24, 24)
+                avatar:SetMouseInputEnabled(false)
+
+                avatar.SetPlayer = function() return end -- dumb empty function to prevent TTT errors
+                avatar.IsFakeAvatar = function() return true end
+
+
+                avatar:SetImage(string.format("materials/avatars/BotAvatar (%d).jpg", avatarNumber))
+                --avatar:SetAvatar("BotAvatar (" .. avatarNumber .. ").jpg")
+            end
+        end
+    end
+end)
+
+timer.Create("TTTBots.Client.SyncBotAvatars", 5, 0, syncBotAvatars)

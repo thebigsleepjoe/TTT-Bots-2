@@ -7,6 +7,7 @@ TTTBots = {
 include("includes/lib/commonlib.lua")
 include("includes/lib/pathmanager.lua")
 include("includes/lib/debugserver.lua")
+include("includes/lib/miscnetwork.lua")
 
 -- Initialize command libraries
 include("includes/commands/chatcommands.lua")
@@ -44,11 +45,6 @@ print("good to go")
 
 -- Bot behavior
 timer.Create("TTTBots_Tick", 0.1, 0, function()
-    if Lib.GetDebugFor("all") then
-        RunConsoleCommand("ttt_idle_limit", "999999")
-        RunConsoleCommand("developer", "1")
-    end
-
     for i, bot in pairs(player.GetBots()) do
         -- TTTBots.DebugServer.RenderDebugFor(bot, { "all" })
 

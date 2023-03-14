@@ -22,6 +22,7 @@
         "net",
         "draw",
         "ScrW",
-        "ScrH"
+        "ScrH",
+        "hook"
     ]
 }
