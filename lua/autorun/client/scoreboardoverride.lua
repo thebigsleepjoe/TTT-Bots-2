@@ -5,7 +5,10 @@ end
 
 if not CheckCompatibleGamemode() then return end
 
-local scoreboard = TTTScoreboard
+local primeNumbers = {
+    2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109,
+    113, 127
+}
 
 local function getChildByName(panel, name)
     for i, v in pairs(panel:GetChildren()) do
@@ -39,8 +42,9 @@ local playerPings = {
     -- [nick] = { ping = 0, lastUpdate = 0 } (update very 2 - 3 seconds)
 }
 
-local function GetPingForPlayer(nick)
-    local baseline = GetAvgHumanPing(50)
+local function GetPingForPlayer(nick, botnumber)
+    local isPrime = table.HasValue(primeNumbers, botnumber)
+    local baseline = GetAvgHumanPing(50) * (isPrime and 1.5 or 1)
     local ping = playerPings[nick]
     if not ping then
         ping = { ping = baseline, lastUpdate = CurTime() }
@@ -62,6 +66,7 @@ end
 local function UpdatePings()
     local pnl = GAMEMODE:GetScoreboardPanel()
     if not IsValid(pnl) then return end
+    local botnumber = 0
 
     for _, group in pairs(pnl.ply_groups) do
         if IsValid(group) then
@@ -70,8 +75,9 @@ local function UpdatePings()
                 local player = row.Player
                 if not pingLabel or not player or not IsValid(player) then continue end
                 if not player:IsBot() then continue end
+                botnumber = botnumber + 1
 
-                local ping = GetPingForPlayer(player:Nick())
+                local ping = GetPingForPlayer(player:Nick(), botnumber)
 
                 pingLabel:SetText(ping)
                 row:LayoutColumns()
@@ -91,7 +97,7 @@ end
 
 local function HijackScoreboard(tries)
     tries = tries or 0
-    if not scoreboard and tries < 30 then
+    if not GAMEMODE:GetScoreboardPanel() and tries < 30 then
         timer.Simple(0.1, function()
             HijackScoreboard((tries or 0) + 1)
         end)
@@ -142,14 +148,16 @@ net.Receive("SyncBotAvatarNumbers", function(len, ply)
                 if not avatar then continue end
                 local avatarNumber = avatars_nicks[player:Nick()]
                 if not avatarNumber then continue end
-                if avatar.IsFakeAvatar and not avatar.IsFakeAvatar() then continue end
+                if avatar.IsFakeAvatar or row.hasFakeAvatar then continue end
+                print("Created avatar for bot " .. player:Nick() .. " (" .. avatarNumber .. ")")
 
                 avatar = vgui.Create("DImage", row)
                 avatar:SetSize(24, 24)
                 avatar:SetMouseInputEnabled(false)
 
                 avatar.SetPlayer = function() return end -- dumb empty function to prevent TTT errors
-                avatar.IsFakeAvatar = function() return true end
+                avatar.IsFakeAvatar = true
+                row.hasFakeAvatar = true
 
 
                 avatar:SetImage(string.format("materials/avatars/BotAvatar (%d).jpg", avatarNumber))
