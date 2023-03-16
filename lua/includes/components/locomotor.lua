@@ -638,6 +638,9 @@ local function getClosestI(preparedPath, botPos, shouldTestLOS)
     return closestI
 end
 
+--- Determines the next point along the path to follow. Returns the nextPos, nextI.
+---@return Vector|nil nextPos
+---@return number|nil nextI
 function BotLocomotor:DetermineNextPos()
     local preparedPath = self:HasPath() and self:GetPath().preparedPath
     local purePath = self:GetPath()
