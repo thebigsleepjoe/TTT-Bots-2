@@ -220,3 +220,26 @@ end
 function Lib.QuadraticBezier(t, p0, p1, p2)
     return (1 - t) ^ 2 * p0 + 2 * (1 - t) * t * p1 + t ^ 2 * p2
 end
+
+function Lib.FilterTable(tbl, filterFunc)
+    local newTbl = {}
+    for i, v in pairs(tbl) do
+        if filterFunc(v) then
+            table.insert(newTbl, v)
+        end
+    end
+    return newTbl
+end
+
+function Lib.NthFilteredItem(N, tbl, filterFunc)
+    local newTbl = {}
+    for i, v in pairs(tbl) do
+        if filterFunc(v) then
+            table.insert(newTbl, v)
+        end
+    end
+    if N > #newTbl then
+        return nil
+    end
+    return newTbl[N]
+end
