@@ -210,3 +210,13 @@ function Lib.OffsetForGround(vec, doTrace)
 
     return vec + offset
 end
+
+--- Lib.QuadraticBezier(t, p0, p1, p2)
+--- Returns a point on a quadratic bezier curve.
+---@param t number 0-1
+---@param p0 Vector This is the start point
+---@param p1 Vector This is the control point
+---@param p2 Vector This is the end point
+function Lib.QuadraticBezier(t, p0, p1, p2)
+    return (1 - t) ^ 2 * p0 + 2 * (1 - t) * t * p1 + t ^ 2 * p2
+end

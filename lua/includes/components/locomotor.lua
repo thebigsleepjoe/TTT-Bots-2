@@ -619,66 +619,62 @@ function BotLocomotor:UpdatePath()
     end
 end
 
-local function getClosestI(preparedPath, botPos, shouldTestLOS)
+--- Do a traceline from startPos to endPos, with no specific mask (hit anything). Filter out ourselves.
+--- Returns if we can see the endPos without interruption
+function BotLocomotor:VisionTestNoMask(startPos, endPos)
+    local trace = util.TraceLine({
+        start = startPos,
+        endpos = endPos,
+        filter = self.bot,
+    })
+    return not trace.Hit -- true if we can see the endPos
+end
+
+local function getClosestInPreparedPath(preparedPath, botPos, shouldTestLOS)
     local closestDist = math.huge
     local closestI = nil
     for i = 1, #preparedPath do
         local dist = botPos:Distance(preparedPath[i].pos)
-        local visionTest = util.TraceLine({
+        local visionTest2 = util.TraceLine({
             start = botPos + Vector(0, 0, 16),
             endpos = preparedPath[i].pos + Vector(0, 0, 16),
             mask = MASK_SOLID_BRUSHONLY,
         })
         if dist < closestDist then
-            if shouldTestLOS and visionTest.Hit then continue end
+            if shouldTestLOS and visionTest2.Hit then continue end
             closestDist = dist
             closestI = i
         end
     end
-    return closestI
+
+    if not closestI and shouldTestLOS then return getClosestInPreparedPath(preparedPath, botPos, false) end
+    return preparedPath[closestI].pos, closestI
 end
 
---- Determines the next point along the path to follow. Returns the nextPos, nextI.
----@return Vector|nil nextPos
----@return number|nil nextI
+
+--- Determines the next point along the path to follow.
+--- This will create a sub-path to the true next position in an effort to maneuver around obstacles and players
+--- It will do line traces every 100 units to see if there is a clear path to the next point.
+--- If there is not a clear path, then it will deviate the next node to test by 20 degrees and try again.
+--- The axis to rotate around will be the current node. If neither node is clear, then increment by another 20 degrees.
+---@return Vector|nil nextPos The next position
 function BotLocomotor:DetermineNextPos()
-    local preparedPath = self:HasPath() and self:GetPath().preparedPath
-    local purePath = self:GetPath()
-    if not preparedPath then return nil end
+    if not self:HasPath() then return nil end
+    local path = self:GetPath().path
+    local preparedPath = self:GetPath().preparedPath
 
-    --[[
-        A prepared path is a table of tables. Each element is formatted, so:
-        {
-            pos = Vector(0, 0, 0)
-            area = navarea
-            type = "jump" or "ladder" or "walk" or "fall" or "swim" or "crouch"
-            ladder_dir = "up" or "down" (if ladder, else nil)
-        }
-    ]]
-    local nextPos, nextPosI = nil, nil
     local bot = self.bot
+    local botPos = bot:GetPos()
+    local closestPos, closestI = getClosestInPreparedPath(preparedPath, botPos, true)
+    local closestPP = preparedPath[closestI]
+    local nextI = closestI + 1
+    local nextPP = preparedPath[nextI]
+    local nextPos = (#preparedPath < nextI and nil or preparedPath[nextI]).pos
+    if not nextPos then return closestPos end
 
-    local closestI = getClosestI(preparedPath, bot:GetPos(), true)
-    if not closestI then closestI = getClosestI(preparedPath, bot:GetPos(), false) end
-    if not closestI then
-        print("ERR: NO NEAREST POINT?")
-        return nil
-    end
-    self.closestI = closestI
+    if nextPP.type == "ladder" then return nextPos end
 
-    local nextI = closestI < #preparedPath and closestI + 1 or closestI
-
-    -- for safety: check distance to next point, if we're within 32 units of closestI then we should increment nextI
-    local distToNext = bot:GetPos():Distance(preparedPath[nextI].pos)
-    -- print("distToNext", distToNext)
-    if distToNext < 96 then
-        nextI = nextI < #preparedPath and nextI + 1 or nextI
-    end
-
-    local nextPos = preparedPath[nextI].pos
-    local nextPosI = nextI
-
-    return nextPos, nextPosI
+    return closestPos
 end
 
 -- Determines how the bot navigates through its path once it has one.
@@ -735,38 +731,7 @@ function BotLocomotor:UpdateViewAngles(cmd)
         return
     end
 
-    self.lookPosGoal = goal
-
-    if self.nextPos then
-        if preparedPath then
-            local nextPos = self.nextPos
-            if #preparedPath > self.nextPosI + 2 then
-                local off = lib.OffsetForGround
-
-                local secondPos = preparedPath[self.nextPosI + 1].pos
-                local thirdPos = preparedPath[self.nextPosI + 2].pos
-                self.lookPosGoal = lib.WeightedVectorMean({
-                    { vector = off(nextPos), weight = 1.5 },
-                    --     { vector = off(secondPos), weight = 0.9 },
-                    --     { vector = off(thirdPos),  weight = 0.6 },
-                    --     { vector = off(goal),      weight = 0.5 }
-                })
-            else -- If there are less than 3 points left in the path
-                --self.lookPosGoal = goal
-                -- Let's look in the direction of the goal, as if it were outwards another few hundred units.
-                local dir = (goal - self.bot:GetPos()):GetNormalized()
-                self.lookPosGoal = self.bot:GetPos() + dir * 500
-            end
-        end
-        -- self.lookPosGoal = lib.WeightedVectorMean({
-        --     { vector = self.nextPos, weight = 0.5 },
-        --     { vector = goal,         weight = 1.5 }
-        -- })
-
-        if self:IsStuck() then
-            self.lookPosGoal = self.nextPos
-        end
-    end
+    self.lookPosGoal = self.nextPos or goal
 
     if self:IsOnLadder() then
         self.lookPosGoal = self.nextPos

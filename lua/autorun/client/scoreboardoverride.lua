@@ -97,12 +97,14 @@ end
 
 local function HijackScoreboard(tries)
     tries = tries or 0
-    if not GAMEMODE:GetScoreboardPanel() and tries < 30 then
+    if not GAMEMODE or (not GAMEMODE:GetScoreboardPanel() and tries < 30) then
         timer.Simple(0.1, function()
             HijackScoreboard((tries or 0) + 1)
         end)
         return
     end
+
+    print("Hijacking scoreboard...")
 
     if not timer.Exists("TTTScoreboardUpdater") then
         return
@@ -113,7 +115,9 @@ local function HijackScoreboard(tries)
     end)
 end
 
-HijackScoreboard()
+--HijackScoreboard()
+-- Put the above function into GM:PostGamemodeLoaded()
+hook.Add("PostGamemodeLoaded", "TTTBots.Client.HijackScoreboard", HijackScoreboard)
 
 -- we hijack the scoreboard AND do this manually because it likes to update
 -- the ping of the bots to 0 when it is closed
