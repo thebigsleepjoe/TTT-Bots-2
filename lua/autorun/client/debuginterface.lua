@@ -30,15 +30,15 @@ net.Receive("TTTBots_DrawData", function()
 
     for identifier, data in pairs(drawdata) do
         if data.type == "line" then
-            debugoverlay.Line(data.start, data.ending, 0.15, data.color, true)
+            debugoverlay.Line(data.start, data.ending, data.lifetime or 0.15, data.color, true)
         elseif data.type == "box" then
-            debugoverlay.Box(data.origin, data.mins, data.maxs, 0.15, data.color, true)
+            debugoverlay.Box(data.origin, data.mins, data.maxs, data.lifetime or 0.15, data.color, true)
         elseif data.type == "text" then
-            debugoverlay.Text(data.pos, data.text, 0.15, false)
+            debugoverlay.Text(data.pos, data.text, data.lifetime or 0.15, true)
         elseif data.type == "sphere" then
-            debugoverlay.Sphere(data.pos, data.radius, 0.15, data.color, true)
+            debugoverlay.Sphere(data.pos, data.radius, data.lifetime or 0.15, data.color, true)
         elseif data.type == "cross" then
-            debugoverlay.Cross(data.pos, data.size, 0.15, data.color, true)
+            debugoverlay.Cross(data.pos, data.size, data.lifetime or 0.15, data.color, true)
         end
     end
 end)

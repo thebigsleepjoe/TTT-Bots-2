@@ -159,23 +159,25 @@ function TTTBots.DebugServer.DrawCurrentPathFor(bot)
     end
 end
 
-function TTTBots.DebugServer.DrawLineBetween(start, finish, color)
+function TTTBots.DebugServer.DrawLineBetween(start, finish, color, lifetime, forceID)
     if not (start and finish and color) then return end
 
     local start_rounded = Vector(math.Round(start.x), math.Round(start.y), math.Round(start.z))
     local finish_rounded = Vector(math.Round(finish.x), math.Round(finish.y), math.Round(finish.z))
 
-    DebugServer.ChangeDrawData("line_" .. tostring(start) .. tostring(finish),
+    DebugServer.ChangeDrawData(forceID or ("line_" .. tostring(start) .. tostring(finish)),
         {
             type = "line",
             start = start_rounded,
             ending = finish_rounded,
+            forceID = forceID,
+            lifetime = lifetime,
             color = color,
             width = 5
         })
 end
 
-function TTTBots.DebugServer.DrawSphere(pos, radius, color)
+function TTTBots.DebugServer.DrawSphere(pos, radius, color, lifetime, forceID)
     if not (pos and radius and color) then return end
 
     local pos_rounded = Vector(math.Round(pos.x), math.Round(pos.y), math.Round(pos.z))
@@ -186,53 +188,61 @@ function TTTBots.DebugServer.DrawSphere(pos, radius, color)
             pos = pos_rounded,
             radius = radius,
             color = color,
+            forceID = forceID,
+            lifetime = lifetime,
             width = 5
         })
 end
 
 --- note: cannot pass color, it will always be white with black outline
-function TTTBots.DebugServer.DrawText(pos, text)
+function TTTBots.DebugServer.DrawText(pos, text, lifetime, forceID)
     if not (pos and text) then return end
 
     local pos_rounded = Vector(math.Round(pos.x), math.Round(pos.y), math.Round(pos.z))
 
-    DebugServer.ChangeDrawData("text_" .. tostring(pos) .. tostring(text),
+    DebugServer.ChangeDrawData(forceID or ("text_" .. tostring(pos) .. tostring(text)),
         {
             type = "text",
             pos = pos_rounded,
+            forceID = forceID,
+            lifetime = lifetime,
             text = text
         })
 end
 
-function TTTBots.DebugServer.DrawCross(pos, size, color)
+function TTTBots.DebugServer.DrawCross(pos, size, color, lifetime, forceID)
     if not (pos and size and color) then return end
 
     local pos_rounded = Vector(math.Round(pos.x), math.Round(pos.y), math.Round(pos.z))
 
-    DebugServer.ChangeDrawData("cross_" .. tostring(pos) .. tostring(size),
+    DebugServer.ChangeDrawData(forceID or ("cross_" .. tostring(pos) .. tostring(size)),
         {
             type = "cross",
             pos = pos_rounded,
             size = size,
-            color = color
+            color = color,
+            forceID = forceID,
+            lifetime = lifetime,
         })
 end
 
-function TTTBots.DebugServer.DrawBox(origin, mins, maxs, color)
+function TTTBots.DebugServer.DrawBox(origin, mins, maxs, color, lifetime, forceID)
     if not (origin and mins and maxs and color) then return end
 
     local origin_rounded = Vector(math.Round(origin.x), math.Round(origin.y), math.Round(origin.z))
     local mins_rounded = Vector(math.Round(mins.x), math.Round(mins.y), math.Round(mins.z))
     local maxs_rounded = Vector(math.Round(maxs.x), math.Round(maxs.y), math.Round(maxs.z))
 
-    DebugServer.ChangeDrawData("box_" .. tostring(origin_rounded),
+    DebugServer.ChangeDrawData(forceID or ("box_" .. tostring(origin_rounded)),
         {
             type = "box",
             origin = origin_rounded,
             maxs = maxs_rounded,
             mins = mins_rounded,
             color = color,
-            width = 5
+            width = 5,
+            forceID = forceID,
+            lifetime = lifetime,
         })
 end
 

@@ -881,7 +881,7 @@ function BotLocomotor:StartCommand(cmd)
         -- if moveNormalOverride then
         --     ang = moveNormalOverride:Angle()
         -- end
-        TTTBots.DebugServer.DrawCross(self.movementVec, 5, Color(255, 255, 255))
+        TTTBots.DebugServer.DrawCross(self.movementVec, 5, Color(255, 255, 255), nil, self.bot:Nick() .. "movementVec")
         cmd:SetViewAngles(ang) -- This is actually the movement angles, not the view angles. It's confusingly named.
     end
 
