@@ -372,6 +372,7 @@ function BotLocomotor:AvoidPlayers()
 end
 
 --- Fetch obstacle props from our obstacletracker component, and modify the moveNormal
+---@deprecated
 function BotLocomotor:AvoidObstacles()
     if self.dontAvoid then return end
     local pos = self.bot:GetPos()
@@ -508,7 +509,7 @@ function BotLocomotor:UpdateMovement()
         self:Unstuck()
     end
 
-    self:AvoidObstacles()
+    -- self:AvoidObstacles()
     self:AvoidPlayers()
 
     -----------------------
@@ -612,27 +613,6 @@ function BotLocomotor:VisionTestNoMask(startPos, endPos)
     return not trace.Hit -- true if we can see the endPos
 end
 
-local function getClosestInPreparedPath(preparedPath, botPos, shouldTestLOS)
-    local closestDist = math.huge
-    local closestI = nil
-    for i = 1, #preparedPath do
-        local dist = botPos:Distance(preparedPath[i].pos)
-        local visionTest2 = util.TraceLine({
-            start = botPos + Vector(0, 0, 16),
-            endpos = preparedPath[i].pos + Vector(0, 0, 16),
-            mask = MASK_SOLID_BRUSHONLY,
-        })
-        if dist < closestDist then
-            if shouldTestLOS and visionTest2.Hit then continue end
-            closestDist = dist
-            closestI = i
-        end
-    end
-
-    if not closestI and shouldTestLOS then return getClosestInPreparedPath(preparedPath, botPos, false) end
-    return preparedPath[closestI].pos, closestI
-end
-
 function BotLocomotor:DivideLineIntoSegments(startPos, endPos, units)
     local dist = startPos:Distance(endPos)
     local numSegments = math.ceil(dist / units)
@@ -675,7 +655,12 @@ function BotLocomotor:SnapPosToNearestNav(pos)
     return pos
 end
 
-function BotLocomotor:FindNearestWalkableAroundEnt(point, entity, origin)
+--- Find the nearest walkable position around an entity
+---@param point Vector The point to start from
+---@param entity Entity The entity to find a walkable position around
+---@param origin Vector The origin to measure distance from
+---@return Vector WalkablePos the nearest walkable position
+function BotLocomotor:FindNearestWalkableAroundEnt(point, entity, origin, lastWasAdjusted)
     if not origin then origin = self.bot:GetPos() end
     if not IsValid(entity) then return point end
     local attempts = {}
@@ -706,10 +691,11 @@ function BotLocomotor:FindNearestWalkableAroundEnt(point, entity, origin)
 
     table.SortByMember(attempts, "dist", true)
     local filter = lib.NthFilteredItem
-    local closestSuccess = filter(2, attempts, function(a)
+    local N = lastWasAdjusted and 1 or 2
+    local closestSuccess = filter(N, attempts, function(a)
         return a.walkable
     end)
-    local closestFail = filter(2, attempts, function(a)
+    local closestFail = filter(N, attempts, function(a)
         return not a.walkable
     end)
     closestSuccess = closestSuccess and closestSuccess.pos
@@ -721,54 +707,50 @@ function BotLocomotor:FindNearestWalkableAroundEnt(point, entity, origin)
     return closestFail
 end
 
-function BotLocomotor:SnapPointsToWhereWalkable(points)
-    local DebugDrawLine = TTTBots.DebugServer.DrawLineBetween
-    for i, point in ipairs(points) do
-        local hullTrace = self:GetStandHereTrace(point)
-        local canStandHere = self:CanStandHere(point)
-        local snappedPoint = self:SnapPosToNearestNav(point)
-        point = snappedPoint
-
-        if hullTrace.Entity and IsValid(hullTrace.Entity) then
-            point = self:FindNearestWalkableAroundEnt(point, hullTrace.Entity, i > 1 and points[i - 1] or nil) or point
+local function getClosestInTable(tbl, origin)
+    local closestDist = math.huge
+    local closestI = nil
+    for i, v in ipairs(tbl) do
+        local dist = v:Distance(origin)
+        if dist < closestDist then
+            closestDist = dist
+            closestI = i
         end
-
-        if canStandHere then
-            DebugDrawLine(point, point + Vector(0, 0, 32), Color(255, 0, 0))
-        else
-            DebugDrawLine(point, point + Vector(0, 0, 32), Color(0, 255, 0))
-        end
-        points[i] = point
     end
+    return tbl[closestI], closestI
 end
 
---- Determines the next point along the path to follow.
----@return Vector|nil nextPos The next position
+--- Determine the next pos along our current path
 function BotLocomotor:DetermineNextPos()
-    if not self:HasPath() then return nil end
-    local path = self:GetPath().path
-    local preparedPath = self:GetPath().preparedPath
-    if not preparedPath then return end
+    local pathinfo = self:GetPath().path
+    if not pathinfo or not pathinfo.path or not pathinfo.preparedPath then return nil end
+    local purePath = pathinfo.path
+    local prepPath = pathinfo.preparedPath
 
     local bot = self.bot
     local botPos = bot:GetPos()
-    local closestPos, closestI = getClosestInPreparedPath(preparedPath, botPos, true)
-    local closestPP = preparedPath[closestI]
-    local nextI = closestI + 1
-    local nextPP = preparedPath[nextI]
-    local nextPos = (#preparedPath < nextI and nil or preparedPath[nextI]).pos
-    if not nextPos then return closestPos end
+    local botEyePos = bot:GetShootPos()
 
-    if nextPP.type == "ladder" then return nextPos end
+    local nextUncompleted = nil
+    for i, v in pairs(prepPath) do
+        if not v.completed then
+            nextUncompleted = v
+            break
+        end
+    end
+    if not nextUncompleted then return nil end -- no more nodes to go to
 
-    local segments = self:DivideLineIntoSegments(closestPos, nextPos, 100)
-    self:SnapPointsToWhereWalkable(segments)
-    -- debug draw a cross on each segment
-    for i, v in pairs(segments) do
-        TTTBots.DebugServer.DrawCross(v, 10, Color(255, 0, 0))
+    local nextPos = nextUncompleted.pos
+
+    -- now check if we're within 70 units of the next node and can see it
+    local dist = botPos:Distance(nextPos)
+    local canSee = self:VisionTestNoMask(botEyePos, nextPos + Vector(0, 0, 16))
+    if (dist < 70 and canSee) or dist < 20 then
+        nextUncompleted.completed = true
+        return self:DetermineNextPos()
     end
 
-    return closestPos
+    return nextPos, nextUncompleted.i
 end
 
 -- Determines how the bot navigates through its path once it has one.
@@ -870,7 +852,7 @@ function BotLocomotor:StartCommand(cmd)
         self:LerpMovement(0.1, self.nextPos)
     elseif self:GetPriorityGoal() then
         self:LerpMovement(0.1, self:GetPriorityGoal())
-        TTTBots.DebugServer.DrawCross(self.movePriorityVec, 10, Color(0, 255, 255))
+        if dvlpr then TTTBots.DebugServer.DrawCross(self.movePriorityVec, 10, Color(0, 255, 255)) end
     end
 
 
@@ -881,7 +863,8 @@ function BotLocomotor:StartCommand(cmd)
         -- if moveNormalOverride then
         --     ang = moveNormalOverride:Angle()
         -- end
-        TTTBots.DebugServer.DrawCross(self.movementVec, 5, Color(255, 255, 255), nil, self.bot:Nick() .. "movementVec")
+        if dvlpr then TTTBots.DebugServer.DrawCross(self.movementVec, 5, Color(255, 255, 255), nil,
+            self.bot:Nick() .. "movementVec") end
         cmd:SetViewAngles(ang) -- This is actually the movement angles, not the view angles. It's confusingly named.
     end
 
