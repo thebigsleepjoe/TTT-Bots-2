@@ -10,7 +10,7 @@ local Lib = TTTBots.Lib
 local format = string.format
 
 -- Check if not :IsSpec and :Alive, pretty much makes code look neater
-function Lib.IsBotAlive(bot)
+function Lib.IsPlayerAlive(bot)
     return IsValid(bot) and not (bot:IsSpec() and bot:Alive())
 end
 

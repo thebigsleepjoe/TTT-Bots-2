@@ -26,7 +26,7 @@ function BotObstacleTracker:Initialize(bot)
 
     self.componentID = string.format("obstalcetracker (%s)", lib.GenerateID()) -- Component ID, used for debugging
 
-    self.tick = 0 -- Tick counter
+    self.tick = 0                                                              -- Tick counter
     self.bot = bot
     self.disabled = false
 
@@ -113,6 +113,10 @@ timer.Create("TTTBots.Components.ObstacleTracker_Breakables", 1.5, 0, function()
 
     local dbg = lib.GetConVarBool("debug_obstacles")
 
+    -- for i, v in pairs(ents.GetAll()) do
+    --     print(v:GetClass())
+    -- end
+
     for _, entity in pairs(ents.FindByClass("func_breakable")) do
         table.insert(db_break, entity)
     end
@@ -121,7 +125,11 @@ timer.Create("TTTBots.Components.ObstacleTracker_Breakables", 1.5, 0, function()
         table.insert(db_break, entity)
     end
 
-    for _, entity in pairs(ents.FindByClass("prop_physics")) do
+    local phys = {}
+    table.Add(phys, ents.FindByClass("prop_physics"))
+    table.Add(phys, ents.FindByClass("func_physbox"))
+
+    for _, entity in pairs(phys) do
         local vals = entity:GetKeyValues()
         if vals.health and vals.health > 1 then
             table.insert(db_break, entity)

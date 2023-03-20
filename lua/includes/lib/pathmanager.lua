@@ -27,7 +27,7 @@ function ladderMeta:GetTop2()
         self:GetTopRightArea(),
     }
 
-    local highest = top.z
+    local highest = 0
     for i, area in pairs(areas) do
         if (area) then
             local center = area:GetCenter()
@@ -38,8 +38,12 @@ function ladderMeta:GetTop2()
     end
 
     top.z = highest
+    local adjusted = Vector(top.x, top.y, highest) + Vector(0, 0, 50) + forward * 14
 
-    return top + Vector(0, 0, 32) + forward * 12
+    TTTBots.DebugServer.DrawCross(top, 10, Color(255, 0, 0), 5, "ladderTop")
+    TTTBots.DebugServer.DrawLineBetween(top, adjusted, Color(255, 0, 0), 5, "ladderTop2")
+
+    return adjusted
 end
 
 function ladderMeta:GetBottom2()
@@ -178,21 +182,23 @@ function navMeta:GetConnectingEdge(other)
 end
 
 local function heuristic_cost_estimate(current, goal)
-    -- local h = current:GetCenter():Distance(goal:GetCenter())
     -- Manhattan distance
     local h = math.abs(current:GetCenter().x - goal:GetCenter().x) + math.abs(current:GetCenter().y - goal:GetCenter().y)
 
-    if (current:IsLadder() or goal:IsLadder()) then return h * 1.0 end
+    -- Add extra cost for ladders
+    if current:IsLadder() or goal:IsLadder() then
+        return h -- Must return here because otherwise it will error with below methods
+    end
 
-    -- check if current and neighbor are underwater and add extra cost if true
+    -- Check if current and neighbor are underwater and add extra cost if true
     if current:IsUnderwater() and goal:IsUnderwater() then
         h = h + 50
     end
 
-    if current:IsLadder() or goal:IsLadder() then return h end
-
-    if current:ComputeAdjacentConnectionHeightChange(goal) < -100 then
-        h = h + 5000000 -- Hugely deprioritize falling from dangerous heights
+    -- Deprioritize falling from dangerous heights
+    local heightChange = current:ComputeAdjacentConnectionHeightChange(goal)
+    if heightChange < -100 then
+        h = h + 5000000
     end
 
     return h
@@ -351,7 +357,7 @@ function TTTBots.PathManager.RequestPath(owner, startPos, finishPos, isAreas)
         error(
             "No startPos and/or finishPos, keep your functions safe from this error.")
     end
-    if not TTTBots.Lib.IsBotAlive(owner) then
+    if not TTTBots.Lib.IsPlayerAlive(owner) then
         error(
             "The bot you are generating a path for is dead. Your path generation should be made safer.")
     end

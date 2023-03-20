@@ -82,7 +82,7 @@ function BotLocomotor:GetWhereStandForDoor(door)
     -- The size of the side with the biggest width. This will essentially tell us how far to stand back.
     local widestAmt = math.max(door:OBBMaxs().x, door:OBBMaxs().y, door:OBBMaxs().z)
     local doorCenter = door:WorldSpaceCenter()
-    local standPos = doorCenter + (hitNormal * widestAmt * 1.2)
+    local standPos = doorCenter + (hitNormal * widestAmt * 1.5)
     local standPosNav = navmesh.GetNearestNavArea(standPos)
     if not standPosNav then return end
 
@@ -248,7 +248,7 @@ function BotLocomotor:CheckFeetAreObstructed()
         start = startpos,
         endpos = endpos,
         filter = self.bot,
-        mask = MASK_SOLID_BRUSHONLY + MASK_SHOT_HULL
+        --mask = MASK_SOLID_BRUSHONLY + MASK_SHOT_HULL
     })
 
     -- draw debug line
@@ -258,7 +258,7 @@ function BotLocomotor:CheckFeetAreObstructed()
 end
 
 function BotLocomotor:ShouldJump()
-    return self:CheckFeetAreObstructed()
+    return self:CheckFeetAreObstructed() or (math.random(1, 100) == 1 and self:IsStuck())
 end
 
 function BotLocomotor:ShouldCrouchBetweenPoints(a, b)
@@ -346,12 +346,14 @@ end
 --- Gets nearby players then determines the best direction to strafe to avoid them.
 function BotLocomotor:AvoidPlayers()
     if self.dontAvoid then return end
+    if self:GetIsCliffed() then return end -- don't let trolls push us off the map...
     local plys = player.GetAll()
     local pos = self.bot:GetPos()
     local bodyfacingdir = self:GetMoveNormal() or Vector(0, 0, 0)
 
     for _, ply in pairs(plys) do
         if ply == self.bot then continue end
+        if not lib.IsPlayerAlive(ply) then continue end
 
         local plypos = ply:GetPos()
         local dist = pos:Distance(plypos)
@@ -369,6 +371,36 @@ function BotLocomotor:AvoidPlayers()
             end
         end
     end
+end
+
+--- Determine if we're "Cliffed" (i.e., on the edge of something)
+--- by doing two traces to our right and left, starting from EyePos and ending 100 units down, offset by 50 units to the right or left.
+---@return boolean Cliffed True if we're cliffed (on the edge of something), false if we're not.
+function BotLocomotor:GetIsCliffed()
+    local pos = self.bot:EyePos()
+    local right = self.bot:GetRight()
+    local forward = self.bot:GetForward()
+    local down = Vector(0, 0, -100)
+
+    local rightTrace = util.TraceLine({
+        start = pos,
+        endpos = pos + (right * 50) + down,
+        filter = self.bot,
+        mask = MASK_SOLID_BRUSHONLY
+    })
+
+    local leftTrace = util.TraceLine({
+        start = pos,
+        endpos = pos - (right * 50) + down,
+        filter = self.bot,
+        mask = MASK_SOLID_BRUSHONLY
+    })
+
+    -- draw these traces with TTTBots.DebugServer.DrawLineBetween(start, finish, color, lifetime, forceID)
+    -- TTTBots.DebugServer.DrawLineBetween(pos, pos + (right * 50) + down, Color(255, 0, 0))
+    -- TTTBots.DebugServer.DrawLineBetween(pos, pos - (right * 50) + down, Color(255, 0, 0))
+
+    return not (rightTrace.Hit and leftTrace.Hit)
 end
 
 --- Fetch obstacle props from our obstacletracker component, and modify the moveNormal
@@ -521,14 +553,13 @@ function BotLocomotor:UpdateMovement()
         self:SetUsing(true)
         if not self.doorStandPos then
             local vec = self:GetWhereStandForDoor(door)
-            local duration = 0.7
+            local duration = 0.9
             self:TimedVariable("doorStandPos", vec, duration)
             self:TimedVariable("targetDoor", door, duration)
         end
 
         -- Above if sttement ensures doorStandPos is not nil
         self:SetPriorityGoal(self.doorStandPos, 8)
-        self:SetLookPosOverride(door:WorldSpaceCenter())
     end
 end
 
@@ -566,7 +597,7 @@ function BotLocomotor:UpdatePath()
     self.pathWaiting = false
     if self.dontmove then return "dont_move" end
     if self:GetGoalPos() == nil then return "no_goalpos" end
-    if not lib.IsBotAlive(self.bot) then return "bot_dead" end
+    if not lib.IsPlayerAlive(self.bot) then return "bot_dead" end
 
     local path = self:GetPath()
     local goalNav = navmesh.GetNearestNavArea(self:GetGoalPos())
@@ -731,21 +762,31 @@ function BotLocomotor:DetermineNextPos()
     local botPos = bot:GetPos()
     local botEyePos = bot:GetShootPos()
 
+    local dvlpr = lib.GetConVarBool("debug_pathfinding")
+
     local nextUncompleted = nil
-    for i, v in pairs(prepPath) do
+    local lastCompleted = nil
+    for i, v in ipairs(prepPath) do
         if not v.completed then
             nextUncompleted = v
+            lastCompleted = prepPath[i - 1]
             break
         end
     end
     if not nextUncompleted then return nil end -- no more nodes to go to
+    -- If we can't see neither the next node nor the last completed node, then we're stuck, mark the last completed as uncompleted
+    if lastCompleted and not self:VisionTestNoMask(botEyePos, lastCompleted.pos + Vector(0, 0, 16)) and not self:VisionTestNoMask(botEyePos, nextUncompleted.pos + Vector(0, 0, 16)) then
+        lastCompleted.completed = false
+        if dvlpr then print("Bot is stuck, marking last completed node as uncompleted") end
+        return nil -- return nil because if we return DetermineNextPos we will soft lock
+    end
 
     local nextPos = nextUncompleted.pos
 
     -- now check if we're within 70 units of the next node and can see it
     local dist = botPos:Distance(nextPos)
     local canSee = self:VisionTestNoMask(botEyePos, nextPos + Vector(0, 0, 16))
-    if (dist < 70 and canSee) or dist < 20 then
+    if (dist < 70 and canSee) or dist < 35 then
         nextUncompleted.completed = true
         return self:DetermineNextPos()
     end
@@ -807,6 +848,9 @@ function BotLocomotor:UpdateViewAngles(cmd)
 
     if self:IsOnLadder() then
         self.lookPosGoal = self.nextPos
+    elseif self.targetDoor then
+        local doorCenter = self.targetDoor:WorldSpaceCenter()
+        self.lookPosGoal = doorCenter
     end
 
     if not self.lookPosGoal then return end
@@ -826,7 +870,7 @@ function BotLocomotor:StartCommand(cmd)
     cmd:ClearButtons()
     cmd:ClearMovement()
     if self.dontmove then return end
-    if not lib.IsBotAlive(self.bot) then return end
+    if not lib.IsPlayerAlive(self.bot) then return end
 
     local hasPath = self:HasPath()
     local dvlpr = lib.GetDebugFor("pathfinding")
@@ -863,8 +907,10 @@ function BotLocomotor:StartCommand(cmd)
         -- if moveNormalOverride then
         --     ang = moveNormalOverride:Angle()
         -- end
-        if dvlpr then TTTBots.DebugServer.DrawCross(self.movementVec, 5, Color(255, 255, 255), nil,
-            self.bot:Nick() .. "movementVec") end
+        if dvlpr then
+            TTTBots.DebugServer.DrawCross(self.movementVec, 5, Color(255, 255, 255), nil,
+                self.bot:Nick() .. "movementVec")
+        end
         cmd:SetViewAngles(ang) -- This is actually the movement angles, not the view angles. It's confusingly named.
     end
 
@@ -936,7 +982,7 @@ timer.Create("TTTBots.Locomotor.StuckTracker", 1, 0, function()
     -- Update stuckBots table
     ---------------------------
     for i, bot in pairs(bots) do
-        if not lib.IsBotAlive(bot) then continue end
+        if not lib.IsPlayerAlive(bot) then continue end
         local locomotor = bot.components.locomotor
         local botname = bot:Nick()
 
@@ -966,15 +1012,15 @@ timer.Create("TTTBots.Locomotor.StuckTracker", 1, 0, function()
             end
         end
 
-        local shouldUnstuck = (stuckTime > 3)
+        -- local shouldUnstuck = (stuckTime > 3)
 
-        if shouldUnstuck then
-            local cnavarea = navmesh.GetNearestNavArea(stuckPos)
-            if cnavarea then
-                local randomPos = cnavarea:GetRandomPoint()
-                bot:SetPos(randomPos + Vector(0, 0, 2))
-            end
-        end
+        -- if shouldUnstuck then
+        --     local cnavarea = navmesh.GetNearestNavArea(stuckPos)
+        --     if cnavarea then
+        --         local randomPos = cnavarea:GetRandomPoint()
+        --         bot:SetPos(randomPos + Vector(0, 0, 2))
+        --     end
+        -- end
     end
 
     ---------------------------
