@@ -38,7 +38,7 @@ function ladderMeta:GetTop2()
     end
 
     top.z = highest
-    local adjusted = Vector(top.x, top.y, highest) + Vector(0, 0, 50) + forward * 14
+    local adjusted = Vector(top.x, top.y, highest) + Vector(0, 0, 32) + forward * 14
 
     TTTBots.DebugServer.DrawCross(top, 10, Color(255, 0, 0), 5, "ladderTop")
     TTTBots.DebugServer.DrawLineBetween(top, adjusted, Color(255, 0, 0), 5, "ladderTop2")
@@ -50,7 +50,7 @@ function ladderMeta:GetBottom2()
     local bottom = self:GetBottom()
     local forward = self:GetNormal()
 
-    return bottom + forward * 12
+    return bottom + forward * 10
 end
 
 function ladderMeta:IsLadder()
@@ -182,6 +182,8 @@ function navMeta:GetConnectingEdge(other)
 end
 
 local function heuristic_cost_estimate(current, goal)
+    local avoidCost = math.huge
+    local fallCost = math.huge / 2
     -- Manhattan distance
     local h = math.abs(current:GetCenter().x - goal:GetCenter().x) + math.abs(current:GetCenter().y - goal:GetCenter().y)
 
@@ -198,7 +200,13 @@ local function heuristic_cost_estimate(current, goal)
     -- Deprioritize falling from dangerous heights
     local heightChange = current:ComputeAdjacentConnectionHeightChange(goal)
     if heightChange < -100 then
-        h = h + 5000000
+        h = h + fallCost
+    end
+
+    -- Never go into lava, or what we consider a "lava" area
+    local isLava = current:HasAttributes(NAV_MESH_AVOID) or goal:HasAttributes(NAV_MESH_AVOID)
+    if isLava then
+        h = h + avoidCost -- We MUST avoid this area
     end
 
     return h

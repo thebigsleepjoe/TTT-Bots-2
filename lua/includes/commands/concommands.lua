@@ -56,6 +56,7 @@ concommand.Add("ttt_bot_debug_locomotor", function(ply, cmd, args)
 end)
 
 concommand.Add("ttt_bot_nav_cullconnections", function(ply, cmd, args)
+    if not ply:IsSuperAdmin() then return end
     -- For each node in the navmesh, get its adjacents. Calculate the edge-to-edge distance between the two nodes.
     -- if it's jumping more than 40 units, then it's not a valid connection. Remove it.
     local navmesh = navmesh.GetAllNavAreas()
@@ -71,4 +72,35 @@ concommand.Add("ttt_bot_nav_cullconnections", function(ply, cmd, args)
         end
     end
     print("Number of bogus connections removed: " .. nBogus)
+end)
+concommand.Add("ttt_bot_nav_markdangerousnavs", function(ply, cmd, args)
+    if not ply:IsSuperAdmin() then return end
+
+    -- local navmesh = navmesh.GetAllNavAreas()
+    local hazards = ents.FindByClass("trigger_hurt")
+
+    for i, hazard in pairs(hazards) do
+        -- TTTBots.DebugServer.DrawCross(hazard:GetPos(), 10, Color(255, 0, 0), 10)
+        -- Let's draw a box around it instead
+        local mins, maxs = hazard:OBBMins(), hazard:OBBMaxs()
+        local pos = hazard:GetPos()
+        TTTBots.DebugServer.DrawBox(pos, mins, maxs, Color(255, 100, 100, 10), 10)
+
+        -- Get all navs in an area where the radius is the distance between the center and the maxs.
+        local radius = pos:Distance(pos + maxs)
+        local navs = navmesh.Find(pos, radius, 100, 100)
+        for _, nav in pairs(navs) do
+            -- First check if the nav's center point is within the box bounds
+            if not nav:GetCenter():WithinAABox(pos + mins, pos + maxs) then continue end
+            nav:SetAttributes(nav:GetAttributes() + NAV_MESH_AVOID)
+            TTTBots.DebugServer.DrawCross(nav:GetCenter(), 20, Color(255, 0, 0), 10)
+        end
+    end
+end)
+
+concommand.Add("ttt_bot_debug_printents", function(ply, cmd, args)
+    if not ply:IsSuperAdmin() then return end
+    for i, v in pairs(ents.GetAll()) do
+        print(v:GetClass())
+    end
 end)
