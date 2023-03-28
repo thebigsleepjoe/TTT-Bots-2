@@ -167,6 +167,14 @@ function BotLocomotor:UpdateLookPos()
     self.bot:SetEyeAngles((self.lookPos - self.bot:EyePos()):Angle())
 end
 
+function BotLocomotor:AimAt(pos, time)
+    if time then
+        self:TimedVariable("lookPosOverride", pos, time)
+    else
+        self.lookPosOverride = pos
+    end
+end
+
 -- Getters and setters, just for formality and easy reading.
 function BotLocomotor:SetCrouching(bool) self.crouch = bool end
 
@@ -262,6 +270,7 @@ function BotLocomotor:ShouldJump()
 end
 
 function BotLocomotor:ShouldCrouchBetweenPoints(a, b)
+    if not a or not b then return false end
     local area1 = navmesh.GetNearestNavArea(a)
     local area2 = navmesh.GetNearestNavArea(b)
 
@@ -306,7 +315,9 @@ function BotLocomotor:TimedVariable(name, value, time)
     self[name] = value
 
     timer.Simple(time, function()
-        self[name] = nil
+        if self[name] == value then -- only remove if it's still the same value
+            self[name] = nil
+        end
     end)
 
     return value
@@ -797,6 +808,7 @@ end
 -- Determines how the bot navigates through its path once it has one.
 function BotLocomotor:FollowPath()
     if not self:HasPath() then return false end
+    if self.goalPos and self.goalPos:Distance(self.bot:GetPos()) < 20 then return false end
     local dvlpr = lib.GetDebugFor("pathfinding")
     local bot = self.bot
 
@@ -814,7 +826,7 @@ function BotLocomotor:FollowPath()
     self.nextPos = nextPos
     self.nextPosI = nextPosI
 
-    if not nextPos then return false end
+    if not self.nextPos then return false end
 
     if self:ShouldJump() then
         self:SetJumping(true)
@@ -836,15 +848,29 @@ end
 
 function BotLocomotor:UpdateViewAngles(cmd)
     local override = self:GetLookPosOverride()
-    local preparedPath = self:HasPath() and self:GetPath().preparedPath
-    local goal = self.goalPos
-
     if override then
         self.lookPosGoal = override
         return
     end
 
-    self.lookPosGoal = self.nextPos or goal
+    local preparedPath = self:HasPath() and self:GetPath().preparedPath
+    local goal = self.goalPos
+
+
+    if self.nextPos then
+        local nextPosNormal = (self.nextPos - self.bot:GetPos()):GetNormal()
+        local outwards = self.bot:GetPos() + nextPosNormal * 1000
+        local randomLook = self:GetSetTimedVariable("randomLook", outwards, math.random(0.5, 2))
+
+        -- do an eyetrace to see if there is something directly ahead of us
+        local eyeTrace = self.bot:GetEyeTrace()
+        local eyeTracePos = eyeTrace.HitPos
+        local eyeTraceDist = eyeTracePos and eyeTracePos:Distance(self.bot:GetPos())
+        local wallClose = eyeTraceDist and eyeTraceDist < 100
+
+        self.lookPosGoal = (not wallClose and self["randomLook"]) or (wallClose and self.nextPos + Vector(0, 0, 64)) or
+            goal
+    end
 
     if self:IsOnLadder() then
         self.lookPosGoal = self.nextPos
