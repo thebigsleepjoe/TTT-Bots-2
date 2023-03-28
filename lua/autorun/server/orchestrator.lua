@@ -45,17 +45,21 @@ print("good to go")
 
 -- Bot behavior
 timer.Create("TTTBots_Tick", 0.1, 0, function()
-    for i, bot in pairs(player.GetBots()) do
-        -- TTTBots.DebugServer.RenderDebugFor(bot, { "all" })
+    pcall(function()
+        for i, bot in pairs(player.GetBots()) do
+            -- TTTBots.DebugServer.RenderDebugFor(bot, { "all" })
 
-        for i, component in pairs(bot.components) do
-            if component.Think == nil then
-                print("No think")
-                continue
+            for i, component in pairs(bot.components) do
+                if component.Think == nil then
+                    print("No think")
+                    continue
+                end
+                component:Think()
             end
-            component:Think()
         end
-    end
+    end, function(err)
+        print(err)
+    end)
 end)
 
 -- GM:StartCommand
@@ -69,16 +73,16 @@ hook.Add("StartCommand", "TTTBots_StartCommand", function(ply, cmd)
     end
 end)
 
-timer.Create("TTTBots_ChangeGoal", 10, 0, function()
-    for i, bot in pairs(player.GetBots()) do
-        local locomotor = bot.components.locomotor
+-- timer.Create("TTTBots_ChangeGoal", 10, 0, function()
+--     for i, bot in pairs(player.GetBots()) do
+--         local locomotor = bot.components.locomotor
 
-        -- get look vector of human
-        -- local pos = player.GetHumans()[1]:GetEyeTrace().HitPos
-        -- locomotor:SetGoalPos(pos)
+--         -- get look vector of human
+--         -- local pos = player.GetHumans()[1]:GetEyeTrace().HitPos
+--         -- locomotor:SetGoalPos(pos)
 
-        -- pick a random area
-        local area = table.Random(navmesh.GetAllNavAreas())
-        locomotor:SetGoalPos(area:GetCenter())
-    end
-end)
+--         -- pick a random area
+--         local area = table.Random(navmesh.GetAllNavAreas())
+--         locomotor:SetGoalPos(area:GetCenter())
+--     end
+-- end)

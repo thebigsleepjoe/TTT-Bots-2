@@ -808,7 +808,7 @@ end
 -- Determines how the bot navigates through its path once it has one.
 function BotLocomotor:FollowPath()
     if not self:HasPath() then return false end
-    if self.goalPos and self.goalPos:Distance(self.bot:GetPos()) < 20 then return false end
+    if self.goalPos and self.goalPos:Distance(self.bot:GetPos()) < 40 then return false end
     local dvlpr = lib.GetDebugFor("pathfinding")
     local bot = self.bot
 
@@ -859,7 +859,7 @@ function BotLocomotor:UpdateViewAngles(cmd)
 
     if self.nextPos then
         local nextPosNormal = (self.nextPos - self.bot:GetPos()):GetNormal()
-        local outwards = self.bot:GetPos() + nextPosNormal * 1000
+        local outwards = self.bot:GetPos() + nextPosNormal * 1200
         local randomLook = self:GetSetTimedVariable("randomLook", outwards, math.random(0.5, 2))
 
         -- do an eyetrace to see if there is something directly ahead of us
@@ -868,8 +868,13 @@ function BotLocomotor:UpdateViewAngles(cmd)
         local eyeTraceDist = eyeTracePos and eyeTracePos:Distance(self.bot:GetPos())
         local wallClose = eyeTraceDist and eyeTraceDist < 100
 
-        self.lookPosGoal = (not wallClose and self["randomLook"]) or (wallClose and self.nextPos + Vector(0, 0, 64)) or
-            goal
+        if wallClose then self.randomLook = nil end
+
+        self.lookPosGoal = (
+            (not wallClose and self["randomLook"])
+            or (wallClose and self.nextPos + Vector(0, 0, 64))
+            or goal
+            )
     end
 
     if self:IsOnLadder() then
@@ -882,6 +887,13 @@ function BotLocomotor:UpdateViewAngles(cmd)
     if not self.lookPosGoal then return end
 
     self:UpdateLookPos()
+
+    local dvlpr = lib.GetDebugFor("look")
+    if dvlpr then
+        -- DrawCross at lookPosGoal and lookPos
+        TTTBots.DebugServer.DrawCross(self.lookPosGoal, 10, Color(255, 255, 255), 0.15, "lookPosGoal-" .. self.bot:Nick())
+        TTTBots.DebugServer.DrawCross(self.lookPos, 10, Color(255, 0, 0), 0.15, "lookPos-" .. self.bot:Nick())
+    end
 end
 
 --- Lerp look towards the goal position

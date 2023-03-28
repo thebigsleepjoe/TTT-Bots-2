@@ -26,23 +26,47 @@ function BotInventoryMgr:Initialize(bot)
 
     self.componentID = string.format("inventorymgr (%s)", lib.GenerateID()) -- Component ID, used for debugging
 
+    self.tick = 0
+
     self.bot = bot
 end
 
 function BotInventoryMgr:GetWeaponInfo(wep)
     local info = {}
-    info.class = wep:GetClass()                                 -- Class of the weapon
-    info.clip = wep:Clip1()                                     -- Ammo in the clip
-    info.max_ammo = wep:GetMaxClip1()                           -- Max ammo in the clip
-    info.ammo = self.bot:GetAmmoCount(wep:GetPrimaryAmmoType()) -- Ammo in the inventory
-    info.ammo_type = wep:GetPrimaryAmmoType()                   -- Ammo type of the weapon
-    info.slot = wep:GetSlot()                                   -- Slot of the weapon
-    info.hold_type = wep:GetHoldType()                          -- Hold type of the weapon
-    info.is_gun = info.ammo_type == -1                          -- If the weapon is a gun
-    info.needs_reload = info.clip == 0                          -- If the bot needs to reload this weapon (urgent)
-    info.should_reload = info.clip < info.max_ammo              -- If the bot should reload this weapon (non-urgent)
-    info.has_bullets = info.ammo > 0                            -- If the bot has bullets for this weapon
-    info.print_name = wep:GetPrintName()                        -- Name of the weapon
+    -- Class of the weapon
+    info.class = wep:GetClass()
+    -- Ammo in the clip
+    info.clip = wep:Clip1()
+    -- Max ammo in the clip
+    info.max_ammo = wep:GetMaxClip1()
+    -- Ammo in the inventory
+    info.ammo = self.bot:GetAmmoCount(wep:GetPrimaryAmmoType())
+    -- Ammo type of the weapon
+    info.ammo_type = wep:GetPrimaryAmmoType()
+    -- Slot of the weapon, functionally just a string version of the Kind
+    info.slot = (
+        wep.Kind == 1 and "melee"
+        or wep.Kind == 2 and "secondary"
+        or wep.Kind == 3 and "primary"
+        or wep.Kind == 4 and "grenade"
+        or wep.Kind == 5 and "carry"
+        or wep.Kind == 6 and "unarmed"
+        or wep.Kind == 7 and "special"
+        or wep.Kind == 8 and "extra"
+        or wep.Kind == 9 and "class"
+        )
+    -- Hold type of the weapon
+    info.hold_type = wep:GetHoldType()
+    -- If the weapon is a gun
+    info.is_gun = info.max_ammo > 0
+    -- If the bot needs to reload this weapon (urgent)
+    info.needs_reload = info.clip == 0
+    -- If the bot should reload this weapon (non-urgent)
+    info.should_reload = info.clip < info.max_ammo
+    -- If the bot has bullets for this weapon
+    info.has_bullets = info.ammo > 0
+    -- Name of the weapon
+    info.print_name = wep:GetPrintName()
 
     --[[
         info.kind:
@@ -64,10 +88,25 @@ function BotInventoryMgr:GetWeaponInfo(wep)
         | item_ammo_357_ttt: Sniper rifle ammo.
         | item_box_buckshot_ttt: Shotgun ammo.
     ]]
-    info.ammo_ent = wep.AmmoEnt                                                 -- Entity name for the ammo of the weapon
-    info.is_traitor_weapon = table.HasValue(wep.CanBuy or {}, ROLE_TRAITOR)     -- If the weapon is a traitor weapon
-    info.is_detective_weapon = table.HasValue(wep.CanBuy or {}, ROLE_DETECTIVE) -- If the weapon is a detective weapon
-    info.silent = wep.IsSilent                                                  -- If the weapon is silent
+    info.ammo_ent = wep.AmmoEnt
+    -- If the weapon is a traitor weapon
+    info.is_traitor_weapon = table.HasValue(wep.CanBuy or {}, ROLE_TRAITOR)
+    -- If the weapon is a detective weapon
+    info.is_detective_weapon = table.HasValue(wep.CanBuy or {}, ROLE_DETECTIVE)
+    -- If the weapon is silent
+    info.silent = wep.IsSilent
+    -- If we can drop it
+    info.can_drop = wep.AllowDrop
+
+    info.is_automatic = wep.Primary and wep.Primary.Automatic
+
+    info.damage = wep.Primary and wep.Primary.Damage
+    info.rpm = math.ceil(wep.Primary and (1 / wep.Primary.Delay) * 60)
+    info.numshots = wep.Primary and wep.Primary.NumShots
+    info.dpm = math.ceil(info.damage * info.numshots * info.rpm * (1 / 60))
+    info.time_to_kill = math.ceil((100 / info.dps) * 100) / 100
+
+    return info
 end
 
 function BotInventoryMgr:GetAllWeaponInfo()
@@ -81,6 +120,10 @@ function BotInventoryMgr:GetAllWeaponInfo()
 end
 
 function BotInventoryMgr:Think()
-    PrintTable(self:GetAllWeaponInfo())
+    self.tick = (self.tick % 10000000) + 1
+
+    if self.tick % 50 == 0 then
+        PrintTable(self:GetAllWeaponInfo())
+    end
     print("Thinking")
 end
