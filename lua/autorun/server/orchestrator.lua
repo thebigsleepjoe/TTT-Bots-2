@@ -45,7 +45,7 @@ print("good to go")
 
 -- Bot behavior
 timer.Create("TTTBots_Tick", 0.1, 0, function()
-    pcall(function()
+    local call, err = pcall(function()
         for i, bot in pairs(player.GetBots()) do
             -- TTTBots.DebugServer.RenderDebugFor(bot, { "all" })
 
@@ -60,6 +60,9 @@ timer.Create("TTTBots_Tick", 0.1, 0, function()
     end, function(err)
         print(err)
     end)
+    if err then
+        ErrorNoHalt(err)
+    end
 end)
 
 -- GM:StartCommand

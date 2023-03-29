@@ -98,14 +98,15 @@ function BotInventoryMgr:GetWeaponInfo(wep)
     -- If we can drop it
     info.can_drop = wep.AllowDrop
 
-    info.is_automatic = wep.Primary and wep.Primary.Automatic
-
     info.damage = wep.Primary and wep.Primary.Damage
     info.rpm = math.ceil(wep.Primary and (1 / wep.Primary.Delay) * 60)
     info.numshots = wep.Primary and wep.Primary.NumShots
-    info.dpm = math.ceil(info.damage * info.numshots * info.rpm * (1 / 60))
+    info.dps = math.ceil(info.damage * info.numshots * info.rpm * (1 / 60))
     info.time_to_kill = math.ceil((100 / info.dps) * 100) / 100
 
+    info.is_automatic = wep.Primary and wep.Primary.Automatic
+    -- we can infer if this is a sniper based off of the damage and if it's automatic
+    info.is_sniper = info.damage and info.damage > 40 and not info.is_automatic
     return info
 end
 
@@ -120,10 +121,9 @@ function BotInventoryMgr:GetAllWeaponInfo()
 end
 
 function BotInventoryMgr:Think()
-    self.tick = (self.tick % 10000000) + 1
-
+    self.tick = self.tick + 1
+    -- print(self.tick, self.tick % 50 == 0)
     if self.tick % 50 == 0 then
         PrintTable(self:GetAllWeaponInfo())
     end
-    print("Thinking")
 end

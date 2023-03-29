@@ -797,7 +797,7 @@ function BotLocomotor:DetermineNextPos()
     -- now check if we're within 70 units of the next node and can see it
     local dist = botPos:Distance(nextPos)
     local canSee = self:VisionTestNoMask(botEyePos, nextPos + Vector(0, 0, 16))
-    if (dist < 70 and canSee) or dist < 35 then
+    if (dist < 60 and canSee) or dist < 30 then
         nextUncompleted.completed = true
         return self:DetermineNextPos()
     end
