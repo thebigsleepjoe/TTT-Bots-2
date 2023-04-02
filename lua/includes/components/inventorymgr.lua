@@ -121,11 +121,13 @@ function BotInventoryMgr:GetAllWeaponInfo()
 end
 
 function BotInventoryMgr:Think()
+    local SLOWDOWN = 10
     self.tick = self.tick + 1
     -- print(self.tick, self.tick % 50 == 0)
-    if self.tick % 50 == 0 then
-        PrintTable(self:GetAllWeaponInfo())
-    end
+    if self.tick % SLOWDOWN ~= 0 then return end
+
+    -- print(self:GetInventoryString())
+    self:EquipMelee()
 end
 
 function BotInventoryMgr:GetPrimary()
@@ -230,4 +232,20 @@ end
 
 function BotInventoryMgr:EquipGrenade()
     return self:Equip("grenade")
+end
+
+function BotInventoryMgr:GetInventoryString()
+    local weapons = self.bot:GetWeapons()
+    local str = ""
+    for _, wep in pairs(weapons) do
+        -- example "\nPrimary weapon_name (DPS: 100; TTK: 2.5s)"
+        local info = self:GetWeaponInfo(wep)
+        local slot = info.slot
+        local name = info.print_name
+        local dps = info.dps
+        local ttk = info.time_to_kill
+
+        str = str .. string.format("\n%s %s (DPS: %s; TTK: %ss)", slot, name, dps, ttk)
+    end
+    return str
 end
