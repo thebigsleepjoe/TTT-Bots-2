@@ -127,3 +127,107 @@ function BotInventoryMgr:Think()
         PrintTable(self:GetAllWeaponInfo())
     end
 end
+
+function BotInventoryMgr:GetPrimary()
+    -- info.slot == "primary"
+    local weapons = self.bot:GetWeapons()
+    for _, wep in pairs(weapons) do
+        local info = self:GetWeaponInfo(wep)
+        if info.slot == "primary" then
+            return wep
+        end
+    end
+end
+
+function BotInventoryMgr:GetSecondary()
+    -- info.slot == "secondary"
+    local weapons = self.bot:GetWeapons()
+    for _, wep in pairs(weapons) do
+        local info = self:GetWeaponInfo(wep)
+        if info.slot == "secondary" then
+            return wep
+        end
+    end
+end
+
+function BotInventoryMgr:GetCrowbar()
+    -- info.slot == "melee"
+    local weapons = self.bot:GetWeapons()
+    for _, wep in pairs(weapons) do
+        local info = self:GetWeaponInfo(wep)
+        if info.slot == "melee" then
+            return wep
+        end
+    end
+end
+
+function BotInventoryMgr:GetGrenade()
+    -- info.slot == "grenade"
+    local weapons = self.bot:GetWeapons()
+    for _, wep in pairs(weapons) do
+        local info = self:GetWeaponInfo(wep)
+        if info.slot == "grenade" then
+            return wep
+        end
+    end
+end
+
+function BotInventoryMgr:GetWeaponByName(name)
+    local weapons = self.bot:GetWeapons()
+    for _, wep in pairs(weapons) do
+        local info = self:GetWeaponInfo(wep)
+        if info.print_name == name then
+            return wep
+        end
+    end
+end
+
+--- Equips the wep in the bot's hands. wep can be a string or a weapon object. If it is a string then it has the following opts:
+--- 1. "primary": equips the bot's primary weapon
+--- 2. "secondary": equips the bot's secondary weapon
+--- 3. "melee": equips the bot's melee weapon
+--- 4. "grenade": equips the bot's grenade
+--- 5. "weapon_name": equips the bot's weapon with the given name
+---<p>Otherwise, wep is a weapon object and it is equipped.</p>
+function BotInventoryMgr:Equip(wep)
+    local found
+    if type(wep) == "string" then
+        local funcTbl = {
+            primary = self.GetPrimary,
+            secondary = self.GetSecondary,
+            melee = self.GetCrowbar,
+            grenade = self.GetGrenade,
+        }
+        if funcTbl[wep] then
+            found = funcTbl[wep](self)
+        else
+            found = self:GetWeaponByName(wep)
+        end
+    else
+        found = wep
+    end
+
+    if found then
+        -- self.bot:SelectWeapon(found) apparently this only works with classnames and not weapon objects...
+        self.bot:SelectWeapon(found:GetClass())
+    end
+
+    return (found ~= nil)
+end
+
+function BotInventoryMgr:EquipPrimary()
+    return self:Equip("primary")
+end
+
+function BotInventoryMgr:EquipSecondary()
+    return self:Equip("secondary")
+end
+
+function BotInventoryMgr:EquipMelee()
+    -- return self:Equip("melee")
+    return self.bot:SelectWeapon("weapon_zm_improvised")
+end
+
+function BotInventoryMgr:EquipGrenade()
+    return self:Equip("grenade")
+end
