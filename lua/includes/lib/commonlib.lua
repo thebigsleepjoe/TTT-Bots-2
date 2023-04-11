@@ -6,6 +6,7 @@ include("includes/data/usernames.lua")
 include("includes/components/locomotor.lua")
 include("includes/components/obstacletracker.lua")
 include("includes/components/inventorymgr.lua")
+include("includes/components/personality.lua")
 
 local Lib = TTTBots.Lib
 local format = string.format
@@ -66,6 +67,7 @@ function Lib.CreateBot(name)
         locomotor = TTTBots.Components.Locomotor:New(bot),
         obstacletracker = TTTBots.Components.ObstacleTracker:New(bot),
         inventorymgr = TTTBots.Components.InventoryMgr:New(bot),
+        personality = TTTBots.Components.Personality:New(bot),
     }
 
     local dvlpr = Lib.GetDebugFor("all")

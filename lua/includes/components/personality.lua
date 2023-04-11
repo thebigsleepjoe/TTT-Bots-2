@@ -171,11 +171,42 @@ end
 function BotPersonality:Initialize(bot)
     print("Initializing")
     bot.components = bot.components or {}
-    bot.components.Personality = self
+    bot.components.personality = self
 
     self.componentID = string.format("Personality (%s)", lib.GenerateID()) -- Component ID, used for debugging
+    self.gender = (math.random(1, 100) < 50 and "male") or "female"
+    self.HIM = (self.gender == "male" and "him") or "her"
+    self.HIS = (self.gender == "male" and "his") or "hers"
+    self.HE = (self.gender == "male" and "he") or "her"
+
+    self.traits = self:GetSomeTraits(4)
 
     self.bot = bot
+end
+
+--- flavors text based on gender pronouns (self.HIM, .HIS, .HE)
+function BotPersonality:FlavorText(text)
+    local str, _int = string.gsub(text, "%[HIM%]", self.HIM):gsub("%[HIS%]", self.HIS):gsub("%[HE%]", self.HE)
+    return str
+end
+
+function BotPersonality:GetTraits()
+    return self.traits
+end
+
+function BotPersonality:GetFlavoredTraits()
+    local traits = {}
+    for i, trait in ipairs(self.traits) do
+        print(self:FlavorText(self.Traits[trait].description))
+        table.insert(traits, self:FlavorText(self.Traits[trait].description))
+    end
+    return traits
+end
+
+function BotPersonality:PrintFlavoredTraits()
+    for _, trait in ipairs(self:GetFlavoredTraits()) do
+        print(trait)
+    end
 end
 
 function BotPersonality:Think()
@@ -229,4 +260,12 @@ function BotPersonality:GetSomeTraits(num)
     end
 
     return selectedTraits
+end
+
+local plyMeta = FindMetaTable("Player")
+
+function plyMeta:GetPersonalityTraits()
+    if self.components and self.components.personality then
+        return self.components.personality:GetTraits()
+    end
 end
