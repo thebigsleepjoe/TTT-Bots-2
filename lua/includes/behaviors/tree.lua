@@ -24,7 +24,6 @@ function TTTBots.Behaviors.Tree()
         local currentBehavior = bot.currentBehavior
         local newState = status.Failure
         local behaviorChanged = false
-
         if currentBehavior and currentBehavior:Validate(bot) then
             newState = currentBehavior:OnRunning(bot)
         else

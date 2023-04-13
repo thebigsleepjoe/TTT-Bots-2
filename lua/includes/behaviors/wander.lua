@@ -20,10 +20,20 @@ end
 
 --- Called when the behavior is started
 function Wander:OnStart(bot)
+    return status.Running
 end
 
 --- Called when the behavior's last state is running
 function Wander:OnRunning(bot)
+    local wanderArea = bot.wanderArea or self:GetRandomArea()
+    if navmesh.GetNearestNavArea(bot:GetPos()) == wanderArea then -- If we're in the area, get a new one
+        wanderArea = self:GetRandomArea()
+    end
+
+    local wanderPos = wanderArea:GetCenter()
+    bot.components.locomotor:SetGoalPos(wanderPos)
+
+    return status.Running
 end
 
 --- Called when the behavior returns a success state
@@ -38,16 +48,8 @@ end
 function Wander:OnEnd(bot)
 end
 
-function Wander:GetRandomSpawn()
-    local spawnClass = navmesh.GetPlayerSpawnName()
-    local spawnPoints = ents.FindByClass(spawnClass)
-
-    return spawnPoints[math.random(1, #spawnPoints)]
-end
-
-function Wander:GetRandomSpawnArea()
-    local spawn = self:GetRandomSpawn()
-    local area = navmesh.GetNearestNavArea(spawn:GetPos())
-
+function Wander:GetRandomArea()
+    local areas = navmesh.GetAllNavAreas()
+    local area = table.Random(areas)
     return area
 end

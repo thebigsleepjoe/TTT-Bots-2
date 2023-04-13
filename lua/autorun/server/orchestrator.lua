@@ -15,7 +15,7 @@ include("includes/commands/cvars.lua")
 include("includes/commands/concommands.lua")
 
 -- Initialize behaviors
-include("includes/behaviors/main.lua")
+include("includes/behaviors/tree.lua")
 
 -- Future modules:
 -- Bot speech manager, for playing voice lines and chatting in-game when something happens
@@ -46,6 +46,7 @@ print("good to go")
 -- Bot behavior
 timer.Create("TTTBots_Tick", 0.1, 0, function()
     local call, err = pcall(function()
+        TTTBots.Behaviors.Tree()
         for i, bot in pairs(player.GetBots()) do
             -- TTTBots.DebugServer.RenderDebugFor(bot, { "all" })
 
