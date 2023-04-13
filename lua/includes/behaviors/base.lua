@@ -1,31 +1,41 @@
--- TTTBots.Components = TTTBots.Components or {}
--- TTTBots.Components.ObstacleTracker = {}
+--[[
+TTTBots.Behaviors = TTTBots.Behaviors or {}
+TTTBots.Behaviors.Wander = {}
 
--- local lib = TTTBots.Lib
--- local BehaviorBase = TTTBots.Components.ObstacleTracker
+local lib = TTTBots.Lib
 
--- function BehaviorBase:New(bot)
---     local newObstacleTracker = {}
---     setmetatable(newObstacleTracker, {
---         __index = function(t, k) return BehaviorBase[k] end,
---     })
---     newObstacleTracker:Initialize(bot)
+local BehaviorBase = TTTBots.Behaviors.Wander
+BehaviorBase.Name = "Wander"
+BehaviorBase.Description = "Wanders around the map"
 
---     local dbg = lib.GetDebugFor("all")
---     if dbg then
---         print("Initialized ObstacleTracker for bot " .. bot:Nick())
---     end
+local status = {
+    Running = 1,
+    Success = 2,
+    Failure = 3,
+}
 
---     return newObstacleTracker
--- end
+--- Validate the behavior
+function BehaviorBase:Validate(bot)
+    return true
+end
 
--- function BehaviorBase:Initialize(bot)
---     bot.components = bot.components or {}
---     bot.components.ObstacleTracker = self
+--- Called when the behavior is started
+function BehaviorBase:OnStart(bot)
+end
 
---     self.componentID = string.format("ObstacleTracker (%s)", lib.GenerateID()) -- Component ID, used for debugging
+--- Called when the behavior's last state is running
+function BehaviorBase:OnRunning(bot)
+end
 
---     self.tick = 0 -- Tick counter
---     self.bot = bot
---     self.disabled = false
--- end
+--- Called when the behavior returns a success state
+function BehaviorBase:OnSuccess(bot)
+end
+
+--- Called when the behavior returns a failure state
+function BehaviorBase:OnFailure(bot)
+end
+
+--- Called when the behavior ends
+function Wander:OnEnd(bot)
+end
+]]
