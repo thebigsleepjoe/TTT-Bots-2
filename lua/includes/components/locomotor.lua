@@ -160,7 +160,7 @@ function BotLocomotor:ValidatePath()
     error("Deprecated function. Use HasPath instead.")
 end
 
-function BotLocomotor:UpdateLookPos()
+function BotLocomotor:UpdateEyeAnglesFinal()
     if self.lookPosOverride then
         self.lookPos = self:GetLookPosOverride()
     else
@@ -911,7 +911,7 @@ function BotLocomotor:UpdateViewAngles(cmd)
 
     if not self.lookPosGoal then return end
 
-    self:UpdateLookPos()
+    self:UpdateEyeAnglesFinal()
 
     local dvlpr = lib.GetDebugFor("look")
     if dvlpr then
