@@ -90,6 +90,11 @@ function BotLocomotor:GetWhereStandForDoor(door)
     return standPosSnapped
 end
 
+function BotLocomotor:GetXYDist(a, b)
+    local dist = a:Distance(Vector(b.x, b.y, a.z))
+    return dist
+end
+
 function BotLocomotor:GetMoveNormal()
     if self.moveNormalOverride then return self.moveNormalOverride end
     return self.moveNormal
@@ -157,14 +162,24 @@ end
 
 function BotLocomotor:UpdateLookPos()
     if self.lookPosOverride then
-        self.lookPos = LerpVector(self.lookLerpSpeed, self:GetCurrentLookPos(), self:GetLookPosOverride())
-        return
+        self.lookPos = self:GetLookPosOverride()
+    else
+        if self.lookPosGoal then
+            self.lookPos = self:GetLookPosGoal()
+        end
     end
 
-    if self.lookPosGoal then
-        self.lookPos = LerpVector(self.pathLookSpeed, self:GetCurrentLookPos(), self:GetLookPosGoal())
-    end
-    self.bot:SetEyeAngles((self.lookPos - self.bot:EyePos()):Angle())
+    local targetAngles = (self.lookPos - self.bot:EyePos()):Angle()
+    local currentAngles = self.bot:EyeAngles()
+    local rotationRate = 1 -- Modify this value to change rotation rate
+
+    local yawDiff = math.AngleDifference(targetAngles.y, currentAngles.y)
+    local pitchDiff = math.AngleDifference(targetAngles.p, currentAngles.p)
+
+    local newYaw = currentAngles.y + math.Clamp(yawDiff, -rotationRate, rotationRate)
+    local newPitch = currentAngles.p + math.Clamp(pitchDiff, -rotationRate, rotationRate)
+
+    self.bot:SetEyeAngles(Angle(newPitch, newYaw, 0))
 end
 
 function BotLocomotor:AimAt(pos, time)
@@ -216,7 +231,16 @@ function BotLocomotor:GetMoveLerpSpeed() return self.moveLerpSpeed end
 
 function BotLocomotor:GetStrafe() return self.strafe end
 
-function BotLocomotor:GetGoalPos() return self.goalPos end
+function BotLocomotor:GetGoalPos()
+    -- BotLocomotor:GetXYDist(a, b)
+    if self.goalPos == nil then return nil end
+
+    local distTo = self:GetXYDist(self.bot:GetPos(), self.goalPos)
+    if distTo < 32 then
+        self.goalPos = nil
+    end
+    return self.goalPos
+end
 
 function BotLocomotor:GetUsing() return self.emulateInUse end
 
@@ -795,9 +819,10 @@ function BotLocomotor:DetermineNextPos()
     local nextPos = nextUncompleted.pos
 
     -- now check if we're within 70 units of the next node and can see it
-    local dist = botPos:Distance(nextPos)
+    --local dist = botPos:Distance(nextPos)
+    local dist = self:GetXYDist(botPos, nextPos)
     local canSee = self:VisionTestNoMask(botEyePos, nextPos + Vector(0, 0, 16))
-    if (dist < 60 and canSee) or dist < 30 then
+    if (dist < 32 and canSee) or dist < 16 then
         nextUncompleted.completed = true
         return self:DetermineNextPos()
     end
