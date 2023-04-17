@@ -20,17 +20,26 @@ end
 
 --- Called when the behavior is started
 function Wander:OnStart(bot)
+    bot.wander = {
+        tick = 0,
+        destArea = self:GetRandomArea(),
+        wanderTime = 200, -- Maximum time before re-generating a destination
+    }
     return status.Running
 end
 
 --- Called when the behavior's last state is running
 function Wander:OnRunning(bot)
-    local wanderArea = bot.wanderArea or self:GetRandomArea()
-    if navmesh.GetNearestNavArea(bot:GetPos()) == wanderArea then -- If we're in the area, get a new one
-        wanderArea = self:GetRandomArea()
+    local dest = bot.wander.destArea:GetCenter()
+    local withinRange = self:DestinationWithinRange(bot, 100)
+    bot.wander.tick = bot.wander.tick + 1
+    if bot.wander.tick > bot.wander.wanderTime or withinRange then
+        bot.wander.tick = 0
+        bot.wander.destArea = self:GetRandomArea()
+        return status.Success
     end
 
-    local wanderPos = wanderArea:GetCenter()
+    local wanderPos = dest
     bot.components.locomotor:SetGoalPos(wanderPos)
 
     return status.Running
@@ -46,6 +55,14 @@ end
 
 --- Called when the behavior ends
 function Wander:OnEnd(bot)
+    bot.wander = {}
+end
+
+function Wander:DestinationWithinRange(bot, range)
+    local dest = bot.wander.destArea:GetCenter()
+    local pos = bot:GetPos()
+    local dist = pos:Distance(dest)
+    return dist < range
 end
 
 function Wander:GetRandomArea()
