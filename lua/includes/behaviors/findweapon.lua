@@ -66,9 +66,6 @@ function FindWeapon:ValidateTarget(bot)
     if not target:IsValid() then return false end
     if not self:WeaponOnGround(target) then return false end
 
-    print(target:GetClass())
-    print("owner", target:GetOwner())
-
     return true
 end
 
@@ -104,7 +101,7 @@ end
 function FindWeapon:OnRunning(bot)
     local debugPrint = false
 
-    if bot.findweapon.target and bot.findweapon.target:GetOwner() == bot then return status.Success end
+    if IsValid(bot.findweapon.target) and bot.findweapon.target:GetOwner() == bot then return status.Success end
 
     bot.findweapon.target = (self:ValidateTarget(bot) and bot.findweapon.target) or self:GetWeaponFor(bot)
     if not self:ValidateTarget(bot) then

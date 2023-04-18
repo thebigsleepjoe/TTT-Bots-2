@@ -32,6 +32,8 @@ function BotInventoryMgr:Initialize(bot)
 end
 
 function BotInventoryMgr:GetWeaponInfo(wep)
+    if wep == nil then return end
+
     local info = {}
     -- Class of the weapon
     info.class = wep:GetClass()
@@ -126,8 +128,30 @@ function BotInventoryMgr:Think()
     -- print(self.tick, self.tick % 50 == 0)
     if self.tick % SLOWDOWN ~= 0 then return end
 
-    -- print(self:GetInventoryString())
-    self:EquipMelee()
+    --[[
+        We want to determine the best weapon to use.
+
+        If we have no primary, default to secondary. If no secondary, default to melee.
+        If primary ammo is available, use the primary weapon first.
+        If primary ammo is unavailable and currently attacking, use the secondary weapon if it has ammo.
+        If primary ammo is unavailable and not attacking, hold out the primary weapon to reload/restock.
+        If primary ammo is available but secondary ammo is not, and not attacking, hold out the secondary weapon to reload/restock
+    ]]
+    local primaryInfo = self:GetWeaponInfo(self:GetPrimary())
+    local secondaryInfo = self:GetWeaponInfo(self:GetSecondary())
+    local isAttacking = false -- Todo, use this later?
+
+    if primaryInfo and primaryInfo.has_bullets then
+        self:EquipPrimary()
+    elseif not isAttacking and primaryInfo and not primaryInfo.has_bullets then
+        self:EquipPrimary()
+    elseif isAttacking and secondaryInfo and secondaryInfo.has_bullets then
+        self:EquipSecondary()
+    elseif not isAttacking and secondaryInfo and not secondaryInfo.has_bullets then
+        self:EquipSecondary()
+    else
+        self:EquipMelee()
+    end
 end
 
 function BotInventoryMgr:GetPrimary()
