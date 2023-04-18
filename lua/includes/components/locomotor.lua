@@ -171,13 +171,17 @@ function BotLocomotor:UpdateEyeAnglesFinal()
 
     local targetAngles = (self.lookPos - self.bot:EyePos()):Angle()
     local currentAngles = self.bot:EyeAngles()
-    local rotationRate = 1 -- Modify this value to change rotation rate
+    local rotationSpeed = 4       -- Modify this value to change rotation speed
+    local deltaTime = FrameTime() -- Add frame time for frame rate independence
 
     local yawDiff = math.AngleDifference(targetAngles.y, currentAngles.y)
     local pitchDiff = math.AngleDifference(targetAngles.p, currentAngles.p)
 
-    local newYaw = currentAngles.y + math.Clamp(yawDiff, -rotationRate, rotationRate)
-    local newPitch = currentAngles.p + math.Clamp(pitchDiff, -rotationRate, rotationRate)
+    local yawFraction = math.Clamp(rotationSpeed * deltaTime, 0, 1)
+    local pitchFraction = math.Clamp(rotationSpeed * deltaTime, 0, 1)
+
+    local newYaw = Lerp(yawFraction, currentAngles.y, currentAngles.y + yawDiff)
+    local newPitch = Lerp(pitchFraction, currentAngles.p, currentAngles.p + pitchDiff)
 
     self.bot:SetEyeAngles(Angle(newPitch, newYaw, 0))
 end
