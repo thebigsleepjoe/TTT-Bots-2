@@ -96,6 +96,29 @@ function Lib.TraceVisibilityLine(player, fromEyes, finish)
     return trace
 end
 
+function Lib.GetClosest(entities, pos)
+    local closest = nil
+    local closestDist = 99999
+    for i, v in pairs(entities) do
+        local dist = v:GetPos():Distance(pos)
+        if dist < closestDist then
+            closest = v
+            closestDist = dist
+        end
+    end
+    return closest, closestDist
+end
+
+function Lib.GetFirstCloserThan(entities, pos, threshold)
+    for i, v in pairs(entities) do
+        local dist = v:GetPos():Distance(pos)
+        if dist < threshold then
+            return v
+        end
+    end
+    return nil
+end
+
 function Lib.GetClosestLadder(pos)
     local closestLadder = nil
     local closestDist = 99999

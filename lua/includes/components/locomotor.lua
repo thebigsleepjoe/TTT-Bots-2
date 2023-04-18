@@ -899,8 +899,36 @@ function BotLocomotor:UpdateViewAngles(cmd)
 
         if wallClose then self.randomLook = nil end
 
+        -- Check if there are any plys nearby and look at the closest one if there are, instead of looking at the random look pos
+        if not self.randomLookOverride and not self.RLOStop then
+            local plys = player.GetAll()
+            local plysNearby = {}
+            for i, ply in pairs(plys) do
+                if not lib.IsPlayerAlive(ply) then continue end
+                if ply == self.bot then continue end
+                if self.bot:Visible(ply) then
+                    table.insert(plysNearby, ply)
+                end
+            end
+            if #plysNearby > 0 then
+                -- local ply, plyDist = lib.GetClosest(plysNearby, self.bot:GetPos())
+                local ply = table.Random(plysNearby)
+                local firstWithin = lib.GetFirstCloserThan(plysNearby, self.bot:GetPos(), 200)
+                if firstWithin then ply = firstWithin end
+
+                self:TimedVariable("randomLookOverride", ply, math.random(10, 30) / 10)
+                self:TimedVariable("RLOStop", true, math.random(4, 30))
+            end
+        end
+
+        if self.randomLookOverride ~= nil then
+            self.randomLook = self.randomLookOverride:GetPos() + Vector(0, 0, 64)
+            if not self.bot:Visible(self.randomLookOverride) then self.randomLookOverride = nil end
+        end
+
         self.lookPosGoal = (
-            (not wallClose and self["randomLook"])
+            (self.randomLookOverride and self.randomLook)
+            or (not wallClose and self["randomLook"])
             or (wallClose and self.nextPos + Vector(0, 0, 64))
             or goal
             )
