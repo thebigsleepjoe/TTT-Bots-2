@@ -834,14 +834,39 @@ function BotLocomotor:DetermineNextPos()
     return nextPos, nextUncompleted.i
 end
 
+--- If there are any blocking entities, aim our crowbar and IN_ATTACK at them
+function BotLocomotor:DestroyBlockingEntities()
+    local bot = self.bot
+    local obtracker = bot.components.obstacletracker
+    local breakable = obtracker:GetBlockingBreakable()
+
+    if not breakable or not IsValid(breakable) then return end
+
+    self:AimAt(breakable:GetPos(), 0.5)
+    self:SetAttack(true, 0.5)
+    bot.components.inventorymgr:EquipMelee()
+end
+
 -- Determines how the bot navigates through its path once it has one.
 function BotLocomotor:FollowPath()
     if not self:HasPath() then return false end
-    if self.goalPos and self.goalPos:Distance(self.bot:GetPos()) < 40 then return false end
+    if self.goalPos and self:GetXYDist(self.goalPos, self.bot:GetPos()) < 32 then return false end
+    TTTBots.DebugServer.DrawCross(self.goalPos, 10, Color(255, 0, 255), 0.15, "GoalFor" .. self.bot:Nick())
+    TTTBots.DebugServer.DrawLineBetween(self.bot:GetPos(), self.goalPos, Color(255, 0, 255), 0.15,
+        "GoalLineFor" .. self.bot:Nick())
     local dvlpr = lib.GetDebugFor("pathfinding")
     local bot = self.bot
+    local pathInfo = self:GetPath()
 
-    local preparedPath = self:GetPath().preparedPath
+    local preparedPath = pathInfo.preparedPath
+    if not preparedPath or #preparedPath == 0 then return false end
+
+    -- Check if impossible
+    local isImpossible = TTTBots.PathManager.impossiblePaths[pathInfo.pathid] ~= nil
+    -- print(self.bot:Nick(), pathInfo.pathid, isImpossible)
+    if isImpossible then
+        return false
+    end
     -- PrintTable(self:GetPath())
 
     if dvlpr and preparedPath then
@@ -871,6 +896,8 @@ function BotLocomotor:FollowPath()
         TTTBots.DebugServer.DrawText(nextPos, nextpostxt, Color(255, 255, 255))
         -- TTTBots.DebugServer.DrawLineBetween(bot:GetPos(), nextPos, Color(255, 255, 255))
     end
+
+    self:DestroyBlockingEntities()
 
     return true
 end
@@ -961,6 +988,13 @@ function BotLocomotor:LerpMovement(factor, goal)
     local dvlpr = lib.GetDebugFor("pathfinding")
 end
 
+function BotLocomotor:SetAttack(attack, time)
+    self.attack = attack
+    if time then
+        self.attackReleaseTime = CurTime() + time
+    end
+end
+
 function BotLocomotor:StartCommand(cmd)
     cmd:ClearButtons()
     cmd:ClearMovement()
@@ -1042,6 +1076,10 @@ function BotLocomotor:StartCommand(cmd)
             TTTBots.DebugServer.DrawText(self.bot:GetPos(), "Opening door", Color(255, 255, 255))
         end
         cmd:SetButtons(cmd:GetButtons() + IN_USE)
+    end
+
+    if self.attack and self.attackReleaseTime > CurTime() then
+        cmd:SetButtons(cmd:GetButtons() + IN_ATTACK)
     end
 
     self.moveNormal = cmd:GetViewAngles():Forward()
