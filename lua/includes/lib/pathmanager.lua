@@ -203,6 +203,7 @@ local function get_penalties_between(area, neighbor)
     -- if heightChange < -64 then
     --     h = h + fallCost
     -- end
+    if neighbor:IsLadder() or area:IsLadder() then return 0 end
 
     local heightChange = area:ComputeAdjacentConnectionHeightChange(neighbor)
 
