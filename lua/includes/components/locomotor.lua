@@ -552,7 +552,6 @@ function BotLocomotor:UpdateMovement()
 
     local followingPath = self:FollowPath() -- true if doing proper pathing
     self.tryingMove = followingPath
-
     -- Walk straight towards the goal if it doesn't require complex pathing.
     local goal = self:GetGoalPos()
 
