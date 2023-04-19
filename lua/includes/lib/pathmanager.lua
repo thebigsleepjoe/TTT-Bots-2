@@ -123,6 +123,19 @@ function navMeta:GetPossibleStuckCost()
     return 0
 end
 
+function navMeta:GetPlayersInArea()
+    local players = {}
+    for i, ply in pairs(player.GetAll()) do
+        local closestPoint = self:GetClosestPointOnArea(ply:GetPos())
+        local threshold = self:GetSizeX() / 3
+        if (closestPoint:Distance(ply:GetPos()) < threshold) then
+            table.insert(players, ply)
+        end
+    end
+
+    return players
+end
+
 function navMeta:IsLadder()
     return false
 end
@@ -202,7 +215,7 @@ end
 
 local function heuristic_cost_estimate(current, goal)
     local avoidCost = math.huge
-    local fallCost = math.huge / 2
+    local perPlayerPenalty = 800 -- Deprioritize high-trafficked areas
     -- Manhattan distance
     local h = math.abs(current:GetCenter().x - goal:GetCenter().x) + math.abs(current:GetCenter().y - goal:GetCenter().y)
 
@@ -216,11 +229,8 @@ local function heuristic_cost_estimate(current, goal)
         h = h + 50
     end
 
-    -- Deprioritize falling from dangerous heights
-    -- local heightChange = current:ComputeAdjacentConnectionHeightChange(goal)
-    -- if heightChange < -64 then
-    --     h = h + fallCost
-    -- end
+    local nPlayers = #current:GetPlayersInArea()
+    h = h + (nPlayers * perPlayerPenalty)
 
     -- Never go into lava, or what we consider a "lava" area
     local isLava = current:HasAttributes(NAV_MESH_AVOID)
