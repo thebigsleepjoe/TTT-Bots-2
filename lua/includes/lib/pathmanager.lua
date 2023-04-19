@@ -286,6 +286,10 @@ function TTTBots.PathManager.Astar2(start, goal)
         if (cn % cpf == 0) then
             coroutine.yield(cn)
         end
+        if cn > 2000 then
+            print("Pathfinding took too long, aborting")
+            return false
+        end
         ---------------------------------- end coroutine stuff
         local current = openSet[1]
         table.remove(openSet, 1)

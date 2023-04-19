@@ -1027,7 +1027,9 @@ function BotLocomotor:StartCommand(cmd)
         if dvlpr then TTTBots.DebugServer.DrawCross(self.movePriorityVec, 10, Color(0, 255, 255)) end
     end
 
-
+    if self.movementVec and self:GetXYDist(self.movementVec, self.bot:GetPos()) < 16 then
+        self.movementVec = Vector(0, 0, 0)
+    end
 
     if self.movementVec ~= Vector(0, 0, 0) then
         local ang = (self.movementVec - self.bot:GetPos()):Angle()
