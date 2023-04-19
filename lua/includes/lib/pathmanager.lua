@@ -181,6 +181,25 @@ function navMeta:GetConnectingEdge(other)
     return otherEdge
 end
 
+local function get_penalties_between(area, neighbor)
+    local smallFallPenalty = 1000
+    local medFallPenalty = math.huge / 8
+    local largeFallPenalty = math.huge / 2
+
+    -- local heightChange = current:ComputeAdjacentConnectionHeightChange(goal)
+    -- if heightChange < -64 then
+    --     h = h + fallCost
+    -- end
+
+    local heightChange = area:ComputeAdjacentConnectionHeightChange(neighbor)
+
+    if heightChange < -256 then return largeFallPenalty end
+    if heightChange < -128 then return medFallPenalty end
+    if heightChange < -64 then return smallFallPenalty end
+
+    return 0
+end
+
 local function heuristic_cost_estimate(current, goal)
     local avoidCost = math.huge
     local fallCost = math.huge / 2
@@ -188,23 +207,23 @@ local function heuristic_cost_estimate(current, goal)
     local h = math.abs(current:GetCenter().x - goal:GetCenter().x) + math.abs(current:GetCenter().y - goal:GetCenter().y)
 
     -- Add extra cost for ladders
-    if current:IsLadder() or goal:IsLadder() then
+    if current:IsLadder() then
         return h -- Must return here because otherwise it will error with below methods
     end
 
     -- Check if current and neighbor are underwater and add extra cost if true
-    if current:IsUnderwater() and goal:IsUnderwater() then
+    if current:IsUnderwater() then
         h = h + 50
     end
 
     -- Deprioritize falling from dangerous heights
-    local heightChange = current:ComputeAdjacentConnectionHeightChange(goal)
-    if heightChange < -100 then
-        h = h + fallCost
-    end
+    -- local heightChange = current:ComputeAdjacentConnectionHeightChange(goal)
+    -- if heightChange < -64 then
+    --     h = h + fallCost
+    -- end
 
     -- Never go into lava, or what we consider a "lava" area
-    local isLava = current:HasAttributes(NAV_MESH_AVOID) or goal:HasAttributes(NAV_MESH_AVOID)
+    local isLava = current:HasAttributes(NAV_MESH_AVOID)
     if isLava then
         h = h + avoidCost -- We MUST avoid this area
     end
@@ -279,7 +298,8 @@ function TTTBots.PathManager.Astar2(start, goal)
         for _, neighbor in pairs(adjacents) do
             if (not table.HasValue(closedSet, neighbor)) then
                 neighborsCounted = neighborsCounted + 1
-                local tentative_gScore = current.cost + distance_between(current.area, neighbor)
+                local tentative_gScore = current.cost + distance_between(current.area, neighbor) +
+                    get_penalties_between(current.area, neighbor)
                 local tentative_fScore = tentative_gScore + heuristic_cost_estimate(neighbor, goal)
 
                 local neighborInOpenSet = false
@@ -793,6 +813,12 @@ hook.Add("Tick", "TTTBots.PathManager.PathCoroutine", function()
             TimeSince = function(self) return CurTime() - self.generatedAt end,
             preparedPath = preparedPath
         }
+
+        if not path or not preparedPath or #preparedPath == 0 then
+            -- path is impossible add it to impossiblePaths
+            TTTBots.PathManager.impossiblePaths[pathID] = true
+            print("Found impossible path, " .. pathID)
+        end
 
         -- Remove the path from the queue
         table.remove(queued, 1)
