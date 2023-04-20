@@ -73,7 +73,7 @@ function Wander:GetWanderableArea(bot)
     local lovesCrowds = bot:PersonalityHas("lovescrowds")
 
     local popularNavs = TTTBots.Lib.PopularNavsSorted
-    local adhereToPersonality = (isLoner and not lovesCrowds) and math.random(1, 3) <= 2
+    local adhereToPersonality = (isLoner and not lovesCrowds) and math.random(1, 5) <= 4
 
     local area = table.Random(navmesh.GetAllNavAreas())
     if adhereToPersonality and #popularNavs > 10 then
@@ -91,15 +91,10 @@ function Wander:GetWanderableArea(bot)
 
         if lovesCrowds then
             area = navmesh.GetNavAreaByID(table.Random(top10Navs)[1])
-            print("Crowd lover navigating to popular nav", bot:Nick())
         else
             area = navmesh.GetNavAreaByID(table.Random(bottom10Navs)[1])
-            print("Loner navigating to unpopular nav", bot:Nick())
         end
     end
-
-    print(area)
-
 
     return area
 end

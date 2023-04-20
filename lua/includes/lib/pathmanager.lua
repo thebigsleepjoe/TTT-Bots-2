@@ -196,6 +196,7 @@ end
 
 local function get_penalties_between(area, neighbor)
     local smallFallPenalty = 1000
+    local jumpPenalty = 300
     local medFallPenalty = math.huge / 8
     local largeFallPenalty = math.huge / 2
 
@@ -210,6 +211,7 @@ local function get_penalties_between(area, neighbor)
     if heightChange < -256 then return largeFallPenalty end
     if heightChange < -128 then return medFallPenalty end
     if heightChange < -64 then return smallFallPenalty end
+    if heightChange > 32 then return jumpPenalty end
 
     return 0
 end

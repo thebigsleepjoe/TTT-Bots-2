@@ -851,9 +851,9 @@ end
 function BotLocomotor:FollowPath()
     if not self:HasPath() then return false end
     if self.goalPos and self:GetXYDist(self.goalPos, self.bot:GetPos()) < 32 then return false end
-    TTTBots.DebugServer.DrawCross(self.goalPos, 10, Color(255, 0, 255), 0.15, "GoalFor" .. self.bot:Nick())
-    TTTBots.DebugServer.DrawLineBetween(self.bot:GetPos(), self.goalPos, Color(255, 0, 255), 0.15,
-        "GoalLineFor" .. self.bot:Nick())
+    -- TTTBots.DebugServer.DrawCross(self.goalPos, 10, Color(255, 0, 255), 0.15, "GoalFor" .. self.bot:Nick())
+    -- TTTBots.DebugServer.DrawLineBetween(self.bot:GetPos(), self.goalPos, Color(255, 0, 255), 0.15,
+    --     "GoalLineFor" .. self.bot:Nick())
     local dvlpr = lib.GetDebugFor("pathfinding")
     local bot = self.bot
     local pathInfo = self:GetPath()
