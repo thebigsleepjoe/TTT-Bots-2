@@ -269,3 +269,15 @@ function plyMeta:GetPersonalityTraits()
         return self.components.personality:GetTraits()
     end
 end
+
+function plyMeta:PersonalityHas(trait_name)
+    if self.components and self.components.personality then
+        local traits = self.components.personality:GetTraits()
+        for _, trait in ipairs(traits) do
+            if trait == trait_name then
+                return true
+            end
+        end
+    end
+    return false
+end
