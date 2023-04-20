@@ -286,8 +286,7 @@ function TTTBots.PathManager.Astar2(start, goal)
         if (cn % cpf == 0) then
             coroutine.yield(cn)
         end
-        if cn > 2000 then
-            print("Pathfinding took too long, aborting")
+        if cn > 600 then -- 600 is the max number of nodes that can be checked before the pathfinder gives up
             return false
         end
         ---------------------------------- end coroutine stuff
