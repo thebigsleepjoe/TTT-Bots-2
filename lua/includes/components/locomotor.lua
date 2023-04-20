@@ -834,6 +834,7 @@ function BotLocomotor:DetermineNextPos()
 end
 
 --- If there are any blocking entities, aim our crowbar and IN_ATTACK at them
+---@deprecated This should be a behavior and should not be in the locomotor
 function BotLocomotor:DestroyBlockingEntities()
     local bot = self.bot
     local obtracker = bot.components.obstacletracker
@@ -896,7 +897,7 @@ function BotLocomotor:FollowPath()
         -- TTTBots.DebugServer.DrawLineBetween(bot:GetPos(), nextPos, Color(255, 255, 255))
     end
 
-    self:DestroyBlockingEntities()
+    -- self:DestroyBlockingEntities()
 
     return true
 end
