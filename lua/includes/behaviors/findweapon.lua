@@ -41,7 +41,7 @@ end
 
 function FindWeapon:CanReachWeapon(ent)
     local func = TTTBots.Lib.BotCanReachPos
-    return func(ent)
+    return func(ent:GetPos())
 end
 
 function FindWeapon:GetWeaponFor(bot)

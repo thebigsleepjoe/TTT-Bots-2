@@ -61,7 +61,7 @@ function Lib.BotCanReachPos(pos)
     if not nav then
         return false
     end
-    local nearestPoint = nav:GetNearestPoint(pos)
+    local nearestPoint = nav:GetClosestPointOnArea(pos)
     return Lib.DistanceXY(nearestPoint, pos) <= 32
 end
 

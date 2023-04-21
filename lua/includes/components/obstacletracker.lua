@@ -83,6 +83,38 @@ function BotObstacleTracker:GetNearbyObstacles(radius)
     return nearby
 end
 
+function BotObstacleTracker:GetNearbyBreakables(radius)
+    local nearby = {}
+    local pos = self.bot:GetPos()
+    radius = radius or 100
+
+    for _, obstacle in pairs(BotObstacleTracker.Breakables) do
+        if not IsValid(obstacle) then continue end
+        local vec = obstacle:GetPos()
+        if vec:Distance(pos) < radius then
+            table.insert(nearby, obstacle)
+        end
+    end
+
+    return nearby
+end
+
+function BotObstacleTracker:GetNearbyUnbreakables(radius)
+    local nearby = {}
+    local pos = self.bot:GetPos()
+    radius = radius or 100
+
+    for _, obstacle in pairs(BotObstacleTracker.Unbreakables) do
+        if not IsValid(obstacle) then continue end
+        local vec = obstacle:GetPos()
+        if vec:Distance(pos) < radius then
+            table.insert(nearby, obstacle)
+        end
+    end
+
+    return nearby
+end
+
 function BotObstacleTracker:Think()
     if self.disabled then return end
     self.tick = self.tick + 1

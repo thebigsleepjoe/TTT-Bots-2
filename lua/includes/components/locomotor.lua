@@ -35,28 +35,28 @@ function BotLocomotor:Initialize(bot)
     self.tick = 0                                                        -- Tick counter
     self.bot = bot
 
-    self.path = nil                    -- Current path
-    self.pathingRandomAngle = Angle()  -- Random angle used for viewangles when pathing
-    self.pathLookSpeed = 0.05          -- Movement angle turn speed when following a path
+    self.path = nil                   -- Current path
+    self.pathingRandomAngle = Angle() -- Random angle used for viewangles when pathing
+    self.pathLookSpeed = 0.05         -- Movement angle turn speed when following a path
 
-    self.goalPos = nil                 -- Current goal position, if any. If nil, then bot is not moving.
+    self.goalPos = nil                -- Current goal position, if any. If nil, then bot is not moving.
 
-    self.tryingMove = false            -- If true, then the bot is trying to move to the goal position.
-    self.posOneSecAgo = nil            -- Position of the bot one second ago. Used for pathfinding.
+    self.tryingMove = false           -- If true, then the bot is trying to move to the goal position.
+    self.posOneSecAgo = nil           -- Position of the bot one second ago. Used for pathfinding.
 
-    self.lookPosOverride = nil         -- Override look position, this is only used from outside of this component. Like aiming at a player.
-    self.lookLerpSpeed = 0.05          -- Current look speed (rate of lerp)
-    self.lookPosGoal = nil             -- The current goal position to look at
-    self.lookPos = nil                 -- Current look position, gets lerped to Override, or to self.lookPosGoal.
+    self.lookPosOverride = nil        -- Override look position, this is only used from outside of this component. Like aiming at a player.
+    self.lookLerpSpeed = 0.05         -- Current look speed (rate of lerp)
+    self.lookPosGoal = nil            -- The current goal position to look at
+    self.lookPos = nil                -- Current look position, gets lerped to Override, or to self.lookPosGoal.
 
-    self.movePriorityVec = nil         -- Current movement priority vector, overrides movementVec if not nil
-    self.movementVec = Vector(0, 0, 0) -- Current movement position, gets lerped to Override
-    self.moveLerpSpeed = 0             -- Current movement speed (rate of lerp)
-    self.moveNormal = Vector(0, 0, 0)  -- Current movement normal, functionally this is read-only.
-    self.moveNormalOverride = nil      -- Override movement normal, mostly used within this component.
+    self.movePriorityVec = nil        -- Current movement priority vector, overrides movementVec if not nil
+    self.movementVec = nil            -- Current movement position, gets lerped to Override
+    self.moveLerpSpeed = 0            -- Current movement speed (rate of lerp)
+    self.moveNormal = Vector(0, 0, 0) -- Current movement normal, functionally this is read-only.
+    self.moveNormalOverride = nil     -- Override movement normal, mostly used within this component.
 
-    self.strafe = nil                  -- "left" or "right" or nil
-    self.forceForward = false          -- If true, then the bot will always move forward
+    self.strafe = nil                 -- "left" or "right" or nil
+    self.forceForward = false         -- If true, then the bot will always move forward
 
     self.crouch = false
     self.jump = false
@@ -834,10 +834,10 @@ function BotLocomotor:DetermineNextPos()
     local nextPos = nextUncompleted.pos
 
     -- now check if we're within 70 units of the next node and can see it
-    --local dist = botPos:Distance(nextPos)
-    local dist = self:GetXYDist(botPos, nextPos)
+    local dist = botPos:Distance(nextPos)
+    -- local dist = self:GetXYDist(botPos, nextPos)
     local canSee = self:VisionTestNoMask(botEyePos, nextPos + Vector(0, 0, 16))
-    if (dist < 32 and canSee) or dist < 16 then
+    if (dist < 20 and canSee) or dist < 10 then
         nextUncompleted.completed = true
         return self:DetermineNextPos()
     end
@@ -918,6 +918,7 @@ function BotLocomotor:UpdateViewAngles(cmd)
     local override = self:GetLookPosOverride()
     if override then
         self.lookPosGoal = override
+        self:UpdateEyeAnglesFinal()
         return
     end
 
@@ -1005,7 +1006,7 @@ end
 function BotLocomotor:LerpMovement(factor, goal)
     if not goal then return end
 
-    self.movementVec = LerpVector(factor, self.movementVec, goal)
+    self.movementVec = self.movementVec and LerpVector(factor, self.movementVec, goal) or goal
     local dvlpr = lib.GetDebugFor("pathfinding")
 end
 
@@ -1050,10 +1051,10 @@ function BotLocomotor:StartCommand(cmd)
     end
 
     if self.movementVec and self:GetXYDist(self.movementVec, self.bot:GetPos()) < 16 then
-        self.movementVec = Vector(0, 0, 0)
+        self.movementVec = nil
     end
 
-    if self.movementVec ~= Vector(0, 0, 0) then
+    if self.movementVec ~= nil then
         local ang = (self.movementVec - self.bot:GetPos()):Angle()
         -- local moveNormalOverride = self:GetMoveNormalOverride()
         -- if moveNormalOverride then
@@ -1067,13 +1068,13 @@ function BotLocomotor:StartCommand(cmd)
     end
 
     if self:GetGoalPos() and self.bot:GetPos():Distance(self:GetGoalPos()) < 16 then
-        self.movementVec = Vector(0, 0, 0)
+        self.movementVec = nil
     end
 
     self:UpdateViewAngles(cmd) -- The real view angles
 
     -- Set forward and side movement
-    local forward = self.movementVec == Vector(0, 0, 0) and 0 or 400
+    local forward = self.movementVec == nil and 0 or 400
 
     local side = cmd:GetSideMove()
     side = (self:GetStrafe() == "left" and -400)

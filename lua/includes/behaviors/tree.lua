@@ -2,11 +2,13 @@ TTTBots.Behaviors = {}
 
 include("includes/behaviors/wander.lua")
 include("includes/behaviors/findweapon.lua")
+include("includes/behaviors/clearbreakables.lua")
 
 local b = TTTBots.Behaviors
 TTTBots.Behaviors.BehaviorTree = { -- Acts as one big priority node
     -- b.Attack,
     -- b.IDBody,
+    b.ClearBreakables,
     b.FindWeapon,
     -- b.FindAmmo,
     -- b.Heal,
@@ -27,6 +29,7 @@ function TTTBots.Behaviors.Tree()
         local behaviorChanged = false
         if currentBehavior and currentBehavior:Validate(bot) then
             newState = currentBehavior:OnRunning(bot)
+            print("Running behavior named " .. currentBehavior.Name)
         else
             for i, behavior in pairs(tree) do
                 if behavior:Validate(bot) then
