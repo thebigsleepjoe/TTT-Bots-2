@@ -312,16 +312,11 @@ end
 
 --- Detect if there is a door ahead of us. Runs two traces, one for moveangles and one for viewangles. If so, then return the door.
 function BotLocomotor:DetectDoorAhead()
-    local pos = self.bot:EyePos()
-    local nextPos = self.nextPos
-
-    if not nextPos then return end
-
+    local off = Vector(0, 0, 16)
     local npTrace = util.TraceLine({
-        start = pos,
-        endpos = nextPos,
-        filter = self.bot,
-        mask = MASK_SOLID_BRUSHONLY
+        start = self.bot:GetPos() + off,
+        endpos = (self.bot:GetPos() + self:GetMoveNormal() * 100) + off,
+        filter = self.bot
     })
 
     if npTrace.Hit then
@@ -333,6 +328,20 @@ function BotLocomotor:DetectDoorAhead()
     end
 
     return false
+end
+
+function BotLocomotor:DetectDoorNearby()
+    local range = 100
+    local pos = self.bot:GetPos()
+    local doors = {}
+    for i, ent in pairs(ents.FindInSphere(pos, range)) do
+        if IsValid(ent) and ent:IsDoor() then
+            table.insert(doors, ent)
+        end
+    end
+
+    local closest = TTTBots.Lib.GetClosest(doors, pos)
+    return closest
 end
 
 --- Sets a variable to a value for a certain amount of time. Useful for temporary positioning, and +use timing.
@@ -588,6 +597,9 @@ function BotLocomotor:UpdateMovement()
 
     local door = self:DetectDoorAhead()
     if door then
+        local dvlpr_door = lib.GetConVarBool("debug_doors")
+        if dvlpr_door then print(self.bot:Nick() .. " opening door") end
+
         self:SetUsing(true)
         if not self.doorStandPos then
             local vec = self:GetWhereStandForDoor(door)
@@ -815,7 +827,7 @@ function BotLocomotor:DetermineNextPos()
     -- If we can't see neither the next node nor the last completed node, then we're stuck, mark the last completed as uncompleted
     if lastCompleted and not self:VisionTestNoMask(botEyePos, lastCompleted.pos + Vector(0, 0, 16)) and not self:VisionTestNoMask(botEyePos, nextUncompleted.pos + Vector(0, 0, 16)) then
         lastCompleted.completed = false
-        if dvlpr then print("Bot is stuck, marking last completed node as uncompleted") end
+        if dvlpr then print("Bot " .. self.bot:Nick() .. " is stuck, marking last completed node as uncompleted") end
         return nil -- return nil because if we return DetermineNextPos we will soft lock
     end
 
@@ -961,11 +973,20 @@ function BotLocomotor:UpdateViewAngles(cmd)
             )
     end
 
+    local dvlpr_door = lib.GetDebugFor("doors")
+
     if self:IsOnLadder() then
         self.lookPosGoal = self.nextPos
     elseif self.targetDoor then
         local doorCenter = self.targetDoor:WorldSpaceCenter()
+        if dvlpr_door then print(self.bot:Nick() .. " is looking at blocking door " .. self.targetDoor:EntIndex()) end
         self.lookPosGoal = doorCenter
+        -- else
+        --     local nearbyDoor = self:DetectDoorNearby()
+        --     if nearbyDoor then
+        --         if dvlpr_door then print(self.bot:Nick() .. " is looking at nearby door " .. nearbyDoor:EntIndex()) end
+        --         self.lookPosGoal = nearbyDoor:WorldSpaceCenter()
+        --     end
     end
 
     if not self.lookPosGoal then return end

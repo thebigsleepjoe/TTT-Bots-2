@@ -47,12 +47,7 @@ function Lib.CheckCompatibleGamemode()
 end
 
 function Lib.GetDebugFor(debugType)
-    local debugTypes = {
-        all = "ttt_bot_debug_misc",
-        pathfinding = "ttt_bot_debug_pathfinding",
-        look = "ttt_bot_debug_look",
-    }
-    return GetConVar(debugTypes[debugType]):GetBool()
+    return GetConVar("ttt_bot_debug_" .. debugType):GetBool()
 end
 
 function Lib.CreateBot(name)
@@ -70,7 +65,7 @@ function Lib.CreateBot(name)
         personality = TTTBots.Components.Personality:New(bot),
     }
 
-    local dvlpr = Lib.GetDebugFor("all")
+    local dvlpr = Lib.GetDebugFor("misc")
     if dvlpr then
         for i, v in pairs(bot.components) do
             print(string.format("Bot %s component '%s', ID is: %s", bot:Nick(), i, v.componentID))
