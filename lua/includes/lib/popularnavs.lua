@@ -1,5 +1,6 @@
 --- Basically defines "hangout" areas that people frequent
 --- Does NOT apply to CNavLadders
+TTTBots.Lib = TTTBots.Lib or {}
 TTTBots.Lib.PopularNavs = {}
 TTTBots.Lib.PopularNavsSorted = {}
 

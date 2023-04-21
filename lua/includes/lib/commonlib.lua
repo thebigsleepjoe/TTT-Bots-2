@@ -50,6 +50,21 @@ function Lib.GetDebugFor(debugType)
     return GetConVar("ttt_bot_debug_" .. debugType):GetBool()
 end
 
+function Lib.DistanceXY(pos1, pos2)
+    return math.sqrt((pos1.x - pos2.x) ^ 2 + (pos1.y - pos2.y) ^ 2)
+end
+
+--- Check that the nearest point on the nearest navmesh is within 32 units of the given position. Irrespective of Z/height.
+--- This is intended to be used with weapons.
+function Lib.BotCanReachPos(pos)
+    local nav = navmesh.GetNearestNavArea(pos)
+    if not nav then
+        return false
+    end
+    local nearestPoint = nav:GetNearestPoint(pos)
+    return Lib.DistanceXY(nearestPoint, pos) <= 32
+end
+
 function Lib.CreateBot(name)
     if not Lib.CheckIfPlayerSlots() then
         TTTBots.Chat.BroadcastInChat("Somebody tried to add a bot, but there are not enough player slots.")

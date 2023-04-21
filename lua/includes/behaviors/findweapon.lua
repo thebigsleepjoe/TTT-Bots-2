@@ -39,6 +39,11 @@ function FindWeapon:WeaponOnGround(weapon)
     return not IsValid(weapon:GetOwner())
 end
 
+function FindWeapon:CanReachWeapon(ent)
+    local func = TTTBots.Lib.BotCanReachPos
+    return func(ent)
+end
+
 function FindWeapon:GetWeaponFor(bot)
     -- Return the nearest weapon to bot:GetPos()
     local weapons = self:GetWeaponsNear(bot)
@@ -46,9 +51,9 @@ function FindWeapon:GetWeaponFor(bot)
     local closestDist
     for k, v in pairs(weapons) do
         local dist = bot:GetPos():Distance(v:GetPos())
-        if
-            self:WeaponIsPrimary(v)
+        if self:WeaponIsPrimary(v)
             and self:WeaponOnGround(v)
+            and self:CanReachWeapon(v)
             and (closestDist == nil
             or dist < closestDist)
         then

@@ -127,6 +127,7 @@ timer.Create("TTTBots.Components.ObstacleTracker_Breakables", 1.5, 0, function()
 
     local phys = {}
     table.Add(phys, ents.FindByClass("prop_physics"))
+    table.Add(phys, ents.FindByClass("prop_physics_multiplayer"))
     table.Add(phys, ents.FindByClass("func_physbox"))
 
     for _, entity in pairs(phys) do
