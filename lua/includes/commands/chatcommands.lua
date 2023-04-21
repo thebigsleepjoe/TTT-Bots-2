@@ -3,9 +3,17 @@ local Chat = TTTBots.Chat
 
 Chat.Commands = {
     ["!botmenu"] = function(ply, fullstr)
+        if not ply:IsSuperAdmin() then
+            Chat.MessagePlayer(ply, "You do not have permission to use this command.")
+            return
+        end
         Chat.MessagePlayer(ply, "Not implemented yet. Please use the console commands instead.")
     end,
     ["!describe"] = function(ply, fullstr)
+        if not ply:IsSuperAdmin() then
+            Chat.MessagePlayer(ply, "You do not have permission to use this command.")
+            return
+        end
         -- example: fullstr="!describe bot1"
         -- outputs in chat the bot personality string (bot.components.personality:GetFlavoredTraits())
 
@@ -41,6 +49,10 @@ Chat.Commands = {
         Chat.MessagePlayer(ply, str)
     end,
     ["!describe2"] = function(ply, fullstr)
+        if not ply:IsSuperAdmin() then
+            Chat.MessagePlayer(ply, "You do not have permission to use this command.")
+            return
+        end
         -- Basically same as above, but instead of printing the flavor text we use the trait name
         -- example: fullstr="!describe2 bot1"
 
@@ -74,6 +86,55 @@ Chat.Commands = {
         end
         str = string.sub(str, 1, -3) -- remove last comma
         Chat.MessagePlayer(ply, str)
+    end,
+    ["!addbot"] = function(ply, fullstr)
+        if not ply:IsSuperAdmin() then
+            Chat.MessagePlayer(ply, "You do not have permission to use this command.")
+            return
+        end
+        local split = string.gmatch(fullstr, "%S+") -- split by spaces
+        local cmd = split()                         -- first word is the command
+        local amt = split()                         -- second word is the amount of bots to add
+
+        -- check we can convert amt to a number, if it isn't nil or blank
+        if amt ~= nil and amt ~= "" then
+            amt = tonumber(amt)
+            if amt == nil then
+                Chat.MessagePlayer(ply, "Please specify a valid number of bots to add.")
+                return
+            end
+        else
+            amt = 1
+        end
+
+        -- check there are enough player slots
+        local isSingle = game.SinglePlayer()
+        if isSingle then
+            Chat.MessagePlayer(ply, "Cannot add bots in singleplayer. Please check the workshop page for a how-to guide.")
+            return
+        end
+        local slots = game.MaxPlayers() - #player.GetAll()
+        if amt > slots then
+            Chat.MessagePlayer(ply, "Not enough player slots to add " .. amt .. " bots.")
+            return
+        end
+
+        -- add bots
+        for i = 1, amt do
+            TTTBots.Lib.CreateBot()
+        end
+    end,
+    ["!roundrestart"] = function(ply, fulltxt)
+        if not ply:IsSuperAdmin() then
+            Chat.MessagePlayer(ply, "You do not have permission to use this command.")
+            return
+        end
+        local nBots = #player.GetBots()
+        concommand.Run(ply, "ttt_bot_kickall")
+        concommand.Run(ply, "ttt_roundrestart")
+        concommand.Run(ply, "ttt_bot_add", { tostring(nBots) })
+
+        Chat.MessagePlayer(ply, "Restarted round and added " .. nBots .. " bots.")
     end,
 }
 
