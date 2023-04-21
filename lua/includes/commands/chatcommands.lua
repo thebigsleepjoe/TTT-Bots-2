@@ -136,6 +136,9 @@ Chat.Commands = {
 
         Chat.MessagePlayer(ply, "Restarted round and added " .. nBots .. " bots.")
     end,
+    ["!restartround"] = function(ply, fulltxt)
+        Chat.Commands['!roundrestart'](ply, fulltxt)
+    end,
 }
 
 
