@@ -6,6 +6,7 @@ local lib = TTTBots.Lib
 local Wander = TTTBots.Behaviors.Wander
 Wander.Name = "Wander"
 Wander.Description = "Wanders around the map"
+Wander.Interruptible = true
 
 local status = {
     Running = 1,

@@ -27,11 +27,17 @@ function TTTBots.Behaviors.Tree()
         local currentBehavior = bot.currentBehavior
         local newState = status.Failure
         local behaviorChanged = false
+        local interruptible = currentBehavior and currentBehavior.Interruptible
+
         if currentBehavior and currentBehavior:Validate(bot) then
             newState = currentBehavior:OnRunning(bot)
             print("Running behavior named " .. currentBehavior.Name)
         else
-            for i, behavior in pairs(tree) do
+            interruptible = true
+        end
+
+        if interruptible then
+            for i, behavior in ipairs(tree) do
                 if behavior:Validate(bot) then
                     if currentBehavior ~= behavior then
                         if currentBehavior then

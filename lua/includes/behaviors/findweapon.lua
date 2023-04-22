@@ -6,6 +6,7 @@ local lib = TTTBots.Lib
 local FindWeapon = TTTBots.Behaviors.FindWeapon
 FindWeapon.Name = "FindWeapon"
 FindWeapon.Description = "Wanders around the map"
+FindWeapon.Interruptible = true
 
 local status = {
     Running = 1,

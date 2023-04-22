@@ -6,6 +6,7 @@ local lib = TTTBots.Lib
 local Breaker = TTTBots.Behaviors.ClearBreakables
 Breaker.Name = "ClearBreakables"
 Breaker.Description = "Clear breakables near to the player"
+Breaker.Interruptible = true
 
 local status = {
     Running = 1,

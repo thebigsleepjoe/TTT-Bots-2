@@ -120,7 +120,7 @@ function BotLocomotor:SetPriorityGoal(vec, range)
     range = range or 32
 
     local dist = self.bot:GetPos():Distance(vec)
-    if dist < range then return end
+    if dist < range then return true end
 
     self.movePriorityVec = vec
 end
@@ -609,7 +609,10 @@ function BotLocomotor:UpdateMovement()
         end
 
         -- Above if sttement ensures doorStandPos is not nil
-        self:SetPriorityGoal(self.doorStandPos, 8)
+        local res = self:SetPriorityGoal(self.doorStandPos, 8)
+        if res then
+            self:TimedVariable('dontmove', true, 0.4)
+        end
     end
 end
 
@@ -689,6 +692,16 @@ function BotLocomotor:VisionTestNoMask(startPos, endPos)
     local trace = util.TraceLine({
         start = startPos,
         endpos = endPos,
+        filter = self.bot,
+    })
+    return not trace.Hit -- true if we can see the endPos
+end
+
+function BotLocomotor:VisionTestWorldMask(startPos, endPos)
+    local trace = util.TraceLine({
+        start = startPos,
+        endpos = endPos,
+        mask = MASK_SOLID_BRUSHONLY,
         filter = self.bot,
     })
     return not trace.Hit -- true if we can see the endPos
@@ -825,7 +838,7 @@ function BotLocomotor:DetermineNextPos()
     end
     if not nextUncompleted then return nil end -- no more nodes to go to
     -- If we can't see neither the next node nor the last completed node, then we're stuck, mark the last completed as uncompleted
-    if lastCompleted and not self:VisionTestNoMask(botEyePos, lastCompleted.pos + Vector(0, 0, 16)) and not self:VisionTestNoMask(botEyePos, nextUncompleted.pos + Vector(0, 0, 16)) then
+    if lastCompleted and not self:VisionTestWorldMask(botEyePos, lastCompleted.pos + Vector(0, 0, 16)) and not self:VisionTestWorldMask(botEyePos, nextUncompleted.pos + Vector(0, 0, 16)) then
         lastCompleted.completed = false
         if dvlpr then print("Bot " .. self.bot:Nick() .. " is stuck, marking last completed node as uncompleted") end
         return nil -- return nil because if we return DetermineNextPos we will soft lock
@@ -836,8 +849,8 @@ function BotLocomotor:DetermineNextPos()
     -- now check if we're within 70 units of the next node and can see it
     local dist = botPos:Distance(nextPos)
     -- local dist = self:GetXYDist(botPos, nextPos)
-    local canSee = self:VisionTestNoMask(botEyePos, nextPos + Vector(0, 0, 16))
-    if (dist < 20 and canSee) or dist < 10 then
+    local canSee = self:VisionTestWorldMask(botEyePos, nextPos + Vector(0, 0, 16))
+    if (dist < 32 and canSee) or dist < 16 then
         nextUncompleted.completed = true
         return self:DetermineNextPos()
     end
