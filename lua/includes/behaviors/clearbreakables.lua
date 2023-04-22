@@ -24,7 +24,8 @@ function Breaker:Validate(bot)
         filter = bot,
     })
 
-    return traceResult.Hit and IsValid(traceResult.Entity) and traceResult.Entity:Health() > 0
+    return traceResult.Hit and IsValid(traceResult.Entity) and
+    table.HasValue(TTTBots.Components.ObstacleTracker.Breakables, traceResult.Entity) and traceResult.Entity:Health() > 0
 end
 
 --- Called when the behavior is started
