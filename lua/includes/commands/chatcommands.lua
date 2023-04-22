@@ -1,80 +1,61 @@
 TTTBots.Chat = {}
 local Chat = TTTBots.Chat
 
+local function fuzzySearchTbl(tbl, name)
+    local tblFound = {}
+    for i, v in pairs(tbl) do
+        if string.find(string.lower(v), string.lower(name)) then
+            table.insert(tblFound, v)
+        end
+    end
+    return tblFound
+end
+
+local function fuzzySearchPlys(name)
+    local plys = player.GetAll()
+    local plysFound = {}
+    for i, ply in pairs(plys) do
+        if string.find(string.lower(ply:Nick()), string.lower(name)) then
+            table.insert(plysFound, ply)
+        end
+    end
+    return plysFound
+end
+
+local function fuzzySearchFirstPly(name)
+    local plys = fuzzySearchPlys(name)
+    if #plys == 0 then
+        return nil
+    end
+    return plys[1]
+end
+
 Chat.Commands = {
-    ["!botmenu"] = function(ply, fullstr)
+    ["!botmenu"] = function(ply, fulltxt)
         if not ply:IsSuperAdmin() then
-            Chat.MessagePlayer(ply, "You do not have permission to use this command.")
+            Chat.MessagePlayer(ply, "You do not have permission to execute this command. You must be a superadmin.")
             return
         end
         Chat.MessagePlayer(ply, "Not implemented yet. Please use the console commands instead.")
     end,
-    ["!describe"] = function(ply, fullstr)
+    ["!describe"] = function(ply, fulltxt)
         if not ply:IsSuperAdmin() then
-            Chat.MessagePlayer(ply, "You do not have permission to use this command.")
+            Chat.MessagePlayer(ply, "You do not have permission to execute this command. You must be a superadmin.")
             return
         end
-        -- example: fullstr="!describe bot1"
-        -- outputs in chat the bot personality string (bot.components.personality:GetFlavoredTraits())
 
-        local split = string.gmatch(fullstr, "%S+") -- split by spaces
+        local split = string.gmatch(fulltxt, "%S+") -- split by spaces
         local cmd = split()                         -- first word is the command
-        local botname = split()                     -- second word is the bot name
+        local target = split()                      -- second word is the bot name
 
-        if botname == nil then
+        if target == nil then
             Chat.MessagePlayer(ply, "Please specify a bot name.")
             return
         end
 
-        local bot
-        for i, v in pairs(player.GetBots()) do
-            if string.lower(v:Nick()) == string.lower(botname) then
-                bot = v
-                break
-            end
-        end
-
-        if bot == nil then
-            Chat.MessagePlayer(ply, "Bot not found.")
-            return
-        end
-
-        local personality = bot.components.personality
-        local traits = personality:GetFlavoredTraits()
-        local str = "Bot " .. bot:Nick() .. " has the following personality traits: "
-        for i, trait in pairs(traits) do
-            str = str .. trait .. ", "
-        end
-        str = string.sub(str, 1, -3) -- remove last comma
-        Chat.MessagePlayer(ply, str)
-    end,
-    ["!describe2"] = function(ply, fullstr)
-        if not ply:IsSuperAdmin() then
-            Chat.MessagePlayer(ply, "You do not have permission to use this command.")
-            return
-        end
-        -- Basically same as above, but instead of printing the flavor text we use the trait name
-        -- example: fullstr="!describe2 bot1"
-
-        local split = string.gmatch(fullstr, "%S+") -- split by spaces
-        local cmd = split()                         -- first word is the command
-        local botname = split()                     -- second word is the bot name
-
-        if botname == nil then
-            Chat.MessagePlayer(ply, "Please specify a bot name.")
-            return
-        end
-
-        local bot
-        for i, v in pairs(player.GetBots()) do
-            if string.lower(v:Nick()) == string.lower(botname) then
-                bot = v
-                break
-            end
-        end
-
-        if bot == nil then
-            Chat.MessagePlayer(ply, "Bot not found.")
+        local bot = fuzzySearchFirstPly(target)
+        if bot == nil or not bot:IsBot() then
+            Chat.MessagePlayer(ply, "Bot named '" .. target .. "' not found.")
             return
         end
 
@@ -87,12 +68,12 @@ Chat.Commands = {
         str = string.sub(str, 1, -3) -- remove last comma
         Chat.MessagePlayer(ply, str)
     end,
-    ["!addbot"] = function(ply, fullstr)
+    ["!addbot"] = function(ply, fulltxt)
         if not ply:IsSuperAdmin() then
-            Chat.MessagePlayer(ply, "You do not have permission to use this command.")
+            Chat.MessagePlayer(ply, "You do not have permission to execute this command. You must be a superadmin.")
             return
         end
-        local split = string.gmatch(fullstr, "%S+") -- split by spaces
+        local split = string.gmatch(fulltxt, "%S+") -- split by spaces
         local cmd = split()                         -- first word is the command
         local amt = split()                         -- second word is the amount of bots to add
 
@@ -111,11 +92,13 @@ Chat.Commands = {
         local isSingle = game.SinglePlayer()
         if isSingle then
             Chat.MessagePlayer(ply, "Cannot add bots in singleplayer. Please check the workshop page for a how-to guide.")
+            Chat.MessagePlayer(ply, "You must be in a server to use this mod. Don't worry, it's super easy!!")
             return
         end
         local slots = game.MaxPlayers() - #player.GetAll()
         if amt > slots then
             Chat.MessagePlayer(ply, "Not enough player slots to add " .. amt .. " bots.")
+            Chat.MessagePlayer(ply, "Please consider re-hosting with more player slots, or kick some existing bots.")
             return
         end
 
@@ -126,7 +109,7 @@ Chat.Commands = {
     end,
     ["!roundrestart"] = function(ply, fulltxt)
         if not ply:IsSuperAdmin() then
-            Chat.MessagePlayer(ply, "You do not have permission to use this command.")
+            Chat.MessagePlayer(ply, "You do not have permission to execute this command. You must be a superadmin.")
             return
         end
         local nBots = #player.GetBots()
@@ -134,11 +117,51 @@ Chat.Commands = {
         concommand.Run(ply, "ttt_roundrestart")
         concommand.Run(ply, "ttt_bot_add", { tostring(nBots) })
 
-        Chat.MessagePlayer(ply, "Restarted round and added " .. nBots .. " bots.")
+        -- Chat.MessagePlayer(ply, "Restarted round and added " .. nBots .. " bots.")
+        Chat.BroadcastInChat(ply:Nick() .. " (superadmin) restarted the round and added " .. nBots .. " bots.")
     end,
     ["!restartround"] = function(ply, fulltxt)
         Chat.Commands['!roundrestart'](ply, fulltxt)
     end,
+    ["!rr"] = function(ply, fulltxt)
+        Chat.Commands['!roundrestart'](ply, fulltxt)
+    end,
+    ["!kickbots"] = function(ply, fulltxt)
+        if not ply:IsSuperAdmin() then
+            Chat.MessagePlayer(ply, "You do not have permission to execute this command. You must be a superadmin.")
+            return
+        end
+        concommand.Run(ply, "ttt_bot_kickall")
+        Chat.BroadcastInChat(ply:Nick() .. " (superadmin) kicked all bots from the server.")
+    end,
+    ["!help"] = function(ply, fulltxt)
+        local mp = Chat.MessagePlayer
+        local visibleHelp = {
+            addbot = "Adds a bot to the server. Usage: !addbot X, where X is the number of bots to add.",
+            kickbots = "Kicks all bots from the server.",
+            roundrestart = "Restarts the round and adds the same number of bots as before.",
+            describe = "Describes the personality of a bot. Usage: !describe X, where X is the name of the bot.",
+            botmenu = "Opens the bot menu. (Not implemented yet)",
+            help = "Shows this help message."
+        }
+
+        local split = string.gmatch(fulltxt, "%S+") -- split by spaces
+        local cmd = split()                         -- first word is the !help command
+        local func = split()                        -- second word is the func
+
+        if func == nil then
+            mp(ply, "Available commands:")
+            for cmd, desc in pairs(visibleHelp) do
+                mp(ply, cmd .. ": " .. desc)
+            end
+        else
+            if visibleHelp[func] == nil then
+                mp(ply, "Command '" .. func .. "' not found. Make sure to not include the ! symbol.")
+            else
+                mp(ply, func .. ": " .. visibleHelp[func])
+            end
+        end
+    end
 }
 
 
@@ -158,6 +181,8 @@ function Chat.BroadcastGreeting()
     broad("Hello! You are playing on a TTT Bots compatible gamemode!")
     broad(
         "To add a bot, open the GUI menu using !botmenu, or use the console commands provided in the mod's workshop page.")
+    broad(
+        "Bots can also be added with the chat command !addbot X, where X is the number of bots. Type !help for more info.")
     broad("---------")
 end
 
