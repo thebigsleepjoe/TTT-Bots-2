@@ -32,8 +32,8 @@ function Attack:Validate(bot)
         target
         and target:IsValid()
         and target:Alive()
-        and (target:IsPlayer() and TTTBots.Lib.IsPlayerAlive(target)) -- IsPlayerAlive doesn't include spectators
-        or (target:IsNPC() and target:Health() > 0)
+        and ((target:IsPlayer() and TTTBots.Lib.IsPlayerAlive(target)) -- IsPlayerAlive doesn't include spectators
+        or (target:IsNPC() and target:Health() > 0))
         )
 end
 

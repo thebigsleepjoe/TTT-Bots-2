@@ -3,10 +3,11 @@ TTTBots.Behaviors = {}
 include("includes/behaviors/wander.lua")
 include("includes/behaviors/findweapon.lua")
 include("includes/behaviors/clearbreakables.lua")
+include("includes/behaviors/attacktarget.lua")
 
 local b = TTTBots.Behaviors
 TTTBots.Behaviors.BehaviorTree = { -- Acts as one big priority node
-    -- b.Attack,
+    b.AttackTarget,
     -- b.IDBody,
     b.ClearBreakables,
     b.FindWeapon,
