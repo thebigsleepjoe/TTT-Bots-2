@@ -1,12 +1,13 @@
 --[[
 TTTBots.Behaviors = TTTBots.Behaviors or {}
-TTTBots.Behaviors.Wander = {}
+TTTBots.Behaviors.Base = {}
 
 local lib = TTTBots.Lib
 
-local BehaviorBase = TTTBots.Behaviors.Wander
-BehaviorBase.Name = "Wander"
-BehaviorBase.Description = "Wanders around the map"
+local BehaviorBase = TTTBots.Behaviors.Base
+BehaviorBase.Name = "Base"
+BehaviorBase.Description = "If you're reading this, something went wrong."
+BehaviorBase.Interruptible = true
 
 local status = {
     Running = 1,
@@ -16,7 +17,6 @@ local status = {
 
 --- Validate the behavior
 function BehaviorBase:Validate(bot)
-    return true
 end
 
 --- Called when the behavior is started
@@ -36,6 +36,6 @@ function BehaviorBase:OnFailure(bot)
 end
 
 --- Called when the behavior ends
-function Wander:OnEnd(bot)
+function BehaviorBase:OnEnd(bot)
 end
 ]]

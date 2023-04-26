@@ -127,6 +127,7 @@ function BotInventoryMgr:Think()
     self.tick = self.tick + 1
     -- print(self.tick, self.tick % 50 == 0)
     if self.tick % SLOWDOWN ~= 0 then return end
+    if self.disabled then return end
 
     --[[
         We want to determine the best weapon to use.
