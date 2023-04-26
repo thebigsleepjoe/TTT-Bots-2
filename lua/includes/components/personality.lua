@@ -198,7 +198,7 @@ function BotPersonality:New(bot)
 end
 
 function BotPersonality:Initialize(bot)
-    print("Initializing")
+    -- print("Initializing")
     bot.components = bot.components or {}
     bot.components.personality = self
 

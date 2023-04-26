@@ -29,7 +29,7 @@ function BotMemory:ResetMemory()
 end
 
 function BotMemory:Initialize(bot)
-    print("Initializing")
+    -- print("Initializing")
     bot.components = bot.components or {}
     bot.components.memory = self
 

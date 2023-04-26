@@ -20,7 +20,7 @@ function BotObstacleTracker:New(bot)
 end
 
 function BotObstacleTracker:Initialize(bot)
-    print("Initializing")
+    -- print("Initializing")
     bot.components = bot.components or {}
     bot.components.obstacletracker = self
 

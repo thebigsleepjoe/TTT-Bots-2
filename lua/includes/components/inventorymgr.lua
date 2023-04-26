@@ -20,7 +20,7 @@ function BotInventoryMgr:New(bot)
 end
 
 function BotInventoryMgr:Initialize(bot)
-    print("Initializing")
+    -- print("Initializing")
     bot.components = bot.components or {}
     bot.components.InventoryMgr = self
 
