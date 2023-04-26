@@ -21,7 +21,7 @@ local status = {
 
 local attackModes = {
     Hunting = 1,  -- We have a target but we do not know where they are
-    Seeking = 2,  -- We have a target and we know where they are, but we are not in range
+    Seeking = 2,  -- We have a target and we saw them recently or can see them but not shoot them
     Engaging = 3, -- We have a target and we know where they are, and we trying to shoot
 }
 
@@ -39,33 +39,42 @@ end
 
 --- Called when the behavior is started
 function Attack:OnStart(bot)
-    return self.Running
+    return status.Running
 end
 
 --- Called when the behavior's last state is running
 function Attack:OnRunning(bot)
-    local bot = self.bot
-    local target = bot.target
+    local target = bot.attackTarget
     -- We could probably do self:Validate but this is more explicit:
-    if not target or not target:IsValid() then return self.Failure end                          -- Target is invalid
-    if not target:Alive() then return self.Success end                                          -- We probably killed them
-    if target:IsPlayer() and not TTTBots.Lib.IsPlayerAlive(target) then return self.Success end -- We probably killed them
+    if not target or not target:IsValid() then return status.Failure end                          -- Target is invalid
+    if not target:Alive() then return status.Success end                                          -- We probably killed them
+    if target:IsPlayer() and not TTTBots.Lib.IsPlayerAlive(target) then return status.Success end -- We probably killed them
 
     local isNPC = target:IsNPC()
     local isPlayer = target:IsPlayer()
-    if not isNPC and not isPlayer then ErrorNoHalt("Wtf has bot.target been assigned to? " .. tostring(bot.target)) end -- Target is not a player or NPC
+    if not isNPC and not isPlayer then
+        ErrorNoHalt("Wtf has bot.attackTarget been assigned to? Not NPC nor player... target: " ..
+            tostring(bot.attackTarget))
+    end -- Target is not a player or NPC
 
     bot:Say("Attacking target")
+
+    return status.Running
 end
 
 --- Called when the behavior returns a success state
 function Attack:OnSuccess(bot)
+    bot.attackTarget = nil
+    bot:Say("Killed that fool!")
 end
 
 --- Called when the behavior returns a failure state
 function Attack:OnFailure(bot)
+    bot.attackTarget = nil
+    bot:Say("Lost that fool!")
 end
 
 --- Called when the behavior ends
 function Attack:OnEnd(bot)
+    bot.attackTarget = nil
 end
