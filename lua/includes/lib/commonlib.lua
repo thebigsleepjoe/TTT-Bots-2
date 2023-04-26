@@ -15,6 +15,26 @@ function TTTBots.Lib.IsPlayerAlive(bot)
     return IsValid(bot) and not (bot:IsSpec() and bot:Alive())
 end
 
+function TTTBots.Lib.GetAlivePlayers()
+    local alive = {}
+    for _, ply in ipairs(player.GetAll()) do
+        if TTTBots.Lib.IsPlayerAlive(ply) then
+            table.insert(alive, ply)
+        end
+    end
+    return alive
+end
+
+function TTTBots.Lib.GetAliveBots()
+    local alive = {}
+    for _, ply in ipairs(player.GetBots()) do
+        if TTTBots.Lib.IsPlayerAlive(ply) then
+            table.insert(alive, ply)
+        end
+    end
+    return alive
+end
+
 -- Generate lowercase alphanumeric string of length 6
 function TTTBots.Lib.GenerateID()
     local id = ""
