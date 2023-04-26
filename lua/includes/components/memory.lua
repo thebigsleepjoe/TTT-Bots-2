@@ -25,7 +25,8 @@ function BotMemory:New(bot)
 end
 
 function BotMemory:ResetMemory()
-    self.playerPositions = {}
+    self.playerPositions = {} -- List of where this bot last saw each player and how long ago
+    self.playerStates = {}    -- List of what this bot understands each bot's current life state to be
 end
 
 function BotMemory:Initialize(bot)
@@ -36,12 +37,58 @@ function BotMemory:Initialize(bot)
     self:ResetMemory()
 
     self.bot = bot
+    self.tick = 0
 end
 
-function BotMemory:UpdatePlayerPositions()
+function BotMemory:UpdatePositions()
+    local PlayersInRound = TTTBots.PlayersInRound
+    local RoundActive = TTTBots.RoundActive
+    if not RoundActive then
+        self.playerPositions = {}
+        return false
+    end
 
+    for i, ply in pairs(PlayersInRound) do
+        -- TODO: vision check here
+        local ct = CurTime()
+        self.playerPositions[ply:Nick()] = {
+            pos = ply:GetPos(),
+            time = ct,
+            timeSince = function()
+                return CurTime() - ct
+            end
+        }
+    end
+end
+
+-- Setup the player states at the start of the round.
+-- Automatically bounces attempt if round is not active
+function BotMemory:SetupStates()
+    local ConfirmedDead = TTTBots.ConfirmedDead
+    local PlayersInRound = TTTBots.PlayersInRound
+    local RoundActive = TTTBots.RoundActive
+    if not RoundActive then return false end
+
+    for i, ply in pairs(PlayersInRound) do
+        self.playerStates[ply:Nick()] = ConfirmedDead[ply] and "dead" or "alive"
+    end
+end
+
+function BotMemory:UpdateStates()
+    local CurrentlyAlive = lib.GetAlivePlayers()
+    local ConfirmedDead = TTTBots.ConfirmedDead
+    local RoundActive = TTTBots.RoundActive
+    if not RoundActive then
+        self.playerStates = {}
+        self:SetupStates()
+    end
 end
 
 function BotMemory:Think()
-    self:UpdatePlayerPositions()
+    self.tick = self.tick + 1
+    local RUNRATE = 5
+    if not (self.tick % RUNRATE == 0) then return end
+
+    self:UpdatePositions()
+    self:UpdateStates()
 end
