@@ -41,15 +41,16 @@ function BotMemory:Initialize(bot)
 end
 
 function BotMemory:UpdatePositions()
-    local PlayersInRound = TTTBots.PlayersInRound
+    local AlivePlayers = lib.GetAlivePlayers()
     local RoundActive = TTTBots.RoundActive
     if not RoundActive then
         self.playerPositions = {}
         return false
     end
 
-    for i, ply in pairs(PlayersInRound) do
-        -- TODO: vision check here
+    for i, ply in pairs(AlivePlayers) do
+        if ply == self.bot then continue end
+        if not self.bot:Visible(ply) then continue end
         local ct = CurTime()
         self.playerPositions[ply:Nick()] = {
             pos = ply:GetPos(),
@@ -81,6 +82,22 @@ function BotMemory:UpdateStates()
     if not RoundActive then
         self.playerStates = {}
         self:SetupStates()
+    end
+
+    for i, ply in pairs(ConfirmedDead) do
+        self.playerStates[ply:Nick()] = "dead"
+    end
+
+    if self.bot:GetRoleString() == "Traitor" then
+        for i, ply in pairs(player.GetAll()) do
+            if ply == self.bot then continue end
+            self.playerStates[ply:Nick()] = "dead"
+        end
+
+        for i, ply in pairs(CurrentlyAlive) do
+            if ply == self.bot then continue end
+            self.playerStates[ply:Nick()] = "alive"
+        end
     end
 end
 

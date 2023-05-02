@@ -48,7 +48,7 @@ print("good to go")
 local function _testBotAttack()
     -- Go over each alive bot using lib.GetAliveBots() and set target to a random lib.GetAlivePlayers() player
     for i, bot in pairs(Lib.GetAliveBots()) do
-        if not bot.attackTarget then continue end
+        if bot.attackTarget then continue end
         local newTarget = table.Random(Lib.GetAlivePlayers())
         if newTarget == bot then continue end
         bot.attackTarget = newTarget
@@ -61,8 +61,8 @@ end
 -- Bot behavior
 timer.Create("TTTBots_Tick", 0.1, 0, function()
     local call, err = pcall(function()
-        TTTBots.Behaviors.Tree()
         _testBotAttack()
+        TTTBots.Behaviors.Tree()
         for i, bot in pairs(player.GetBots()) do
             -- TTTBots.DebugServer.RenderDebugFor(bot, { "all" })
 

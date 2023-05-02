@@ -73,6 +73,10 @@ function TTTBots.Lib.DistanceXY(pos1, pos2)
     return math.sqrt((pos1.x - pos2.x) ^ 2 + (pos1.y - pos2.y) ^ 2)
 end
 
+function TTTBots.Lib.GetRoleString(bot)
+    return bot:GetRoleString() -- This may need to be changed per-gamemode
+end
+
 --- Check that the nearest point on the nearest navmesh is within 32 units of the given position. Irrespective of Z/height.
 --- This is intended to be used with weapons.
 function TTTBots.Lib.BotCanReachPos(pos)

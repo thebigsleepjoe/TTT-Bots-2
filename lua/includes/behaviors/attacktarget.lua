@@ -28,12 +28,35 @@ local attackModes = {
 --- Validate the behavior
 function Attack:Validate(bot)
     local target = bot.attackTarget
+    local _dbg = true
+
+    local hasTarget = target and true or false
+    local targetIsValid = target and target:IsValid() or false
+    local targetIsAlive = target and target:Alive() or false
+    local targetIsPlayer = target and target:IsPlayer() or false
+    local targetIsNPC = target and target:IsNPC() or false
+    local targetIsPlayerAndAlive = targetIsPlayer and TTTBots.Lib.IsPlayerAlive(target) or false
+    local targetIsNPCAndAlive = targetIsNPC and target:Health() > 0 or false
+    local targetIsPlayerOrNPCAndAlive = targetIsPlayerAndAlive or targetIsNPCAndAlive or false
+
+    if _dbg then
+        print(bot:Nick() .. " validating attack target behavior:")
+        print("| hasTarget: " .. tostring(hasTarget))
+        print("| targetIsValid: " .. tostring(targetIsValid))
+        print("| targetIsAlive: " .. tostring(targetIsAlive))
+        print("| targetIsPlayer: " .. tostring(targetIsPlayer))
+        print("| targetIsNPC: " .. tostring(targetIsNPC))
+        print("| targetIsPlayerAndAlive: " .. tostring(targetIsPlayerAndAlive))
+        print("| targetIsNPCAndAlive: " .. tostring(targetIsNPCAndAlive))
+        print("| targetIsPlayerOrNPCAndAlive: " .. tostring(targetIsPlayerOrNPCAndAlive))
+        print("------------------")
+    end
+
     return (
-        target
-        and target:IsValid()
-        and target:Alive()
-        and ((target:IsPlayer() and TTTBots.Lib.IsPlayerAlive(target)) -- IsPlayerAlive doesn't include spectators
-        or (target:IsNPC() and target:Health() > 0))
+        hasTarget
+        and targetIsValid
+        and targetIsAlive
+        and targetIsPlayerOrNPCAndAlive
         )
 end
 
