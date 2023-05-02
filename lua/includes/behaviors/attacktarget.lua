@@ -28,7 +28,6 @@ local attackModes = {
 --- Validate the behavior
 function Attack:Validate(bot)
     local target = bot.attackTarget
-    local _dbg = true
 
     local hasTarget = target and true or false
     local targetIsValid = target and target:IsValid() or false
@@ -39,6 +38,7 @@ function Attack:Validate(bot)
     local targetIsNPCAndAlive = targetIsNPC and target:Health() > 0 or false
     local targetIsPlayerOrNPCAndAlive = targetIsPlayerAndAlive or targetIsNPCAndAlive or false
 
+    local _dbg = false
     if _dbg then
         print(bot:Nick() .. " validating attack target behavior:")
         print("| hasTarget: " .. tostring(hasTarget))
