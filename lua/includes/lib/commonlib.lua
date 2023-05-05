@@ -52,33 +52,92 @@ function TTTBots.Lib.PrintInitMessage()
     print(format("Gamemode: %s", engine.ActiveGamemode()) ..
         " | (Compatible = " .. tostring(TTTBots.Lib.CheckCompatibleGamemode()) .. ")")
     print(
-        "NOTE: If you are reading this as a dedicated server owner, you cannot use chat commands remotely, your character must be in the server for that. You may still use concommands.")
+        "NOTE: If you are reading this as a dedicated server owner, you cannot use chat commands remotely, your character must be in the server for that. You may still use most concommands.")
     print("~~~~~~~~~~~~~~~~~~~~~")
 end
 
+--- Checks if there are currently any player slots available
+---@return boolean
 function TTTBots.Lib.CheckIfPlayerSlots()
     return not (#player.GetAll() >= game.MaxPlayers())
 end
 
+--- If we can see the target ply2 from ply1. First tests eye-to-eye sightline, eye-to-feet, then eye-to-center.
+---@param ply1 Player
+---@param ply2 Player
+---@return boolean
+function TTTBots.Lib.CanSee(ply1, ply2)
+    if not IsValid(ply1) or not IsValid(ply2) then return false end
+    local start = ply:EyePos()
+    
+    -- Start at the eyes
+    local targetEyes = ply2:EyePos()
+    local traceEyes = util.TraceLine({start = start, endpos = targetEyes, filter = {ply1, ply2}, mask = MASK_SHOT})
+    if traceEyes.Hit then return true end
+    
+    -- Then the feet
+    local targetFeet = ply2:GetPos()
+    local traceFeet = util.TraceLine({start = start, endpos = targetFeet, filter = {ply1, ply2}, mask = MASK_SHOT})
+    if traceFeet.Hit then return true end
+    
+    -- Then the center
+    local targetCenter = ply2:GetPos() + Vector(0, 0, 32)
+    local traceCenter = util.TraceLine({start = start, endpos = targetCenter, filter = {ply1, ply2}, mask = MASK_SHOT})
+    if traceCenter.Hit then return true end
+
+    return false
+end
+
+--- Get the number of free player slots
+---@return number
+function TTTBots.Lib.GetFreePlayerSlots()
+    return game.MaxPlayers() - #player.GetAll()
+end
+
+--- Checks if the current engine.ActiveGamemode is compatible with TTT Bots
+---@return boolean
 function TTTBots.Lib.CheckCompatibleGamemode()
     local compatible = { "terrortown" }
     return table.HasValue(compatible, engine.ActiveGamemode())
 end
 
+--- Equivalent of GetConVar("ttt_bot_debug_(debugType)"):GetBool()
+---@param debugType string
+---@return boolean
 function TTTBots.Lib.GetDebugFor(debugType)
     return GetConVar("ttt_bot_debug_" .. debugType):GetBool()
 end
 
+--- XY Distance between two Vectors
+---@param pos1 any
+---@param pos2 any
+---@return number
 function TTTBots.Lib.DistanceXY(pos1, pos2)
     return math.sqrt((pos1.x - pos2.x) ^ 2 + (pos1.y - pos2.y) ^ 2)
 end
 
-function TTTBots.Lib.GetRoleString(bot)
-    return bot:GetRoleString() -- This may need to be changed per-gamemode
+--- Uses built-in ply:HasEvilTeam but is nil-safe. Basically if they're a traitor.
+---@param ply any
+---@return boolean
+function TTTBots.Lib.IsEvil(ply)
+    if not ply then return nil end
+    if not ply:IsPlayer() then return false end
+    return ply:HasEvilTeam()
+end
+
+--- Opposite of IsEvil, nil-safe. Basically if they're not a traitor.
+---@param ply any
+---@return boolean
+function TTTBots.Lib.IsGood(ply)
+    local out = TTTBots.Lib.IsEvil(ply)
+    if out == nil then return end
+    return not out
 end
 
 --- Check that the nearest point on the nearest navmesh is within 32 units of the given position. Irrespective of Z/height.
 --- This is intended to be used with weapons.
+---@param pos any
+---@return boolean
 function TTTBots.Lib.BotCanReachPos(pos)
     local nav = navmesh.GetNearestNavArea(pos)
     if not nav then
@@ -88,6 +147,9 @@ function TTTBots.Lib.BotCanReachPos(pos)
     return TTTBots.Lib.DistanceXY(nearestPoint, pos) <= 32
 end
 
+--- Create a bot, optionally with a name.
+---@param name string Optional, defaults to random name
+---@return any
 function TTTBots.Lib.CreateBot(name)
     if not TTTBots.Lib.CheckIfPlayerSlots() then
         TTTBots.Chat.BroadcastInChat("Somebody tried to add a bot, but there are not enough player slots.")
@@ -113,8 +175,12 @@ function TTTBots.Lib.CreateBot(name)
     return bot
 end
 
--- Trace line from eyes (if fromEyes, else feet) to the given position. Returns the trace result.
--- This is used to cut corners when pathfinding.
+--- Trace line from eyes (if fromEyes, else feet) to the given position. Returns the trace result.
+--- This is used to cut corners when pathfinding.
+---@param player any
+---@param fromEyes boolean Optional, defaults to false
+---@param finish any Vector
+---@return any TraceResult
 function TTTBots.Lib.TraceVisibilityLine(player, fromEyes, finish)
     local startPos = player:GetPos()
     if fromEyes then
@@ -129,6 +195,11 @@ function TTTBots.Lib.TraceVisibilityLine(player, fromEyes, finish)
     return trace
 end
 
+--- Get the closest entity from a table of entities to a given position.
+---@param entities table
+---@param pos any Vector
+---@return Entity|nil Entity the entity, else nill
+---@return number ClosestDist
 function TTTBots.Lib.GetClosest(entities, pos)
     local closest = nil
     local closestDist = 99999
@@ -142,6 +213,11 @@ function TTTBots.Lib.GetClosest(entities, pos)
     return closest, closestDist
 end
 
+--- Get the first entity from a table of entities that is closer than a given threshold to a given position.
+---@param entities table
+---@param pos any Vector
+---@param threshold number Distance threshold
+---@return Entity|nil Closest closest ent or nil
 function TTTBots.Lib.GetFirstCloserThan(entities, pos, threshold)
     for i, v in pairs(entities) do
         local dist = v:GetPos():Distance(pos)
@@ -152,6 +228,10 @@ function TTTBots.Lib.GetFirstCloserThan(entities, pos, threshold)
     return nil
 end
 
+--- Return the closest CNavLadder to pos
+---@param pos any Vector
+---@return any CNavLadder Closest ladder
+---@return number Distance Distance to closest ladder
 function TTTBots.Lib.GetClosestLadder(pos)
     local closestLadder = nil
     local closestDist = 99999
@@ -168,7 +248,9 @@ function TTTBots.Lib.GetClosestLadder(pos)
     return closestLadder, closestDist
 end
 
--- Functionally the same as navmesh.GetNavArea(pos), but includes ladder areas.
+--- Functionally the same as navmesh.GetNavArea(pos), but includes ladder areas.
+---@param pos any Vector
+---@return CNavArea|CNavLadder nav: CNavArea CNavLadder
 function TTTBots.Lib.GetNearestNavArea(pos)
     local closestCNavArea = navmesh.GetNearestNavArea(pos)
     local closestLadder = TTTBots.Lib.GetClosestLadder(pos)

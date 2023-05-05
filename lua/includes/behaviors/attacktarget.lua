@@ -57,12 +57,16 @@ function Attack:Validate(bot)
         and targetIsValid
         and targetIsAlive
         and targetIsPlayerOrNPCAndAlive
-        )
+    )
 end
 
 --- Called when the behavior is started
 function Attack:OnStart(bot)
     return status.Running
+end
+
+function Attack:RunningAttackLogic()
+    local memory = self.bot.components.memory
 end
 
 --- Called when the behavior's last state is running
@@ -80,7 +84,7 @@ function Attack:OnRunning(bot)
             tostring(bot.attackTarget))
     end -- Target is not a player or NPC
 
-    bot:Say("Attacking target")
+    self:RunningAttackLogic()
 
     return status.Running
 end
