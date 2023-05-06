@@ -12,6 +12,7 @@ timer.Create("TTTBots.Lib.PopularNavsTimer", 1, 0, function()
     for i, v in pairs(plys) do
         if not lib.IsPlayerAlive(v) then continue end
         local nav = navmesh.GetNearestNavArea(v:GetPos())
+        if not nav then continue end
         local id = nav:GetID()
         TTTBots.Lib.PopularNavs[id] = (TTTBots.Lib.PopularNavs[id] or 0) + 1
     end

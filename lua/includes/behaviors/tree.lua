@@ -25,6 +25,8 @@ function TTTBots.Behaviors.Tree()
     }
 
     for x, bot in ipairs(player.GetBots()) do
+        if not IsValid(bot) then continue end
+        if not TTTBots.Lib.IsPlayerAlive(bot) then continue end
         local currentBehavior = bot.currentBehavior
         local newState = status.Failure
         local behaviorChanged = false
@@ -32,7 +34,7 @@ function TTTBots.Behaviors.Tree()
 
         if currentBehavior and currentBehavior:Validate(bot) then
             newState = currentBehavior:OnRunning(bot)
-            print("Running behavior named " .. currentBehavior.Name)
+            -- print("Running behavior named " .. currentBehavior.Name)
         else
             interruptible = true
         end
