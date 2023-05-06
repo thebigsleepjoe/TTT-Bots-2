@@ -5,6 +5,34 @@ is refreshed every round. Things like where the bot last saw each player, etc.
 TTTBots.Components.Memory = TTTBots.Memory or {}
 TTTBots = TTTBots or {}
 
+TTTBots.Sound = {
+    DetectionRanges = {
+        Gun = 1000,
+        Footstep = 250,
+        Death = 1000,
+        Melee = 500,
+        C4 = 500,
+    },
+    TraitMults = {
+        cautious = 1.3,
+        sniper = 0.7,
+        doesntcare = 0.2,
+        bodyguard = 1.2,
+        lovescrowds = 0.7,
+        teamplayer = 0.9,
+        loner = 1.1,
+
+        veryobservant = 2.0,
+        observant = 1.5,
+        oblivious = 0.8,
+        veryoblivious = 0.4,
+
+        deaf = 0.0,
+        lowvolume = 0.5,
+        highvolume = 1.5,
+    },
+}
+
 local lib = TTTBots.Lib
 local Memory = TTTBots.Components.Memory
 local DEAD = "DEAD"
