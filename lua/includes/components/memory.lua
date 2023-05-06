@@ -29,19 +29,20 @@ local FORGET = {
         oblivious = 0.8,
         veryoblivious = 0.4,
     },
-    GetRememberTime = function(ply)
-        local traits = ply.components.personality.traits
-        local base = FORGET.Base
-        local variance = FORGET.Variance
-        local multiplier = 1
-        for i, trait in pairs(traits) do
-            if FORGET.Traits[trait] then
-                multiplier = multiplier * FORGET.Traits[trait]
-            end
-        end
-        return base * multiplier + math.random(-variance, variance)
-    end
 }
+
+FORGET.GetRememberTime = function(ply)
+    local traits = ply.components.personality.traits
+    local base = FORGET.Base
+    local variance = FORGET.Variance
+    local multiplier = 1
+    for i, trait in pairs(traits) do
+        if FORGET.Traits[trait] then
+            multiplier = multiplier * FORGET.Traits[trait]
+        end
+    end
+    return base * multiplier + math.random(-variance, variance)
+end
 
 
 function Memory:New(bot)
@@ -124,7 +125,7 @@ function Memory:UpdateKnownPositions()
             timeSince = function()
                 return CurTime() - ct
             end,
-            forgetTime = FORGET.GetRememberTime(ply), -- how many seconds to remember this position for, need to factor CurTime() into this to be useful
+            forgetTime = FORGET.GetRememberTime(self.bot), -- how many seconds to remember this position for, need to factor CurTime() into this to be useful
             shouldForget = function()
                 local ts = CurTime() - ct
                 local pKP = self.playerKnownPositions[ply:Nick()]
@@ -201,4 +202,37 @@ end
 -- GM:EntityEmitSound(table data)
 hook.Add("EntityEmitSound", "TTTBots.EntityEmitSound", function(data)
     -- PrintTable(data)
+    local sn = data.SoundName
+    -- print(data.SoundName, data.Volume)
+    -- TTTBots.DebugServer.DrawCross(data.Pos, 5, Color(0, 0, 0), 1)
+    local f = string.find
+
+    local isC4 = f(sn, "c4")
+    local isGun = f(sn, "weapons")
+    local isFootstep = f(sn, "footstep")
+    local isMelee = f(sn, "swing")
+    local isDead = f(sn, "pain")
+
+    if isC4 then
+        print("Beep")
+        return
+    end
+    if isGun then
+        print("Gun")
+        return
+    end
+    if isFootstep then
+        print("Footstep")
+        return
+    end
+    if isMelee then
+        print("Melee")
+        return
+    end
+    if isDead then
+        print("Dead")
+        return
+    end
+
+    print("Unknown sound: " .. sn)
 end)

@@ -65,8 +65,8 @@ function Attack:OnStart(bot)
     return status.Running
 end
 
-function Attack:RunningAttackLogic()
-    local memory = self.bot.components.memory
+function Attack:RunningAttackLogic(bot)
+    local memory = bot.components.memory
 end
 
 --- Called when the behavior's last state is running
@@ -84,7 +84,7 @@ function Attack:OnRunning(bot)
             tostring(bot.attackTarget))
     end -- Target is not a player or NPC
 
-    self:RunningAttackLogic()
+    self:RunningAttackLogic(bot)
 
     return status.Running
 end
