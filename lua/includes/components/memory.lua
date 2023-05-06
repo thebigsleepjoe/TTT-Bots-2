@@ -2,11 +2,11 @@
 This module is not intended to store everything bot-related, but instead store bot-specific stuff that
 is refreshed every round. Things like where the bot last saw each player, etc.
 ]]
-TTTBots.Components.BotMemory = TTTBots.BotMemory or {}
+TTTBots.Components.Memory = TTTBots.Memory or {}
 TTTBots = TTTBots or {}
 
 local lib = TTTBots.Lib
-local BotMemory = TTTBots.Components.BotMemory
+local Memory = TTTBots.Components.Memory
 local DEAD = "DEAD"
 local ALIVE = "ALIVE"
 local FORGET = {
@@ -44,10 +44,10 @@ local FORGET = {
 }
 
 
-function BotMemory:New(bot)
+function Memory:New(bot)
     local newMemory = {}
     setmetatable(newMemory, {
-        __index = function(t, k) return BotMemory[k] end,
+        __index = function(t, k) return Memory[k] end,
     })
     newMemory:Initialize(bot)
 
@@ -59,12 +59,12 @@ function BotMemory:New(bot)
     return newMemory
 end
 
-function BotMemory:ResetMemory()
+function Memory:ResetMemory()
     self.playerKnownPositions = {} -- List of where this bot last saw each player and how long ago
     self.PlayerLifeStates = {}     -- List of what this bot understands each bot's current life state to be
 end
 
-function BotMemory:Initialize(bot)
+function Memory:Initialize(bot)
     -- print("Initializing")
     bot.components = bot.components or {}
     bot.components.memory = self
@@ -75,7 +75,7 @@ function BotMemory:Initialize(bot)
     self.tick = 0
 end
 
-function BotMemory:HandleUnseenPlayer(ply)
+function Memory:HandleUnseenPlayer(ply)
     -- Check if we have any memory of this player, if we shouldForget() then delete it
     local pnp = self.playerKnownPositions[ply:Nick()]
     if not pnp then return end
@@ -87,7 +87,7 @@ end
 --- Get the last known position of the given player, if we have any.
 ---@param ply Player
 ---@return Vector|nil
-function BotMemory:GetKnownPositionFor(ply)
+function Memory:GetKnownPositionFor(ply)
     local pnp = self.playerKnownPositions[ply:Nick()]
     if not pnp then return nil end
     return pnp.pos
@@ -96,14 +96,14 @@ end
 --- Get the last known position of the given player, if we have any. This differs from GetKnownPositionFor
 --- in that it will either return ply:GetPos() if lib.CanSee(self.bot, ply), or the last known position.
 ---@param ply any
-function BotMemory:GetCurrentPosOf(ply)
+function Memory:GetCurrentPosOf(ply)
     if lib.CanSee(self.bot, ply) then
         return ply:GetPos()
     end
     return self:GetKnownPositionFor(ply)
 end
 
-function BotMemory:UpdateKnownPositions()
+function Memory:UpdateKnownPositions()
     local AlivePlayers = lib.GetAlivePlayers()
     local RoundActive = TTTBots.RoundActive
     if not RoundActive then
@@ -136,7 +136,7 @@ end
 
 -- Setup the player states at the start of the round.
 -- Automatically bounces attempt if round is not active
-function BotMemory:SetupPlayerLifeStates()
+function Memory:SetupPlayerLifeStates()
     local ConfirmedDead = TTTBots.ConfirmedDead
     local PlayersInRound = TTTBots.PlayersInRound
     local RoundActive = TTTBots.RoundActive
@@ -147,15 +147,15 @@ function BotMemory:SetupPlayerLifeStates()
     end
 end
 
-function BotMemory:GetPlayerLifeState(ply)
+function Memory:GetPlayerLifeState(ply)
     return self.PlayerLifeStates[ply:Nick()]
 end
 
-function BotMemory:SetPlayerLifeState(ply, state)
+function Memory:SetPlayerLifeState(ply, state)
     self.PlayerLifeStates[ply:Nick()] = state
 end
 
-function BotMemory:UpdatePlayerLifeStates()
+function Memory:UpdatePlayerLifeStates()
     local CurrentlyAlive = lib.GetAlivePlayers()
     local ConfirmedDead = TTTBots.ConfirmedDead
     local RoundActive = TTTBots.RoundActive
@@ -187,7 +187,7 @@ function BotMemory:UpdatePlayerLifeStates()
     end
 end
 
-function BotMemory:Think()
+function Memory:Think()
     self.tick = self.tick + 1
     local RUNRATE = 5
     if not (self.tick % RUNRATE == 0) then return end
@@ -195,3 +195,10 @@ function BotMemory:Think()
     self:UpdateKnownPositions()
     self:UpdatePlayerLifeStates()
 end
+
+--- Hooks
+
+-- GM:EntityEmitSound(table data)
+hook.Add("EntityEmitSound", "TTTBots.EntityEmitSound", function(data)
+    -- PrintTable(data)
+end)

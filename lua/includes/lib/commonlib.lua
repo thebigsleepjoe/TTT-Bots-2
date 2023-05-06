@@ -7,6 +7,7 @@ include("includes/components/locomotor.lua")
 include("includes/components/obstacletracker.lua")
 include("includes/components/inventorymgr.lua")
 include("includes/components/personality.lua")
+include("includes/components/memory.lua")
 
 local format = string.format
 
@@ -69,20 +70,20 @@ end
 function TTTBots.Lib.CanSee(ply1, ply2)
     if not IsValid(ply1) or not IsValid(ply2) then return false end
     local start = ply:EyePos()
-    
+
     -- Start at the eyes
     local targetEyes = ply2:EyePos()
-    local traceEyes = util.TraceLine({start = start, endpos = targetEyes, filter = {ply1, ply2}, mask = MASK_SHOT})
+    local traceEyes = util.TraceLine({ start = start, endpos = targetEyes, filter = { ply1, ply2 }, mask = MASK_SHOT })
     if traceEyes.Hit then return true end
-    
+
     -- Then the feet
     local targetFeet = ply2:GetPos()
-    local traceFeet = util.TraceLine({start = start, endpos = targetFeet, filter = {ply1, ply2}, mask = MASK_SHOT})
+    local traceFeet = util.TraceLine({ start = start, endpos = targetFeet, filter = { ply1, ply2 }, mask = MASK_SHOT })
     if traceFeet.Hit then return true end
-    
+
     -- Then the center
     local targetCenter = ply2:GetPos() + Vector(0, 0, 32)
-    local traceCenter = util.TraceLine({start = start, endpos = targetCenter, filter = {ply1, ply2}, mask = MASK_SHOT})
+    local traceCenter = util.TraceLine({ start = start, endpos = targetCenter, filter = { ply1, ply2 }, mask = MASK_SHOT })
     if traceCenter.Hit then return true end
 
     return false
@@ -163,6 +164,7 @@ function TTTBots.Lib.CreateBot(name)
         obstacletracker = TTTBots.Components.ObstacleTracker:New(bot),
         inventorymgr = TTTBots.Components.InventoryMgr:New(bot),
         personality = TTTBots.Components.Personality:New(bot),
+        memory = TTTBots.Components.Memory:New(bot),
     }
 
     local dvlpr = TTTBots.Lib.GetDebugFor("misc")
