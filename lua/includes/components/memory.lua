@@ -162,15 +162,16 @@ end
 ---@return table knownPos The updated known position entry for this player
 function Memory:UpdateKnownPositionFor(ply, pos)
     local knownPos = {
-        ply = ply,
-        nick = ply:Nick(),
-        pos = pos or ply:GetPos(),
-        time = ct,
-        timeSince = function()
+        ply = ply,                          -- The player object
+        nick = ply:Nick(),                  -- The player's nickname
+        pos = pos or ply:GetPos(),          -- The position of the player
+        inferred = (pos and true) or false, -- Whether or not this position is inferred (and probably not accurate)
+        time = ct,                          -- The time this position was last updated
+        timeSince = function()              -- How long ago this position was last updated
             return CurTime() - ct
         end,
         forgetTime = FORGET.GetRememberTime(self.bot), -- how many seconds to remember this position for, need to factor CurTime() into this to be useful
-        shouldForget = function()
+        shouldForget = function()                      -- Whether or not we should forget this position
             local ts = CurTime() - ct
             local pKP = self.playerKnownPositions[ply:Nick()]
             return ts > pKP.forgetTime
