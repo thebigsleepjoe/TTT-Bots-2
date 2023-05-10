@@ -67,6 +67,8 @@ end
 
 function Attack:RunningAttackLogic(bot)
     local memory = bot.components.memory
+
+    -- return attackModes.Hunting
 end
 
 --- Called when the behavior's last state is running
@@ -84,7 +86,10 @@ function Attack:OnRunning(bot)
             tostring(bot.attackTarget))
     end -- Target is not a player or NPC
 
-    self:RunningAttackLogic(bot)
+    local attack = self:RunningAttackLogic(bot)
+    local isEvil = lib.IsEvil(bot)
+
+    if attack == attackModes.Hunting and not isEvil then return status.Failure end -- We are innocent and we lost our target
 
     return status.Running
 end

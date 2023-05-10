@@ -88,9 +88,20 @@ function Memory:New(bot)
     return newMemory
 end
 
+local function shouldUseRadar()
+    local rand = math.random(1, 100)
+    local cv = GetConVar("ttt_bot_radar_chance"):GetInt()
+
+    if rand <= cv then
+        return true
+    end
+    return false
+end
+
 function Memory:ResetMemory()
-    self.playerKnownPositions = {} -- List of where this bot last saw each player and how long ago
-    self.PlayerLifeStates = {}     -- List of what this bot understands each bot's current life state to be
+    self.playerKnownPositions = {}   -- List of where this bot last saw each player and how long ago
+    self.PlayerLifeStates = {}       -- List of what this bot understands each bot's current life state to be
+    self.UseRadar = shouldUseRadar() -- Whether or not this bot should use radar
 end
 
 function Memory:Initialize(bot)
@@ -104,7 +115,20 @@ function Memory:Initialize(bot)
     self.tick = 0
 end
 
+--- Simulates radar scanning the position of ply
+function Memory:UpdateRadar(ply)
+    if self.UseRadar and self.tick % 300 ~= 69 then return end -- Nice
+    if not TTTBots.Lib.IsEvil(self.bot) then return end
+    if not TTTBots.Lib.IsPlayerAlive(ply) then return end
+
+    local pos = ply:GetPos()
+    self:UpdateKnownPositionFor(ply, pos)
+end
+
 function Memory:HandleUnseenPlayer(ply)
+    -- Update radar if applicable
+    self:UpdateRadar(ply)
+
     -- Check if we have any memory of this player, if we shouldForget() then delete it
     local pnp = self.playerKnownPositions[ply:Nick()]
     if not pnp then return end
@@ -132,6 +156,34 @@ function Memory:GetCurrentPosOf(ply)
     return self:GetKnownPositionFor(ply)
 end
 
+--- Update the known position in our database for the given player to their current position, or pos if provided.
+---@param ply Player The player object of the target
+---@param pos Vector|nil If nil then ply:GetPos() will be used, else this will be used.
+---@return table knownPos The updated known position entry for this player
+function Memory:UpdateKnownPositionFor(ply, pos)
+    local knownPos = {
+        ply = ply,
+        nick = ply:Nick(),
+        pos = pos or ply:GetPos(),
+        time = ct,
+        timeSince = function()
+            return CurTime() - ct
+        end,
+        forgetTime = FORGET.GetRememberTime(self.bot), -- how many seconds to remember this position for, need to factor CurTime() into this to be useful
+        shouldForget = function()
+            local ts = CurTime() - ct
+            local pKP = self.playerKnownPositions[ply:Nick()]
+            return ts > pKP.forgetTime
+        end
+    }
+    local ct = CurTime()
+    self.playerKnownPositions[ply:Nick()] = knownPos
+
+    return knownPos
+end
+
+--- Updates the positions of every player in the game.
+--- Handles forgetting players that we can no longer see according to memory rules.
 function Memory:UpdateKnownPositions()
     local AlivePlayers = lib.GetAlivePlayers()
     local RoundActive = TTTBots.RoundActive
@@ -146,20 +198,7 @@ function Memory:UpdateKnownPositions()
             self:HandleUnseenPlayer(ply)
             continue
         end
-        local ct = CurTime()
-        self.playerKnownPositions[ply:Nick()] = {
-            pos = ply:GetPos(),
-            time = ct,
-            timeSince = function()
-                return CurTime() - ct
-            end,
-            forgetTime = FORGET.GetRememberTime(self.bot), -- how many seconds to remember this position for, need to factor CurTime() into this to be useful
-            shouldForget = function()
-                local ts = CurTime() - ct
-                local pKP = self.playerKnownPositions[ply:Nick()]
-                return ts > pKP.forgetTime
-            end
-        }
+        self:UpdateKnownPositionFor(ply)
     end
 end
 
