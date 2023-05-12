@@ -161,23 +161,37 @@ end
 ---@param pos Vector|nil If nil then ply:GetPos() will be used, else this will be used.
 ---@return table knownPos The updated known position entry for this player
 function Memory:UpdateKnownPositionFor(ply, pos)
-    local knownPos = {
-        ply = ply,                          -- The player object
-        nick = ply:Nick(),                  -- The player's nickname
-        pos = pos or ply:GetPos(),          -- The position of the player
-        inferred = (pos and true) or false, -- Whether or not this position is inferred (and probably not accurate)
-        time = ct,                          -- The time this position was last updated
-        timeSince = function()              -- How long ago this position was last updated
-            return CurTime() - ct
-        end,
-        forgetTime = FORGET.GetRememberTime(self.bot), -- how many seconds to remember this position for, need to factor CurTime() into this to be useful
-        shouldForget = function()                      -- Whether or not we should forget this position
-            local ts = CurTime() - ct
-            local pKP = self.playerKnownPositions[ply:Nick()]
-            return ts > pKP.forgetTime
-        end
-    }
+    -- Get the current time
     local ct = CurTime()
+
+    -- Create the knownPos entry
+    local knownPos = {
+        ply = ply,                                    -- The player object
+        nick = ply:Nick(),                            -- The player's nickname
+        pos = pos or ply:GetPos(),                    -- The position of the player
+        inferred = (pos and true) or false,           -- Whether or not this position is inferred (and probably not accurate)
+        time = ct,                                    -- The time this position was last updated
+        forgetTime = FORGET.GetRememberTime(self.bot) -- How many seconds to remember this position for
+    }
+
+    -- Function to get how long ago this position was last updated
+    function knownPos.timeSince()
+        return CurTime() - knownPos.time
+    end
+
+    -- Function to check whether or not we should forget this position
+    function knownPos.shouldForget()
+        -- Calculate the elapsed time since the last update
+        local ts = CurTime() - knownPos.time
+
+        -- Get the corresponding known position of the player
+        local pKP = self.playerKnownPositions[ply:Nick()]
+
+        -- Return whether the elapsed time is greater than the forget time
+        return ts > pKP.forgetTime
+    end
+
+    -- Update the known position for this player
     self.playerKnownPositions[ply:Nick()] = knownPos
 
     return knownPos
