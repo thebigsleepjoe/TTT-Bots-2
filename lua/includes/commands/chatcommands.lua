@@ -161,6 +161,14 @@ Chat.Commands = {
                 mp(ply, func .. ": " .. visibleHelp[func])
             end
         end
+    end,
+    ["!debugmenu"] = function(ply, fulltxt)
+        -- Run ttt_bot_debug_showui on the client's end if they're a superadmin
+        if not ply:IsSuperAdmin() then
+            Chat.MessagePlayer(ply, "You do not have permission to execute this command. You must be a superadmin.")
+            return
+        end
+        ply:ConCommand("ttt_bot_debug_showui")
     end
 }
 
