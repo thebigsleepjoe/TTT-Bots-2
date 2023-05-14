@@ -1,8 +1,11 @@
+-- Initialize variables for storing client data, request status, and UI components
 local clientData = {}
-local requestData = false --- Are we requesting data from the server?
+local requestData = false
 local debugWindow = nil
 local debugSheet = nil
 
+-- Network event listener for "TTTBots_ClientData"
+-- It receives data from the server, decompresses it and converts it to a table
 net.Receive("TTTBots_ClientData", function()
     local bytes_amt = net.ReadUInt(32)
     local compressed_data = net.ReadData(bytes_amt)
@@ -10,17 +13,19 @@ net.Receive("TTTBots_ClientData", function()
     clientData = util.JSONToTable(uncompressed_data)
 end)
 
+-- Periodically request data from the server if requestData is true
 timer.Create("TTTBots.Client.RequestData", 0.34, 0, function()
     if not requestData then return end
     net.Start("TTTBots_RequestData")
     net.SendToServer()
 end)
 
+-- Function to create the debug UI for superadmin players
 local function CreateDebugUI(ply, cmd, args, argStr)
-    -- we can ignore the args
     if not IsValid(ply) or not ply:IsSuperAdmin() then return end
     requestData = true
 
+    -- UI setup code
     debugWindow = vgui.Create("DFrame")
     debugWindow:SetSize(ScrW() * 0.4, ScrH() * 0.4)
     debugWindow:Center()
@@ -29,6 +34,8 @@ local function CreateDebugUI(ply, cmd, args, argStr)
     debugWindow:ShowCloseButton(true)
     debugWindow:SetVisible(true)
     debugWindow:MakePopup()
+
+    -- On window close, stop data request and cleanup
     function debugWindow:OnClose()
         requestData = false
         debugWindow = nil
@@ -36,14 +43,12 @@ local function CreateDebugUI(ply, cmd, args, argStr)
         self:Remove()
     end
 
+    -- Create debugSheet UI component inside the debugWindow
     debugSheet = vgui.Create("DPropertySheet", debugWindow)
     debugSheet:Dock(FILL)
-    debugSheet:SetFadeTime(0.0)
-    -- function debugSheet:Paint(w, h)
-    --     draw.RoundedBox(0, 0, 0, w, h, Color(0, 0, 0, 255))
-    -- end
 end
 
+-- Function to get the names of all tabs in the debug sheet
 local function GetTabNames()
     local names = {}
     for i, v in pairs(debugSheet:GetItems()) do
@@ -52,49 +57,55 @@ local function GetTabNames()
     return names
 end
 
+-- Function to populate the debug sheet with data from the clientData table
 local function PopulateDebugSheet()
-    if not (clientData) then return end
+    if not clientData or not debugSheet or not debugWindow then return end
     if (table.Count(clientData) == 0 and requestData) then
         print "No bots found, or waiting for data"
         return
     end
-    if not debugSheet or not debugWindow then return end
 
     local tabNames = GetTabNames()
     local activeTab = debugSheet:GetActiveTab() and debugSheet:GetActiveTab():GetText()
 
-    -- Cull any tabs that are no longer needed; clientData is the source of truth
-    for i, v in pairs(debugSheet:GetItems()) do
-        local tabName = v.Tab:GetText()
+    -- Optimization: iterate over smaller collection, assuming clientData is generally smaller
+    for tabName, _ in pairs(tabNames) do
         if not clientData[tabName] then
-            debugSheet:CloseTab(v.Tab, true)
+            local tab = debugSheet:Find(tabName) -- Assume there's a Find method or similar
+            if tab then debugSheet:CloseTab(tab, true) end
         end
     end
 
-    -- Add any new tabs
+
+    PrintTable(clientData)
+    -- Iterate over bot data, updating existing tabs and creating new ones as necessary
     for botname, bot in pairs(clientData) do
         if not tabNames[botname] then
             local sheet = vgui.Create("DPanel", debugSheet)
             sheet:SetText(botname)
+            sheet.Paint = function(self, w, h)
+                draw.RoundedBox(0, 0, 0, w, h, Color(0, 0, 0, 255))
+            end
+
+            local listView = vgui.Create("DListView", sheet)
+            listView:Dock(FILL)
+            listView:SetMultiSelect(false)
+            listView:AddColumn("Name")
+            listView:AddColumn("Value")
+
+            for k, v in pairs(bot) do
+                listView:AddLine(k, v)
+            end
+
             debugSheet:AddSheet(botname, sheet, "icon16/gun.png")
         end
     end
 
-    -- local item = 0
-    -- for botname, bot in pairs(clientData) do
-    --     item = item + 1
-    --     local sheet = vgui.Create("DPanel", debugSheet)
-    --     sheet:SetText(botname)
-    --     debugSheet:AddSheet(botname, sheet, "icon16/gun.png")
-
-    --     --Todo: populate the sheet with bot data
-    -- end
-
-    if activeTab then
-        debugSheet:SwitchToName(activeBot)
-    end
+    if activeTab then debugSheet:SwitchToName(activeTab) end
 end
 
+
+-- Periodically populate the debug sheet with the client data
 timer.Create("TTTBots.Client.PopulateDebugSheet", 0.34, 0, PopulateDebugSheet)
 
 concommand.Add("ttt_bot_debug_showui", CreateDebugUI, nil, "Creates a debug UI for superadmins to see bot activity",

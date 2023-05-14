@@ -64,17 +64,37 @@ net.Receive("TTTBots_RequestData", function(len, ply)
     for i, bot in pairs(player.GetBots()) do
         if not (bot and bot.components and bot.components.locomotor) then continue end
         local locomotor = bot.components.locomotor
-        -- todo more components
+        local memory = bot.components.memory
+
+        local numKnownPos = #memory:GetKnownPlayersPos()
+        local numKnownAlive = #memory:GetKnownAlivePlayers()
+        local actualNumAlive = #memory:GetActualAlivePlayers()
+        -- local knownAlivePct = numKnownAlive / actualNumAlive
+
+        local behaviorName = bot.currentBehavior and bot.currentBehavior.Name or "None"
+        local behaviorDesc = bot.currentBehavior and bot.currentBehavior.Description or "None"
 
         botData[bot:Nick()] = {
-            locomotor = {
-                strafe_dir = locomotor:GetStrafe(),
-                hasPath = locomotor:HasPath(),
-                pathLength = locomotor:GetPathLength(),
-                goalPos = locomotor:GetGoalPos(),
-                closestI = locomotor.closestI,
-                targetDoor = locomotor.targetDoor,
-            }
+            strafeDir = locomotor:GetStrafe(),
+            isPathing = locomotor:HasPath(),
+            goalPos = locomotor:GetGoalPos(),
+            isDoored = locomotor.targetDoor ~= nil,
+            locoTick = locomotor.tick,
+
+            isAlive = TTTBots.Lib.IsPlayerAlive(bot),
+            numCanSee = #memory:GetRecentlySeenPlayers(),
+            numKnownPos = numKnownPos,
+            numKnownAlive = numKnownAlive,
+
+            attackTargetName = (
+                bot.attackTarget
+                and (
+                    bot.attackTarget:IsPlayer() and bot.attackTarget:Nick()
+                    or bot.attackTarget:GetClass())
+                or "No target"
+            ),
+            behaviorName = behaviorName,
+            behaviorDesc = behaviorDesc
         }
     end
 

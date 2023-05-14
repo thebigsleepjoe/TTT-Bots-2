@@ -270,6 +270,59 @@ function Memory:UpdatePlayerLifeStates()
     end
 end
 
+function Memory:SawPlayerRecently(ply)
+    local pnp = self.playerKnownPositions[ply:Nick()]
+    if not pnp then return false end
+    return pnp.timeSince() < 5
+end
+
+function Memory:GetRecentlySeenPlayers(withinSecs)
+    local withinSecs = withinSecs or 5
+    local players = {}
+    for i, ply in pairs(player.GetAll()) do
+        if self:SawPlayerRecently(ply) then
+            table.insert(players, ply)
+        end
+    end
+    return players
+end
+
+--- Gets a list of positions of players that we have seen recently.
+---@return table<Vector> positions ["playername"]=Vector
+function Memory:GetKnownPlayersPos()
+    local positions = {}
+    for i, ply in pairs(player.GetAll()) do
+        local pnp = self.playerKnownPositions[ply:Nick()]
+        if not pnp then continue end
+        positions[ply:Nick()] = pnp.pos
+    end
+    return positions
+end
+
+--- Gets a list of every player we think is alive.
+---@return table<Player> players
+function Memory:GetKnownAlivePlayers()
+    local players = {}
+    for i, ply in pairs(player.GetAll()) do
+        if self:GetPlayerLifeState(ply) == ALIVE then
+            table.insert(players, ply)
+        end
+    end
+    return players
+end
+
+--- Gets actually alive players irrespective of what we think.
+---@return table<Player> players
+function Memory:GetActualAlivePlayers()
+    local players = {}
+    for i, ply in pairs(player.GetAll()) do
+        if lib.IsPlayerAlive(ply) then
+            table.insert(players, ply)
+        end
+    end
+    return players
+end
+
 function Memory:Think()
     self.tick = self.tick + 1
     local RUNRATE = 5
