@@ -77,7 +77,6 @@ local function PopulateDebugSheet()
     end
 
 
-    PrintTable(clientData)
     -- Iterate over bot data, updating existing tabs and creating new ones as necessary
     for botname, bot in pairs(clientData) do
         if not tabNames[botname] then
@@ -93,15 +92,33 @@ local function PopulateDebugSheet()
             listView:AddColumn("Name")
             listView:AddColumn("Value")
 
-            for k, v in pairs(bot) do
-                listView:AddLine(k, v)
+            -- Alphabetically sort bot (table)
+            local sorted = {}
+            for k, v in pairs(bot) do table.insert(sorted, k) end
+            table.sort(sorted)
+
+
+            for n, key in pairs(sorted) do
+                local value = bot[key]
+                local line = listView:AddLine(key, value)
+                --- Hijack the paint function to update the value column dynamically.
+                --- This is hacky AF but it works. It's a debug menu so I don't care. ;)
+                local lp = line.Paint
+                function line.Paint(self, w, h)
+                    local data = clientData and clientData[botname] and clientData[botname][key]
+                    if not data then return lp(self, w, h) end
+
+                    line:SetColumnText(2, data)
+                    return lp(self, w, h)
+                end
             end
 
             debugSheet:AddSheet(botname, sheet, "icon16/gun.png")
         end
     end
 
-    if activeTab then debugSheet:SwitchToName(activeTab) end
+    if not activeTab then return end
+    debugSheet:SwitchToName(activeTab)
 end
 
 

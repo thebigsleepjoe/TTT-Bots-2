@@ -65,6 +65,7 @@ net.Receive("TTTBots_RequestData", function(len, ply)
         if not (bot and bot.components and bot.components.locomotor) then continue end
         local locomotor = bot.components.locomotor
         local memory = bot.components.memory
+        local personality = bot.components.personality
 
         local numKnownPos = #memory:GetKnownPlayersPos()
         local numKnownAlive = #memory:GetKnownAlivePlayers()
@@ -74,18 +75,19 @@ net.Receive("TTTBots_RequestData", function(len, ply)
         local behaviorName = bot.currentBehavior and bot.currentBehavior.Name or "None"
         local behaviorDesc = bot.currentBehavior and bot.currentBehavior.Description or "None"
 
+        local traits = personality:GetTraits()
+        local traitsCommaSep = table.concat(traits, ", ")
+
         botData[bot:Nick()] = {
-            strafeDir = locomotor:GetStrafe(),
-            isPathing = locomotor:HasPath(),
-            goalPos = locomotor:GetGoalPos(),
+            strafeDir = locomotor:GetStrafe() or "None",
+            isPathing = locomotor:HasPath() or false,
+            goalPos = locomotor:GetGoalPos() or "None",
             isDoored = locomotor.targetDoor ~= nil,
             locoTick = locomotor.tick,
-
             isAlive = TTTBots.Lib.IsPlayerAlive(bot),
             numCanSee = #memory:GetRecentlySeenPlayers(),
             numKnownPos = numKnownPos,
             numKnownAlive = numKnownAlive,
-
             attackTargetName = (
                 bot.attackTarget
                 and (
@@ -94,7 +96,9 @@ net.Receive("TTTBots_RequestData", function(len, ply)
                 or "No target"
             ),
             behaviorName = behaviorName,
-            behaviorDesc = behaviorDesc
+            behaviorDesc = behaviorDesc,
+            isEvil = TTTBots.Lib.IsEvil(bot),
+            traits = traitsCommaSep
         }
     end
 
