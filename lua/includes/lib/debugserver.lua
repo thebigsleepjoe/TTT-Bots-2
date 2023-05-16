@@ -95,6 +95,7 @@ net.Receive("TTTBots_RequestData", function(len, ply)
                     or bot.attackTarget:GetClass())
                 or "No target"
             ),
+            attackBehaviorMode = bot.attackBehaviorMode or "None",
             behaviorName = behaviorName,
             behaviorDesc = behaviorDesc,
             isEvil = TTTBots.Lib.IsEvil(bot),

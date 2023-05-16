@@ -87,6 +87,8 @@ function Attack:OnRunning(bot)
     end -- Target is not a player or NPC
 
     local attack = self:RunningAttackLogic(bot)
+    bot.attackBehaviorMode = attack
+
     local isEvil = lib.IsEvil(bot)
 
     if attack == attackModes.Hunting and not isEvil then return status.Failure end -- We are innocent and we lost our target
