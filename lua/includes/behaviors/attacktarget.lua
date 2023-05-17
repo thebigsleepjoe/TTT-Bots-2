@@ -40,19 +40,19 @@ end
 
 function Attack:Seek(bot, targetPos)
     -- Todo
-    local target = self.attackTarget
+    local target = bot.attackTarget
     local loco = bot.components.locomotor
 end
 
 function Attack:Engage(bot, targetPos)
     -- Todo
-    local target = self.attackTarget
+    local target = bot.attackTarget
     local loco = bot.components.locomotor
 end
 
 function Attack:Hunt(bot, targetPos)
     -- Todo
-    local target = self.attackTarget
+    local target = bot.attackTarget
     local loco = bot.components.locomotor
 end
 
