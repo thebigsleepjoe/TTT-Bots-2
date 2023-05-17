@@ -13,13 +13,14 @@ Attack.Name = "AttackTarget"
 Attack.Description = "Attacking target"
 Attack.Interruptible = false
 
-local status = {
+local STATUS = {
     Running = 1,
     Success = 2,
     Failure = 3,
 }
 
-local attackModes = {
+---@enum ATTACKMODE
+local ATTACKMODE = {
     Hunting = 1,  -- We have a target but we do not know where they are
     Seeking = 2,  -- We have a target and we saw them recently or can see them but not shoot them
     Engaging = 3, -- We have a target and we know where they are, and we trying to shoot
@@ -62,22 +63,39 @@ end
 
 --- Called when the behavior is started
 function Attack:OnStart(bot)
-    return status.Running
+    return STATUS.Running
 end
 
+--- Determine what mode of attack (attackMode) we are in.
+---@param bot Player
+---@return ATTACKMODE mode
 function Attack:RunningAttackLogic(bot)
+    ---@type TTTBots.Components.Memory
     local memory = bot.components.memory
+    local target = bot.attackTarget
+    local targetPos = memory:GetCurrentPosOf(bot)
 
-    -- return attackModes.Hunting
+    -- TODO
+end
+
+--- Validates if the target is extant and alive. True if valid.
+---@param bot Player
+---@return boolean isValid
+function Attack:ValidateTarget(bot)
+    local target = bot.attackTarget
+
+    if not target or not target:IsValid() then return end                          -- Target is invalid
+    if not target:Alive() then return end                                          -- We probably killed them
+    if target:IsPlayer() and not TTTBots.Lib.IsPlayerAlive(target) then return end -- We probably killed them
+
+    return true
 end
 
 --- Called when the behavior's last state is running
 function Attack:OnRunning(bot)
     local target = bot.attackTarget
     -- We could probably do self:Validate but this is more explicit:
-    if not target or not target:IsValid() then return status.Failure end                          -- Target is invalid
-    if not target:Alive() then return status.Success end                                          -- We probably killed them
-    if target:IsPlayer() and not TTTBots.Lib.IsPlayerAlive(target) then return status.Success end -- We probably killed them
+    if not self:ValidateTarget(bot) then return STATUS.Failure end -- Target is not valid
 
     local isNPC = target:IsNPC()
     local isPlayer = target:IsPlayer()
@@ -91,9 +109,9 @@ function Attack:OnRunning(bot)
 
     local isEvil = lib.IsEvil(bot)
 
-    if attack == attackModes.Hunting and not isEvil then return status.Failure end -- We are innocent and we lost our target
+    if attack == ATTACKMODE.Hunting and not isEvil then return STATUS.Failure end -- We are innocent and we lost our target
 
-    return status.Running
+    return STATUS.Running
 end
 
 --- Called when the behavior returns a success state
