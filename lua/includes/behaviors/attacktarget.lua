@@ -2,12 +2,14 @@ TTTBots.Behaviors = TTTBots.Behaviors or {}
 --[[
 This behavior is not responsible for finding a target. It is responsible for attacking a target.
 
-**It will only stop itself once the target is dead or nil. It cannot be interrupted by another behavior.**
+**It will only stop itself once the target is dead or nil. It must not be interrupted by another behavior.**
 ]]
+---@class BAttack
 TTTBots.Behaviors.AttackTarget = {}
 
 local lib = TTTBots.Lib
 
+---@class BAttack
 local Attack = TTTBots.Behaviors.AttackTarget
 Attack.Name = "AttackTarget"
 Attack.Description = "Attacking target"
@@ -36,6 +38,24 @@ function Attack:OnStart(bot)
     return STATUS.Running
 end
 
+function Attack:Seek(bot, targetPos)
+    -- Todo
+    local target = self.attackTarget
+    local loco = bot.components.locomotor
+end
+
+function Attack:Engage(bot, targetPos)
+    -- Todo
+    local target = self.attackTarget
+    local loco = bot.components.locomotor
+end
+
+function Attack:Hunt(bot, targetPos)
+    -- Todo
+    local target = self.attackTarget
+    local loco = bot.components.locomotor
+end
+
 --- Determine what mode of attack (attackMode) we are in.
 ---@param bot Player
 ---@return ATTACKMODE mode
@@ -43,11 +63,20 @@ function Attack:RunningAttackLogic(bot)
     ---@type CMemory
     local memory = bot.components.memory
     local target = bot.attackTarget
-    local targetPos = memory:GetCurrentPosOf(target)
+    local targetPos, canSee = memory:GetCurrentPosOf(target)
+    local mode
 
-    if not targetPos then return ATTACKMODE.Hunting end -- We don't know where they are
+    if not targetPos then mode = ATTACKMODE.Hunting end -- We don't know where they are
+    if canSee then mode = ATTACKMODE.Engaging end       -- We can see them, we are engaging
+    mode = ATTACKMODE.Seeking                           -- We can't see them, we are seeking
 
-    -- TODO
+    local switchcase = {
+        [ATTACKMODE.Hunting] = self.Hunt,
+        [ATTACKMODE.Seeking] = self.Seek,
+        [ATTACKMODE.Engaging] = self.Engage,
+    }
+    switchcase[mode](self, bot, targetPos) -- Call the function
+    return mode
 end
 
 --- Validates if the target is extant and alive. True if valid.

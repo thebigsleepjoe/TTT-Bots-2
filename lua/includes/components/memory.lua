@@ -151,11 +151,13 @@ end
 --- Get the last known position of the given player, if we have any. This differs from GetKnownPositionFor
 --- in that it will either return ply:GetPos() if lib.CanSee(self.bot, ply), or the last known position.
 ---@param ply any
+---@return Vector|nil Pos, boolean CanSee
 function Memory:GetCurrentPosOf(ply)
-    if lib.CanSee(self.bot, ply) then
+    local canSee = lib.CanSee(self.bot, ply)
+    if canSee then
         return ply:GetPos()
     end
-    return self:GetKnownPositionFor(ply)
+    return self:GetKnownPositionFor(ply), canSee
 end
 
 --- Update the known position in our database for the given player to their current position, or pos if provided.
