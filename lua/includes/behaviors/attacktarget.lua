@@ -28,37 +28,7 @@ local ATTACKMODE = {
 
 --- Validate the behavior
 function Attack:Validate(bot)
-    local target = bot.attackTarget
-
-    local hasTarget = target and true or false
-    local targetIsValid = target and target:IsValid() or false
-    local targetIsAlive = target and target:Alive() or false
-    local targetIsPlayer = target and target:IsPlayer() or false
-    local targetIsNPC = target and target:IsNPC() or false
-    local targetIsPlayerAndAlive = targetIsPlayer and TTTBots.Lib.IsPlayerAlive(target) or false
-    local targetIsNPCAndAlive = targetIsNPC and target:Health() > 0 or false
-    local targetIsPlayerOrNPCAndAlive = targetIsPlayerAndAlive or targetIsNPCAndAlive or false
-
-    local _dbg = false
-    if _dbg then
-        print(bot:Nick() .. " validating attack target behavior:")
-        print("| hasTarget: " .. tostring(hasTarget))
-        print("| targetIsValid: " .. tostring(targetIsValid))
-        print("| targetIsAlive: " .. tostring(targetIsAlive))
-        print("| targetIsPlayer: " .. tostring(targetIsPlayer))
-        print("| targetIsNPC: " .. tostring(targetIsNPC))
-        print("| targetIsPlayerAndAlive: " .. tostring(targetIsPlayerAndAlive))
-        print("| targetIsNPCAndAlive: " .. tostring(targetIsNPCAndAlive))
-        print("| targetIsPlayerOrNPCAndAlive: " .. tostring(targetIsPlayerOrNPCAndAlive))
-        print("------------------")
-    end
-
-    return (
-        hasTarget
-        and targetIsValid
-        and targetIsAlive
-        and targetIsPlayerOrNPCAndAlive
-    )
+    return self:ValidateTarget(bot)
 end
 
 --- Called when the behavior is started
@@ -73,7 +43,9 @@ function Attack:RunningAttackLogic(bot)
     ---@type CMemory
     local memory = bot.components.memory
     local target = bot.attackTarget
-    local targetPos = memory:GetCurrentPosOf(bot)
+    local targetPos = memory:GetCurrentPosOf(target)
+
+    if not targetPos then return ATTACKMODE.Hunting end -- We don't know where they are
 
     -- TODO
 end
@@ -84,11 +56,32 @@ end
 function Attack:ValidateTarget(bot)
     local target = bot.attackTarget
 
-    if not target or not target:IsValid() then return end                          -- Target is invalid
-    if not target:Alive() then return end                                          -- We probably killed them
-    if target:IsPlayer() and not TTTBots.Lib.IsPlayerAlive(target) then return end -- We probably killed them
+    local hasTarget = target and true or false
+    local targetIsValid = target and target:IsValid() or false
+    local targetIsAlive = target and target:Alive() or false
+    local targetIsPlayer = target and target:IsPlayer() or false
+    local targetIsNPC = target and target:IsNPC() or false
+    local targetIsPlayerAndAlive = targetIsPlayer and TTTBots.Lib.IsPlayerAlive(target) or false
+    local targetIsNPCAndAlive = targetIsNPC and target:Health() > 0 or false
+    local targetIsPlayerOrNPCAndAlive = targetIsPlayerAndAlive or targetIsNPCAndAlive or false
 
-    return true
+    -- print(bot:Nick() .. " validating attack target behavior:")
+    -- print("| hasTarget: " .. tostring(hasTarget))
+    -- print("| targetIsValid: " .. tostring(targetIsValid))
+    -- print("| targetIsAlive: " .. tostring(targetIsAlive))
+    -- print("| targetIsPlayer: " .. tostring(targetIsPlayer))
+    -- print("| targetIsNPC: " .. tostring(targetIsNPC))
+    -- print("| targetIsPlayerAndAlive: " .. tostring(targetIsPlayerAndAlive))
+    -- print("| targetIsNPCAndAlive: " .. tostring(targetIsNPCAndAlive))
+    -- print("| targetIsPlayerOrNPCAndAlive: " .. tostring(targetIsPlayerOrNPCAndAlive))
+    -- print("------------------")
+
+    return (
+        hasTarget
+        and targetIsValid
+        and targetIsAlive
+        and targetIsPlayerOrNPCAndAlive
+    )
 end
 
 --- Called when the behavior's last state is running
