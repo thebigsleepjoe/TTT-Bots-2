@@ -5,10 +5,11 @@ This component is how the bot gets to something. It does not create the paths, i
 TODO: rewrite instructions on how to use this component
 
 ]]
-TTTBots.Components = TTTBots.Components or {}
+---@class CLocomotor
 TTTBots.Components.Locomotor = {}
 
 local lib = TTTBots.Lib
+---@class CLocomotor
 local BotLocomotor = TTTBots.Components.Locomotor
 
 function BotLocomotor:New(bot)
@@ -984,7 +985,7 @@ function BotLocomotor:UpdateViewAngles(cmd)
             or (not wallClose and self["randomLook"])
             or (wallClose and self.nextPos + Vector(0, 0, 64))
             or goal
-            )
+        )
     end
 
     local dvlpr_door = lib.GetDebugFor("doors")

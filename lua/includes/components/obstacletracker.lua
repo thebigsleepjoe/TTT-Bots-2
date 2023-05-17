@@ -1,7 +1,8 @@
-TTTBots.Components = TTTBots.Components or {}
+---@class CObstacleTracker
 TTTBots.Components.ObstacleTracker = TTTBots.Components.ObstacleTracker or {}
 
 local lib = TTTBots.Lib
+---@class CObstacleTracker
 local BotObstacleTracker = TTTBots.Components.ObstacleTracker
 
 function BotObstacleTracker:New(bot)

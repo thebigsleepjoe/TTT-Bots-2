@@ -1,8 +1,11 @@
-TTTBots.Behaviors = TTTBots.Behaviors or {}
+--- This behavior sucks and it deserves to be rewritten, integrated with the loco, and/or removed entirely.
+--- But I'm not going to do that right now. Too bad!
+---@class BBreaker
 TTTBots.Behaviors.ClearBreakables = {}
 
 local lib = TTTBots.Lib
 
+---@class BBreaker
 local Breaker = TTTBots.Behaviors.ClearBreakables
 Breaker.Name = "ClearBreakables"
 Breaker.Description = "Clear breakables near to the player"
@@ -25,7 +28,8 @@ function Breaker:Validate(bot)
     })
 
     return traceResult.Hit and IsValid(traceResult.Entity) and
-    table.HasValue(TTTBots.Components.ObstacleTracker.Breakables, traceResult.Entity) and traceResult.Entity:Health() > 0
+        table.HasValue(TTTBots.Components.ObstacleTracker.Breakables, traceResult.Entity) and
+        traceResult.Entity:Health() > 0
 end
 
 --- Called when the behavior is started

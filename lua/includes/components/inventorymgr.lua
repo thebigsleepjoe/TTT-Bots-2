@@ -1,7 +1,9 @@
 TTTBots.Components = TTTBots.Components or {}
+---@class CInventory
 TTTBots.Components.InventoryMgr = TTTBots.Components.InventoryMgr or {}
 
 local lib = TTTBots.Lib
+---@class CInventory
 local BotInventoryMgr = TTTBots.Components.InventoryMgr
 
 function BotInventoryMgr:New(bot)
@@ -56,7 +58,7 @@ function BotInventoryMgr:GetWeaponInfo(wep)
         or wep.Kind == 7 and "special"
         or wep.Kind == 8 and "extra"
         or wep.Kind == 9 and "class"
-        )
+    )
     -- Hold type of the weapon
     info.hold_type = wep:GetHoldType()
     -- If the weapon is a gun

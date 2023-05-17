@@ -70,7 +70,7 @@ end
 ---@param bot Player
 ---@return ATTACKMODE mode
 function Attack:RunningAttackLogic(bot)
-    ---@type TTTBots.Components.Memory
+    ---@type CMemory
     local memory = bot.components.memory
     local target = bot.attackTarget
     local targetPos = memory:GetCurrentPosOf(bot)

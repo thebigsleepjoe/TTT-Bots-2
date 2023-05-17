@@ -1,7 +1,8 @@
-TTTBots.Components = TTTBots.Components or {}
+---@class CPersonality
 TTTBots.Components.Personality = TTTBots.Components.Personality or {}
 
 local lib = TTTBots.Lib
+---@class CPersonality
 local BotPersonality = TTTBots.Components.Personality
 
 BotPersonality.Traits = {
