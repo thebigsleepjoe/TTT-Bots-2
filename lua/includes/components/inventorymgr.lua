@@ -1,4 +1,3 @@
-TTTBots.Components = TTTBots.Components or {}
 ---@class CInventory
 TTTBots.Components.InventoryMgr = TTTBots.Components.InventoryMgr or {}
 

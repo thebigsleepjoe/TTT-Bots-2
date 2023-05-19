@@ -9,25 +9,31 @@ TTTBots = TTTBots or {}
 TTTBots.Sound = {
     DetectionInfo = {
         Gunshot = {
-            Distance = 1000,
-            Keywords = { "gun", "shoot", "shot", "fire", "bang", "pew" }
+            Distance = 1250,
+            Keywords = { "gun", "shoot", "shot", "bang", "pew",
+                "fiveseven", "mac10", "deagle", "shotgun", "rifle", "pistol", "xm1014", "m249", "scout", "m4a1"
+            }
         },
         Footstep = {
-            Distance = 250,
-            Keywords = { "footstep" }
+            Distance = 350,
+            Keywords = { "footstep", "glass_sheet_step" }
         },
         Melee = {
             Distance = 500,
             Keywords = { "swing", "hit", "punch", "slash", "stab" }
         },
         Death = {
-            Distance = 1000,
-            Keywords = { "pain", "death", "die", "dead", "ouch" }
+            Distance = 1250,
+            Keywords = { "pain", "death", "die", "dead", "ouch", "male01" }
         },
         C4Beep = {
-            Distance = 500,
+            Distance = 600,
             Keywords = { "beep" }
         },
+        Explosion = {
+            Distance = 1500,
+            Keywords = { "ball_zap", "explode" }
+        }
     },
     TraitMults = {
         cautious = 1.3,
@@ -351,6 +357,40 @@ function Memory:Think()
     self:UpdatePlayerLifeStates()
 end
 
+function Memory:HandleSound(info, soundData)
+    -- Info example
+    -- SoundName = "Gunshot",
+    -- FoundKeyword = "xm1014",
+    -- Distance = 1000
+    -- Pos = soundData.Pos or the entity's position
+
+    -- TODO
+end
+
+--- Executes :HandleSound for every living bot in the game.
+function Memory.HandleSoundForAllBots(info, soundData)
+    for i, v in pairs(player.GetBots()) do
+        if not lib.IsPlayerAlive(v) then continue end
+        local mem = v:GetMemory()
+        mem:HandleSound(info, soundData)
+    end
+
+    -- debug
+    -- TTTBots.DebugServer.DrawSphere(
+    --     info.Pos,
+    --     info.Distance,
+    --     Color(255, 0, 0, 0),
+    --     6
+    -- )
+    -- TTTBots.DebugServer.DrawText(
+    --     info.Pos,
+    --     string.format("%s: %s (%d)", info.SoundName, info.FoundKeyword, info.Distance),
+    --     6
+    -- )
+    -- PrintTable(soundData)
+    -- print(string.format("Handling sound %s: %s (%d)", info.SoundName, info.FoundKeyword, info.Distance))
+end
+
 --- Hooks
 
 -- GM:EntityEmitSound(table data)
@@ -363,8 +403,16 @@ hook.Add("EntityEmitSound", "TTTBots.EntityEmitSound", function(data)
         local keywords = v.Keywords
         for i, keyword in pairs(keywords) do
             if f(sn, keyword) then
-                -- print("Found sound: " .. sn)
-                TTTBots.Sound.DetectionInfo[k].Callback(data)
+                -- print(string.format("%s: Found keyword %s in sound %s", k, keyword, sn))
+                Memory.HandleSoundForAllBots(
+                    {
+                        SoundName = k,
+                        FoundKeyword = keyword,
+                        Distance = v.Distance,
+                        Pos = data.Pos or (data.Entity and data.Entity:GetPos())
+                    },
+                    data
+                )
                 return
             end
         end

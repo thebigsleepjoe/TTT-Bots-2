@@ -172,26 +172,8 @@ Chat.Commands = {
     end
 }
 
-
-function Chat.BroadcastInChat(message)
-    for _, ply in pairs(player.GetAll()) do
-        ply:ChatPrint(message)
-    end
-end
-
 function Chat.MessagePlayer(ply, message)
     ply:ChatPrint("[TTT Bots] " .. message)
-end
-
-function Chat.BroadcastGreeting()
-    local broad = Chat.BroadcastInChat
-    broad("---------")
-    broad("Hello! You are playing on a TTT Bots compatible gamemode!")
-    broad(
-        "To add a bot, open the GUI menu using !botmenu, or use the console commands provided in the mod's workshop page.")
-    broad(
-        "Bots can also be added with the chat command !addbot X, where X is the number of bots. Type !help for more info.")
-    broad("---------")
 end
 
 hook.Add("PlayerSay", "TTTBots.PlayerSay", function(ply, text, team)

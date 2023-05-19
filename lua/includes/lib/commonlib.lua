@@ -7,10 +7,13 @@ function TTTBots.Lib.CheckCompatibleGamemode()
     return table.HasValue(compatible, engine.ActiveGamemode())
 end
 
+-- Some of these comps have separate code that runs independent of the actual component objects,
+-- so we need to check if the gamemode is compatible before including them, else they will definitely shit out errors
 if TTTBots.Lib.CheckCompatibleGamemode() then
     include("includes/data/usernames.lua")
 
     -- Import components for bot creation
+    TTTBots.Components = {}
     include("includes/components/locomotor.lua")
     include("includes/components/obstacletracker.lua")
     include("includes/components/inventorymgr.lua")
@@ -388,4 +391,30 @@ function TTTBots.Lib.NthFilteredItem(N, tbl, filterFunc)
         return nil
     end
     return newTbl[N]
+end
+
+TTTBots.Chat = TTTBots.Chat or {}
+--- Broadcasts a standard greeting in chat.
+---
+--- This used to be in the Chat library but due to loading orders it must be here.
+function TTTBots.Chat.BroadcastGreeting()
+    local broad = TTTBots.Chat.BroadcastInChat
+    broad("---------", true)
+    broad("Hello! You are playing on a TTT Bots compatible gamemode!", true)
+    broad(
+        "To add a bot, open the GUI menu using !botmenu, or use the console commands provided in the mod's workshop page.",
+        true)
+    broad(
+        "Bots can also be added with the chat command !addbot X, where X is the number of bots. Type !help for more info.",
+        true)
+    broad("---------", true)
+end
+
+--- Basic wrapper to print a message in every player's chat.
+---
+--- This used to be in the Chat library but due to loading orders it must be here.
+function TTTBots.Chat.BroadcastInChat(message, adminsOnly)
+    for _, ply in pairs(player.GetAll()) do
+        ply:ChatPrint(message)
+    end
 end
