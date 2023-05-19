@@ -7,12 +7,27 @@ TTTBots.Components.Memory = {}
 TTTBots = TTTBots or {}
 
 TTTBots.Sound = {
-    DetectionRanges = {
-        Gun = 1000,
-        Footstep = 250,
-        Death = 1000,
-        Melee = 500,
-        C4 = 500,
+    DetectionInfo = {
+        Gunshot = {
+            Distance = 1000,
+            Keywords = { "gun", "shoot", "shot", "fire", "bang", "pew" }
+        },
+        Footstep = {
+            Distance = 250,
+            Keywords = { "footstep" }
+        },
+        Melee = {
+            Distance = 500,
+            Keywords = { "swing", "hit", "punch", "slash", "stab" }
+        },
+        Death = {
+            Distance = 1000,
+            Keywords = { "pain", "death", "die", "dead", "ouch" }
+        },
+        C4Beep = {
+            Distance = 500,
+            Keywords = { "beep" }
+        },
     },
     TraitMults = {
         cautious = 1.3,
@@ -340,37 +355,19 @@ end
 
 -- GM:EntityEmitSound(table data)
 hook.Add("EntityEmitSound", "TTTBots.EntityEmitSound", function(data)
-    -- PrintTable(data)
-    local sn = data.SoundName
-    -- print(data.SoundName, data.Volume)
     -- TTTBots.DebugServer.DrawCross(data.Pos, 5, Color(0, 0, 0), 1)
+    local sn = data.SoundName
     local f = string.find
 
-    local isC4 = f(sn, "c4")
-    local isGun = f(sn, "weapons")
-    local isFootstep = f(sn, "footstep")
-    local isMelee = f(sn, "swing")
-    local isDead = f(sn, "pain")
-
-    if isC4 then
-        print("Beep")
-        return
-    end
-    if isGun then
-        print("Gun")
-        return
-    end
-    if isFootstep then
-        print("Footstep")
-        return
-    end
-    if isMelee then
-        print("Melee")
-        return
-    end
-    if isDead then
-        print("Dead")
-        return
+    for k, v in pairs(TTTBots.Sound.DetectionInfo) do
+        local keywords = v.Keywords
+        for i, keyword in pairs(keywords) do
+            if f(sn, keyword) then
+                -- print("Found sound: " .. sn)
+                TTTBots.Sound.DetectionInfo[k].Callback(data)
+                return
+            end
+        end
     end
 
     print("Unknown sound: " .. sn)

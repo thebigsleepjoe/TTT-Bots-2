@@ -3,8 +3,24 @@ TTTBots = {
     Version = "2.0.0",
 }
 
--- Initialize all of our libraries
+-- Initialize CommonLib to check if gamemode is compatible
 include("includes/lib/commonlib.lua")
+
+-- Pre-check before initializing
+if TTTBots.Lib.CheckCompatibleGamemode() then
+    if TTTBots.Lib.CheckIfPlayerSlots() then
+        TTTBots.Lib.PrintInitMessage()
+        TTTBots.Chat.BroadcastGreeting()
+    else
+        TTTBots.Chat.BroadcastInChat(
+            "There are no player slots available! You cannot use the TTT Bots mod. Please start up a server to use this mod.")
+    end
+else
+    print("Gamemode is not compatible with TTT Bots. Shutting up to prevent console spam.")
+    return
+end
+
+-- Initialize all of our other libraries
 include("includes/lib/pathmanager.lua")
 include("includes/lib/debugserver.lua")
 include("includes/lib/miscnetwork.lua")
@@ -25,22 +41,8 @@ include("includes/behaviors/tree.lua")
 
 -- Shorthands
 local Lib = TTTBots.Lib
-local Chat = TTTBots.Chat
 local PathManager = TTTBots.PathManager
 
--- Pre-check before initializing
-if Lib.CheckCompatibleGamemode() then
-    if Lib.CheckIfPlayerSlots() then
-        Lib.PrintInitMessage()
-        Chat.BroadcastGreeting()
-    else
-        Chat.BroadcastInChat(
-            "There are no player slots available! You cannot use the TTT Bots mod. Please start up a server to use this mod.")
-    end
-else
-    print("Gamemode is not compatible with TTT Bots. Shutting up to prevent console spam.")
-    return
-end
 
 -- Initializing
 print("good to go")

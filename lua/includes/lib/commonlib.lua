@@ -1,13 +1,22 @@
 TTTBots.Lib = TTTBots.Lib or {}
 
-include("includes/data/usernames.lua")
+--- Checks if the current engine.ActiveGamemode is compatible with TTT Bots
+---@return boolean
+function TTTBots.Lib.CheckCompatibleGamemode()
+    local compatible = { "terrortown" }
+    return table.HasValue(compatible, engine.ActiveGamemode())
+end
 
--- Import components for bot creation
-include("includes/components/locomotor.lua")
-include("includes/components/obstacletracker.lua")
-include("includes/components/inventorymgr.lua")
-include("includes/components/personality.lua")
-include("includes/components/memory.lua")
+if TTTBots.Lib.CheckCompatibleGamemode() then
+    include("includes/data/usernames.lua")
+
+    -- Import components for bot creation
+    include("includes/components/locomotor.lua")
+    include("includes/components/obstacletracker.lua")
+    include("includes/components/inventorymgr.lua")
+    include("includes/components/personality.lua")
+    include("includes/components/memory.lua")
+end
 
 local format = string.format
 
@@ -93,13 +102,6 @@ end
 ---@return number
 function TTTBots.Lib.GetFreePlayerSlots()
     return game.MaxPlayers() - #player.GetAll()
-end
-
---- Checks if the current engine.ActiveGamemode is compatible with TTT Bots
----@return boolean
-function TTTBots.Lib.CheckCompatibleGamemode()
-    local compatible = { "terrortown" }
-    return table.HasValue(compatible, engine.ActiveGamemode())
 end
 
 --- Equivalent of GetConVar("ttt_bot_debug_(debugType)"):GetBool()
