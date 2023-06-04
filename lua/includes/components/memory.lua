@@ -20,7 +20,7 @@ TTTBots.Sound = {
             Keywords = { "footstep", "glass_sheet_step" }
         },
         Melee = {
-            Distance = 500,
+            Distance = 600,
             Keywords = { "swing", "hit", "punch", "slash", "stab" }
         },
         Death = {
@@ -37,22 +37,21 @@ TTTBots.Sound = {
         }
     },
     TraitMults = {
-        cautious = 1.3,
-        sniper = 0.7,
-        doesntcare = 0.2,
-        bodyguard = 1.2,
-        lovescrowds = 0.7,
-        teamplayer = 0.9,
-        loner = 1.1,
+        cautious = 1.2,
+        sniper = 0.8,
+        doesntcare = 0.3,
+        bodyguard = 1.1,
+        lovescrowds = 0.8,
+        loner = 1.15,
 
-        veryobservant = 2.0,
-        observant = 1.5,
-        oblivious = 0.8,
-        veryoblivious = 0.4,
+        veryobservant = 1.5,
+        observant = 1.25,
+        oblivious = 0.75,
+        veryoblivious = 0.5,
 
         deaf = 0.0,
-        lowvolume = 0.5,
-        highvolume = 1.5,
+        lowvolume = 0.8,
+        highvolume = 1.2,
     },
 }
 
