@@ -1,4 +1,4 @@
-TTTBots.Chat = {}
+TTTBots.Chat = TTTBots.Chat or {}
 local Chat = TTTBots.Chat
 
 local function fuzzySearchTbl(tbl, name)
@@ -33,14 +33,16 @@ end
 Chat.Commands = {
     ["!botmenu"] = function(ply, fulltxt)
         if not ply:IsSuperAdmin() then
-            Chat.MessagePlayer(ply, "You do not have permission to execute this command. You must be a superadmin.")
+            TTTBots.Chat.MessagePlayer(ply,
+                "You do not have permission to execute this command. You must be a superadmin.")
             return
         end
-        Chat.MessagePlayer(ply, "Not implemented yet. Please use the console commands instead.")
+        TTTBots.Chat.MessagePlayer(ply, "Not implemented yet. Please use the console commands instead.")
     end,
     ["!describe"] = function(ply, fulltxt)
         if not ply:IsSuperAdmin() then
-            Chat.MessagePlayer(ply, "You do not have permission to execute this command. You must be a superadmin.")
+            TTTBots.Chat.MessagePlayer(ply,
+                "You do not have permission to execute this command. You must be a superadmin.")
             return
         end
 
@@ -49,13 +51,13 @@ Chat.Commands = {
         local target = split()                      -- second word is the bot name
 
         if target == nil then
-            Chat.MessagePlayer(ply, "Please specify a bot name.")
+            TTTBots.Chat.MessagePlayer(ply, "Please specify a bot name.")
             return
         end
 
         local bot = fuzzySearchFirstPly(target)
         if bot == nil or not bot:IsBot() then
-            Chat.MessagePlayer(ply, "Bot named '" .. target .. "' not found.")
+            TTTBots.Chat.MessagePlayer(ply, "Bot named '" .. target .. "' not found.")
             return
         end
 
@@ -66,11 +68,12 @@ Chat.Commands = {
             str = str .. trait .. ", "
         end
         str = string.sub(str, 1, -3) -- remove last comma
-        Chat.MessagePlayer(ply, str)
+        TTTBots.Chat.MessagePlayer(ply, str)
     end,
     ["!addbot"] = function(ply, fulltxt)
         if not ply:IsSuperAdmin() then
-            Chat.MessagePlayer(ply, "You do not have permission to execute this command. You must be a superadmin.")
+            TTTBots.Chat.MessagePlayer(ply,
+                "You do not have permission to execute this command. You must be a superadmin.")
             return
         end
         local split = string.gmatch(fulltxt, "%S+") -- split by spaces
@@ -81,7 +84,7 @@ Chat.Commands = {
         if amt ~= nil and amt ~= "" then
             amt = tonumber(amt)
             if amt == nil then
-                Chat.MessagePlayer(ply, "Please specify a valid number of bots to add.")
+                TTTBots.Chat.MessagePlayer(ply, "Please specify a valid number of bots to add.")
                 return
             end
         else
@@ -91,14 +94,16 @@ Chat.Commands = {
         -- check there are enough player slots
         local isSingle = game.SinglePlayer()
         if isSingle then
-            Chat.MessagePlayer(ply, "Cannot add bots in singleplayer. Please check the workshop page for a how-to guide.")
-            Chat.MessagePlayer(ply, "You must be in a server to use this mod. Don't worry, it's super easy!!")
+            TTTBots.Chat.MessagePlayer(ply,
+                "Cannot add bots in singleplayer. Please check the workshop page for a how-to guide.")
+            TTTBots.Chat.MessagePlayer(ply, "You must be in a server to use this mod. Don't worry, it's super easy!!")
             return
         end
         local slots = game.MaxPlayers() - #player.GetAll()
         if amt > slots then
-            Chat.MessagePlayer(ply, "Not enough player slots to add " .. amt .. " bots.")
-            Chat.MessagePlayer(ply, "Please consider re-hosting with more player slots, or kick some existing bots.")
+            TTTBots.Chat.MessagePlayer(ply, "Not enough player slots to add " .. amt .. " bots.")
+            TTTBots.Chat.MessagePlayer(ply,
+                "Please consider re-hosting with more player slots, or kick some existing bots.")
             return
         end
 
@@ -109,7 +114,8 @@ Chat.Commands = {
     end,
     ["!roundrestart"] = function(ply, fulltxt)
         if not ply:IsSuperAdmin() then
-            Chat.MessagePlayer(ply, "You do not have permission to execute this command. You must be a superadmin.")
+            TTTBots.Chat.MessagePlayer(ply,
+                "You do not have permission to execute this command. You must be a superadmin.")
             return
         end
         local nBots = #player.GetBots()
@@ -117,8 +123,8 @@ Chat.Commands = {
         concommand.Run(ply, "ttt_roundrestart")
         concommand.Run(ply, "ttt_bot_add", { tostring(nBots) })
 
-        -- Chat.MessagePlayer(ply, "Restarted round and added " .. nBots .. " bots.")
-        Chat.BroadcastInChat(ply:Nick() .. " (superadmin) restarted the round and added " .. nBots .. " bots.")
+        -- TTTBots.Chat.MessagePlayer(ply, "Restarted round and added " .. nBots .. " bots.")
+        TTTBots.Chat.BroadcastInChat(ply:Nick() .. " (superadmin) restarted the round and added " .. nBots .. " bots.")
     end,
     ["!restartround"] = function(ply, fulltxt)
         Chat.Commands['!roundrestart'](ply, fulltxt)
@@ -128,14 +134,15 @@ Chat.Commands = {
     end,
     ["!kickbots"] = function(ply, fulltxt)
         if not ply:IsSuperAdmin() then
-            Chat.MessagePlayer(ply, "You do not have permission to execute this command. You must be a superadmin.")
+            TTTBots.Chat.MessagePlayer(ply,
+                "You do not have permission to execute this command. You must be a superadmin.")
             return
         end
         concommand.Run(ply, "ttt_bot_kickall")
-        Chat.BroadcastInChat(ply:Nick() .. " (superadmin) kicked all bots from the server.")
+        TTTBots.Chat.BroadcastInChat(ply:Nick() .. " (superadmin) kicked all bots from the server.")
     end,
     ["!help"] = function(ply, fulltxt)
-        local mp = Chat.MessagePlayer
+        local mp = TTTBots.Chat.MessagePlayer
         local visibleHelp = {
             addbot = "Adds a bot to the server. Usage: !addbot X, where X is the number of bots to add.",
             kickbots = "Kicks all bots from the server.",
@@ -165,14 +172,15 @@ Chat.Commands = {
     ["!debugmenu"] = function(ply, fulltxt)
         -- Run ttt_bot_debug_showui on the client's end if they're a superadmin
         if not ply:IsSuperAdmin() then
-            Chat.MessagePlayer(ply, "You do not have permission to execute this command. You must be a superadmin.")
+            TTTBots.Chat.MessagePlayer(ply,
+                "You do not have permission to execute this command. You must be a superadmin.")
             return
         end
         ply:ConCommand("ttt_bot_debug_showui")
     end
 }
 
-function Chat.MessagePlayer(ply, message)
+function TTTBots.Chat.MessagePlayer(ply, message)
     ply:ChatPrint("[TTT Bots] " .. message)
 end
 

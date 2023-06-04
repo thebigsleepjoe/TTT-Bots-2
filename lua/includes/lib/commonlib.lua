@@ -81,7 +81,7 @@ end
 ---@return boolean
 function TTTBots.Lib.CanSee(ply1, ply2)
     if not IsValid(ply1) or not IsValid(ply2) then return false end
-    local start = ply:EyePos()
+    local start = ply1:EyePos()
 
     -- Start at the eyes
     local targetEyes = ply2:EyePos()

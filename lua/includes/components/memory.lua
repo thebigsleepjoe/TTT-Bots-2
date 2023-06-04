@@ -357,6 +357,11 @@ function Memory:Think()
     self:UpdatePlayerLifeStates()
 end
 
+--- Handles incoming sounds.
+--- Determines if the bot can hear the noise, then triggers a hook if so.
+---@param info SoundInfo My custom sound info table.
+---@param soundData table The original GLua sound table.
+---@return boolean IsUseful Whether or not the sound was useful, basically false if did not hear.
 function Memory:HandleSound(info, soundData)
     -- Info example
     -- SoundName = "Gunshot",
@@ -364,34 +369,39 @@ function Memory:HandleSound(info, soundData)
     -- Distance = 1000
     -- Pos = soundData.Pos or the entity's position
 
-    -- TODO
+    local f = string.format
+    print(f("Bot %s heard %s.", self.bot:Nick(), info.SoundName))
 end
 
 --- Executes :HandleSound for every living bot in the game.
+---@param info SoundInfo
+---@param soundData table
 function Memory.HandleSoundForAllBots(info, soundData)
     for i, v in pairs(player.GetBots()) do
         if not lib.IsPlayerAlive(v) then continue end
-        local mem = v:GetMemory()
+        local mem = v.components.memory
+
+        local hasAgent = info.EntInfo.Entity or info.EntInfo.Owner
+        if not hasAgent then continue end
+
         mem:HandleSound(info, soundData)
     end
-
-    -- debug
-    -- TTTBots.DebugServer.DrawSphere(
-    --     info.Pos,
-    --     info.Distance,
-    --     Color(255, 0, 0, 0),
-    --     6
-    -- )
-    -- TTTBots.DebugServer.DrawText(
-    --     info.Pos,
-    --     string.format("%s: %s (%d)", info.SoundName, info.FoundKeyword, info.Distance),
-    --     6
-    -- )
-    -- PrintTable(soundData)
-    -- print(string.format("Handling sound %s: %s (%d)", info.SoundName, info.FoundKeyword, info.Distance))
 end
 
---- Hooks
+---@class SoundInfo My custom sound info table.
+---@field SoundName string The name of the sound.
+---@field FoundKeyword string The keyword that was found in the sound name.
+---@field Distance number The distance from the bot to the sound.
+---@field Pos Vector|nil The position of the sound, if any.
+---@field EntInfo SoundEntInfo The entity info table of the sound, if any.
+---@class SoundEntInfo Sound entity info table inside of the SoundInfo table.
+---@field Entity Entity|nil The entity that made the sound, if any.
+---@field EntityIsPlayer boolean|nil Whether or not the entity is a player.
+---@field OwnerIsPlayer boolean|nil Whether or not the owner of the entity is a player.
+---@field Class string|nil The class of the entity.
+---@field Name string|nil The name of the entity.
+---@field Nick string|nil The nick of the entity, if it is a player.
+---@field Owner Entity|nil The owner of the entity, if any.
 
 -- GM:EntityEmitSound(table data)
 hook.Add("EntityEmitSound", "TTTBots.EntityEmitSound", function(data)
@@ -409,7 +419,16 @@ hook.Add("EntityEmitSound", "TTTBots.EntityEmitSound", function(data)
                         SoundName = k,
                         FoundKeyword = keyword,
                         Distance = v.Distance,
-                        Pos = data.Pos or (data.Entity and data.Entity:GetPos())
+                        Pos = data.Pos or (data.Entity and data.Entity:GetPos()),
+                        EntInfo = {
+                            Entity = data.Entity,
+                            EntityIsPlayer = data.Entity and data.Entity:IsPlayer(),
+                            OwnerIsPlayer = data.Entity and data.Entity:GetOwner() and data.Entity:GetOwner():IsPlayer(),
+                            Class = data.Entity and data.Entity:GetClass(),
+                            Name = data.Entity and data.Entity:GetName(),
+                            Nick = data.Entity and data.Entity:IsPlayer() and data.Entity:Nick(),
+                            Owner = data.Entity and data.Entity:GetOwner(),
+                        }
                     },
                     data
                 )
@@ -418,5 +437,5 @@ hook.Add("EntityEmitSound", "TTTBots.EntityEmitSound", function(data)
         end
     end
 
-    print("Unknown sound: " .. sn)
+    -- print("Unknown sound: " .. sn)
 end)
