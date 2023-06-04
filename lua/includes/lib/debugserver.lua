@@ -99,7 +99,8 @@ net.Receive("TTTBots_RequestData", function(len, ply)
             behaviorName = behaviorName,
             behaviorDesc = behaviorDesc,
             isEvil = TTTBots.Lib.IsEvil(bot),
-            traits = traitsCommaSep
+            traits = traitsCommaSep,
+            hearingMult = memory:GetHearingMultiplier(),
         }
     end
 

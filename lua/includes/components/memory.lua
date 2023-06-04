@@ -11,7 +11,8 @@ TTTBots.Sound = {
         Gunshot = {
             Distance = 1250,
             Keywords = { "gun", "shoot", "shot", "bang", "pew",
-                "fiveseven", "mac10", "deagle", "shotgun", "rifle", "pistol", "xm1014", "m249", "scout", "m4a1"
+                "fiveseven", "mac10", "deagle", "shotgun", "rifle", "pistol", "xm1014", "m249", "scout", "m4a1",
+                "glock"
             }
         },
         Footstep = {
@@ -357,20 +358,41 @@ function Memory:Think()
     self:UpdatePlayerLifeStates()
 end
 
+--- Returns (and sets, if applicable) the hearing multiplier for this bot.
+function Memory:GetHearingMultiplier()
+    if self.HearingMultiplier then return self.HearingMultiplier end
+    local bot = self.bot
+    local traitMults = TTTBots.Sound.TraitMults
+    local traits = bot.components.personality:GetTraits()
+
+    local mult = 1
+    for i, trait in pairs(traits) do
+        if traitMults[trait] then
+            mult = mult * traitMults[trait]
+        end
+    end
+
+    self.HearingMultiplier = mult
+    return mult
+end
+
 --- Handles incoming sounds.
 --- Determines if the bot can hear the noise, then triggers a hook if so.
 ---@param info SoundInfo My custom sound info table.
 ---@param soundData table The original GLua sound table.
 ---@return boolean IsUseful Whether or not the sound was useful, basically false if did not hear.
 function Memory:HandleSound(info, soundData)
-    -- Info example
-    -- SoundName = "Gunshot",
-    -- FoundKeyword = "xm1014",
-    -- Distance = 1000
-    -- Pos = soundData.Pos or the entity's position
+    local bot = self.bot
+    local soundpos = info.Pos
+    local stdrange = info.Distance
+    local botHearingMult = self:GetHearingMultiplier()
+    local canHear = bot:GetPos():Distance(soundpos) <= stdrange * botHearingMult
+
+    if not canHear then return false end
 
     local f = string.format
-    print(f("Bot %s heard %s.", self.bot:Nick(), info.SoundName))
+    print(f("Bot %s heard %s, firing hook", self.bot:Nick(), info.SoundName))
+    hook.Run("TTTBots_OnSoundHeard", bot, info, soundData)
 end
 
 --- Executes :HandleSound for every living bot in the game.
@@ -381,17 +403,17 @@ function Memory.HandleSoundForAllBots(info, soundData)
         if not lib.IsPlayerAlive(v) then continue end
         local mem = v.components.memory
 
-        local hasAgent = info.EntInfo.Entity or info.EntInfo.Owner
-        if not hasAgent then continue end
+        -- local hasAgent = info.EntInfo.Entity or info.EntInfo.Owner
+        -- if not hasAgent then continue end
 
         mem:HandleSound(info, soundData)
     end
 end
 
 ---@class SoundInfo My custom sound info table.
----@field SoundName string The name of the sound.
+---@field SoundName string The category of the sound.
 ---@field FoundKeyword string The keyword that was found in the sound name.
----@field Distance number The distance from the bot to the sound.
+---@field Distance number The standard detection distance for this sound.
 ---@field Pos Vector|nil The position of the sound, if any.
 ---@field EntInfo SoundEntInfo The entity info table of the sound, if any.
 ---@class SoundEntInfo Sound entity info table inside of the SoundInfo table.
@@ -437,5 +459,5 @@ hook.Add("EntityEmitSound", "TTTBots.EntityEmitSound", function(data)
         end
     end
 
-    -- print("Unknown sound: " .. sn)
+    print("Unknown sound: " .. sn)
 end)
