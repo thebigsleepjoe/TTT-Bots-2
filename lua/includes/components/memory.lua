@@ -136,6 +136,8 @@ function Memory:Initialize(bot)
 
     self.bot = bot
     self.tick = 0
+    self.recentSounds = {}
+    self.forgetTime = FORGET.GetRememberTime(self.bot)
 end
 
 --- Simulates radar scanning the position of ply
@@ -376,7 +378,7 @@ function Memory:GetHearingMultiplier()
 end
 
 --- Handles incoming sounds.
---- Determines if the bot can hear the noise, then triggers a hook if so.
+--- Determines if the bot can hear the noise, then adds it to the components sound memory.
 ---@param info SoundInfo My custom sound info table.
 ---@param soundData table The original GLua sound table.
 ---@return boolean IsUseful Whether or not the sound was useful, basically false if did not hear.
@@ -390,9 +392,39 @@ function Memory:HandleSound(info, soundData)
     if not canHear then return false end
 
     local f = string.format
-    print(f("Bot %s heard %s, firing hook", self.bot:Nick(), info.SoundName))
-    hook.Run("TTTBots_OnSoundHeard", bot, info, soundData)
+    -- print(f("Bot %s heard %s, firing hook", self.bot:Nick(), info.SoundName))
+    local tbl = {
+        time = CurTime(),
+        sound = info.SoundName,
+        pos = soundpos,
+        info = info,
+        ent = info.EntInfo.Entity or info.EntInfo.Owner,
+        sourceIsPly = info.EntInfo.EntityIsPlayer or info.EntInfo.OwnerIsPlayer,
+        soundData = soundData
+    }
+    table.insert(self.recentSounds, tbl)
+
+    return true
 end
+
+--- Automatically culls old sounds from self.recentSounds
+function Memory:CullSoundMemory()
+    local recentSounds = self.recentSounds
+    local curTime = CurTime()
+    for i, sound in pairs(recentSounds) do
+        if curTime - sound.time > 5 then
+            table.remove(recentSounds, i)
+        end
+    end
+end
+
+function Memory:GetRecentSounds()
+    return self.recentSounds
+end
+
+timer.Create("TTTBots_CullSoundMemory", 1, 0, function()
+    Memory:CullSoundMemory()
+end)
 
 --- Executes :HandleSound for every living bot in the game.
 ---@param info SoundInfo
