@@ -377,6 +377,29 @@ function Memory:GetHearingMultiplier()
     return mult
 end
 
+--- Returns a table of the recent sounds emitted by a player or an entity owned by a player.
+---@param ply Player The player to get the recent sounds of.
+---@return table<table> sounds
+function Memory:GetRecentSoundsFromPly(ply)
+    local sounds = {}
+    for i, sound in pairs(self.recentSounds) do
+        if sound.owner == ply then
+            table.insert(sounds, sound)
+        end
+    end
+    return sounds
+end
+
+function Memory:GetHeardC4Sounds()
+    local sounds = {}
+    for i, sound in pairs(self.recentSounds) do
+        if sound.sound == "C4Beep" then
+            table.insert(sounds, sound)
+        end
+    end
+    return sounds
+end
+
 --- Handles incoming sounds.
 --- Determines if the bot can hear the noise, then adds it to the components sound memory.
 ---@param info SoundInfo My custom sound info table.
