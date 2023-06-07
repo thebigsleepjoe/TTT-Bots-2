@@ -15,6 +15,7 @@ Attack.Name = "AttackTarget"
 Attack.Description = "Attacking target"
 Attack.Interruptible = false
 
+---@enum STATUS
 local STATUS = {
     Running = 1,
     Success = 2,
@@ -23,7 +24,6 @@ local STATUS = {
 
 ---@enum ATTACKMODE
 local ATTACKMODE = {
-    Hunting = 1,  -- We have a target but we do not know where they are
     Seeking = 2,  -- We have a target and we saw them recently or can see them but not shoot them
     Engaging = 3, -- We have a target and we know where they are, and we trying to shoot
 }
@@ -50,12 +50,6 @@ function Attack:Engage(bot, targetPos)
     local loco = bot.components.locomotor
 end
 
-function Attack:Hunt(bot, targetPos)
-    -- Todo
-    local target = bot.attackTarget
-    local loco = bot.components.locomotor
-end
-
 --- Determine what mode of attack (attackMode) we are in.
 ---@param bot Player
 ---@return ATTACKMODE mode
@@ -66,12 +60,10 @@ function Attack:RunningAttackLogic(bot)
     local targetPos, canSee = memory:GetCurrentPosOf(target)
     local mode
 
-    if not targetPos then mode = ATTACKMODE.Hunting end -- We don't know where they are
-    if canSee then mode = ATTACKMODE.Engaging end       -- We can see them, we are engaging
-    mode = ATTACKMODE.Seeking                           -- We can't see them, we are seeking
+    if canSee then mode = ATTACKMODE.Engaging end -- We can see them, we are engaging
+    mode = ATTACKMODE.Seeking                     -- We can't see them, we are seeking
 
     local switchcase = {
-        [ATTACKMODE.Hunting] = self.Hunt,
         [ATTACKMODE.Seeking] = self.Seek,
         [ATTACKMODE.Engaging] = self.Engage,
     }
@@ -114,6 +106,8 @@ function Attack:ValidateTarget(bot)
 end
 
 --- Called when the behavior's last state is running
+---@param bot Player
+---@return STATUS status
 function Attack:OnRunning(bot)
     local target = bot.attackTarget
     -- We could probably do self:Validate but this is more explicit:
@@ -128,10 +122,6 @@ function Attack:OnRunning(bot)
 
     local attack = self:RunningAttackLogic(bot)
     bot.attackBehaviorMode = attack
-
-    local isEvil = lib.IsEvil(bot)
-
-    if attack == ATTACKMODE.Hunting and not isEvil then return STATUS.Failure end -- We are innocent and we lost our target
 
     return STATUS.Running
 end
