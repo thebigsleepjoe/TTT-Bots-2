@@ -433,6 +433,7 @@ end
 --- Automatically culls old sounds from self.recentSounds
 function Memory:CullSoundMemory()
     local recentSounds = self.recentSounds
+    if not recentSounds then return end
     local curTime = CurTime()
     for i, sound in pairs(recentSounds) do
         if curTime - sound.time > 5 then
@@ -446,7 +447,10 @@ function Memory:GetRecentSounds()
 end
 
 timer.Create("TTTBots_CullSoundMemory", 1, 0, function()
-    Memory:CullSoundMemory()
+    for i, v in pairs(player.GetBots()) do
+        if not (v and v.components and v.components.memory) then continue end
+        v.components.memory:CullSoundMemory()
+    end
 end)
 
 --- Executes :HandleSound for every living bot in the game.
