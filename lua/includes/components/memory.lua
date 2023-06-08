@@ -236,10 +236,11 @@ function Memory:UpdateKnownPositions()
 
     for i, ply in pairs(AlivePlayers) do
         if ply == self.bot then continue end
-        if not self.bot:Visible(ply) then
+        if not lib.CanSee(self.bot, ply) then
             self:HandleUnseenPlayer(ply)
             continue
         end
+        print(self.bot:Nick() .. " updating known position for " .. ply:Nick())
         self:UpdateKnownPositionFor(ply)
     end
 end
@@ -352,7 +353,7 @@ end
 
 function Memory:Think()
     self.tick = self.tick + 1
-    local RUNRATE = 5
+    local RUNRATE = 3
     if not (self.tick % RUNRATE == 0) then return end
 
     self:UpdateKnownPositions()

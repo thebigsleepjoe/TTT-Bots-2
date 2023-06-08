@@ -75,7 +75,6 @@ function TTTBots.Lib.CheckIfPlayerSlots()
     return not (#player.GetAll() >= game.MaxPlayers())
 end
 
---- If we can see the target ply2 from ply1. First tests eye-to-eye sightline, eye-to-feet, then eye-to-center.
 ---@param ply1 Player
 ---@param ply2 Player
 ---@return boolean
@@ -85,18 +84,18 @@ function TTTBots.Lib.CanSee(ply1, ply2)
 
     -- Start at the eyes
     local targetEyes = ply2:EyePos()
-    local traceEyes = util.TraceLine({ start = start, endpos = targetEyes, filter = { ply1, ply2 }, mask = MASK_SHOT })
-    if traceEyes.Hit then return true end
+    local traceEyes = util.TraceLine({ start = start, endpos = targetEyes, filter = ply1, mask = MASK_SHOT })
+    if traceEyes.Entity == ply2 then return true end
 
     -- Then the feet
     local targetFeet = ply2:GetPos()
-    local traceFeet = util.TraceLine({ start = start, endpos = targetFeet, filter = { ply1, ply2 }, mask = MASK_SHOT })
-    if traceFeet.Hit then return true end
+    local traceFeet = util.TraceLine({ start = start, endpos = targetFeet, filter = ply1, mask = MASK_SHOT })
+    if traceFeet.Entity == ply2 then return true end
 
     -- Then the center
     local targetCenter = ply2:GetPos() + Vector(0, 0, 32)
-    local traceCenter = util.TraceLine({ start = start, endpos = targetCenter, filter = { ply1, ply2 }, mask = MASK_SHOT })
-    if traceCenter.Hit then return true end
+    local traceCenter = util.TraceLine({ start = start, endpos = targetCenter, filter = ply1, mask = MASK_SHOT })
+    if traceCenter.Entity == ply2 then return true end
 
     return false
 end

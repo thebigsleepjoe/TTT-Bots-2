@@ -39,9 +39,12 @@ function Attack:OnStart(bot)
 end
 
 function Attack:Seek(bot, targetPos)
-    -- Todo
     local target = bot.attackTarget
     local loco = bot.components.locomotor
+
+    -- If we can't see them, we need to move to them
+    local targetPos = target:GetPos()
+    loco:SetGoalPos(targetPos)
 end
 
 function Attack:Engage(bot, targetPos)
@@ -58,10 +61,9 @@ function Attack:RunningAttackLogic(bot)
     local memory = bot.components.memory
     local target = bot.attackTarget
     local targetPos, canSee = memory:GetCurrentPosOf(target)
-    local mode
+    local mode = ATTACKMODE.Seeking               -- Default to seeking
 
     if canSee then mode = ATTACKMODE.Engaging end -- We can see them, we are engaging
-    mode = ATTACKMODE.Seeking                     -- We can't see them, we are seeking
 
     local switchcase = {
         [ATTACKMODE.Seeking] = self.Seek,
