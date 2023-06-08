@@ -241,7 +241,6 @@ function Memory:UpdateKnownPositions()
             self:HandleUnseenPlayer(ply)
             continue
         end
-        print(self.bot:Nick() .. " updating known position for " .. ply:Nick())
         self:UpdateKnownPositionFor(ply)
     end
 end
