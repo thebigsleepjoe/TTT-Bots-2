@@ -79,6 +79,7 @@ end
 ---@param ply2 Player
 ---@return boolean
 function TTTBots.Lib.CanSee(ply1, ply2)
+    -- This is a very expensive operation. Too bad!
     if not IsValid(ply1) or not IsValid(ply2) then return false end
     local start = ply1:EyePos()
 

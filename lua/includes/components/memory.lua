@@ -178,6 +178,7 @@ end
 function Memory:GetCurrentPosOf(ply)
     local canSee = lib.CanSee(self.bot, ply)
     if canSee then
+        self:UpdateKnownPositionFor(ply, ply:GetPos())
         return ply:GetPos()
     end
     return self:GetKnownPositionFor(ply), canSee
