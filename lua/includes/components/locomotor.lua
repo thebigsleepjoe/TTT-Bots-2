@@ -187,6 +187,9 @@ function BotLocomotor:UpdateEyeAnglesFinal()
     self.bot:SetEyeAngles(Angle(newPitch, newYaw, 0))
 end
 
+--- Aims at a given pos for "time" seconds (optional). If no time, then one-time set.
+---@param pos Vector
+---@param time number|nil
 function BotLocomotor:AimAt(pos, time)
     if time then
         self:TimedVariable("lookPosOverride", pos, time)
@@ -245,6 +248,16 @@ function BotLocomotor:GetGoalPos()
         self.goalPos = nil
     end
     return self.goalPos
+end
+
+function BotLocomotor:Stop()
+    self:SetGoalPos(nil)
+    self:SetUsing(false)
+    self:SetStrafe(nil)
+    self:SetJumping(false)
+    self:SetCrouching(false)
+    self:SetLookPosOverride(nil)
+    self.path = nil
 end
 
 function BotLocomotor:GetUsing() return self.emulateInUse end

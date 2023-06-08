@@ -45,12 +45,20 @@ function Attack:Seek(bot, targetPos)
     -- If we can't see them, we need to move to them
     local targetPos = target:GetPos()
     loco:SetGoalPos(targetPos)
+    bot.lastSeek = true --- Used to one-time stop loco when we start engaging
 end
 
 function Attack:Engage(bot, targetPos)
-    -- Todo
     local target = bot.attackTarget
+    ---@class CLocomotor
     local loco = bot.components.locomotor
+    if bot.lastSeek then
+        loco:Stop()
+        bot:Say("Stopping aiming to look at target")
+        bot.lastSeek = false
+    end
+
+    loco:AimAt(targetPos)
 end
 
 --- Determine what mode of attack (attackMode) we are in.
