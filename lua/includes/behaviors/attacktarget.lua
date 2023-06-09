@@ -36,14 +36,13 @@ end
 --- Called when the behavior is started
 function Attack:OnStart(bot)
     bot.lastSeek = true -- set this to true here for the first tick, despite the nam being misleading
-    bot.components.locomotor.stopLookingAround = true
     return STATUS.Running
 end
 
 function Attack:Seek(bot, targetPos)
     local target = bot.attackTarget
     local loco = bot.components.locomotor
-
+    bot.components.locomotor.stopLookingAround = false
     -- If we can't see them, we need to move to them
     local targetPos = target:GetPos()
     loco:SetGoalPos(targetPos)
@@ -51,8 +50,8 @@ function Attack:Seek(bot, targetPos)
 end
 
 function Attack:Engage(bot, targetPos)
-    bot.stopLookingAround = false
     local target = bot.attackTarget
+    bot.components.locomotor.stopLookingAround = true
     ---@class CLocomotor
     local loco = bot.components.locomotor
     if bot.lastSeek then
@@ -165,5 +164,5 @@ end
 --- Called when the behavior ends
 function Attack:OnEnd(bot)
     bot.attackTarget = nil
-    bot.stopLookingAround = false
+    bot.components.locomotor.stopLookingAround = false
 end
