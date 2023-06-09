@@ -258,6 +258,10 @@ function BotLocomotor:Stop()
     self:SetCrouching(false)
     self:SetLookPosOverride(nil)
     self.path = nil
+    self.RLOStop = nil
+    self.randomLook = nil
+    self.movePriorityVec = nil
+    self.movementVec = nil
 end
 
 function BotLocomotor:GetUsing() return self.emulateInUse end
@@ -956,7 +960,7 @@ function BotLocomotor:UpdateViewAngles(cmd)
     if self.nextPos then
         local nextPosNormal = (self.nextPos - self.bot:GetPos()):GetNormal()
         local outwards = self.bot:GetPos() + nextPosNormal * 1200
-        local randomLook = self:GetSetTimedVariable("randomLook", outwards, math.random(0.5, 2))
+        self:GetSetTimedVariable("randomLook", outwards, math.random(0.5, 2))
 
         -- do an eyetrace to see if there is something directly ahead of us
         local eyeTrace = self.bot:GetEyeTrace()
@@ -967,7 +971,7 @@ function BotLocomotor:UpdateViewAngles(cmd)
         if wallClose then self.randomLook = nil end
 
         -- Check if there are any plys nearby and look at the closest one if there are, instead of looking at the random look pos
-        if not self.randomLookOverride and not self.RLOStop then
+        if not self.randomLookOverride and not self.RLOStop and not self.stopLookingAround then
             local plys = player.GetAll()
             local plysNearby = {}
             for i, ply in pairs(plys) do

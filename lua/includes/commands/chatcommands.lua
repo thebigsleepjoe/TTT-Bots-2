@@ -177,6 +177,9 @@ Chat.Commands = {
             return
         end
         ply:ConCommand("ttt_bot_debug_showui")
+    end,
+    ["!devmenu"] = function(ply, fulltxt)
+        ply:Say("!debugmenu")
     end
 }
 

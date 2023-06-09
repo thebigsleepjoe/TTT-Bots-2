@@ -78,6 +78,14 @@ net.Receive("TTTBots_RequestData", function(len, ply)
         local traits = personality:GetTraits()
         local traitsCommaSep = table.concat(traits, ", ")
 
+        local abm = bot.attackBehaviorMode
+        local attackModeEnums = {
+            [1] = "Hunting",
+            [2] = "Seeking",
+            [3] = "Engaging"
+        }
+        local abmTxt = attackModeEnums[abm] or "n/a"
+
         botData[bot:Nick()] = {
             strafeDir = locomotor:GetStrafe() or "None",
             isPathing = locomotor:HasPath() or false,
@@ -95,12 +103,15 @@ net.Receive("TTTBots_RequestData", function(len, ply)
                     or bot.attackTarget:GetClass())
                 or "No target"
             ),
-            attackBehaviorMode = bot.attackBehaviorMode or "None",
+            attackBehaviorMode = abm and (abm .. " (" .. abmTxt .. ")") or "None",
             behaviorName = behaviorName,
             behaviorDesc = behaviorDesc,
             isEvil = TTTBots.Lib.IsEvil(bot),
             traits = traitsCommaSep,
             hearingMult = memory:GetHearingMultiplier(),
+            hearingMult_GunshotDist = TTTBots.Sound.DetectionInfo.Gunshot.Distance * memory:GetHearingMultiplier(),
+            stopLookingAround = locomotor.stopLookingAround or "false",
+            extantFor = locomotor.tick / 10,
         }
     end
 

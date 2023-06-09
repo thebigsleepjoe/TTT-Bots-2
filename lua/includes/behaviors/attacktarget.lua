@@ -35,6 +35,8 @@ end
 
 --- Called when the behavior is started
 function Attack:OnStart(bot)
+    bot.lastSeek = true -- set this to true here for the first tick, despite the nam being misleading
+    bot.components.locomotor.stopLookingAround = true
     return STATUS.Running
 end
 
@@ -49,6 +51,7 @@ function Attack:Seek(bot, targetPos)
 end
 
 function Attack:Engage(bot, targetPos)
+    bot.stopLookingAround = false
     local target = bot.attackTarget
     ---@class CLocomotor
     local loco = bot.components.locomotor
@@ -56,6 +59,17 @@ function Attack:Engage(bot, targetPos)
         loco:Stop()
         bot:Say("Stopping aiming to look at target")
         bot.lastSeek = false
+    end
+
+    local dvlpr = lib.GetDebugFor("attack")
+    if dvlpr then
+        TTTBots.DebugServer.DrawLineBetween(
+            bot:EyePos(),
+            targetPos,
+            Color(255, 0, 0),
+            0.1,
+            bot:Nick() .. ".attack"
+        )
     end
 
     loco:AimAt(targetPos)
@@ -151,4 +165,5 @@ end
 --- Called when the behavior ends
 function Attack:OnEnd(bot)
     bot.attackTarget = nil
+    bot.stopLookingAround = false
 end
