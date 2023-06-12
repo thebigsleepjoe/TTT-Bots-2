@@ -56,9 +56,10 @@ function Attack:Engage(bot, targetPos)
     local loco = bot.components.locomotor
     if bot.lastSeek then
         loco:Stop()
-        bot:Say("Stopping aiming to look at target")
         bot.lastSeek = false
     end
+
+    loco:SetAttack(true)
 
     local dvlpr = lib.GetDebugFor("attack")
     if dvlpr then
@@ -82,9 +83,10 @@ function Attack:RunningAttackLogic(bot)
     local memory = bot.components.memory
     local target = bot.attackTarget
     local targetPos, canSee = memory:GetCurrentPosOf(target)
-    local mode = ATTACKMODE.Seeking               -- Default to seeking
+    local mode = ATTACKMODE.Seeking -- Default to seeking
+    local canShoot = lib.CanShoot(bot, target)
 
-    if canSee then mode = ATTACKMODE.Engaging end -- We can see them, we are engaging
+    if canShoot then mode = ATTACKMODE.Engaging end -- We can shoot them, we are engaging
 
     local switchcase = {
         [ATTACKMODE.Seeking] = self.Seek,

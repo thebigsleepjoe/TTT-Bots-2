@@ -75,11 +75,38 @@ function TTTBots.Lib.CheckIfPlayerSlots()
     return not (#player.GetAll() >= game.MaxPlayers())
 end
 
+--- Like CanSee, but the traces include everything that could stop a bullet.
 ---@param ply1 Player
 ---@param ply2 Player
 ---@return boolean
-function TTTBots.Lib.CanSee(ply1, ply2)
+function TTTBots.Lib.CanShoot(ply1, ply2)
     -- This is a very expensive operation. Too bad!
+    if not IsValid(ply1) or not IsValid(ply2) then return false end
+    local start = ply1:EyePos()
+    local obstacles = TTTBots.Components.ObstacleTracker.Breakables
+    local filter = table.Add({ ply1 }, obstacles)
+
+    -- Start at the eyes
+    local targetEyes = ply2:EyePos()
+    local traceEyes = util.TraceLine({ start = start, endpos = targetEyes, filter = filter })
+    if traceEyes.Entity == ply2 then return true end
+
+    -- Then the feet
+    local targetFeet = ply2:GetPos()
+    local traceFeet = util.TraceLine({ start = start, endpos = targetFeet, filter = filter })
+    if traceFeet.Entity == ply2 then return true end
+
+    -- Then the center
+    local targetCenter = ply2:GetPos() + Vector(0, 0, 32)
+    local traceCenter = util.TraceLine({ start = start, endpos = targetCenter, filter = filter })
+    if traceCenter.Entity == ply2 then return true end
+
+    return false
+end
+
+---@param ply1 Player1
+---@param ply2 Player2
+function TTTBots.Lib.CanSee(ply1, ply2)
     if not IsValid(ply1) or not IsValid(ply2) then return false end
     local start = ply1:EyePos()
 

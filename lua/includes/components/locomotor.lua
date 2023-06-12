@@ -1133,7 +1133,8 @@ function BotLocomotor:StartCommand(cmd)
         cmd:SetButtons(cmd:GetButtons() + IN_USE)
     end
 
-    if self.attack and self.attackReleaseTime > CurTime() then
+    if (self.attack and not self.attackReleaseTime) or
+        (self.attack and self.attackReleaseTime and self.attackReleaseTime > CurTime()) then
         cmd:SetButtons(cmd:GetButtons() + IN_ATTACK)
     end
 
