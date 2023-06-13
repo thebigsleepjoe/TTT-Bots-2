@@ -32,6 +32,36 @@ function BotInventoryMgr:Initialize(bot)
     self.bot = bot
 end
 
+---@class WeaponInfo Information about a weapon
+---@field class string Classname of the weapon
+---@field clip number CURRENT Ammo in the clip
+---@field max_ammo number MAX Ammo in the clip
+---@field ammo number Ammo in the inventory
+---@field ammo_type number Ammo type of the weapon, https://wiki.facepunch.com/gmod/Default_Ammo_Types
+---@field slot string Slot of the weapon, functionally just a string version of the Kind
+---@field hold_type string Hold type of the weapon, typically used for animations
+---@field is_gun boolean If the weapon is a gun (that is, if it has a clip or not)
+---@field needs_reload boolean If the bot needs to reload this weapon, because it has 0 shots left
+---@field should_reload boolean If the weapon has less than 100% ammo remaining. Only reload during peace
+---@field has_bullets boolean If the weapon has any bullets in the **INVENTORY** (not clip!)
+---@field print_name string Name of the weapon, more human readable than class
+---@field kind number Kind of the weapon, https://wiki.facepunch.com/gmod/Enums/WEAPON
+---@field ammo_ent string Classname of the ammo entity
+---@field is_traitor_weapon boolean If the weapon is a traitor weapon
+---@field is_detective_weapon boolean If the weapon is a detective weapon
+---@field silent boolean If the weapon is silent
+---@field can_drop boolean If the weapon can be dropped
+---@field damage number Damage of the weapon
+---@field rpm number Rounds per minute of the weapon
+---@field numshots number Number of shots per fire
+---@field dps number Damage per second of the weapon
+---@field time_to_kill number Time to kill of the weapon
+---@field is_automatic boolean If the weapon is automatic
+---@field is_sniper boolean If the weapon is a sniper
+
+---Returns the WeaponInfo table of the given entity
+---@param wep Weapon
+---@return WeaponInfo
 function BotInventoryMgr:GetWeaponInfo(wep)
     if wep == nil then return end
 
@@ -124,36 +154,67 @@ function BotInventoryMgr:GetAllWeaponInfo()
 end
 
 function BotInventoryMgr:Think()
-    local SLOWDOWN = 10
+    local SLOWDOWN = 4
     self.tick = self.tick + 1
-    -- print(self.tick, self.tick % 50 == 0)
-    if self.tick % SLOWDOWN ~= 0 then return end
-    if self.disabled then return end
 
-    --[[
-        We want to determine the best weapon to use.
+    if self.tick % SLOWDOWN ~= 0 or self.disabled then return end
 
-        If we have no primary, default to secondary. If no secondary, default to melee.
-        If primary ammo is available, use the primary weapon first.
-        If primary ammo is unavailable and currently attacking, use the secondary weapon if it has ammo.
-        If primary ammo is unavailable and not attacking, hold out the primary weapon to reload/restock.
-        If primary ammo is available but secondary ammo is not, and not attacking, hold out the secondary weapon to reload/restock
-    ]]
-    local primaryInfo = self:GetWeaponInfo(self:GetPrimary())
-    local secondaryInfo = self:GetWeaponInfo(self:GetSecondary())
-    local isAttacking = false -- Todo, use this later?
+    local primary = self:GetWeaponInfo(self:GetPrimary())
+    local secondary = self:GetWeaponInfo(self:GetSecondary())
 
-    if primaryInfo and primaryInfo.has_bullets then
-        self:EquipPrimary()
-    elseif not isAttacking and primaryInfo and not primaryInfo.has_bullets then
-        self:EquipPrimary()
-    elseif isAttacking and secondaryInfo and secondaryInfo.has_bullets then
-        self:EquipSecondary()
-    elseif not isAttacking and secondaryInfo and not secondaryInfo.has_bullets then
-        self:EquipSecondary()
-    else
+    local isAttacking = self.bot.attackTarget ~= nil
+    local personality = self.bot.components.personality
+    local locomotor = self.bot.components.locomotor
+
+    if not self:HasGun(primary, secondary) then
         self:EquipMelee()
+        return
     end
+
+    local switchTo = self:DetermineWeaponToSwitch(primary, secondary)
+
+    if self:ShouldReloadAndAttack(switchTo, primary, secondary, isAttacking, personality.preferSwitchToSecondary) then
+        self:EquipAndReload(switchTo, primary, secondary, locomotor)
+    else
+        if switchTo == "primary" then self:EquipPrimary() else self:EquipSecondary() end
+    end
+end
+
+function BotInventoryMgr:HasGun(primary, secondary)
+    return (primary ~= nil and primary.is_gun) or (secondary ~= nil and secondary.is_gun)
+end
+
+function BotInventoryMgr:DetermineWeaponToSwitch(primary, secondary)
+    local switchTo = "primary"
+    if primary == nil or (not primary.has_bullets and secondary ~= nil and secondary.has_bullets) then
+        switchTo = "secondary"
+    end
+    return switchTo
+end
+
+function BotInventoryMgr:ShouldReloadAndAttack(switchTo, primary, secondary, isAttacking, preferSwitchToSecondary)
+    return switchTo == "primary" and primary.needs_reload and isAttacking and not preferSwitchToSecondary or
+        switchTo == "primary" and primary.needs_reload and isAttacking and preferSwitchToSecondary
+end
+
+function BotInventoryMgr:EquipAndReload(switchTo, primary, secondary, locomotor)
+    self:Equip(switchTo)
+    if switchTo == "primary" and (primary.needs_reload or secondary.needs_reload) then
+        locomotor:Reload()
+    end
+end
+
+---Returns the weapon info table for the weapon we are holding, or what the target is holding if any.
+---@param target Player|nil
+---@return table
+function BotInventoryMgr:GetHeldWeaponInfo(target)
+    if not target then
+        return self:GetWeaponInfo(self.bot:GetActiveWeapon())
+    end
+
+    local wep = target:GetActiveWeapon()
+    if not IsValid(wep) then return end
+    return self:GetWeaponInfo(wep)
 end
 
 function BotInventoryMgr:GetPrimary()

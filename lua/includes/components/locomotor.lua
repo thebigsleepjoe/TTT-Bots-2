@@ -1041,6 +1041,20 @@ function BotLocomotor:LerpMovement(factor, goal)
     local dvlpr = lib.GetDebugFor("pathfinding")
 end
 
+function BotLocomotor:StartAttack()
+    self.attack = true
+end
+
+function BotLocomotor:StopAttack()
+    self.attack = false
+end
+
+--- Sets self.reload to true, queuing a reload the next frame.
+function BotLocomotor:Reload()
+    self.reload = true
+end
+
+---@deprecated
 function BotLocomotor:SetAttack(attack, time)
     self.attack = attack
     if time then

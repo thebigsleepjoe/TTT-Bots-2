@@ -286,6 +286,7 @@ function BotPersonality:Initialize(bot)
     self.HIM = (self.gender == "male" and "him") or "her"
     self.HIS = (self.gender == "male" and "his") or "hers"
     self.HE = (self.gender == "male" and "he") or "her"
+    self.preferSwitchToSecondary = math.random(1, 100) < 50 -- prefer to switch to secondary weapon instead of reloading
 
     self.traits = self:GetSomeTraits(4)
 
