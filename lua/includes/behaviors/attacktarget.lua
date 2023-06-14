@@ -46,6 +46,7 @@ function Attack:Seek(bot, targetPos)
     -- If we can't see them, we need to move to them
     local targetPos = target:GetPos()
     loco:SetGoalPos(targetPos)
+    loco:StopAttack()
     bot.lastSeek = true --- Used to one-time stop loco when we start engaging
 end
 
@@ -59,7 +60,7 @@ function Attack:Engage(bot, targetPos)
         bot.lastSeek = false
     end
 
-    loco:SetAttack(true)
+    loco:StartAttack()
 
     local dvlpr = lib.GetDebugFor("attack")
     if dvlpr then
@@ -155,12 +156,14 @@ end
 function Attack:OnSuccess(bot)
     bot.attackTarget = nil
     bot:Say("Killed that fool!")
+    bot.components.locomotor:StopAttack()
 end
 
 --- Called when the behavior returns a failure state
 function Attack:OnFailure(bot)
     bot.attackTarget = nil
     bot:Say("Lost that fool!")
+    bot.components.locomotor:StopAttack()
 end
 
 --- Called when the behavior ends

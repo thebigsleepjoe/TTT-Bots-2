@@ -175,6 +175,7 @@ function BotInventoryMgr:Think()
 
     if self:ShouldReloadAndAttack(switchTo, primary, secondary, isAttacking, personality.preferSwitchToSecondary) then
         self:EquipAndReload(switchTo, primary, secondary, locomotor)
+        self.bot.components.locomotor:StopAttack()
     else
         if switchTo == "primary" then self:EquipPrimary() else self:EquipSecondary() end
     end

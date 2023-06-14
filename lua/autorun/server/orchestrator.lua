@@ -61,7 +61,7 @@ local function _testBotAttack()
 end
 
 -- Bot behavior
-timer.Create("TTTBots_Tick", 0.1, 0, function()
+timer.Create("TTTBots_Tick", 0.2, 0, function()
     local call, err = pcall(function()
         _testBotAttack()
         TTTBots.Behaviors.Tree()
