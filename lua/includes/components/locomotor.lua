@@ -189,13 +189,11 @@ end
 
 --- Aims at a given pos for "time" seconds (optional). If no time, then one-time set.
 ---@param pos Vector
----@param time number|nil
+---@param time number
 function BotLocomotor:AimAt(pos, time)
-    if time then
-        self:TimedVariable("lookPosOverride", pos, time)
-    else
-        self.lookPosOverride = pos
-    end
+    if not time then time = 1 end
+    self.lookPosOverride = pos
+    self.lookPosOverrideEnd = CurTime() + time
 end
 
 -- Getters and setters, just for formality and easy reading.
@@ -572,7 +570,6 @@ function BotLocomotor:UpdateMovement()
     self:SetUsing(false)
     self:OverrideMoveNormal(nil)
     self:StopPriorityMovement()
-    self:SetLookPosOverride(nil)
     self.forceForward = false
     self.tryingMove = false
     if self.dontmove then return end
@@ -1270,5 +1267,17 @@ timer.Create("TTTBots.Locomotor.StuckTracker.Debug", 0.1, 0, function()
         drawText(pos.center,
             f("STUCK AREA (lost %d seconds | %d victims)", pos.timeLost, pos.victims and #pos.victims or 0),
             Color(255, 255, 255, 50))
+    end
+end)
+
+timer.Create("TTTBots.Locomotor.lookPosOverride.ForgetOverride", 1.0 / TTTBots.Tickrate, 0, function()
+    for i, bot in pairs(player.GetBots()) do
+        if not (bot and bot.components and bot.components.locomotor) then continue end
+        local loco = bot.components.locomotor
+        local endTime = loco.lookPosOverrideEnd
+        if endTime and endTime < CurTime() then
+            loco.lookPosOverride = nil
+            loco.lookPosOverrideEnd = nil
+        end
     end
 end)

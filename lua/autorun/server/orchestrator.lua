@@ -1,6 +1,7 @@
 -- Declare TTTBots table
 TTTBots = {
     Version = "2.0.0",
+    Tickrate = 5, -- per second
 }
 
 -- Initialize CommonLib to check if gamemode is compatible
@@ -61,7 +62,7 @@ local function _testBotAttack()
 end
 
 -- Bot behavior
-timer.Create("TTTBots_Tick", 0.2, 0, function()
+timer.Create("TTTBots_Tick", 1 / TTTBots.Tickrate, 0, function()
     local call, err = pcall(function()
         _testBotAttack()
         TTTBots.Behaviors.Tree()
