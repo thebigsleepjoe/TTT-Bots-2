@@ -161,46 +161,32 @@ function BotInventoryMgr:Think()
 
     local primary = self:GetWeaponInfo(self:GetPrimary())
     local secondary = self:GetWeaponInfo(self:GetSecondary())
+    if not (primary and primary.is_gun) then primary = nil end
+    if not (secondary and secondary.is_gun) then secondary = nil end
 
     local isAttacking = self.bot.attackTarget ~= nil
-    local personality = self.bot.components.personality
+    -- local personality = self.bot.components.personality
     local locomotor = self.bot.components.locomotor
 
-    if not self:HasGun(primary, secondary) then
+    if not primary and not secondary then
         self:EquipMelee()
         return
     end
 
-    local switchTo = self:DetermineWeaponToSwitch(primary, secondary)
-
-    if self:ShouldReloadAndAttack(switchTo, primary, secondary, isAttacking, personality.preferSwitchToSecondary) then
-        self:EquipAndReload(switchTo, primary, secondary, locomotor)
-        self.bot.components.locomotor:StopAttack()
+    if primary and primary.has_bullets then
+        self:EquipPrimary()
+    elseif secondary and secondary.has_bullets then
+        self:EquipSecondary()
     else
-        if switchTo == "primary" then self:EquipPrimary() else self:EquipSecondary() end
+        self:EquipMelee()
+        return
     end
-end
 
-function BotInventoryMgr:HasGun(primary, secondary)
-    return (primary ~= nil and primary.is_gun) or (secondary ~= nil and secondary.is_gun)
-end
+    local current = self:GetHeldWeaponInfo()
+    if not (current and current.is_gun) then return end
 
-function BotInventoryMgr:DetermineWeaponToSwitch(primary, secondary)
-    local switchTo = "primary"
-    if primary == nil or (not primary.has_bullets and secondary ~= nil and secondary.has_bullets) then
-        switchTo = "secondary"
-    end
-    return switchTo
-end
-
-function BotInventoryMgr:ShouldReloadAndAttack(switchTo, primary, secondary, isAttacking, preferSwitchToSecondary)
-    return switchTo == "primary" and primary.needs_reload and isAttacking and not preferSwitchToSecondary or
-        switchTo == "primary" and primary.needs_reload and isAttacking and preferSwitchToSecondary
-end
-
-function BotInventoryMgr:EquipAndReload(switchTo, primary, secondary, locomotor)
-    self:Equip(switchTo)
-    if switchTo == "primary" and (primary.needs_reload or secondary.needs_reload) then
+    if current.needs_reload then
+        locomotor:StopAttack()
         locomotor:Reload()
     end
 end

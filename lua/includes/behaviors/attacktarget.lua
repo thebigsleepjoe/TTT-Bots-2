@@ -52,11 +52,19 @@ end
 
 function Attack:Engage(bot, targetPos)
     local target = bot.attackTarget
-    bot.components.locomotor.stopLookingAround = true
+    ---@class CInventory
+    local inv = bot.components.inventorymgr
+    ---@type WeaponInfo
+    local weapon = inv:GetHeldWeaponInfo()
+    local usingMelee = not weapon.is_gun
     ---@class CLocomotor
     local loco = bot.components.locomotor
-    if bot.lastSeek then
+    loco.stopLookingAround = true
+    if bot.lastSeek and not usingMelee then
         loco:Stop()
+        bot.lastSeek = false
+    elseif usingMelee then
+        loco:SetGoalPos(targetPos)
         bot.lastSeek = false
     end
 
@@ -73,7 +81,7 @@ function Attack:Engage(bot, targetPos)
         )
     end
 
-    loco:AimAt(targetPos)
+    loco:AimAt(target:EyePos() - Vector(0, 0, 8))
 end
 
 --- Determine what mode of attack (attackMode) we are in.

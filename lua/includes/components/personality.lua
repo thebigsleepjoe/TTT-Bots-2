@@ -286,7 +286,11 @@ function BotPersonality:Initialize(bot)
     self.HIM = (self.gender == "male" and "him") or "her"
     self.HIS = (self.gender == "male" and "his") or "hers"
     self.HE = (self.gender == "male" and "he") or "her"
+
+    ---@deprecated not implemented yet
     self.preferSwitchToSecondary = math.random(1, 100) < 50 -- prefer to switch to secondary weapon instead of reloading
+    ---@deprecated not implemented yet
+    self.preferOnlySecondary = math.random(1, 100) < 10     -- Prefer ONLY using secondary unless no secondary or no ammo
 
     self.traits = self:GetSomeTraits(4)
 
