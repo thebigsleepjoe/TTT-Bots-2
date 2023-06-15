@@ -123,9 +123,10 @@ function navMeta:GetPossibleStuckCost()
     return 0
 end
 
-function navMeta:GetPlayersInArea()
+function navMeta:GetPlayersInArea(filterTbl)
     local players = {}
     for i, ply in pairs(player.GetAll()) do
+        if filterTbl and table.HasValue(filterTbl, ply) then continue end
         local closestPoint = self:GetClosestPointOnArea(ply:GetPos())
         local threshold = self:GetSizeX() / 3
         if (closestPoint:Distance(ply:GetPos()) < threshold) then
@@ -216,7 +217,7 @@ local function get_penalties_between(area, neighbor)
     return 0
 end
 
-local function heuristic_cost_estimate(current, goal)
+local function heuristic_cost_estimate(current, goal, playerFilter)
     local avoidCost = math.huge
     local perPlayerPenalty = 800 -- Deprioritize high-trafficked areas
     -- Manhattan distance
@@ -232,7 +233,7 @@ local function heuristic_cost_estimate(current, goal)
         h = h + 50
     end
 
-    local nPlayers = #current:GetPlayersInArea()
+    local nPlayers = #current:GetPlayersInArea(playerFilter)
     h = h + (nPlayers * perPlayerPenalty)
 
     -- Never go into lava, or what we consider a "lava" area
@@ -270,10 +271,10 @@ end
 --- Coroutine function that calculates paths
 --- Never call directly, do PathManager.RequestPath, and the path will be generated.
 ---@return boolean|table result false if no path found nor possible, else output a table of navareas
-function TTTBots.PathManager.Astar2(start, goal)
+function TTTBots.PathManager.Astar2(start, goal, playerFilter)
     -- local P_Astar2 = TTTBots.Lib.Profiler("Astar2", true)
     local closedSet = {}
-    local openSet = { { area = start, cost = 0, fScore = heuristic_cost_estimate(start, goal) } }
+    local openSet = { { area = start, cost = 0, fScore = heuristic_cost_estimate(start, goal, playerFilter) } }
     local neighborsCounted = 0
     local totalNeighbors = navmesh.GetNavAreaCount()
     -- Coroutine
@@ -316,7 +317,7 @@ function TTTBots.PathManager.Astar2(start, goal)
                 neighborsCounted = neighborsCounted + 1
                 local tentative_gScore = current.cost + distance_between(current.area, neighbor) +
                     get_penalties_between(current.area, neighbor)
-                local tentative_fScore = tentative_gScore + heuristic_cost_estimate(neighbor, goal)
+                local tentative_fScore = tentative_gScore + heuristic_cost_estimate(neighbor, goal, playerFilter)
 
                 local neighborInOpenSet = false
                 local neighborIndex = 0
@@ -810,7 +811,8 @@ hook.Add("Tick", "TTTBots.PathManager.PathCoroutine", function()
     end
 
     -- print(fr("Generating path of ID %s for bot %s.", queuedPath.pathID, queuedPath.owner:Nick()))
-    local noErrs, result = coroutine.resume(queuedPath.path, queuedPath.startArea, queuedPath.finishArea)
+    local noErrs, result = coroutine.resume(queuedPath.path, queuedPath.startArea, queuedPath.finishArea,
+        { queuedPath.owner })
 
     if not noErrs then print("Had errors generating;", result) end
     if (type(result) == "boolean" or type(result) == "table") then
