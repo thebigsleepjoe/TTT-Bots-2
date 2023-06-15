@@ -60,12 +60,15 @@ function Attack:Engage(bot, targetPos)
     ---@class CLocomotor
     local loco = bot.components.locomotor
     loco.stopLookingAround = true
+
+    local preventAttackBecauseMelee = false
     if bot.wasPathing and not usingMelee then
         loco:Stop()
         bot.wasPathing = false
     elseif usingMelee then
         local distToTarget = bot:GetPos():Distance(target:GetPos())
-        if distToTarget < 60 then
+        preventAttackBecauseMelee = distToTarget > 160
+        if distToTarget < 70 then
             loco:Stop()
             bot.wasPathing = false
         else
@@ -74,7 +77,11 @@ function Attack:Engage(bot, targetPos)
         end
     end
 
-    loco:StartAttack()
+    if not preventAttackBecauseMelee then
+        loco:StartAttack()
+    else
+        loco:StopAttack()
+    end
 
     local dvlpr = lib.GetDebugFor("attack")
     if dvlpr then
