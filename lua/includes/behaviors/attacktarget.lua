@@ -35,7 +35,7 @@ end
 
 --- Called when the behavior is started
 function Attack:OnStart(bot)
-    bot.lastSeek = true -- set this to true here for the first tick, despite the nam being misleading
+    bot.wasPathing = true -- set this to true here for the first tick, despite the nam being misleading
     return STATUS.Running
 end
 
@@ -47,7 +47,7 @@ function Attack:Seek(bot, targetPos)
     local targetPos = target:GetPos()
     loco:SetGoalPos(targetPos)
     loco:StopAttack()
-    bot.lastSeek = true --- Used to one-time stop loco when we start engaging
+    bot.wasPathing = true --- Used to one-time stop loco when we start engaging
 end
 
 function Attack:Engage(bot, targetPos)
@@ -60,12 +60,18 @@ function Attack:Engage(bot, targetPos)
     ---@class CLocomotor
     local loco = bot.components.locomotor
     loco.stopLookingAround = true
-    if bot.lastSeek and not usingMelee then
+    if bot.wasPathing and not usingMelee then
         loco:Stop()
-        bot.lastSeek = false
+        bot.wasPathing = false
     elseif usingMelee then
-        loco:SetGoalPos(targetPos)
-        bot.lastSeek = false
+        local distToTarget = bot:GetPos():Distance(target:GetPos())
+        if distToTarget < 60 then
+            loco:Stop()
+            bot.wasPathing = false
+        else
+            loco:SetGoalPos(targetPos)
+            bot.wasPathing = true
+        end
     end
 
     loco:StartAttack()
@@ -81,7 +87,27 @@ function Attack:Engage(bot, targetPos)
         )
     end
 
-    loco:AimAt(target:EyePos() - Vector(0, 0, 8))
+    loco:AimAt(target:EyePos() - Vector(0, 0, 8) + self:PredictMovement(target))
+end
+
+---Predict the (relative) movement of the target player using basic linear prediction
+---@param target Player
+---@return Vector predictedMovement
+function Attack:PredictMovement(target)
+    local vel = target:GetVelocity()
+    local predictionSecs = 1.0 / TTTBots.Tickrate
+    local predictionMultSalt = math.random(20, 100) / 100.0
+    local predictionMult = (2.0 + predictionMultSalt) -- Used due to linear interp being inaccurate.
+    local predictionRelative = (vel * predictionSecs * predictionMult)
+
+    local dvlpr = lib.GetDebugFor("attack")
+    if dvlpr then
+        -- Draw a cross at the predicted position
+        TTTBots.DebugServer.DrawCross(target:GetPos() + predictionRelative, 2, Color(255, 0, 0), predictionSecs,
+            target:Nick() .. ".attack.prediction")
+    end
+
+    return predictionRelative
 end
 
 --- Determine what mode of attack (attackMode) we are in.
