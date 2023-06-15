@@ -154,6 +154,7 @@ function BotInventoryMgr:GetAllWeaponInfo()
 end
 
 function BotInventoryMgr:Think()
+    if not lib.IsPlayerAlive(self.bot) then return end
     local SLOWDOWN = 4
     self.tick = self.tick + 1
 
