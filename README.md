@@ -1,2 +1,4 @@
 # TTT-Bots-2
-This mod is a WORK IN PROGRESS. It is not prepared for non-development usage nor should you expect it to function as if it were complete. In its current state (4/21/2023) it is not functional enough to be called a mod.
+This mod is a WORK IN PROGRESS.
+
+It is open-source and public regardless of it's WIP status because I don't care enough to make it private. It is NOT ready for production use.
