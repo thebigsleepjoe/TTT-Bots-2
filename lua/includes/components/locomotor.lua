@@ -217,6 +217,13 @@ function BotLocomotor:SetMoveLerpSpeed(speed) self.moveLerpSpeed = speed end
 
 function BotLocomotor:SetStrafe(value) self.strafe = value end
 
+function BotLocomotor:SetRandomStrafe()
+    local options = {
+        "left", "right"
+    }
+    self:SetStrafe(table.Random(options))
+end
+
 function BotLocomotor:SetGoalPos(pos) self.goalPos = pos end
 
 function BotLocomotor:SetUsing(bool) self.emulateInUse = bool end

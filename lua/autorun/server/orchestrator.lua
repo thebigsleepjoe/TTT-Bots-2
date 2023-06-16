@@ -76,6 +76,9 @@ timer.Create("TTTBots_Tick", 1 / TTTBots.Tickrate, 0, function()
                 end
                 component:Think()
             end
+
+            bot.tick = bot.components.locomotor.tick
+            bot.timeInGame = (bot.timeInGame or 0) + (1 / TTTBots.Tickrate)
         end
     end, function(err)
         print(err)

@@ -104,6 +104,13 @@ function TTTBots.Lib.CanShoot(ply1, ply2)
     return false
 end
 
+function TTTBots.Lib.CallEveryNTicks(bot, callback, N)
+    local tick = bot.tick or 0
+    if tick % N == 0 then
+        callback()
+    end
+end
+
 ---@param ply1 Player1
 ---@param ply2 Player2
 function TTTBots.Lib.CanSee(ply1, ply2)

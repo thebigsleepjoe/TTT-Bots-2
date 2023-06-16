@@ -79,8 +79,16 @@ function Attack:Engage(bot, targetPos)
 
     if not preventAttackBecauseMelee then
         loco:StartAttack()
+        lib.CallEveryNTicks(
+            bot,
+            function()
+                loco:SetRandomStrafe()
+            end,
+            math.ceil(TTTBots.Tickrate * 1.5)
+        )
     else
         loco:StopAttack()
+        loco:SetStrafe()
     end
 
     local dvlpr = lib.GetDebugFor("attack")

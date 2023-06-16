@@ -91,7 +91,8 @@ net.Receive("TTTBots_RequestData", function(len, ply)
             isPathing = locomotor:HasPath() or false,
             goalPos = locomotor:GetGoalPos() or "None",
             isDoored = locomotor.targetDoor ~= nil,
-            locoTick = locomotor.tick,
+            tick = bot.tick,
+            timeInGame = bot.timeInGame,
             isAlive = TTTBots.Lib.IsPlayerAlive(bot),
             numCanSee = #memory:GetRecentlySeenPlayers(),
             numKnownPos = numKnownPos,
@@ -111,7 +112,6 @@ net.Receive("TTTBots_RequestData", function(len, ply)
             hearingMult = memory:GetHearingMultiplier(),
             hearingMult_GunshotDist = TTTBots.Sound.DetectionInfo.Gunshot.Distance * memory:GetHearingMultiplier(),
             stopLookingAround = locomotor.stopLookingAround or "false",
-            extantFor = locomotor.tick / 10,
         }
     end
 
