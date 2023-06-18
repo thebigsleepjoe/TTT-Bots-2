@@ -36,28 +36,28 @@ function BotLocomotor:Initialize(bot)
     self.tick = 0                                                        -- Tick counter
     self.bot = bot
 
-    self.path = nil                   -- Current path
-    self.pathingRandomAngle = Angle() -- Random angle used for viewangles when pathing
-    self.pathLookSpeed = 0.05         -- Movement angle turn speed when following a path
+    self.pathInfo = nil                   -- Current path
+    self.pathInfoingRandomAngle = Angle() -- Random angle used for viewangles when pathing
+    self.pathInfoLookSpeed = 0.05         -- Movement angle turn speed when following a path
 
-    self.goalPos = nil                -- Current goal position, if any. If nil, then bot is not moving.
+    self.goalPos = nil                    -- Current goal position, if any. If nil, then bot is not moving.
 
-    self.tryingMove = false           -- If true, then the bot is trying to move to the goal position.
-    self.posOneSecAgo = nil           -- Position of the bot one second ago. Used for pathfinding.
+    self.tryingMove = false               -- If true, then the bot is trying to move to the goal position.
+    self.posOneSecAgo = nil               -- Position of the bot one second ago. Used for pathfinding.
 
-    self.lookPosOverride = nil        -- Override look position, this is only used from outside of this component. Like aiming at a player.
-    self.lookLerpSpeed = 0.05         -- Current look speed (rate of lerp)
-    self.lookPosGoal = nil            -- The current goal position to look at
-    self.lookPos = nil                -- Current look position, gets lerped to Override, or to self.lookPosGoal.
+    self.lookPosOverride = nil            -- Override look position, this is only used from outside of this component. Like aiming at a player.
+    self.lookLerpSpeed = 0.05             -- Current look speed (rate of lerp)
+    self.lookPosGoal = nil                -- The current goal position to look at
+    self.lookPos = nil                    -- Current look position, gets lerped to Override, or to self.lookPosGoal.
 
-    self.movePriorityVec = nil        -- Current movement priority vector, overrides movementVec if not nil
-    self.movementVec = nil            -- Current movement position, gets lerped to Override
-    self.moveLerpSpeed = 0            -- Current movement speed (rate of lerp)
-    self.moveNormal = Vector(0, 0, 0) -- Current movement normal, functionally this is read-only.
-    self.moveNormalOverride = nil     -- Override movement normal, mostly used within this component.
+    self.movePriorityVec = nil            -- Current movement priority vector, overrides movementVec if not nil
+    self.movementVec = nil                -- Current movement position, gets lerped to Override
+    self.moveLerpSpeed = 0                -- Current movement speed (rate of lerp)
+    self.moveNormal = Vector(0, 0, 0)     -- Current movement normal, functionally this is read-only.
+    self.moveNormalOverride = nil         -- Override movement normal, mostly used within this component.
 
-    self.strafe = nil                 -- "left" or "right" or nil
-    self.forceForward = false         -- If true, then the bot will always move forward
+    self.strafe = nil                     -- "left" or "right" or nil
+    self.forceForward = false             -- If true, then the bot will always move forward
 
     self.crouch = false
     self.jump = false
@@ -134,25 +134,25 @@ end
 --- Returns a table of the path generation info. The actual path is stored in a key called "path"
 ---@return table
 function BotLocomotor:GetPath()
-    return self.path
+    return self.pathInfo
 end
 
 ---@return boolean
 function BotLocomotor:HasPath()
-    return type(self.path) == "table" and type(self.path.path) == "table"
+    return type(self.pathInfo) == "table" and type(self.pathInfo.path) == "table"
 end
 
 function BotLocomotor:GetPathLength()
     if not self:HasPath() then return 0 end
     if type(self:GetPath()) ~= "table" then return 0 end
-    if not (self.path and self.path.path and self.path.path.path and type(self.path.path.path) == "table") then return 0 end
+    if not (self.pathInfo and self.pathInfo.path and self.pathInfo.path.path and type(self.pathInfo.path.path) == "table") then return 0 end
     -- # operator does not work here for some reason so count the old way
-    return table.Count(self.path.path.path)
+    return table.Count(self.pathInfo.path.path)
 end
 
 ---@return boolean
 function BotLocomotor:WaitingForPath()
-    return self.pathWaiting
+    return self.pathInfoWaiting
 end
 
 ---@deprecated
@@ -262,7 +262,7 @@ function BotLocomotor:Stop()
     self:SetJumping(false)
     self:SetCrouching(false)
     self:SetLookPosOverride(nil)
-    self.path = nil
+    self.pathInfo = nil
     self.RLOStop = nil
     self.randomLook = nil
     self.movePriorityVec = nil
@@ -670,7 +670,7 @@ end
 ---@return string status Status of the pathing, mostly flavor/debugging text.
 function BotLocomotor:UpdatePath()
     self.cantReachGoal = false
-    self.pathWaiting = false
+    self.pathInfoWaiting = false
     if self.dontmove then return "dont_move" end
     if self:GetGoalPos() == nil then return "no_goalpos" end
     if not lib.IsPlayerAlive(self.bot) then return "bot_dead" end
@@ -690,21 +690,25 @@ function BotLocomotor:UpdatePath()
 
     if (path == false or path == nil) then -- path is impossible
         self.cantReachGoal = true
-        self.path = nil
+        self.pathInfo = nil
         return "path_impossible"
     elseif (path == true) then -- path is pending
-        self.path = nil
-        self.pathWaiting = true
+        local oldPathInfo = self.pathInfo
+        if oldPathInfo and oldPathInfo.path then
+            self.oldPathInfo = oldPathInfo
+        end
+        self.pathInfo = nil
+        self.pathInfoWaiting = true
         return "path_pending"
     else -- path is a table
-        self.path = {
+        self.pathInfo = {
             path = path,
             pathid = pathid,
             preparedPath = path.preparedPath,
             pathIndex = 1, -- the index of the next path node to go to
             owner = self.bot,
         }
-        self.pathWaiting = false
+        self.pathInfoWaiting = false
         return "path_ready"
     end
 end
