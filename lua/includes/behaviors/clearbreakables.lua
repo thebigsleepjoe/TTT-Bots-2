@@ -54,12 +54,14 @@ function Breaker:OnRunning(bot)
         return status.Failure
     end
 
+    ---@type CLocomotor
     local loco = bot.components.locomotor
+    ---@type CInventory
     local imgr = bot.components.inventorymgr
-    -- Aim at closest using locomotor with loco:AimAt(pos, 0.5), imgr:EquipMelee(), and loco:SetAttack(true, 0.5)
     loco:AimAt(closest:GetPos(), 0.5)
     imgr:EquipMelee()
-    loco:SetAttack(true, 0.5)
+    imgr:PauseAutoSwitch()
+    loco:StartAttack()
     loco:SetPriorityGoal(closest:GetPos(), 8) -- 8 is distance threshold
     return status.Running
 end
@@ -67,15 +69,16 @@ end
 --- Called when the behavior returns a success state
 function Breaker:OnSuccess(bot)
     local loco = bot.components.locomotor
-    loco:SetAttack(false)
+    loco:StopAttack()
 end
 
 --- Called when the behavior returns a failure state
 function Breaker:OnFailure(bot)
     local loco = bot.components.locomotor
-    loco:SetAttack(false)
+    loco:StopAttack()
 end
 
---- Called when the behavior ends
+--- Called when the behavior ends, regardless of success or failure
 function Breaker:OnEnd(bot)
+    bot.components.inventorymgr:ResumeAutoSwitch()
 end

@@ -203,20 +203,18 @@ end
 
 --- Called when the behavior returns a success state
 function Attack:OnSuccess(bot)
-    bot.attackTarget = nil
     bot:Say("Killed that fool!")
-    bot.components.locomotor:StopAttack()
 end
 
 --- Called when the behavior returns a failure state
 function Attack:OnFailure(bot)
-    bot.attackTarget = nil
     bot:Say("Lost that fool!")
-    bot.components.locomotor:StopAttack()
 end
 
 --- Called when the behavior ends
 function Attack:OnEnd(bot)
     bot.attackTarget = nil
     bot.components.locomotor.stopLookingAround = false
+    bot.components.locomotor:StopAttack()
+    print("Finished attack sequence")
 end

@@ -6,6 +6,7 @@ include("includes/behaviors/clearbreakables.lua")
 include("includes/behaviors/attacktarget.lua")
 
 local b = TTTBots.Behaviors
+
 TTTBots.Behaviors.BehaviorTree = { -- Acts as one big priority node
     b.AttackTarget,
     -- b.IDBody,
@@ -16,38 +17,36 @@ TTTBots.Behaviors.BehaviorTree = { -- Acts as one big priority node
     b.Wander,
 }
 
+local STATUS = {
+    RUNNING = 1,
+    SUCCESS = 2,
+    FAILURE = 3,
+}
+
 function TTTBots.Behaviors.Tree()
     local tree = TTTBots.Behaviors.BehaviorTree
-    local status = {
-        Running = 1,
-        Success = 2,
-        Failure = 3,
-    }
+    local behaviorChanged
 
-    for x, bot in ipairs(player.GetBots()) do
-        if not IsValid(bot) then continue end
-        if not TTTBots.Lib.IsPlayerAlive(bot) then continue end
+    for _, bot in pairs(player.GetBots()) do
+        if not IsValid(bot) or not TTTBots.Lib.IsPlayerAlive(bot) then continue end
+
         local currentBehavior = bot.currentBehavior
-        local newState = status.Failure
-        local behaviorChanged = false
-        local interruptible = currentBehavior and currentBehavior.Interruptible
+        local interruptible = currentBehavior and currentBehavior.Interruptible or true
+        local newState = STATUS.FAILURE
 
         if currentBehavior and currentBehavior:Validate(bot) then
             newState = currentBehavior:OnRunning(bot)
-            -- print("Running behavior named " .. currentBehavior.Name)
-        else
-            interruptible = true
         end
 
         if interruptible then
-            for i, behavior in ipairs(tree) do
+            for _, behavior in ipairs(tree) do
                 if behavior:Validate(bot) then
                     if currentBehavior ~= behavior then
                         if currentBehavior then
                             currentBehavior:OnEnd(bot)
                         end
                         currentBehavior = behavior
-                        bot.currentBehavior = currentBehavior
+                        bot.currentBehavior = behavior
                         behaviorChanged = true
                     end
                     break
@@ -59,16 +58,17 @@ function TTTBots.Behaviors.Tree()
             newState = currentBehavior:OnStart(bot)
         end
 
-        if newState == status.Success then
-            currentBehavior:OnSuccess(bot)
-            currentBehavior:OnEnd(bot)
-            bot.currentBehavior = nil
-        elseif newState == status.Failure then
-            currentBehavior:OnFailure(bot)
+        if newState == STATUS.SUCCESS or newState == STATUS.FAILURE then
             currentBehavior:OnEnd(bot)
             bot.currentBehavior = nil
         end
+
+        if newState == STATUS.SUCCESS then
+            currentBehavior:OnSuccess(bot)
+        elseif newState == STATUS.FAILURE then
+            currentBehavior:OnFailure(bot)
+        end
     end
 
-    return status.Failure
+    return STATUS.FAILURE
 end

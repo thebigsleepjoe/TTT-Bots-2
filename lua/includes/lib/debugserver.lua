@@ -63,9 +63,21 @@ net.Receive("TTTBots_RequestData", function(len, ply)
 
     for i, bot in pairs(player.GetBots()) do
         if not (bot and bot.components and bot.components.locomotor) then continue end
+        ---@type CLocomotor
         local locomotor = bot.components.locomotor
+        ---@type CMemory
         local memory = bot.components.memory
+        ---@type CPersonality
         local personality = bot.components.personality
+        ---@type CInventory
+        local inventory = bot.components.inventorymgr
+
+        local heldWeaponInfo = inventory:GetHeldWeaponInfo()
+        local primaryWepInfo = inventory:GetPrimary()
+        local secondaryWepInfo = inventory:GetSecondary()
+        local heldWepTxt = inventory:GetWepInfoText(heldWeaponInfo)
+        local primaryWepTxt = inventory:GetWepInfoText(primaryWepInfo)
+        local secondaryWepTxt = inventory:GetWepInfoText(secondaryWepInfo)
 
         local numKnownPos = #memory:GetKnownPlayersPos()
         local numKnownAlive = #memory:GetKnownAlivePlayers()
@@ -89,7 +101,6 @@ net.Receive("TTTBots_RequestData", function(len, ply)
         botData[bot:Nick()] = {
             strafeDir = locomotor:GetStrafe() or "None",
             isPathing = locomotor:HasPath() or false,
-            goalPos = locomotor:GetGoalPos() or "None",
             isDoored = locomotor.targetDoor ~= nil,
             tick = bot.tick,
             timeInGame = bot.timeInGame,
@@ -112,6 +123,12 @@ net.Receive("TTTBots_RequestData", function(len, ply)
             hearingMult = memory:GetHearingMultiplier(),
             hearingMult_GunshotDist = TTTBots.Sound.DetectionInfo.Gunshot.Distance * memory:GetHearingMultiplier(),
             stopLookingAround = locomotor.stopLookingAround or "false",
+            pathGoalPos = locomotor:GetGoalPos() or "None",
+            pathStatus = locomotor.status or "None",
+            pauseAutoSwitch = inventory.pauseAutoSwitch or "false",
+            weaponHeld = heldWepTxt,
+            weaponPrimary = primaryWepTxt,
+            weaponSecondary = secondaryWepTxt,
         }
     end
 

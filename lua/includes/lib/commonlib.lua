@@ -24,8 +24,8 @@ end
 local format = string.format
 
 -- Check if not :IsSpec and :Alive, pretty much makes code look neater
-function TTTBots.Lib.IsPlayerAlive(bot)
-    return IsValid(bot) and not (bot:IsSpec() and bot:Alive())
+function TTTBots.Lib.IsPlayerAlive(ply)
+    return IsValid(ply) and not (ply:IsSpec()) and ply:Alive() and ply:Health() > 0
 end
 
 function TTTBots.Lib.GetAlivePlayers()

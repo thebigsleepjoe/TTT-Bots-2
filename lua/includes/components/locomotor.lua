@@ -411,6 +411,7 @@ end
 function BotLocomotor:Think()
     self.tick = self.tick + 1
     local status = self:UpdatePath() -- Update the path that the bot is following, so that we can move along it.
+    self.status = status
     self:UpdateMovement()            -- Update the invisible angle that the bot moves at, and make it move.
 end
 

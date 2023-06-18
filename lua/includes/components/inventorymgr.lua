@@ -153,11 +153,9 @@ function BotInventoryMgr:GetAllWeaponInfo()
     return weapon_info
 end
 
-function BotInventoryMgr:Think()
-    if not lib.IsPlayerAlive(self.bot) then return end
+--- Manage our own inventory by selecting the best weapon, queueing a reload if necessary, etc.
+function BotInventoryMgr:AutoManageInventory()
     local SLOWDOWN = 4
-    self.tick = self.tick + 1
-
     if self.tick % SLOWDOWN ~= 0 or self.disabled then return end
 
     local primary = self:GetWeaponInfo(self:GetPrimary())
@@ -192,9 +190,26 @@ function BotInventoryMgr:Think()
     end
 end
 
+function BotInventoryMgr:PauseAutoSwitch()
+    self.pauseAutoSwitch = true
+end
+
+function BotInventoryMgr:ResumeAutoSwitch()
+    self.pauseAutoSwitch = false
+end
+
+function BotInventoryMgr:Think()
+    if not lib.IsPlayerAlive(self.bot) then return end
+    self.tick = self.tick + 1
+
+    -- Manage our own inventory, but only if we have not been paused
+    if self.pauseAutoSwitch then return end
+    self:AutoManageInventory()
+end
+
 ---Returns the weapon info table for the weapon we are holding, or what the target is holding if any.
 ---@param target Player|nil
----@return table
+---@return WeaponInfo
 function BotInventoryMgr:GetHeldWeaponInfo(target)
     if not target then
         return self:GetWeaponInfo(self.bot:GetActiveWeapon())
@@ -205,6 +220,7 @@ function BotInventoryMgr:GetHeldWeaponInfo(target)
     return self:GetWeaponInfo(wep)
 end
 
+---@return WeaponInfo
 function BotInventoryMgr:GetPrimary()
     -- info.slot == "primary"
     local weapons = self.bot:GetWeapons()
@@ -216,6 +232,7 @@ function BotInventoryMgr:GetPrimary()
     end
 end
 
+---@return WeaponInfo
 function BotInventoryMgr:GetSecondary()
     -- info.slot == "secondary"
     local weapons = self.bot:GetWeapons()
@@ -227,6 +244,7 @@ function BotInventoryMgr:GetSecondary()
     end
 end
 
+---@return WeaponInfo
 function BotInventoryMgr:GetCrowbar()
     -- info.slot == "melee"
     local weapons = self.bot:GetWeapons()
@@ -238,6 +256,7 @@ function BotInventoryMgr:GetCrowbar()
     end
 end
 
+---@return WeaponInfo
 function BotInventoryMgr:GetGrenade()
     -- info.slot == "grenade"
     local weapons = self.bot:GetWeapons()
@@ -249,6 +268,7 @@ function BotInventoryMgr:GetGrenade()
     end
 end
 
+---@return WeaponInfo
 function BotInventoryMgr:GetWeaponByName(name)
     local weapons = self.bot:GetWeapons()
     for _, wep in pairs(weapons) do
@@ -257,6 +277,19 @@ function BotInventoryMgr:GetWeaponByName(name)
             return wep
         end
     end
+end
+
+--- Gets the debug/stylized text for the given weapon info. Used to check the ammo and weapon type.
+---@param wepInfo any
+---@return string str Formatted info string
+function BotInventoryMgr:GetWepInfoText(wepInfo)
+    if not wepInfo then return "nil" end
+    local ammoLeft = wepInfo.clip or 0
+    local ammoMax = wepInfo.max_ammo or 0
+    local heldAmmo = wepInfo.ammo or 0
+    local wepText = string.format("%s (%d/%d) [%d left]", wepInfo.print_name, ammoLeft, ammoMax, heldAmmo)
+
+    return wepText
 end
 
 --- Equips the wep in the bot's hands. wep can be a string or a weapon object. If it is a string then it has the following opts:

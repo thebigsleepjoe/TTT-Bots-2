@@ -49,10 +49,11 @@ local PathManager = TTTBots.PathManager
 print("good to go")
 
 local function _testBotAttack()
+    local alivePlayers = Lib.GetAlivePlayers()
     -- Go over each alive bot using lib.GetAliveBots() and set target to a random lib.GetAlivePlayers() player
     for i, bot in pairs(Lib.GetAliveBots()) do
         if bot.attackTarget then continue end
-        local newTarget = table.Random(Lib.GetAlivePlayers())
+        local newTarget = table.Random(alivePlayers)
         if newTarget == bot then continue end
         bot.attackTarget = newTarget
 
