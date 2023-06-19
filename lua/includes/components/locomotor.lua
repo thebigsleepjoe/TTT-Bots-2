@@ -690,14 +690,10 @@ function BotLocomotor:UpdatePath()
 
     if (path == false or path == nil) then -- path is impossible
         self.cantReachGoal = true
+        self.pathInfoWaiting = false
         self.pathInfo = nil
         return "path_impossible"
-    elseif (path == true) then -- path is pending
-        local oldPathInfo = self.pathInfo
-        if oldPathInfo and oldPathInfo.path then
-            self.oldPathInfo = oldPathInfo
-        end
-        self.pathInfo = nil
+    elseif (path == true) then
         self.pathInfoWaiting = true
         return "path_pending"
     else -- path is a table
@@ -901,7 +897,8 @@ end
 
 -- Determines how the bot navigates through its path once it has one.
 function BotLocomotor:FollowPath()
-    if not self:HasPath() then return false end
+    local hasPath = self:HasPath()
+    if not (hasPath) then return false end
     if self.goalPos and self:GetXYDist(self.goalPos, self.bot:GetPos()) < 32 then return false end
     -- TTTBots.DebugServer.DrawCross(self.goalPos, 10, Color(255, 0, 255), 0.15, "GoalFor" .. self.bot:Nick())
     -- TTTBots.DebugServer.DrawLineBetween(self.bot:GetPos(), self.goalPos, Color(255, 0, 255), 0.15,

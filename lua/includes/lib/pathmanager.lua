@@ -560,11 +560,11 @@ function TTTBots.PathManager.PreparePathForLocomotor(path)
 
         -- 1.)
         if i == 1 then
-            table.insert(points, {
-                pos = currentnode:GetCenter(),
-                area = currentnode,
-                type = "walk",
-            })
+            -- table.insert(points, {
+            --     pos = currentnode:GetCenter(),
+            --     area = currentnode,
+            --     type = "walk",
+            -- })
 
             -- 2.)
         else
