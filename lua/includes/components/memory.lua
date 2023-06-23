@@ -263,7 +263,9 @@ function Memory:GetPlayerLifeState(ply)
 end
 
 function Memory:SetPlayerLifeState(ply, state)
-    self.PlayerLifeStates[ply:Nick()] = state
+    if not ply or not IsValid(ply) then return end
+    local nick = (type(ply) == "string" and ply) or ply:Nick()
+    self.PlayerLifeStates[nick] = state
 end
 
 function Memory:UpdatePlayerLifeStates()
@@ -278,8 +280,8 @@ function Memory:UpdatePlayerLifeStates()
         self:SetupPlayerLifeStates()
     end
 
-    for i, ply in pairs(ConfirmedDead) do
-        self:SetPlayerLifeState(ply, DEAD)
+    for plyname, value in pairs(ConfirmedDead) do
+        self:SetPlayerLifeState(plyname, DEAD)
     end
 
     -- Traitor handling
