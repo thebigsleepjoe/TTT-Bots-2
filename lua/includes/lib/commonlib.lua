@@ -19,6 +19,8 @@ if TTTBots.Lib.CheckCompatibleGamemode() then
     include("includes/components/inventorymgr.lua")
     include("includes/components/personality.lua")
     include("includes/components/memory.lua")
+    include("includes/components/morality.lua")
+    include("includes/components/chatter.lua")
 end
 
 local format = string.format
@@ -204,6 +206,8 @@ function TTTBots.Lib.CreateBot(name)
         inventorymgr = TTTBots.Components.InventoryMgr:New(bot),
         personality = TTTBots.Components.Personality:New(bot),
         memory = TTTBots.Components.Memory:New(bot),
+        morality = TTTBots.Components.Morality:New(bot),
+        chatter = TTTBots.Components.Chatter:New(bot),
     }
 
     local dvlpr = TTTBots.Lib.GetDebugFor("misc")

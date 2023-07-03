@@ -30,8 +30,6 @@ function BotObstacleTracker:Initialize(bot)
     self.tick = 0                                                              -- Tick counter
     self.bot = bot
     self.disabled = false
-
-    print(self.Think)
 end
 
 function BotObstacleTracker:Disable()
