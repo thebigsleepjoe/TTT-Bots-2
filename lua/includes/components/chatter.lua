@@ -35,8 +35,15 @@ function BotChatter:SayRaw(text)
     self.bot:Say(text)
 end
 
-function BotChatter:EmulateRadio(msgName, msgTarget)
+local RADIO = {
+    quick_traitor = "%s is a Traitor!",
+    quick_suspect = "%s acts suspicious."
+}
+function BotChatter:QuickRadio(msgName, msgTarget)
     hook.Run("TTTPlayerRadioCommand", self.bot, msgName, msgTarget)
+    local txt = RADIO[msgName]
+    if not txt then ErrorNoHalt("Unknown message type " .. msgName) end
+    self.bot:Say(string.format(txt, msgTarget:Nick()))
 end
 
 function BotChatter:Think()

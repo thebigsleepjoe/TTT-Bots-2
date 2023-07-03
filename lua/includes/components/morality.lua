@@ -66,11 +66,22 @@ function BotMorality:Think()
 
     lib.CallEveryNTicks(self.bot,
         function()
-            self.bot.components.Chatter:SayRaw("I am thinking about morality")
+            self.bot.components.chatter:QuickRadio("quick_traitor", self.bot)
         end,
         15)
 end
 
 hook.Add("TTTPlayerRadioCommand", "TTTBots.Components.Morality.TTTRadioMessage", function(ply, msgName, msgTarget)
     print(ply, msgName, msgTarget)
+end)
+
+hook.Add("EntityFireBullets", "TTTBots.Components.Morality.FireBullets", function(entity, data)
+    if not (IsValid(entity) and entity:IsPlayer()) then return end
+    PrintTable(data)
+end)
+
+hook.Add("PlayerHurt", "TTTBots.Components.Morality.PlayerHurt", function(victim, attacker, healthRemaining, damageTaken)
+    if not (IsValid(victim) and victim:IsPlayer()) then return end
+    if not (IsValid(attacker) and attacker:IsPlayer()) then return end
+    print(victim, attacker, healthRemaining, damageTaken)
 end)
