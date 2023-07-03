@@ -25,10 +25,10 @@ local STATUS = {
 
 function TTTBots.Behaviors.Tree()
     local tree = TTTBots.Behaviors.BehaviorTree
-    local behaviorChanged
 
     for _, bot in pairs(player.GetBots()) do
         if not IsValid(bot) or not TTTBots.Lib.IsPlayerAlive(bot) then continue end
+        local behaviorChanged
 
         local currentBehavior = bot.currentBehavior
         local interruptible = currentBehavior and currentBehavior.Interruptible or true
