@@ -137,6 +137,45 @@ function TTTBots.Lib.CanSee(ply1, ply2)
     return false
 end
 
+---@param ply Player
+---@param pos Vector
+---@param arc number The arc, in degrees, that the player can see. e.g., 90* = 45* in both directions
+---@return boolean CanSee
+function TTTBots.Lib.CanSeeArc(ply, pos, arc)
+    if not IsValid(ply) then return false end
+
+    local start = ply:EyePos()
+    local forward = ply:GetAimVector()
+    local toPos = (pos - start):GetNormalized()
+
+    -- Angle between the player's forward direction and the direction to pos
+    local angle = math.deg(math.acos(forward:Dot(toPos)))
+
+    -- Check if the position is within the player's arc of vision
+    if angle > arc / 2 then
+        return false
+    end
+
+    return ply:VisibleVec(pos)
+end
+
+---Get a list of players/bots that can see the position. This factors in for a FOV of 90.
+---@param pos Vector
+---@param botsOnly boolean
+---@return table
+function TTTBots.Lib.GetAllWitnesses(pos, botsOnly)
+    local witnesses = {}
+    for _, ply in ipairs(botsOnly and player.GetBots() or player.GetAll()) do
+        if TTTBots.Lib.IsPlayerAlive(ply) then
+            local sawthat = TTTBots.Lib.CanSeeArc(ply, pos, 90)
+            if sawthat then
+                table.insert(witnesses, ply)
+            end
+        end
+    end
+    return witnesses
+end
+
 --- Get the number of free player slots
 ---@return number
 function TTTBots.Lib.GetFreePlayerSlots()

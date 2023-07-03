@@ -60,15 +60,16 @@ function BotMorality:Initialize(bot)
 end
 
 function BotMorality:Think()
+    self.tick = self.bot.tick
     local roundStarted = TTTBots.RoundActive
     if not roundStarted then return false end -- we do not care about morality
-    self.tick = self.tick + 1
+end
 
-    lib.CallEveryNTicks(self.bot,
-        function()
-            self.bot.components.chatter:QuickRadio("quick_traitor", self.bot)
-        end,
-        15)
+--- When we witness someone getting hurt.
+function BotMorality:OnWitnessHurt(victim, attacker, healthRemaining, damageTaken)
+    if lib.IsEvil(self.bot) then return end -- We are evil, we don't care about this.
+    if attacker == self.bot then return end
+    self.bot:Say("I saw that!")
 end
 
 hook.Add("TTTPlayerRadioCommand", "TTTBots.Components.Morality.TTTRadioMessage", function(ply, msgName, msgTarget)
@@ -83,5 +84,13 @@ end)
 hook.Add("PlayerHurt", "TTTBots.Components.Morality.PlayerHurt", function(victim, attacker, healthRemaining, damageTaken)
     if not (IsValid(victim) and victim:IsPlayer()) then return end
     if not (IsValid(attacker) and attacker:IsPlayer()) then return end
-    print(victim, attacker, healthRemaining, damageTaken)
+    if not victim:Visible(attacker) then return end -- This must be an indirect attack, like C4 or fire. It wouldn't be fair.
+    -- print(victim, attacker, healthRemaining, damageTaken)
+    local witnesses = lib.GetAllWitnesses(attacker:EyePos(), true)
+    table.insert(witnesses, victim)
+
+    for i, witness in pairs(witnesses) do
+        local res = witness and witness.components and
+        witness.components.morality:OnWitnessHurt(victim, attacker, healthRemaining, damageTaken)
+    end
 end)
