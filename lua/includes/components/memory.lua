@@ -136,6 +136,7 @@ function Memory:Initialize(bot)
 
     self.bot = bot
     self.tick = 0
+    ---@type table<table>
     self.recentSounds = {}
     self.forgetTime = FORGET.GetRememberTime(self.bot)
 end
@@ -169,6 +170,19 @@ function Memory:GetKnownPositionFor(ply)
     local pnp = self.playerKnownPositions[ply:Nick()]
     if not pnp then return nil end
     return pnp.pos
+end
+
+--- Parse through our recent sound memory for any sounds tied to ply's entity. Returns the position vector, else nil.
+---@param ply Player
+---@return Vector|nil
+function Memory:GetSuspectedPositionFor(ply)
+    ---@type table<table>
+    local recentSounds = self:GetRecentSoundsFromPly(ply)
+    if #recentSounds == 0 then return end
+    -- sort by time field
+    table.sort(recentSounds, function(a, b) return a.time > b.time end)
+    -- return the most recent sound
+    return recentSounds[1].pos
 end
 
 --- Get the last known position of the given player, if we have any. This differs from GetKnownPositionFor
@@ -216,7 +230,7 @@ function Memory:UpdateKnownPositionFor(ply, pos)
         local pKP = self.playerKnownPositions[ply:Nick()]
 
         -- Return whether the elapsed time is greater than the forget time
-        return ts > pKP.forgetTime
+        return (ts > pKP.forgetTime) or self.bot:VisibleVec(pKP.pos)
     end
 
     -- Update the known position for this player
@@ -386,7 +400,7 @@ end
 function Memory:GetRecentSoundsFromPly(ply)
     local sounds = {}
     for i, sound in pairs(self.recentSounds) do
-        if sound.owner == ply then
+        if sound.ply == ply then
             table.insert(sounds, sound)
         end
     end
@@ -413,12 +427,15 @@ function Memory:HandleSound(info, soundData)
     local soundpos = info.Pos
     local stdrange = info.Distance
     local botHearingMult = self:GetHearingMultiplier()
-    local canHear = bot:GetPos():Distance(soundpos) <= stdrange * botHearingMult
 
-    if not canHear then return false end
+    local distTo = bot:GetPos():Distance(soundpos)
+    local canHear = distTo <= stdrange * botHearingMult
+
+    if not canHear then
+        return false
+    end
 
     local f = string.format
-    -- print(f("Bot %s heard %s, firing hook", self.bot:Nick(), info.SoundName))
     local tbl = {
         time = CurTime(),
         sound = info.SoundName,
@@ -426,8 +443,15 @@ function Memory:HandleSound(info, soundData)
         info = info,
         ent = info.EntInfo.Entity or info.EntInfo.Owner,
         sourceIsPly = info.EntInfo.EntityIsPlayer or info.EntInfo.OwnerIsPlayer,
-        soundData = soundData
+        ply = (info.EntInfo.EntityIsPlayer and info.EntInfo.Entity) or
+            (info.EntInfo.OwnerIsPlayer and info.EntInfo.Owner),
+        soundData = soundData,
+        dist = distTo,
     }
+    if tbl.ply == bot then return false end
+    -- if tbl.dist > 600 and not bot:VisibleVec(tbl.pos) then
+    --     tbl.ply = nil -- scrub the player if they are too far away and not visible for balancing reasons
+    -- end
     table.insert(self.recentSounds, tbl)
 
     return true

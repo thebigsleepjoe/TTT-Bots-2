@@ -43,10 +43,30 @@ function Attack:Seek(bot, targetPos)
     local target = bot.attackTarget
     local loco = bot.components.locomotor
     bot.components.locomotor.stopLookingAround = false
-    -- If we can't see them, we need to move to them
-    local targetPos = target:GetPos()
-    loco:SetGoalPos(targetPos)
     loco:StopAttack()
+    -- If we can't see them, we need to move to them
+    -- local targetPos = target:GetPos()
+    --loco:SetGoalPos(targetPos)
+
+    ---@type CMemory
+    local memory = bot.components.memory
+    local lastKnownPos = memory:GetSuspectedPositionFor(target) or memory:GetKnownPositionFor(target)
+
+    if lastKnownPos then
+        loco:SetGoalPos(lastKnownPos)
+    else
+        -- We have not heard nor seen the target in a while, so we will wander around.
+        lib.CallEveryNTicks(
+            bot,
+            function()
+                local wanderArea = TTTBots.Behaviors.Wander:GetWanderableArea(bot)
+                if not wanderArea then return end
+                loco:SetGoalPos(wanderArea:GetCenter())
+            end,
+            math.ceil(TTTBots.Tickrate * 5)
+        )
+    end
+
     bot.wasPathing = true --- Used to one-time stop loco when we start engaging
 end
 
@@ -84,7 +104,7 @@ function Attack:Engage(bot, targetPos)
             function()
                 loco:SetRandomStrafe()
             end,
-            math.ceil(TTTBots.Tickrate * 1.5)
+            math.ceil(TTTBots.Tickrate * 1)
         )
     else
         loco:StopAttack()
@@ -112,13 +132,13 @@ function Attack:PredictMovement(target)
     local vel = target:GetVelocity()
     local predictionSecs = 1.0 / TTTBots.Tickrate
     local predictionMultSalt = math.random(20, 100) / 100.0
-    local predictionMult = (2.0 + predictionMultSalt) -- Used due to linear interp being inaccurate.
+    local predictionMult = (1 + predictionMultSalt) -- Used due to linear interp being inaccurate.
     local predictionRelative = (vel * predictionSecs * predictionMult)
 
     local dvlpr = lib.GetDebugFor("attack")
     if dvlpr then
         -- Draw a cross at the predicted position
-        TTTBots.DebugServer.DrawCross(target:GetPos() + predictionRelative, 2, Color(255, 0, 0), predictionSecs,
+        TTTBots.DebugServer.DrawCross(target:GetPos() + predictionRelative, 8, Color(255, 0, 0), predictionSecs,
             target:Nick() .. ".attack.prediction")
     end
 

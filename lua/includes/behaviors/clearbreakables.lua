@@ -80,5 +80,7 @@ end
 
 --- Called when the behavior ends, regardless of success or failure
 function Breaker:OnEnd(bot)
+    local loco = bot.components.locomotor
     bot.components.inventorymgr:ResumeAutoSwitch()
+    loco:StopAttack()
 end

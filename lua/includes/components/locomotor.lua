@@ -38,7 +38,6 @@ function BotLocomotor:Initialize(bot)
 
     self.pathInfo = nil                   -- Current path
     self.pathInfoingRandomAngle = Angle() -- Random angle used for viewangles when pathing
-    self.pathInfoLookSpeed = 0.05         -- Movement angle turn speed when following a path
 
     self.goalPos = nil                    -- Current goal position, if any. If nil, then bot is not moving.
 
@@ -172,8 +171,8 @@ function BotLocomotor:UpdateEyeAnglesFinal()
 
     local targetAngles = (self.lookPos - self.bot:EyePos()):Angle()
     local currentAngles = self.bot:EyeAngles()
-    local rotationSpeed = 4       -- Modify this value to change rotation speed
-    local deltaTime = FrameTime() -- Add frame time for frame rate independence
+    local rotationSpeed = 4 * (self.lookPosOverride and 1.75 or 1) -- Modify this value to change rotation speed
+    local deltaTime = FrameTime()                                  -- Add frame time for frame rate independence
 
     local yawDiff = math.AngleDifference(targetAngles.y, currentAngles.y)
     local pitchDiff = math.AngleDifference(targetAngles.p, currentAngles.p)
@@ -190,6 +189,7 @@ end
 --- Aims at a given pos for "time" seconds (optional). If no time, then one-time set.
 ---@param pos Vector
 ---@param time number
+---@param mult number look speed multiplier
 function BotLocomotor:AimAt(pos, time)
     if not time then time = 1 end
     self.lookPosOverride = pos

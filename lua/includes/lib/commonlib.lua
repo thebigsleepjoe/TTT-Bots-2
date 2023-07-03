@@ -320,7 +320,9 @@ function TTTBots.Lib.GetNearestNavArea(pos)
         return closestCNavArea
     end
 
-    error("This map is not supported by TTT Bots, it needs a navigational mesh.")
+    if #navmesh.GetAllNavAreas() == 0 then
+        error("This map is not supported by TTT Bots, it needs a navigational mesh.")
+    end
 end
 
 -- Wrapper for "ttt_bot_" + name convars
