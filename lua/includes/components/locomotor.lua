@@ -672,11 +672,12 @@ function BotLocomotor:UpdatePath()
     self.cantReachGoal = false
     self.pathInfoWaiting = false
     if self.dontmove then return "dont_move" end
-    if self:GetGoalPos() == nil then return "no_goalpos" end
+    local goalPos = self:GetGoalPos()
+    if goalPos == nil then return "no_goalpos" end
     if not lib.IsPlayerAlive(self.bot) then return "bot_dead" end
 
     local path = self:GetPath()
-    local goalNav = navmesh.GetNearestNavArea(self:GetGoalPos())
+    local goalNav = navmesh.GetNearestNavArea(goalPos)
     local pathLength = self:GetPathLength()
     if (self:HasPath() and pathLength > 0 and path.path.path[self:GetPathLength()] == goalNav) then
         return "pathing_currently"
@@ -684,7 +685,7 @@ function BotLocomotor:UpdatePath()
 
 
     -- If we don't have a path, request one
-    local pathid, path, status = TTTBots.PathManager.RequestPath(self.bot, self.bot:GetPos(), self:GetGoalPos(), false)
+    local pathid, path, status = TTTBots.PathManager.RequestPath(self.bot, self.bot:GetPos(), goalPos, false)
 
     local fr = string.format
 
@@ -1118,7 +1119,8 @@ function BotLocomotor:StartCommand(cmd)
         cmd:SetViewAngles(ang) -- This is actually the movement angles, not the view angles. It's confusingly named.
     end
 
-    if self:GetGoalPos() and self.bot:GetPos():Distance(self:GetGoalPos()) < 16 then
+    local goalPos = self:GetGoalPos()
+    if goalPos and self.bot:GetPos():Distance(goalPos) < 16 then
         self.movementVec = nil
     end
 
