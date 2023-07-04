@@ -69,6 +69,7 @@ end
 function BotMorality:OnWitnessHurt(victim, attacker, healthRemaining, damageTaken)
     if lib.IsEvil(self.bot) then return end -- We are evil, we don't care about this.
     if attacker == self.bot then return end
+    if self.bot == victim then self.bot.attackTarget = attacker end
     self.bot:Say("I saw that!")
 end
 
@@ -91,6 +92,6 @@ hook.Add("PlayerHurt", "TTTBots.Components.Morality.PlayerHurt", function(victim
 
     for i, witness in pairs(witnesses) do
         local res = witness and witness.components and
-        witness.components.morality:OnWitnessHurt(victim, attacker, healthRemaining, damageTaken)
+            witness.components.morality:OnWitnessHurt(victim, attacker, healthRemaining, damageTaken)
     end
 end)
