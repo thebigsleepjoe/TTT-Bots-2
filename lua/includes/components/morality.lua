@@ -61,7 +61,7 @@ end
 
 function BotMorality:Think()
     self.tick = self.bot.tick
-    local roundStarted = TTTBots.RoundActive
+    local roundStarted = TTTBots.Match.RoundActive
     if not roundStarted then return false end -- we do not care about morality
 end
 

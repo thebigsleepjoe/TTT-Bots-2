@@ -243,7 +243,7 @@ end
 --- Handles forgetting players that we can no longer see according to memory rules.
 function Memory:UpdateKnownPositions()
     local AlivePlayers = lib.GetAlivePlayers()
-    local RoundActive = TTTBots.RoundActive
+    local RoundActive = TTTBots.Match.RoundActive
     if not RoundActive then
         self.playerKnownPositions = {}
         return false
@@ -262,9 +262,9 @@ end
 -- Setup the player states at the start of the round.
 -- Automatically bounces attempt if round is not active
 function Memory:SetupPlayerLifeStates()
-    local ConfirmedDead = TTTBots.ConfirmedDead
-    local PlayersInRound = TTTBots.PlayersInRound
-    local RoundActive = TTTBots.RoundActive
+    local ConfirmedDead = TTTBots.Match.ConfirmedDead
+    local PlayersInRound = TTTBots.Match.PlayersInRound
+    local RoundActive = TTTBots.Match.RoundActive
     if not RoundActive then return false end
 
     for i, ply in pairs(PlayersInRound) do
@@ -284,8 +284,8 @@ end
 
 function Memory:UpdatePlayerLifeStates()
     local CurrentlyAlive = lib.GetAlivePlayers()
-    local ConfirmedDead = TTTBots.ConfirmedDead
-    local RoundActive = TTTBots.RoundActive
+    local ConfirmedDead = TTTBots.Match.ConfirmedDead
+    local RoundActive = TTTBots.Match.RoundActive
     local IsEvil = lib.IsEvil
     local bot = self.bot
 

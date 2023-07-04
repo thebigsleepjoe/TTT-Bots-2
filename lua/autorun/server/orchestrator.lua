@@ -26,7 +26,7 @@ include("includes/lib/pathmanager.lua")
 include("includes/lib/debugserver.lua")
 include("includes/lib/miscnetwork.lua")
 include("includes/lib/popularnavs.lua")
-include("includes/lib/ttthooks.lua")
+include("includes/lib/gamestate.lua")
 
 -- Initialize command libraries
 include("includes/commands/chatcommands.lua")
