@@ -198,7 +198,7 @@ function TTTBots.Lib.DistanceXY(pos1, pos2)
 end
 
 --- Uses built-in ply:HasEvilTeam but is nil-safe. Basically if they're a traitor.
----@param ply any
+---@param ply Player
 ---@return boolean
 function TTTBots.Lib.IsEvil(ply)
     if not ply then return nil end
@@ -206,8 +206,21 @@ function TTTBots.Lib.IsEvil(ply)
     return ply:HasEvilTeam()
 end
 
+--- Uses built-in ply:GetDetective but is nil-safe. Basically if they're a detective.
+---@param ply Player
+---@return boolean
+function TTTBots.Lib.IsPolice(ply)
+    if not ply then return nil end
+    if not ply:IsPlayer() then return false end
+    return ply:GetDetective()
+end
+
+function TTTBots.Lib.IsDetective(ply)
+    return TTTBots.Lib.IsPolice(ply)
+end
+
 --- Opposite of IsEvil, nil-safe. Basically if they're not a traitor.
----@param ply any
+---@param ply Player
 ---@return boolean
 function TTTBots.Lib.IsGood(ply)
     local out = TTTBots.Lib.IsEvil(ply)

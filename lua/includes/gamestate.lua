@@ -5,9 +5,11 @@ local Match = TTTBots.Match
 Match.RoundActive = Match.RoundActive or false
 --- This is not a table of ragdolls but a table of corpse data.
 Match.Corpses = Match.Corpses or {}
+--- List of players in the round. Does not tell you if they are alive or not.
 Match.PlayersInRound = Match.PlayersInRound or {}
 Match.ConfirmedDead = Match.ConfirmedDead or {}
 Match.DamageLogs = Match.DamageLogs or {}
+Match.AlivePlayers = {}
 
 function Match.ResetStats(roundActive)
     Match.RoundActive = roundActive or false
@@ -15,6 +17,7 @@ function Match.ResetStats(roundActive)
     Match.ConfirmedDead = {}
     Match.PlayersInRound = {}
     Match.DamageLogs = {}
+    Match.AlivePlayers = {}
 end
 
 --- Comb thru the damage logs and find the player who shot the other first.
@@ -32,11 +35,25 @@ function Match.WhoShotFirst(ply1, ply2)
     return hansolo -- hehehehe get it?
 end
 
+function Match.UpdateAlivePlayers()
+    Match.AlivePlayers = {}
+    for i, v in pairs(player.GetAll()) do
+        if TTTBots.Lib.IsPlayerAlive(v) then
+            table.insert(Match.AlivePlayers, v)
+        end
+    end
+end
+
+timer.Create("TTTBots.Match.UpdateAlivePlayers", 1, 0, function()
+    Match.UpdateAlivePlayers()
+end)
+
 hook.Add("TTTBeginRound", "Match.BeginRound", function()
     Match.ResetStats(true)
     for _, ply in pairs(player.GetAll()) do
         if TTTBots.Lib.IsPlayerAlive(ply) then
             Match.PlayersInRound[ply:Nick()] = true
+            table.insert(Match.AlivePlayers, ply)
         end
     end
 end)
