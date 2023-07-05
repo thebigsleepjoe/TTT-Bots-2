@@ -117,6 +117,7 @@ end
 ---@param reason string The reason (matching a key in SUSPICIONVALUES)
 function BotMorality:ChangeSuspicion(target, reason, mult)
     if not mult then mult = 1 end
+    if target == self.bot then return end                 -- Don't change suspicion on ourselves
     if TTTBots.Match.RoundActive == false then return end -- Don't change suspicion if the round isn't active, duh
     if lib.IsEvil(self.bot) or lib.IsPolice(target) then return end
 
