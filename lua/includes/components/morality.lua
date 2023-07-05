@@ -125,7 +125,7 @@ function BotMorality:ChangeSuspicion(target, reason, mult)
     self.suspicions[target] = math.floor(sus)
 
     self:AnnounceIfThreshold(target)
-    self:SetAttackIfEvil(target)
+    self:SetAttackIfTargetEvil(target)
 end
 
 function BotMorality:GetSuspicion(target)
@@ -153,7 +153,8 @@ function BotMorality:AnnounceIfThreshold(target)
 end
 
 --- Set the bot's attack target to the given player if they seem evil.
-function BotMorality:SetAttackIfEvil(target)
+function BotMorality:SetAttackIfTargetEvil(target)
+    if self.bot.attackTarget ~= nil then return end
     local sus = self:GetSuspicion(target)
     if sus >= self.Thresholds.KOS then
         self.bot.attackTarget = target
