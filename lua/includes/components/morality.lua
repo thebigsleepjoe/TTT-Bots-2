@@ -10,29 +10,48 @@ local BotMorality = TTTBots.Components.Morality
 
 --- A scale of suspicious events to apply to a player's suspicion value. Scale is normally -10 to 10.
 BotMorality.SUSPICIONVALUES = {
-    Kill = 9,                -- This player killed someone in front of us
-    KillDetective = 10,      -- This player killed a detective in front of us
-    KillTraitor = -9,        -- This player killed a traitor in front of us
-    Hurt = 4,                -- This player hurt someone in front of us
-    HurtMe = 10,             -- This player hurt us
-    HurtTrusted = 10,        -- This player hurt a detective in front of us
-    HurtByTrusted = 4,       -- This player was hurt by a detective
-    HurtByEvil = -2,         -- This player was hurt by a traitor
-    KOSTrusted = 10,         -- KOS called on this player by trusted innocent
-    KOS = 5,                 -- KOS called on this player
-    KOSDetective = 10,       -- KOS called on this player by detective
-    KOSTraitor = -5,         -- KOS called on this player by known traitor
-    TraitorWeapon = 3,       -- This player has a traitor weapon
-    NearUnidentified = 2,    -- This player is near an unidentified body and hasn't identified it in more than 5 seconds
-    IdentifiedTraitor = -2,  -- This player has identified a traitor's corpse
-    IdentifiedInnocent = 1,  -- This player has identified an innocent's corpse
-    IdentifiedDetective = 1, -- This player has identified a detective's corpse
-    DefuseC4 = -7,           -- This player is defusing C4
-    PlantC4 = 10,            -- This player is throwing down C4
-    FollowingMe = 3,         -- This player has been following me for more than 10 seconds
-    ShootingAtMe = 9,        -- This player has been shooting at me
-    ShootingAtSomeone = 2,   -- This player has been shooting at someone
-    ShootingAtDetective = 9, -- This player has been shooting at a detective
+    -- Killing another player
+    Kill = 9,         -- This player killed someone in front of us
+    KillTrusted = 10, -- This player killed a Trusted in front of us
+    KillTraitor = -9, -- This player killed a traitor in front of us
+
+    -- Hurt a player
+    Hurt = 4,          -- This player hurt someone in front of us
+    HurtMe = 10,       -- This player hurt us
+    HurtTrusted = 10,  -- This player hurt a Trusted in front of us
+    HurtByTrusted = 4, -- This player was hurt by a Trusted
+    HurtByEvil = -2,   -- This player was hurt by a traitor
+
+    -- KOS-related events
+    KOSTrusted = 10, -- KOS called on this player by trusted innocent
+    KOSTraitor = -5, -- KOS called on this player by known traitor
+    KOS = 5,         -- KOS called on this player
+
+    -- Role-specific weapons
+    TraitorWeapon = 5, -- This player has a traitor weapon
+
+    -- Corpse-related events
+    NearUnidentified = 2,   -- This player is near an unidentified body and hasn't identified it in more than 5 seconds
+    IdentifiedTraitor = -2, -- This player has identified a traitor's corpse
+    IdentifiedInnocent = 1, -- This player has identified an innocent's corpse
+    IdentifiedTrusted = 1,  -- This player has identified a Trusted's corpse
+
+    -- Interacting with C4
+    DefuseC4 = -7, -- This player is defusing C4
+    PlantC4 = 10,  -- This player is throwing down C4
+
+    -- Following a player
+    FollowingMe = 3, -- This player has been following me for more than 10 seconds
+
+    -- Shooting at a player
+    ShootingAtMe = 9,      -- This player has been shooting at me
+    Shooting = 2,          -- This player has been shooting at someone
+    ShootingAtTrusted = 9, -- This player has been shooting at a Trusted
+
+    -- Throwing a grenade
+    ThrowDiscombob = 2, -- This player has thrown a discombobulator
+    ThrowIncin = 8,     -- This player has thrown an incendiary grenade
+    ThrowSmoke = 3,     -- This player has thrown a smoke grenade
 }
 
 BotMorality.SuspicionDescriptions = {
@@ -163,7 +182,8 @@ function BotMorality:OnWitnessHurt(victim, attacker, healthRemaining, damageTake
     if self.bot == victim then self.bot.attackTarget = attacker end
     -- TODO: Disguiser should be taken into account here.
     -- local bad_guy = TTTBots.Match.WhoShotFirst(victim, attacker) -- TODO: Implement this later?
-    local impact = (damageTaken / victim:MaxHealth()) * 3 -- Percent of max health lost * 3. 50% health lost =  6 sus
+
+    local impact = (damageTaken / victim:MaxHealth()) * 3 --- Percent of max health lost * 3. 50% health lost =  6 sus
     local victimIsPolice = lib.IsPolice(victim)
     local attackerIsPolice = lib.IsPolice(attacker)
     local attackerSus = self:GetSuspicion(attacker)
@@ -193,7 +213,7 @@ end)
 hook.Add("PlayerHurt", "TTTBots.Components.Morality.PlayerHurt", function(victim, attacker, healthRemaining, damageTaken)
     if not (IsValid(victim) and victim:IsPlayer()) then return end
     if not (IsValid(attacker) and attacker:IsPlayer()) then return end
-    if not victim:Visible(attacker) then return end -- This must be an indirect attack, like C4 or fire. It wouldn't be fair.
+    if not victim:Visible(attacker) then return end -- This must be an indirect attack, like C4 or fire.
     -- print(victim, attacker, healthRemaining, damageTaken)
     local witnesses = lib.GetAllWitnesses(attacker:EyePos(), true)
     table.insert(witnesses, victim)
