@@ -201,7 +201,7 @@ function BotMorality:OnWitnessHurt(victim, attacker, healthRemaining, damageTake
         self:ChangeSuspicion(attacker, "Hurt", impact)        -- Increase sus on attacker because we don't trust anyone involved
     end
 
-    self.bot:Say(string.format("I saw that! Attacker sus is %d; vic is %d", attackerSus, victimSus))
+    -- self.bot:Say(string.format("I saw that! Attacker sus is %d; vic is %d", attackerSus, victimSus))
 end
 
 hook.Add("TTTPlayerRadioCommand", "TTTBots.Components.Morality.TTTRadioMessage", function(ply, msgName, msgTarget)
@@ -222,7 +222,8 @@ hook.Add("PlayerHurt", "TTTBots.Components.Morality.PlayerHurt", function(victim
     table.insert(witnesses, victim)
 
     for i, witness in pairs(witnesses) do
-        local res = witness and witness.components and
+        if witness and witness.components then
             witness.components.morality:OnWitnessHurt(victim, attacker, healthRemaining, damageTaken)
+        end
     end
 end)
