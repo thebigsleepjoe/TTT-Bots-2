@@ -186,7 +186,7 @@ function BotMorality:OnWitnessHurt(victim, attacker, healthRemaining, damageTake
     -- TODO: Disguiser should be taken into account here.
     -- local bad_guy = TTTBots.Match.WhoShotFirst(victim, attacker) -- TODO: Implement this later?
 
-    local impact = (damageTaken / victim:MaxHealth()) * 3 --- Percent of max health lost * 3. 50% health lost =  6 sus
+    local impact = (damageTaken / victim:GetMaxHealth()) * 3 --- Percent of max health lost * 3. 50% health lost =  6 sus
     local victimIsPolice = lib.IsPolice(victim)
     local attackerIsPolice = lib.IsPolice(attacker)
     local attackerSus = self:GetSuspicion(attacker)
@@ -210,7 +210,7 @@ end)
 
 hook.Add("EntityFireBullets", "TTTBots.Components.Morality.FireBullets", function(entity, data)
     if not (IsValid(entity) and entity:IsPlayer()) then return end
-    PrintTable(data)
+    -- PrintTable(data)
 end)
 
 hook.Add("PlayerHurt", "TTTBots.Components.Morality.PlayerHurt", function(victim, attacker, healthRemaining, damageTaken)
