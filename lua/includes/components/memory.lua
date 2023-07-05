@@ -36,23 +36,6 @@ TTTBots.Sound = {
             Keywords = { "ball_zap", "explode" }
         }
     },
-    TraitMults = {
-        cautious = 1.2,
-        sniper = 0.8,
-        doesntcare = 0.3,
-        bodyguard = 1.1,
-        lovescrowds = 0.8,
-        loner = 1.15,
-
-        veryobservant = 1.5,
-        observant = 1.25,
-        oblivious = 0.75,
-        veryoblivious = 0.5,
-
-        deaf = 0.0,
-        lowvolume = 0.8,
-        highvolume = 1.2,
-    },
 }
 
 local lib = TTTBots.Lib
@@ -380,15 +363,7 @@ end
 function Memory:GetHearingMultiplier()
     if self.HearingMultiplier then return self.HearingMultiplier end
     local bot = self.bot
-    local traitMults = TTTBots.Sound.TraitMults
-    local traits = bot.components.personality:GetTraits()
-
-    local mult = 1
-    for i, trait in pairs(traits) do
-        if traitMults[trait] then
-            mult = mult * traitMults[trait]
-        end
-    end
+    local mult = bot:AverageTraitMultFor("hearing")
 
     self.HearingMultiplier = mult
     return mult
