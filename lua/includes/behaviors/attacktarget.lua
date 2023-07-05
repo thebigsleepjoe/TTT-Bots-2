@@ -236,5 +236,4 @@ function Attack:OnEnd(bot)
     bot.attackTarget = nil
     bot.components.locomotor.stopLookingAround = false
     bot.components.locomotor:StopAttack()
-    print("Finished attack sequence")
 end
