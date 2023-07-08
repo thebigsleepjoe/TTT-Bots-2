@@ -73,6 +73,22 @@ concommand.Add("ttt_bot_nav_cullconnections", function(ply, cmd, args)
     end
     print("Number of bogus connections removed: " .. nBogus)
 end)
+
+concommand.Add("ttt_bot_nav_generate", function(ply, cmd, args)
+    if not ply then
+        print("You must be in-game to run this, sorry.")
+        return
+    end
+    if not ply:IsSuperAdmin() then return end
+    print("Beginning generation.")
+    navmesh.BeginGeneration()
+    -- run ttt_bot_cullconnections and ttt_bot_nav_markdangerousnavs
+    print("Culling weird connections")
+    ply:ConCommand("ttt_bot_nav_cullconnections")
+    print("Marking dangerous navs (e.g., areas within trigger_hurts)")
+    ply:ConCommand("ttt_bot_nav_markdangerousnavs")
+end)
+
 concommand.Add("ttt_bot_nav_markdangerousnavs", function(ply, cmd, args)
     if not ply:IsSuperAdmin() then return end
 
