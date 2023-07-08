@@ -7,16 +7,24 @@ local lib = TTTBots.Lib
 local InvestigateNoise = TTTBots.Behaviors.InvestigateNoise
 
 InvestigateNoise.INVESTIGATE_CATEGORIES = {
-    "Gunshot",
-    "Death",
-    "C4Beep",
-    "Explosion"
+    Gunshot = true,
+    Death = true,
+    C4Beep = true,
+    Explosion = true
 }
 
-function InvestigateNoise:GetRecentSounds(bot)
+function InvestigateNoise:GetInterestingSounds(bot)
     ---@type CMemory
     local memory = bot.components.memory
     local sounds = memory:GetRecentSounds()
+    local interesting = {}
+    for i, v in pairs(sounds) do
+        local wasme = v.ent == bot or v.ply == bot
+        if not wasme and InvestigateNoise.INVESTIGATE_CATEGORIES[v.name] then
+            table.insert(interesting, v)
+        end
+    end
+    return interesting
 end
 
 function InvestigateNoise:OnStart(bot) end

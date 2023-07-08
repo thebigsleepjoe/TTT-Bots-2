@@ -410,7 +410,6 @@ function Memory:HandleSound(info, soundData)
         return false
     end
 
-    local f = string.format
     local tbl = {
         time = CurTime(),
         sound = info.SoundName,
@@ -444,6 +443,18 @@ function Memory:CullSoundMemory()
     end
 end
 
+--[[
+    time
+    sound -- soundname, e.g. "Gunshot"
+    pos -- vec3
+    info -- soundinfo
+    ent -- ent|nil
+    sourceIsPly -- bool
+    ply -- player|nil
+    soundData -- glua sound table
+    dist -- number
+]]
+---@return table<table> recentSounds
 function Memory:GetRecentSounds()
     return self.recentSounds
 end
