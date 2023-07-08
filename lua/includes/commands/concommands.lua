@@ -65,7 +65,7 @@ concommand.Add("ttt_bot_nav_cullconnections", function(ply, cmd, args)
         local adjacents = node:GetAdjacentAreas()
         for i, adjacent in pairs(adjacents) do
             local heightChange = node:ComputeAdjacentConnectionHeightChange(adjacent)
-            if heightChange > 40 then
+            if heightChange > 64 then
                 node:Disconnect(adjacent)
                 nBogus = nBogus + 1
             end
