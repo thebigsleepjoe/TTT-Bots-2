@@ -9,18 +9,21 @@ TTTBots = {
     Tickrate = 5, -- per second
     Lib = {
         CheckCompatibleGamemode = function()
-            --- Checks if the current engine.ActiveGamemode is compatible with TTT Bots
-            ---@return boolean
-            function TTTBots.Lib.CheckCompatibleGamemode()
-                local compatible = { "terrortown" }
-                return table.HasValue(compatible, engine.ActiveGamemode())
-            end
         end
     }
 }
 
+include("includes/commands/concommands.lua")
+
 -- Pre-check before initializing
-local gamemodeCompatible = TTTBots.Lib.CheckCompatibleGamemode
+
+--- Checks if the current engine.ActiveGamemode is compatible with TTT Bots
+---@return boolean
+local gamemodeCompatible = function()
+    local compatible = { ["terrortown"] = true }
+    return compatible[engine.ActiveGamemode()] or false
+end
+
 local hasNavmesh = function() return navmesh.GetNavAreaCount() > 0 end
 
 local function initializeMod()
@@ -35,7 +38,6 @@ local function initializeMod()
     -- Initialize command libraries
     include("includes/commands/chatcommands.lua")
     include("includes/commands/cvars.lua")
-    include("includes/commands/concommands.lua")
 
     -- Initialize behaviors
     include("includes/behaviors/tree.lua")
@@ -143,6 +145,7 @@ local function initializeIfChecksPassed()
         end
     end
 
+    print("Initializing TTT Bots...")
     initializeMod()
 end
 

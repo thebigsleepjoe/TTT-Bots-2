@@ -1,20 +1,16 @@
 TTTBots.Lib = TTTBots.Lib or {}
 
--- Some of these comps have separate code that runs independent of the actual component objects,
--- so we need to check if the gamemode is compatible before including them, else they will definitely shit out errors
-if TTTBots.Lib.CheckCompatibleGamemode() then
-    include("includes/data/usernames.lua")
+include("includes/data/usernames.lua")
 
-    -- Import components for bot creation
-    TTTBots.Components = {}
-    include("includes/components/locomotor.lua")
-    include("includes/components/obstacletracker.lua")
-    include("includes/components/inventorymgr.lua")
-    include("includes/components/personality.lua")
-    include("includes/components/memory.lua")
-    include("includes/components/morality.lua")
-    include("includes/components/chatter.lua")
-end
+-- Import components for bot creation
+TTTBots.Components = {}
+include("includes/components/locomotor.lua")
+include("includes/components/obstacletracker.lua")
+include("includes/components/inventorymgr.lua")
+include("includes/components/personality.lua")
+include("includes/components/memory.lua")
+include("includes/components/morality.lua")
+include("includes/components/chatter.lua")
 
 local format = string.format
 
