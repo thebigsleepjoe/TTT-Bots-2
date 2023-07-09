@@ -48,10 +48,6 @@ local function initializeMod()
     local Lib = TTTBots.Lib
     local PathManager = TTTBots.PathManager
 
-
-    -- Initializing
-    print("good to go")
-
     local function _testBotAttack()
         local alivePlayers = Lib.GetAlivePlayers()
         -- Go over each alive bot using lib.GetAliveBots() and set target to a random lib.GetAlivePlayers() player
