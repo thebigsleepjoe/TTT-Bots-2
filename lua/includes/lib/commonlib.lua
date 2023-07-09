@@ -1,12 +1,5 @@
 TTTBots.Lib = TTTBots.Lib or {}
 
---- Checks if the current engine.ActiveGamemode is compatible with TTT Bots
----@return boolean
-function TTTBots.Lib.CheckCompatibleGamemode()
-    local compatible = { "terrortown" }
-    return table.HasValue(compatible, engine.ActiveGamemode())
-end
-
 -- Some of these comps have separate code that runs independent of the actual component objects,
 -- so we need to check if the gamemode is compatible before including them, else they will definitely shit out errors
 if TTTBots.Lib.CheckCompatibleGamemode() then

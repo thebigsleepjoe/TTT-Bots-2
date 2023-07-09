@@ -131,11 +131,11 @@ local function syncBotAvatars()
     local pnl = GAMEMODE:GetScoreboardPanel()
     if not IsValid(pnl) then return end
 
-    net.Start("SyncBotAvatarNumbers")
+    net.Start("TTTBots_SyncAvatarNumbers")
     net.SendToServer()
 end
 
-net.Receive("SyncBotAvatarNumbers", function(len, ply)
+net.Receive("TTTBots_SyncAvatarNumbers", function(len, ply)
     local avatars_nicks = net.ReadTable()
     local pnl = GAMEMODE:GetScoreboardPanel()
     if not IsValid(pnl) then return end

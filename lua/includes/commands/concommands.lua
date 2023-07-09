@@ -81,6 +81,9 @@ concommand.Add("ttt_bot_nav_generate", function(ply, cmd, args)
     end
     if not ply:IsSuperAdmin() then return end
     print("Beginning generation.")
+    local plyPos = ply:GetPos()
+    local upNormal = Vector(0, 0, 1)
+    navmesh.AddWalkableSeed(plyPos, upNormal)
     navmesh.BeginGeneration()
     -- run ttt_bot_cullconnections and ttt_bot_nav_markdangerousnavs
     print("Culling weird connections")

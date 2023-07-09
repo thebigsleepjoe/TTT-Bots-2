@@ -1,5 +1,3 @@
-util.AddNetworkString("SyncBotAvatarNumbers")
-
 -- avatars are stored in "materials/avatars/" with the name "BotAvatar (1).jpg", going up to 281 avatars.
 -- so each ply object is assigned to an avatar number
 local avatars = {}
@@ -26,7 +24,7 @@ hook.Add("PlayerInitialSpawn", "TTTBots_PlayerInitialSpawn", function(ply)
 end)
 
 -- Client is requesting we sync the bot avatar numbers, we will send the table of bot avatar numbers to the client
-net.Receive("SyncBotAvatarNumbers", function(len, ply)
+net.Receive("TTTBots_SyncAvatarNumbers", function(len, ply)
     validateAvatarCache()
     local avatars_nicks = {}
 
@@ -34,7 +32,7 @@ net.Receive("SyncBotAvatarNumbers", function(len, ply)
         avatars_nicks[k:Nick()] = v
     end
 
-    net.Start("SyncBotAvatarNumbers")
+    net.Start("TTTBots_SyncAvatarNumbers")
     net.WriteTable(avatars_nicks) -- GLua doesn't appreciate sending tbls with keys that are userdata
     net.Send(ply)
 end)
