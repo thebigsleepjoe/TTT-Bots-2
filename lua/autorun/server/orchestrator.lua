@@ -7,6 +7,7 @@ util.AddNetworkString("TTTBots_SyncAvatarNumbers")
 TTTBots = {
     Version = "2.0.0",
     Tickrate = 5, -- per second
+    Lib = {}
 }
 
 include("includes/commands/concommands.lua")

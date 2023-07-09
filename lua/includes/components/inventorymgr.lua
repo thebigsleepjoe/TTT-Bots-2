@@ -155,7 +155,7 @@ end
 
 --- Manage our own inventory by selecting the best weapon, queueing a reload if necessary, etc.
 function BotInventoryMgr:AutoManageInventory()
-    local SLOWDOWN = 4
+    local SLOWDOWN = math.floor(TTTBots.Tickrate / 2) -- about twice per second
     if self.tick % SLOWDOWN ~= 0 or self.disabled then return end
 
     local primary = self:GetWeaponInfo(self:GetPrimary())
@@ -167,14 +167,19 @@ function BotInventoryMgr:AutoManageInventory()
     -- local personality = self.bot.components.personality
     local locomotor = self.bot.components.locomotor
 
+    -- print(self:GetInventoryString())
+    -- if primary then
+    --     PrintTable(primary)
+    -- end
+
     if not primary and not secondary then
         self:EquipMelee()
         return
     end
 
-    if primary and primary.has_bullets then
+    if primary and (primary.has_bullets or primary.clip > 0) then
         self:EquipPrimary()
-    elseif secondary and secondary.has_bullets then
+    elseif secondary and (secondary.has_bullets or secondary.clip > 0) then
         self:EquipSecondary()
     else
         self:EquipMelee()

@@ -45,6 +45,9 @@ function FindWeapon:CanReachWeapon(ent)
     return func(ent:GetPos())
 end
 
+--- Find a **primary** weapon on the ground nearest to **bot**
+---@param bot Player
+---@return Entity
 function FindWeapon:GetWeaponFor(bot)
     -- Return the nearest weapon to bot:GetPos()
     local weapons = self:GetWeaponsNear(bot)
@@ -56,7 +59,7 @@ function FindWeapon:GetWeaponFor(bot)
             and self:WeaponOnGround(v)
             and self:CanReachWeapon(v)
             and (closestDist == nil
-            or dist < closestDist)
+                or dist < closestDist)
         then
             closestDist = dist
             closestWeapon = v
