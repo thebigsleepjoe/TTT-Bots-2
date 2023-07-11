@@ -23,8 +23,10 @@ function InvestigateNoise:GetInterestingSounds(bot)
     ---@type CMemory
     local memory = bot.components.memory
     local sounds = memory:GetRecentSounds()
+    print("#sounds", #sounds)
     local interesting = {}
     for i, v in pairs(sounds) do
+        print("sound", v.name)
         local wasme = v.ent == bot or v.ply == bot
         if not wasme and InvestigateNoise.INVESTIGATE_CATEGORIES[v.name] then
             table.insert(interesting, v)
@@ -50,7 +52,7 @@ function InvestigateNoise:FindClosestSound(bot, mustBeVisible)
 end
 
 function InvestigateNoise:OnStart(bot)
-    bot:Say("FUCK")
+    bot:Say("I heard that!")
     return STATUS.Running
 end
 

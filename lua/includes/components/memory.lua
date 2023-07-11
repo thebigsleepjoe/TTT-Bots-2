@@ -111,7 +111,6 @@ function Memory:ResetMemory()
 end
 
 function Memory:Initialize(bot)
-    -- print("Initializing")
     bot.components = bot.components or {}
     bot.components.memory = self
 
