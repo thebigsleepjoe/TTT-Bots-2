@@ -436,9 +436,10 @@ function Memory:CullSoundMemory()
     if not recentSounds then return end
     local curTime = CurTime()
     for i, sound in pairs(recentSounds) do
-        if curTime - sound.time > 5 then
+        local timeSince = curTime - sound.time
+        if timeSince > 5 then
             table.remove(recentSounds, i)
-        elseif lib.CanSeeArc(self.bot, sound.pos, 90) then
+        elseif lib.CanSeeArc(self.bot, sound.pos, 75) then
             table.remove(recentSounds, i) -- we don't need to remember sounds that we can see the source of
         end
     end

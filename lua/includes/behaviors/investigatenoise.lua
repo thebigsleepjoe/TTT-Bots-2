@@ -23,12 +23,10 @@ function InvestigateNoise:GetInterestingSounds(bot)
     ---@type CMemory
     local memory = bot.components.memory
     local sounds = memory:GetRecentSounds()
-    print("#sounds", #sounds)
     local interesting = {}
     for i, v in pairs(sounds) do
-        print("sound", v.name)
         local wasme = v.ent == bot or v.ply == bot
-        if not wasme and InvestigateNoise.INVESTIGATE_CATEGORIES[v.name] then
+        if not wasme and InvestigateNoise.INVESTIGATE_CATEGORIES[v.sound] then
             table.insert(interesting, v)
         end
     end
@@ -52,7 +50,7 @@ function InvestigateNoise:FindClosestSound(bot, mustBeVisible)
 end
 
 function InvestigateNoise:OnStart(bot)
-    bot:Say("I heard that!")
+    bot.components.chatter:On("investigate_noise")
     return STATUS.Running
 end
 
@@ -60,13 +58,13 @@ function InvestigateNoise:OnRunning(bot)
     local loco = bot.components.locomotor
     local closestVisible = self:FindClosestSound(bot, true)
     if closestVisible then
-        loco:AimAt(closestVisible.pos)
+        loco:AimAt(lib.OffsetForGround(closestVisible.pos, false))
         return STATUS.Running
     end
 
     local closestHidden = self:FindClosestSound(bot, false)
     if closestHidden then
-        loco:AimAt(closestHidden.pos)
+        loco:AimAt(lib.OffsetForGround(closestHidden.pos, false))
         loco:SetGoalPos(closestHidden.pos)
         return STATUS.Running
     end

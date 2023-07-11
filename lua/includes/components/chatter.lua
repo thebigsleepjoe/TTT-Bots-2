@@ -46,6 +46,16 @@ function BotChatter:QuickRadio(msgName, msgTarget)
     self.bot:Say(string.format(txt, msgTarget:Nick()))
 end
 
+--- A generic wrapper for when an event happens, to be implemented further in the future
+---@param event_name string
+---@param args table<any> A table of arguments passed to the event
+function BotChatter:On(event_name, args)
+    local dvlpr = lib.GetConVarBool("debug_misc")
+    if dvlpr then
+        print(string.format("Event %s called with %d args.", event_name, #args))
+    end
+end
+
 function BotChatter:Think()
 
 end
