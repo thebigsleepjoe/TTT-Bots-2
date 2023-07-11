@@ -61,10 +61,19 @@ function BotPersonality:GetTraits()
     return self.traits
 end
 
+function BotPersonality:GetTraitData()
+    if self.traitData then return self.traitData end
+    self.traitData = {}
+    for _, trait in ipairs(self.traits) do
+        table.insert(self.traitData, BotPersonality.Traits[trait])
+    end
+    return self.traitData
+end
+
 function BotPersonality:GetFlavoredTraits()
     local traits = {}
     for i, trait in ipairs(self.traits) do
-        print(self:FlavorText(self.Traits[trait].description))
+        -- print(self:FlavorText(self.Traits[trait].description))
         table.insert(traits, self:FlavorText(self.Traits[trait].description))
     end
     return traits
@@ -141,11 +150,11 @@ end
 ---@param attribute string
 ---@return number
 function plyMeta:AverageTraitMultFor(attribute)
-    local traits = self.components and self.components.personality and self.components.personality:GetTraits()
+    local traits = self.components.personality:GetTraitData()
     if not traits then return 1 end
-    local avg = 0.0
+    local avg = 1
     for i, trait in pairs(traits) do
-        avg = avg + ((trait.effects and trait.effects[attribute]) or 0)
+        avg = avg * ((trait.effects and trait.effects[attribute]) or 1)
     end
     return avg / #traits
 end
