@@ -81,7 +81,7 @@ local function initializeMod()
                 bot.timeInGame = (bot.timeInGame or 0) + (1 / TTTBots.Tickrate)
             end
         end, function(err)
-            print(err)
+            print("ERROR:", err)
         end)
         if err then
             ErrorNoHalt(err)
