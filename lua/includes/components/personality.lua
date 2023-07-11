@@ -151,12 +151,12 @@ end
 ---@return number
 function plyMeta:AverageTraitMultFor(attribute)
     local traits = self.components.personality:GetTraitData()
-    if not traits then return 1 end
     local avg = 1
+    if not traits then return avg end
     for i, trait in pairs(traits) do
         avg = avg * ((trait.effects and trait.effects[attribute]) or 1)
     end
-    return avg / #traits
+    return avg
 end
 
 function plyMeta:PersonalityHas(trait_name)
