@@ -18,6 +18,11 @@ function Match.ResetStats(roundActive)
     Match.PlayersInRound = {}
     Match.DamageLogs = {}
     Match.AlivePlayers = {}
+
+    -- Just gonna put this here since it's related to resetting stats.
+    for i, v in pairs(player.GetBots()) do
+        v.attackTarget = nil
+    end
 end
 
 --- Comb thru the damage logs and find the player who shot the other first.

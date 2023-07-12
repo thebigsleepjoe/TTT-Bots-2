@@ -103,26 +103,26 @@ function FindWeapon:OnStart(bot)
         print("Target: ", bot.findweapon.target)
     end
 
-    return status.Running
+    return STATUS.Running
 end
 
 --- Called when the behavior's last state is running
 function FindWeapon:OnRunning(bot)
     local debugPrint = false
 
-    if IsValid(bot.findweapon.target) and bot.findweapon.target:GetOwner() == bot then return status.Success end
+    if IsValid(bot.findweapon.target) and bot.findweapon.target:GetOwner() == bot then return STATUS.Success end
 
     bot.findweapon.target = (self:ValidateTarget(bot) and bot.findweapon.target) or self:GetWeaponFor(bot)
     if not self:ValidateTarget(bot) then
         print("Failed because target is invalid")
-        return status.Failure
+        return STATUS.Failure
     end
 
     local target = bot.findweapon.target
     local loco = bot.components.locomotor
     loco:SetGoalPos(target:GetPos())
 
-    return status.Running
+    return STATUS.Running
 end
 
 --- Called when the behavior returns a success state

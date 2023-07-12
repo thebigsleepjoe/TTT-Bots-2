@@ -26,7 +26,7 @@ function Wander:OnStart(bot)
         destArea = self:GetWanderableArea(bot),
         wanderTime = 200, -- Maximum time before re-generating a destination
     }
-    return status.Running
+    return STATUS.Running
 end
 
 --- Called when the behavior's last state is running
@@ -39,13 +39,13 @@ function Wander:OnRunning(bot)
     if bot.wander.tick > bot.wander.wanderTime or withinRange then
         bot.wander.tick = 0
         bot.wander.destArea = self:GetWanderableArea(bot)
-        return status.Success
+        return STATUS.Success
     end
 
     local wanderPos = dest
     bot.components.locomotor:SetGoalPos(wanderPos)
 
-    return status.Running
+    return STATUS.Running
 end
 
 --- Called when the behavior returns a success state

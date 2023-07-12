@@ -287,6 +287,7 @@ end
 ---@return Entity|nil Entity the entity, else nill
 ---@return number ClosestDist
 function TTTBots.Lib.GetClosest(entities, pos)
+    if (#entities == 1) then return entities[1], 0 end
     local closest = nil
     local closestDist = 99999
     for i, v in pairs(entities) do
