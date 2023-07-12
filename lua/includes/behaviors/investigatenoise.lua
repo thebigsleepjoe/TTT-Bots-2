@@ -14,9 +14,9 @@ InvestigateNoise.INVESTIGATE_CATEGORIES = {
 }
 
 local STATUS = {
-    Running = 1,
-    Success = 2,
-    Failure = 3,
+    RUNNING = 1,
+    SUCCESS = 2,
+    FAILURE = 3,
 }
 
 function InvestigateNoise:GetInterestingSounds(bot)

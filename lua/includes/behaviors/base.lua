@@ -9,10 +9,10 @@ BehaviorBase.Name = "Base"
 BehaviorBase.Description = "If you're reading this, something went wrong."
 BehaviorBase.Interruptible = true
 
-local status = {
-    Running = 1,
-    Success = 2,
-    Failure = 3,
+local STATUS = {
+    RUNNING = 1,
+    SUCCESS = 2,
+    FAILURE = 3,
 }
 
 --- Validate the behavior

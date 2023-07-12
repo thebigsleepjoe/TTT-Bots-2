@@ -8,10 +8,10 @@ FindWeapon.Name = "FindWeapon"
 FindWeapon.Description = "Wanders around the map"
 FindWeapon.Interruptible = true
 
-local status = {
-    Running = 1,
-    Success = 2,
-    Failure = 3,
+local STATUS = {
+    RUNNING = 1,
+    SUCCESS = 2,
+    FAILURE = 3,
 }
 
 function FindWeapon:HasPrimary(bot)

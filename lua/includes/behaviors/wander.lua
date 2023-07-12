@@ -8,10 +8,10 @@ Wander.Name = "Wander"
 Wander.Description = "Wanders around the map"
 Wander.Interruptible = true
 
-local status = {
-    Running = 1,
-    Success = 2,
-    Failure = 3,
+local STATUS = {
+    RUNNING = 1,
+    SUCCESS = 2,
+    FAILURE = 3,
 }
 
 --- Validate the behavior
