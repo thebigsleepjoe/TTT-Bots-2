@@ -62,6 +62,11 @@ function InvestigateNoise:OnRunning(bot)
         return STATUS.Running
     end
 
+    -- Skip investigating if we don't want to.
+    if not self:ShouldInvestigateNoise(bot) then
+        return STATUS.Failure
+    end
+
     local closestHidden = self:FindClosestSound(bot, false)
     if closestHidden then
         loco:AimAt(closestHidden.pos + Vector(0, 0, 72))
@@ -70,6 +75,16 @@ function InvestigateNoise:OnRunning(bot)
     end
 
     return STATUS.Success
+end
+
+--- Return true/false based off of a random chance. This is meant to be called every tick (5x per sec as of writing), so the chance is low by default.
+---@param bot Player
+function InvestigateNoise:ShouldInvestigateNoise(bot)
+    local mult = bot:AverageTraitMultFor("investigateNoise")
+    local pct = 8 * mult
+
+    local passed = lib.CalculatePercentChance(pct)
+    return passed
 end
 
 function InvestigateNoise:Validate(bot)

@@ -138,6 +138,13 @@ function BotPersonality:GetSomeTraits(num)
     return selectedTraits
 end
 
+---Wrapper for bot:AverageTraitMultFor(attribute)
+---@param attribute string
+---@return number
+function BotPersonality:AverageTraitMultFor(attribute)
+    return self.bot:AverageTraitMultFor(attribute)
+end
+
 local plyMeta = FindMetaTable("Player")
 
 function plyMeta:GetPersonalityTraits()

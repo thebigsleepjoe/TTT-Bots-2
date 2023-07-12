@@ -419,6 +419,12 @@ function TTTBots.Lib.Profiler(name, donotprint)
     end
 end
 
+--- Get a random number between 1 and 100 and return true if it is less than pct.
+---@param pct number
+function TTTBots.Lib.CalculatePercentChance(pct)
+    return (math.random(1, 10000) / 100) <= pct
+end
+
 --- Returns a vector that is offset from the ground at either eye-level or crouch-level.
 --- If dotrace, then it will trace upward from the ground to determine if this needs crouch-level.
 --- If not dotrace, then just +32 to the Z
