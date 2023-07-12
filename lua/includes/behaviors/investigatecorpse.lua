@@ -6,7 +6,7 @@ local lib = TTTBots.Lib
 ---@class InvestigateCorpse
 local InvestigateCorpse = TTTBots.Behaviors.InvestigateCorpse
 InvestigateCorpse.Name = "InvestigateCorpse"
-InvestigateCorpse.Description = "If you're reading this, something went wrong."
+InvestigateCorpse.Description = "Investigate the corpse of a fallen player"
 InvestigateCorpse.Interruptible = true
 
 local STATUS = {
@@ -31,8 +31,10 @@ function InvestigateCorpse:GetVisibleUnidentified(bot)
     local corpses = TTTBots.Match.Corpses
     local results = {}
     for i, corpse in pairs(corpses) do
-        local visible = bot:VisibleVec(corpse:GetPos())
+        if not IsValid(corpse) then continue end
+        local visible = bot:Visible(corpse)
         local found = CORPSE.GetFound(corpse, false)
+        TTTBots.DebugServer.DrawCross(corpse:GetPos(), 10, Color(255, 0, 0), 1, "body")
         if not found and visible then
             table.insert(results, corpse)
         end
@@ -42,7 +44,7 @@ end
 
 --- Called every tick; basically just rolls a dice for if we should investigate any corpses this tick
 function InvestigateCorpse:GetShouldNoticeCorpse(bot)
-    local basePct = 20
+    local basePct = 100
     -- TODO: Personality should affect this
     local mult = 1
     return lib.CalculatePercentChance(basePct * mult)
@@ -50,8 +52,11 @@ end
 
 --- Validate the behavior
 function InvestigateCorpse:Validate(bot)
-    return lib.IsGood(bot) and
-        (self:GetShouldNoticeCorpse(bot) and #self:GetVisibleUnidentified(bot) > 0)
+    -- lib.IsGood(bot) and (self:GetShouldNoticeCorpse(bot) and #self:GetVisibleUnidentified(bot) > 0)
+    local isGood = lib.IsGood(bot)
+    -- local shouldNotice = self:GetShouldNoticeCorpse(bot)
+    local visibleUnidentified = #self:GetVisibleUnidentified(bot) > 0
+    return isGood and visibleUnidentified
 end
 
 --- Called when the behavior is started
@@ -80,7 +85,7 @@ function InvestigateCorpse:OnRunning(bot)
     loco:SetGoalPos(bot.corpseToID:GetPos())
 
     local distToBody = bot:GetPos():Distance(bot.corpseToID:GetPos())
-    if distToBody < 100 then
+    if distToBody < 80 then
         loco:Stop()
         CORPSE.SetFound(bot.corpseToID, true)
         CORPSE.ShowSearch(bot, bot.corpseToID, false, false)

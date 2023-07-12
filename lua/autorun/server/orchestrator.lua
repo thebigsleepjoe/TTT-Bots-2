@@ -65,6 +65,7 @@ local function initializeMod()
     timer.Create("TTTBots_Tick", 1 / TTTBots.Tickrate, 0, function()
         local call, err = pcall(function()
             -- _testBotAttack()
+            TTTBots.Match.Tick()
             TTTBots.Behaviors.Tree()
             for i, bot in pairs(player.GetBots()) do
                 -- TTTBots.DebugServer.RenderDebugFor(bot, { "all" })

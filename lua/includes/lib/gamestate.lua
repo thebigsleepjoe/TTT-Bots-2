@@ -11,6 +11,20 @@ Match.ConfirmedDead = Match.ConfirmedDead or {}
 Match.DamageLogs = Match.DamageLogs or {}
 Match.AlivePlayers = {}
 
+function Match.Tick()
+    if not Match.RoundActive then return end
+    Match.CleanupNullCorpses()
+end
+
+function Match.CleanupNullCorpses()
+    for i, v in pairs(Match.Corpses) do
+        if not IsValid(v) or v == NULL then
+            table.remove(Match.Corpses, i)
+            print("Cleaned up null corpse")
+        end
+    end
+end
+
 function Match.ResetStats(roundActive)
     Match.RoundActive = roundActive or false
     Match.Corpses = {}

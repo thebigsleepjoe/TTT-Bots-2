@@ -23,6 +23,7 @@
         "draw",
         "ScrW",
         "ScrH",
-        "hook"
+        "hook",
+        "CORPSE"
     ]
 }
