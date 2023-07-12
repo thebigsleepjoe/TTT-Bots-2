@@ -7,7 +7,8 @@ TTTBots.Traits = {
         conflicts = { "passive", "cautious" },
         traitor_only = false,
         effects = {
-            suspicion = 3 -- high suspicion gain to encourage attacking
+            suspicion = 3,        -- high suspicion gain to encourage attacking
+            investigateNoise = 2, -- more likely to seek out noise
         }
     },
     --- When hearing shots, finds a safe spot to hide. NEVER seeks out gunshots.
@@ -16,7 +17,9 @@ TTTBots.Traits = {
         description = "When not a traitor, [HE] avoids fights and runs away instead",
         conflicts = { "aggressive", "rdmer" },
         traitor_only = false,
-        effects = {}
+        effects = {
+            investigateNoise = 0, -- never seek out noise
+        }
     },
     --- Places C4 a lot
     bomber = {
@@ -33,7 +36,8 @@ TTTBots.Traits = {
         conflicts = { "gullible" },
         traitor_only = false,
         effects = {
-            suspicion = 1.5
+            suspicion = 1.5,
+            suspicionMe = 1.5, -- make others build suspicion on us faster
         }
     },
     --- Aim tends to be terrible, especially when under pressure.
@@ -65,6 +69,8 @@ TTTBots.Traits = {
         traitor_only = false,
         effects = {
             hearing = 0.75,
+            suspicion = 0.75,
+            investigateNoise = 0.5, -- rarely seek out noise
         }
     },
     --- Significantly brain damaged. Not good at hearing, memory, or target acquisition.
@@ -75,6 +81,8 @@ TTTBots.Traits = {
         traitor_only = false,
         effects = {
             hearing = 0.5,
+            suspicion = 0.5,
+            investigateNoise = 0.2, -- rarely seek out noise
         }
     },
     -- Good hearing, memory, and target acquisition than the average player.
@@ -85,6 +93,7 @@ TTTBots.Traits = {
         traitor_only = false,
         effects = {
             hearing = 1.25,
+            investigateNoise = 1.5, -- more likely to seek out noise
         }
     },
     --- Significantly better hearing, memory, and is more likely to attack the right person.
@@ -95,6 +104,7 @@ TTTBots.Traits = {
         traitor_only = false,
         effects = {
             hearing = 1.5,
+            investigateNoise = 2, -- more likely to seek out noise
         }
     },
     --- Tends to wander to the least popular nav areas, but can still wander elsewhere
@@ -124,6 +134,14 @@ TTTBots.Traits = {
         description = "Helping teammates is a priority for [HIM]",
         conflicts = { "loner", "rdmer" },
         traitor_only = true,
+        effects = {}
+    },
+    --- Follows players around. Prefers detectives/trusted players.
+    follower = {
+        name = "follower",
+        description = "[HE] follows players around",
+        conflicts = { "loner", "rdmer" },
+        traitor_only = false,
         effects = {}
     },
     --- Attacks random person regardless of team. THIS SHOULD BE DISABLED BY DEFAULT!
@@ -168,7 +186,9 @@ TTTBots.Traits = {
         description = "At close range, [HE] wields a crowbar to kill",
         conflicts = { "sniper" },
         traitor_only = false,
-        effects = {}
+        effects = {
+            meleeRange = 2,
+        }
     },
     --- Uses the knife to kill when alone with someone
     assassin = {
@@ -226,12 +246,14 @@ TTTBots.Traits = {
         description = "[HE] ventures into dangerous areas for the thrill",
         conflicts = { "cautious", "camper" },
         traitor_only = false,
-        effects = {}
+        effects = {
+            investigateNoise = 5, -- 5x more likely to investigate noises
+        }
     },
     --- 1.5x suspicion gain, is more observant
     cautious = {
         name = "cautious",
-        description = "[HE] steers clear of danger when possible",
+        description = "[HE] is aware of [HIS] surroundings and is less trusting",
         conflicts = { "risktaker" },
         traitor_only = false,
         effects = {
@@ -242,7 +264,7 @@ TTTBots.Traits = {
     --- Suspicion gain is halved
     gullible = {
         name = "gullible",
-        description = "[HE] tends to believe others easily",
+        description = "[HE] tends to believe others easily, doesn't care about suspicion that much",
         conflicts = { "suspicious" },
         traitor_only = false,
         effects = {
@@ -256,7 +278,8 @@ TTTBots.Traits = {
         conflicts = { "talkative", "teamplayer", "cautious" },
         traitor_only = false,
         effects = {
-            hearing = 0.3
+            hearing = 0.3,
+            suspicion = 0.5,
         }
     },
     --- Can use the disguiser
