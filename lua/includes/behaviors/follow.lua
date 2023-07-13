@@ -69,6 +69,30 @@ function Follow:GetFollowTargets(bot)
     return targets
 end
 
+---gets the visible navs to the ent's nearest nav
+---@param target Entity
+---@return table<CNavArea>
+function Follow:GetVisibleNavs(target)
+    local targetNav = navmesh.GetNearestNavArea(target:GetPos())
+    if not targetNav then return {} end
+
+    local visibleNavs = targetNav:GetVisibleAreas()
+
+    return visibleNavs
+end
+
+--- This is a long f*cking function name that gets a random visible point on the navmesh to the target.
+---@param target Player
+---@return Vector|nil
+function Follow:GetRandomVisiblePointOnNavmeshTo(target)
+    local visibleNavs = self:GetVisibleNavs(target)
+    if #visibleNavs <= 1 then return nil end -- no visible navs
+
+    local rand = table.Random(visibleNavs)
+    local point = rand:GetRandomPoint()
+    return point
+end
+
 --- Validate the behavior
 function Follow:Validate(bot)
     if bot.followTarget then return true end -- already following someone
@@ -102,8 +126,9 @@ function Follow:OnRunning(bot)
     end
 
     local loco = bot.components.locomotor
+    local goal = self:GetRandomVisiblePointOnNavmeshTo(target)
 
-    loco:SetGoalPos(target:GetPos())
+    loco:SetGoalPos(goal)
 end
 
 --- Called when the behavior returns a success state
