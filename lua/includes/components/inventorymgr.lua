@@ -63,7 +63,7 @@ end
 ---@param wep Weapon
 ---@return WeaponInfo
 function BotInventoryMgr:GetWeaponInfo(wep)
-    if wep == nil then return end
+    if wep == nil or wep == NULL or not IsValid(wep) then return end
 
     local info = {}
     -- Class of the weapon
