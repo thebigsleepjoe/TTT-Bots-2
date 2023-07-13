@@ -87,8 +87,8 @@ function InvestigateCorpse:OnRunning(bot)
     local distToBody = bot:GetPos():Distance(bot.corpseToID:GetPos())
     if distToBody < 80 then
         loco:Stop()
-        CORPSE.SetFound(bot.corpseToID, true)
         CORPSE.ShowSearch(bot, bot.corpseToID, false, false)
+        CORPSE.SetFound(bot.corpseToID, true)
         return STATUS.SUCCESS
     end
     return STATUS.RUNNING
