@@ -89,6 +89,8 @@ function BotPersonality:Think()
     -- No need to think, this is a passive component
 end
 
+--- Get a pure random trait name.
+---@return string
 function BotPersonality:GetRandomTrait()
     local keys = {}
     for k, _ in pairs(self.Traits) do
@@ -97,8 +99,12 @@ function BotPersonality:GetRandomTrait()
     return keys[math.random(#keys)]
 end
 
-function BotPersonality:TraitHasConflict(trait, selectedTraits)
-    for _, selectedTrait in ipairs(selectedTraits) do
+--- Detect if a trait conflicts with anything in the a of traits
+---@param trait string
+---@param traitSet table
+---@return boolean
+function BotPersonality:TraitHasConflict(trait, traitSet)
+    for _, selectedTrait in ipairs(traitSet) do
         for _, conflict in ipairs(self.Traits[selectedTrait].conflicts) do
             if conflict == trait then
                 return true
@@ -108,6 +114,9 @@ function BotPersonality:TraitHasConflict(trait, selectedTraits)
     return false
 end
 
+--- Returns a set of num traits that are non-conflicting. Don't get too many, otherwise it'll crash or take a long time.
+---@param num number
+---@return table
 function BotPersonality:GetSomeTraits(num)
     local selectedTraits = {}
     local traitorTraits = 0
@@ -138,6 +147,17 @@ function BotPersonality:GetSomeTraits(num)
     return selectedTraits
 end
 
+--- Functionally same as Player:HasPTrait(trait_name)
+---@param trait_name string
+---@return boolean
+function BotPersonality:HasPTrait(trait_name)
+    return self.bot:HasPTrait(trait_name)
+end
+
+function BotPersonality:HasPTraitIn(hashtable)
+    return self.bot:HasPTraitIn(hashtable)
+end
+
 ---Wrapper for bot:AverageTraitMultFor(attribute)
 ---@param attribute string
 ---@return number
@@ -166,13 +186,29 @@ function plyMeta:AverageTraitMultFor(attribute)
     return avg
 end
 
-function plyMeta:PersonalityHas(trait_name)
+--- Check if the bot has a specific trait, by name.
+---@param trait_name string
+---@return boolean hasTrait
+function plyMeta:HasPTrait(trait_name)
     if self.components and self.components.personality then
         local traits = self.components.personality:GetTraits()
         for _, trait in ipairs(traits) do
             if trait == trait_name then
                 return true
             end
+        end
+    end
+    return false
+end
+
+--- Check if the bot has any traits that match the entries in the hashtable.
+---@param hashtable table<string, boolean>
+---@return boolean hasTrait
+function plyMeta:HasPTraitIn(hashtable)
+    local traits = self.components.personality:GetTraits()
+    for _, trait in ipairs(traits) do
+        if hashtable[trait] then
+            return true
         end
     end
     return false

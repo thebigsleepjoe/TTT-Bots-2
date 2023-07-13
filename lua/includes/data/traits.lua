@@ -175,7 +175,7 @@ TTTBots.Traits = {
     --- Prefers to use long range single-shot guns, wanders between open nav spots
     sniper = {
         name = "sniper",
-        description = "Adept with a sniper rifle, [HE] aims to eliminate others from afar",
+        description = "Adept with a sniper rifle",
         conflicts = { "meleer" },
         traitor_only = false,
         effects = {}
@@ -183,7 +183,7 @@ TTTBots.Traits = {
     --- Pulls out crowbar and kills people the old fashioned way. Modifies attack behavior
     meleer = {
         name = "meleer",
-        description = "At close range, [HE] wields a crowbar to kill",
+        description = "Prefers crowbars at further ranges than normal.",
         conflicts = { "sniper" },
         traitor_only = false,
         effects = {
@@ -193,7 +193,7 @@ TTTBots.Traits = {
     --- Uses the knife to kill when alone with someone
     assassin = {
         name = "assassin",
-        description = "Armed with a knife, [HE] seeks to eliminate others",
+        description = "Prefers to use knives when traitor.",
         conflicts = {},
         traitor_only = false,
         effects = {}
@@ -272,6 +272,7 @@ TTTBots.Traits = {
         }
     },
     --- Doesn't pay attention to many noises, doesn't react quickly, much worse memory of events and people
+    --- More likely to make weird or otherwise suspicious actions (but doesn't gain bonus suspicion)
     doesntcare = {
         name = "doesntcare",
         description = "Apathetic, [HE] can be unresponsive at times",

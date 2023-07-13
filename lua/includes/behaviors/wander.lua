@@ -70,8 +70,8 @@ end
 
 function Wander:GetWanderableArea(bot)
     -- relevant personality traits: loner, lovescrowds
-    local isLoner = bot:PersonalityHas("loner")
-    local lovesCrowds = bot:PersonalityHas("lovescrowds")
+    local isLoner = bot:HasPTrait("loner")
+    local lovesCrowds = bot:HasPTrait("lovescrowds")
 
     local popularNavs = TTTBots.Lib.PopularNavsSorted
     local adhereToPersonality = (isLoner and not lovesCrowds) and math.random(1, 5) <= 4

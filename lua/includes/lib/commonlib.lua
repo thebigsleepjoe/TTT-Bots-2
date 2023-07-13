@@ -165,6 +165,32 @@ function TTTBots.Lib.GetAllWitnesses(pos, botsOnly)
     return witnesses
 end
 
+--- Similar to GetAllWitnesses, but internally uses CanSee instead of CanSeeArc (so 360*)
+function TTTBots.Lib.GetAllWitnesses360(pos)
+    local witnesses = {}
+    for _, ply in ipairs(player.GetAll()) do
+        if TTTBots.Lib.IsPlayerAlive(ply) then
+            local sawthat = TTTBots.Lib.CanSee(ply, pos)
+            if sawthat then
+                table.insert(witnesses, ply)
+            end
+        end
+    end
+    return witnesses
+end
+
+--- Iterate through players on the server and return the first player with the given nickname
+---@param nick string
+---@return Player|nil
+function TTTBots.Lib.GetPlayerByNick(nick)
+    local plys = player.GetAll()
+    for i, v in ipairs(plys) do
+        if not IsValid(v) then continue end
+        if v:Nick() == nick then return v end
+    end
+    return
+end
+
 --- Get the number of free player slots
 ---@return number
 function TTTBots.Lib.GetFreePlayerSlots()
