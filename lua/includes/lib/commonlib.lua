@@ -190,20 +190,20 @@ end
 --- At that point, it returns the key of the current item.
 ---@param weightedTbl WeightedTable[] An array of WeightedTable objects.
 ---@return any The key of the randomly selected WeightedTable item.
-function TTTBots.Lib.RandomWeighted(weightedTbl)
-    assert(#weightedTbl > 0, "Table is empty")
+function TTTBots.Lib.RandomWeighted(weightedTblTbl)
+    assert(#weightedTblTbl > 0, "Table is empty")
 
     local totalWeight = 0
-    for i = 1, #weightedTbl do
-        totalWeight = totalWeight + weightedTbl[i].weight
+    for i = 1, #weightedTblTbl do
+        totalWeight = totalWeight + weightedTblTbl[i].weight
     end
 
     local random = math.random(0, totalWeight)
     local currentWeight = 0
-    for i = 1, #weightedTbl do
-        currentWeight = currentWeight + weightedTbl[i].weight
+    for i = 1, #weightedTblTbl do
+        currentWeight = currentWeight + weightedTblTbl[i].weight
         if random <= currentWeight then
-            return weightedTbl[i].key
+            return weightedTblTbl[i].key
         end
     end
 end
