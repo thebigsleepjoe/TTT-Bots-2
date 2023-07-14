@@ -165,6 +165,49 @@ function TTTBots.Lib.GetAllWitnesses(pos, botsOnly)
     return witnesses
 end
 
+function TTTBots.Lib.GetRandomAdjacent(nav)
+    local adjacent = nav:GetAdjacentAreas()
+    local random = math.random(1, #adjacent)
+    return adjacent[random]
+end
+
+function TTTBots.Lib.GetRandomAdjacentNth(nav, N, i)
+    local adjacent = nav:GetAdjacentAreas()
+    local random = math.random(1, #adjacent)
+    if i == N then return adjacent[random] end
+    return TTTBots.Lib.GetRandomAdjacentNth(adjacent[random], N, i + 1)
+end
+
+--- A table of [key] = weight
+---@class WeightedTable
+---@field public key any Can be a table, number, string, any value.
+---@field public weight number The weight relative to the rest of the table.
+
+--- Returns a weighted random result from the table.
+--- This function accepts an array of WeightedTable objects, calculates the total weight,
+--- selects a random number in the range of total weight, then iterates through the array
+--- adding the weight of each item to a counter until it exceeds or equals to the random number.
+--- At that point, it returns the key of the current item.
+---@param weightedTbl WeightedTable[] An array of WeightedTable objects.
+---@return any The key of the randomly selected WeightedTable item.
+function TTTBots.Lib.RandomWeighted(weightedTbl)
+    assert(#weightedTbl > 0, "Table is empty")
+
+    local totalWeight = 0
+    for i = 1, #weightedTbl do
+        totalWeight = totalWeight + weightedTbl[i].weight
+    end
+
+    local random = math.random(0, totalWeight)
+    local currentWeight = 0
+    for i = 1, #weightedTbl do
+        currentWeight = currentWeight + weightedTbl[i].weight
+        if random <= currentWeight then
+            return weightedTbl[i].key
+        end
+    end
+end
+
 --- Similar to GetAllWitnesses, but internally uses CanSee instead of CanSeeArc (so 360*)
 function TTTBots.Lib.GetAllWitnesses360(pos)
     local witnesses = {}
