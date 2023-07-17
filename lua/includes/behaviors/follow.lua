@@ -37,8 +37,8 @@ end
 
 --- Similar to IsFollower, but returns mathematical chance of deciding to follow a new person this tick.
 function Follow:GetFollowChance(bot)
-    local BASE_CHANCE = 1 -- 1 % chance per tick
-    local debugging = true
+    local BASE_CHANCE = 2 -- X % chance per tick
+    local debugging = false
     local chance = BASE_CHANCE * (self:IsFollower(bot) and 1 or 0) * (lib.IsEvil(bot) and 2 or 1)
 
     return (
@@ -70,6 +70,7 @@ function Follow:GetFollowTargets(bot)
 end
 
 ---gets the visible navs to the ent's nearest nav
+---@deprecated Still works, but don't use.
 ---@param target Entity
 ---@return table<CNavArea>
 function Follow:GetVisibleNavs(target)
@@ -82,6 +83,7 @@ function Follow:GetVisibleNavs(target)
 end
 
 --- This is a long f*cking function name that gets a random visible point on the navmesh to the target.
+---@deprecated Still works, but don't use.
 ---@param target Player
 ---@return Vector|nil
 function Follow:GetRandomVisiblePointOnNavmeshTo(target)
@@ -91,6 +93,15 @@ function Follow:GetRandomVisiblePointOnNavmeshTo(target)
     local rand = table.Random(visibleNavs)
     local point = rand:GetRandomPoint()
     return point
+end
+
+--- Get a random point in the list of CNavAreas
+---@param navList table<CNavArea>
+---@return Vector
+function Follow:GetRandomPointInList(navList)
+    local nav = table.Random(navList)
+    local pos = nav:GetRandomPoint()
+    return pos
 end
 
 --- Validate the behavior
@@ -117,6 +128,21 @@ function Follow:OnStart(bot)
     return STATUS.RUNNING
 end
 
+function Follow:GetFollowPoint(target)
+    local nearestNav = navmesh.GetNearestNavArea(target:GetPos())
+    local maxDist = 1500
+
+    if not nearestNav then return end
+
+    local isDiscreet = true
+
+    local possibleAreas = TTTBots.Lib.GetAllVisibleWithinDist(nearestNav, maxDist)
+    if possibleAreas == nil or #possibleAreas == 0 then isDiscreet = false end
+    local randomPoint = (isDiscreet and self:GetRandomPointInList(possibleAreas)) or nearestNav:GetRandomPoint()
+
+    return randomPoint
+end
+
 --- Called when the behavior's last state is running
 function Follow:OnRunning(bot)
     local target = bot.followTarget
@@ -125,10 +151,16 @@ function Follow:OnRunning(bot)
         return STATUS.FAILURE
     end
 
-    local loco = bot.components.locomotor
-    local goal = self:GetRandomVisiblePointOnNavmeshTo(target)
+    if bot.randFollowPoint ~= nil and bot:GetPos():Distance(bot.randFollowPoint) < 100 then
+        return STATUS.SUCCESS
+    end
 
-    loco:SetGoalPos(goal)
+    local loco = bot.components.locomotor
+    bot.randFollowPoint = self:GetFollowPoint(target)
+
+    if bot.randFollowPoint == false then return STATUS.FAILURE end
+
+    loco:SetGoalPos(bot.randFollowPoint)
 end
 
 --- Called when the behavior returns a success state
@@ -143,4 +175,6 @@ end
 function Follow:OnEnd(bot)
     timer.Remove("TTTBots.Follow." .. bot:Nick())
     bot.followTarget = nil
+    bot.randFollowPoint = nil
+    bot.components.locomotor:Stop()
 end

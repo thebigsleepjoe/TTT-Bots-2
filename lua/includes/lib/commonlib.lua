@@ -183,6 +183,26 @@ end
 ---@field public key any Can be a table, number, string, any value.
 ---@field public weight number The weight relative to the rest of the table.
 
+--- Creates a WeightedTable object.
+---@param element any Can be a table, number, string, any value.
+---@param weight number The weight relative to the rest of the table.
+---@return WeightedTable
+function TTTBots.Lib.SetWeight(element, weight)
+    return { key = element, weight = weight }
+end
+
+--- Get all visible nav areas to the given nav, that have a center within maxdist.
+---@param nav CNavArea
+---@param maxdist number
+function TTTBots.Lib.GetAllVisibleWithinDist(nav, maxdist)
+    local allVisible = nav:GetVisibleAreas()
+    local filteredDist = TTTBots.Lib.FilterTable(allVisible, function(nav2)
+        return nav:GetCenter():Distance(nav2:GetCenter()) <= maxdist
+    end)
+
+    return filteredDist
+end
+
 --- Returns a weighted random result from the table.
 --- This function accepts an array of WeightedTable objects, calculates the total weight,
 --- selects a random number in the range of total weight, then iterates through the array
@@ -527,6 +547,10 @@ function TTTBots.Lib.QuadraticBezier(t, p0, p1, p2)
     return (1 - t) ^ 2 * p0 + 2 * (1 - t) * t * p1 + t ^ 2 * p2
 end
 
+--- Run filterFunc callback on each element, and return a table of elements that return true.
+---@param tbl table
+---@param filterFunc function
+---@return table
 function TTTBots.Lib.FilterTable(tbl, filterFunc)
     local newTbl = {}
     for i, v in pairs(tbl) do
