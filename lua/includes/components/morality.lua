@@ -1,5 +1,6 @@
 --[[
     This component defines the morality of the agent. It is primarily responsible for determining who to shoot.
+    It also tells traitors who to kill.
 ]]
 ---@class CMorality
 TTTBots.Components.Morality = TTTBots.Components.Morality or {}
@@ -174,14 +175,73 @@ function BotMorality:TickSuspicions()
     end
 end
 
+--- Returns a random victim player, weighted off of each player's traits.
+---@param playerlist table<Player>
+---@return Player
+function BotMorality:GetRandomVictimFrom(playerlist)
+    local tbl = {}
+
+    for i, player in pairs(playerlist) do
+        if player:IsBot() then
+            local victim = player:AverageTraitMultFor("victim")
+            table.insert(tbl, lib.SetWeight(player, victim))
+        else
+            table.insert(tbl, lib.SetWeight(player, 1))
+        end
+    end
+
+    return lib.RandomWeighted(tbl)
+end
+
+function BotMorality:TickIfTraitor()
+    if not (self.tick % TTTBots.Tickrate == 0) then return end -- Run only once every second
+    local roundStarted = TTTBots.Match.RoundActive
+    local isEvil = lib.IsEvil(self.bot)
+    if not (roundStarted and isEvil) then return end
+    if self.bot.attackTarget ~= nil then return end
+
+    local aggression = (self.bot:AverageTraitMultFor("aggression")) * (self.bot.rage or 1)
+
+    local maxTargets = math.max(2, math.ceil(aggression * 2))
+    local targets = lib.GetAllVisible(self.bot:EyePos(), true)
+
+    if (#targets > maxTargets) or (#targets == 0) then return end                 -- Don't attack if there are too many targets
+
+    local base_chance = 6                                                         -- X% chance to attack per second
+    local chanceAttackPerSec = base_chance * aggression * (maxTargets / #targets) -- Percent chance to attack per second
+    if lib.CalculatePercentChance(chanceAttackPerSec) then
+        local target = BotMorality:GetRandomVictimFrom(targets)
+        self.bot.attackTarget = target
+    end
+end
+
 function BotMorality:Think()
-    self.tick = self.bot.tick
+    self.tick = (self.bot.tick or 0)
     self:TickSuspicions()
+    self:TickIfTraitor()
+end
+
+---Called by OnWitnessHurt, but only if we (the owning bot) is a traitor.
+---@param victim Player
+---@param attacker Entity
+---@param healthRemaining number
+---@param damageTaken number
+---@return nil
+function BotMorality:OnWitnessHurtTraitor(victim, attacker, healthRemaining, damageTaken)
+    if not lib.IsEvil(victim) then return end
+
+    -- The victim is evil and so are we. We should defend them if we don't have a target.
+    if self.bot.attackTarget == nil then
+        self.bot.attackTarget = attacker
+    end
 end
 
 --- When we witness someone getting hurt.
 function BotMorality:OnWitnessHurt(victim, attacker, healthRemaining, damageTaken)
-    if lib.IsEvil(self.bot) then return end -- We are evil, we don't care about this.
+    if lib.IsEvil(self.bot) then
+        self:OnWitnessHurtTraitor(victim, attacker, healthRemaining, damageTaken)
+        return
+    end -- We are evil, we usually don't care about this.
     if attacker == self.bot then return end
     if self.bot == victim then self.bot.attackTarget = attacker end
     -- TODO: Disguiser should be taken into account here.

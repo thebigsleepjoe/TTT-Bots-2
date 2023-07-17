@@ -835,7 +835,7 @@ hook.Add("Tick", "TTTBots.PathManager.PathCoroutine", function()
         if not path or not preparedPath or #preparedPath == 0 then
             -- path is impossible add it to impossiblePaths
             TTTBots.PathManager.impossiblePaths[pathID] = true
-            print("Found impossible path, " .. pathID)
+            -- print("Found impossible path, " .. pathID)
         end
 
         -- Remove the path from the queue

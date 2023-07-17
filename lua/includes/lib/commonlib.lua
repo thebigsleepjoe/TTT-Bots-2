@@ -242,6 +242,23 @@ function TTTBots.Lib.GetAllWitnesses360(pos)
     return witnesses
 end
 
+--- Like GetAllWitnesses360, but uses the :Visible function instead of CanSee, for greater optimization.
+---@param pos Vector
+---@param innocentOnly boolean Only return innocent (not lib.IsEvil) players
+---@return table<Player> witnesses A table of players that can see the position.
+function TTTBots.Lib.GetAllVisible(pos, innocentOnly)
+    local witnesses = {}
+    for _, ply in ipairs(player.GetAll()) do
+        if TTTBots.Lib.IsPlayerAlive(ply) and (not innocentOnly or not TTTBots.Lib.IsEvil(ply)) then
+            local sawthat = ply:VisibleVec(pos)
+            if sawthat then
+                table.insert(witnesses, ply)
+            end
+        end
+    end
+    return witnesses
+end
+
 --- Iterate through players on the server and return the first player with the given nickname
 ---@param nick string
 ---@return Player|nil

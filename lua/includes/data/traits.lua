@@ -9,6 +9,7 @@ TTTBots.Traits = {
         effects = {
             suspicion = 3,        -- high suspicion gain to encourage attacking
             investigateNoise = 2, -- more likely to seek out noise
+            aggression = 2,       -- More aggressive as traitor
         }
     },
     --- When hearing shots, finds a safe spot to hide. NEVER seeks out gunshots.
@@ -19,6 +20,7 @@ TTTBots.Traits = {
         traitor_only = false,
         effects = {
             investigateNoise = 0, -- never seek out noise
+            aggression = 0.8,     -- Less aggressive as traitor
         }
     },
     --- Places C4 a lot
@@ -82,7 +84,7 @@ TTTBots.Traits = {
         effects = {
             hearing = 0.5,
             suspicion = 0.5,
-            investigateNoise = 0.2, -- rarely seek out noise
+            investigateNoise = 0.2, -- very rarely seek out noise
         }
     },
     -- Good hearing, memory, and target acquisition than the average player.
@@ -116,6 +118,7 @@ TTTBots.Traits = {
         effects = {
             hearing = 1.15,
             suspicion = 1.25,
+            aggression = 0.8,
         }
     },
     --- Tends to wander into popular nav areas, but can still wander elsewhere
@@ -134,7 +137,9 @@ TTTBots.Traits = {
         description = "Helping teammates is a priority for [HIM]",
         conflicts = { "loner", "rdmer" },
         traitor_only = true,
-        effects = {}
+        effects = {
+            aggression = 1.4, -- More likely to take on more targets as traitor
+        }
     },
     --- Follows players around. Prefers detectives/trusted players.
     follower = {
@@ -248,6 +253,7 @@ TTTBots.Traits = {
         traitor_only = false,
         effects = {
             investigateNoise = 5, -- 5x more likely to investigate noises
+            aggression = 1.5,
         }
     },
     --- 1.5x suspicion gain, is more observant
@@ -258,7 +264,8 @@ TTTBots.Traits = {
         traitor_only = false,
         effects = {
             hearing = 1.2,
-            suspicion = 1.5
+            suspicion = 1.5,
+            aggression = 0.8,
         }
     },
     --- Suspicion gain is halved
@@ -281,6 +288,7 @@ TTTBots.Traits = {
         effects = {
             hearing = 0.3,
             suspicion = 0.5,
+            aggression = 2,
         }
     },
     --- Can use the disguiser
