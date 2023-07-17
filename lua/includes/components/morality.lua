@@ -207,7 +207,7 @@ function BotMorality:TickIfTraitor()
 
     if (#targets > maxTargets) or (#targets == 0) then return end                 -- Don't attack if there are too many targets
 
-    local base_chance = 6                                                         -- X% chance to attack per second
+    local base_chance = 4.5                                                       -- X% chance to attack per second
     local chanceAttackPerSec = base_chance * aggression * (maxTargets / #targets) -- Percent chance to attack per second
     if lib.CalculatePercentChance(chanceAttackPerSec) then
         local target = BotMorality:GetRandomVictimFrom(targets)
