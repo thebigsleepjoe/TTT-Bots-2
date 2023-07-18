@@ -111,6 +111,18 @@ function Follow:Validate(bot)
     return shouldFollow and #self:GetFollowTargets(bot) > 0
 end
 
+function Follow:CreateTargetRemovalTimer(bot)
+    timer.Create("TTTBots.Follow." .. bot:Nick(), math.random(20, 45), 1, function()
+        if not IsValid(bot) then return end
+        local target = bot.followTarget
+        if not (TTTBots.Match.RoundActive and IsValid(target) and bot:Visible(target)) then
+            self:CreateTargetRemovalTimer(bot)
+            return
+        end
+        bot.followTarget = nil
+    end)
+end
+
 --- Called when the behavior is started
 function Follow:OnStart(bot)
     -- timer.Simple(math.random(15, 45), function()
@@ -118,11 +130,7 @@ function Follow:OnStart(bot)
     --     bot.followTarget = nil
     -- end)
     -- let's use timer.Create instead to be fancy
-    timer.Create("TTTBots.Follow." .. bot:Nick(), math.random(20, 45), 1, function()
-        if not IsValid(bot) then return end
-        bot.followTarget = nil
-    end)
-
+    self:CreateTargetRemovalTimer(bot)
     bot.followTarget = table.Random(self:GetFollowTargets(bot))
 
     return STATUS.RUNNING
@@ -130,7 +138,7 @@ end
 
 function Follow:GetFollowPoint(target)
     local nearestNav = navmesh.GetNearestNavArea(target:GetPos())
-    local maxDist = 1500
+    local maxDist = 1000
 
     if not nearestNav then return end
 
