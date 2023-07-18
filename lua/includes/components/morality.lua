@@ -45,9 +45,9 @@ BotMorality.SUSPICIONVALUES = {
     FollowingMe = 3, -- This player has been following me for more than 10 seconds
 
     -- Shooting at a player
-    ShootingAtMe = 9,      -- This player has been shooting at me
-    Shooting = 2,          -- This player has been shooting at someone
-    ShootingAtTrusted = 9, -- This player has been shooting at a Trusted
+    ShotAtMe = 9,      -- This player has been shooting at me
+    ShotAt = 2,        -- This player has been shooting at someone
+    ShotAtTrusted = 9, -- This player has been shooting at a Trusted
 
     -- Throwing a grenade
     ThrowDiscombob = 2, -- This player has thrown a discombobulator
@@ -275,10 +275,37 @@ hook.Add("TTTPlayerRadioCommand", "TTTBots.Components.Morality.TTTRadioMessage",
     print(ply, msgName, msgTarget)
 end)
 
+function BotMorality:OnWitnessFireBullets(attacker, data, angleDiff)
+    local angleDiffPercent = angleDiff / 90
+    local sus = (angleDiffPercent * 2) + 1 -- 1-3 sus
+
+    print(attacker, data, angleDiff, angleDiffPercent, sus)
+
+    -- If suspicion level is above 1, we change the suspicion
+    if sus > 1 then
+        self.bot.components.morality:ChangeSuspicion(attacker, "ShotAt", sus)
+    end
+end
+
 hook.Add("EntityFireBullets", "TTTBots.Components.Morality.FireBullets", function(entity, data)
     if not (IsValid(entity) and entity:IsPlayer()) then return end
-    -- PrintTable(data)
+    local witnesses = lib.GetAllWitnesses(entity:EyePos(), true)
+
+    local lookAngle = entity:EyeAngles()
+
+    -- Combined loop for all witnesses
+    for i, witness in pairs(witnesses) do
+        if witness.components.morality then
+            -- We calculate the angle difference between the entity and the witness
+            local witnessAngle = witness:EyeAngles()
+            local angleDiff = math.abs(lookAngle.y - witnessAngle.y)
+            if angleDiff > 180 then angleDiff = 360 - angleDiff end
+
+            witness.components.morality:OnWitnessFireBullets(entity, data, angleDiff)
+        end
+    end
 end)
+
 
 hook.Add("PlayerHurt", "TTTBots.Components.Morality.PlayerHurt", function(victim, attacker, healthRemaining, damageTaken)
     if not (IsValid(victim) and victim:IsPlayer()) then return end
