@@ -221,10 +221,27 @@ function BotMorality:TickIfTraitor()
     end
 end
 
+function BotMorality:TickIfLastAlive()
+    if not TTTBots.Match.RoundActive then return end
+    local plys = self.bot.components.memory:GetActualAlivePlayers()
+    if #plys > 2 then return end
+    local otherPlayer = nil
+    for i, ply in pairs(plys) do
+        if ply ~= self.bot then
+            otherPlayer = ply
+            break
+        end
+    end
+
+    self.bot.attackTarget = otherPlayer
+end
+
 function BotMorality:Think()
     self.tick = (self.bot.tick or 0)
+    if not lib.IsPlayerAlive(self.bot) then return end
     self:TickSuspicions()
     self:TickIfTraitor()
+    self:TickIfLastAlive()
 end
 
 ---Called by OnWitnessHurt, but only if we (the owning bot) is a traitor.
