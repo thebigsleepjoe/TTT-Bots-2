@@ -276,15 +276,13 @@ hook.Add("TTTPlayerRadioCommand", "TTTBots.Components.Morality.TTTRadioMessage",
 end)
 
 function BotMorality:OnWitnessFireBullets(attacker, data, angleDiff)
-    local angleDiffPercent = angleDiff / 90
-    local sus = (angleDiffPercent * 2) + 1 -- 1-3 sus
+    local angleDiffPercent = angleDiff / 30
+    local sus = -1 * (1 - angleDiffPercent) / 4 -- Sus decreases as angle difference grows
+    if sus < 1 then sus = 0.1 end
 
-    print(attacker, data, angleDiff, angleDiffPercent, sus)
+    -- print(attacker, data, angleDiff, angleDiffPercent, sus)
 
-    -- If suspicion level is above 1, we change the suspicion
-    if sus > 1 then
-        self.bot.components.morality:ChangeSuspicion(attacker, "ShotAt", sus)
-    end
+    self.bot.components.morality:ChangeSuspicion(attacker, "ShotAt", sus)
 end
 
 hook.Add("EntityFireBullets", "TTTBots.Components.Morality.FireBullets", function(entity, data)
@@ -298,13 +296,18 @@ hook.Add("EntityFireBullets", "TTTBots.Components.Morality.FireBullets", functio
         if witness.components.morality then
             -- We calculate the angle difference between the entity and the witness
             local witnessAngle = witness:EyeAngles()
-            local angleDiff = math.abs(lookAngle.y - witnessAngle.y)
-            if angleDiff > 180 then angleDiff = 360 - angleDiff end
+            local angleDiff = lookAngle.y - witnessAngle.y
+
+            -- Adjust angle difference to be between -180 and 180
+            angleDiff = ((angleDiff + 180) % 360) - 180
+            -- Absolute value to ensure angleDiff is non-negative
+            angleDiff = math.abs(angleDiff)
 
             witness.components.morality:OnWitnessFireBullets(entity, data, angleDiff)
         end
     end
 end)
+
 
 
 hook.Add("PlayerHurt", "TTTBots.Components.Morality.PlayerHurt", function(victim, attacker, healthRemaining, damageTaken)
