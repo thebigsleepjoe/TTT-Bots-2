@@ -553,7 +553,6 @@ function BotLocomotor:Unstuck()
 
     self:SetJumping(false)
     self:SetCrouching(false)
-    self:SetStrafe(nil)
 
     self:SetJumping(trce1.Hit and not (trce1.Entity and (trce1.Entity:IsPlayer() or trce1.Entity:IsDoor())))
     self:SetStrafe(
@@ -571,10 +570,9 @@ end
 
 --- Manage the movement; do not use CMoveData, use the bot's movement functions and fields instead.
 function BotLocomotor:UpdateMovement()
-    local dbg_um = true
     self:SetJumping(false)
     self:SetCrouching(false)
-    self:SetStrafe(nil)
+    -- self:SetStrafe(nil)
     self:SetUsing(false)
     self:OverrideMoveNormal(nil)
     self:StopPriorityMovement()
