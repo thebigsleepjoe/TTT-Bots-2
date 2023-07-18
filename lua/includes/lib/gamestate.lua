@@ -10,10 +10,12 @@ Match.PlayersInRound = Match.PlayersInRound or {}
 Match.ConfirmedDead = Match.ConfirmedDead or {}
 Match.DamageLogs = Match.DamageLogs or {}
 Match.AlivePlayers = {}
+Match.SecondsPassed = 0 --- Time since match began. This is important for traitor bots.
 
 function Match.Tick()
     if not Match.RoundActive then return end
     Match.CleanupNullCorpses()
+    Match.SecondsPassed = (Match.SecondsPassed or 0) + (1 / TTTBots.Tickrate)
 end
 
 function Match.CleanupNullCorpses()
@@ -32,6 +34,7 @@ function Match.ResetStats(roundActive)
     Match.PlayersInRound = {}
     Match.DamageLogs = {}
     Match.AlivePlayers = {}
+    Match.SecondsPassed = 0
 
     -- Just gonna put this here since it's related to resetting stats.
     for i, v in pairs(player.GetBots()) do
