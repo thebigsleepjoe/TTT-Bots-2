@@ -14,9 +14,19 @@ include("includes/components/chatter.lua")
 
 local format = string.format
 
--- Check if not :IsSpec and :Alive, pretty much makes code look neater
+local alivePlayers = {}
+
+local function updateAlivePlayers()
+    alivePlayers = {}
+    for i, ply in pairs(player.GetAll()) do
+        alivePlayers[ply] = (IsValid(ply) and not (ply:IsSpec()) and ply:Alive() and ply:Health() > 0)
+    end
+end
+timer.Create("TTTBots.Lib.AlivePlayersInterval", 1, 0, updateAlivePlayers)
+
+-- Check if not :IsSpec and :Alive
 function TTTBots.Lib.IsPlayerAlive(ply)
-    return IsValid(ply) and not (ply:IsSpec()) and ply:Alive() and ply:Health() > 0
+    return alivePlayers[ply]
 end
 
 function TTTBots.Lib.GetAlivePlayers()
