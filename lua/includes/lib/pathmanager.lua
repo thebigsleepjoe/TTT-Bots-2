@@ -233,7 +233,8 @@ local function heuristic_cost_estimate(current, goal, playerFilter)
         h = h + 50
     end
 
-    local nPlayers = #current:GetPlayersInArea(playerFilter)
+    -- DISABLED for optimization
+    local nPlayers = 0 -- #current:GetPlayersInArea(playerFilter)
     h = h + (nPlayers * perPlayerPenalty)
 
     -- Never go into lava, or what we consider a "lava" area
@@ -279,7 +280,7 @@ function TTTBots.PathManager.Astar2(start, goal, playerFilter)
     local totalNeighbors = navmesh.GetNavAreaCount()
     -- Coroutine
     local cpf = TTTBots.Lib.GetConVarInt("pathfinding_cpf") *
-        (TTTBots.Lib.GetConVarBool("pathfinding_cpf_scaling") and #player.GetBots() or 1)
+        (TTTBots.Lib.GetConVarBool("pathfinding_cpf_scaling") and (math.max(#player.GetBots(), 5) * 0.2) or 1)
     local cn = 0
 
     if start == goal then return false end

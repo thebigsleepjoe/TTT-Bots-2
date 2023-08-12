@@ -76,6 +76,7 @@ function Attack:Engage(bot, targetPos)
     local inv = bot.components.inventorymgr
     ---@type WeaponInfo
     local weapon = inv:GetHeldWeaponInfo()
+    if not weapon then return end
     local usingMelee = not weapon.is_gun
     ---@class CLocomotor
     local loco = bot.components.locomotor

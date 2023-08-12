@@ -1163,6 +1163,8 @@ function BotLocomotor:StartCommand(cmd)
         self.reload = false
     end
 
+    cmd:SetButtons(cmd:GetButtons() + IN_RUN)
+
     self.moveNormal = cmd:GetViewAngles():Forward()
 end
 
