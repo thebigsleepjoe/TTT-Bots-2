@@ -31,6 +31,7 @@ local function initializeMod()
     include("includes/lib/miscnetwork.lua")
     include("includes/lib/popularnavs.lua")
     include("includes/lib/gamestate.lua")
+    include("includes/lib/evilcoordinator.lua")
 
     -- Initialize command libraries
     include("includes/commands/chatcommands.lua")
@@ -67,6 +68,7 @@ local function initializeMod()
             -- _testBotAttack()
             TTTBots.Match.Tick()
             TTTBots.Behaviors.Tree()
+            TTTBots.EvilCoordinator.Tick()
             for i, bot in pairs(player.GetBots()) do
                 -- TTTBots.DebugServer.RenderDebugFor(bot, { "all" })
 
