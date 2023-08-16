@@ -49,6 +49,15 @@ function TTTBots.Lib.GetAliveBots()
     return alive
 end
 
+function TTTBots.Lib.GetAliveEvilBots()
+    local alive = {}
+    for _, ply in ipairs(player.GetBots()) do
+        if TTTBots.Lib.IsPlayerAlive(ply) and TTTBots.Lib.IsEvil(ply) then
+            table.insert(alive, ply)
+        end
+    end
+end
+
 -- Generate lowercase alphanumeric string of length 6
 function TTTBots.Lib.GenerateID()
     local id = ""
@@ -103,6 +112,18 @@ function TTTBots.Lib.CanShoot(ply1, ply2)
     if traceCenter.Entity == ply2 then return true end
 
     return false
+end
+
+local cached_navs_by_size = {}
+function TTTBots.Lib.GetNavsOfGreaterArea(area)
+    area = math.floor(area)
+    if cached_navs_by_size[area] then return cached_navs_by_size[area] end
+    local navs = navmesh.GetAllNavAreas()
+    local filtered = TTTBots.Lib.FilterTable(navs, function(nav)
+        return nav:GetSizeX() * nav:GetSizeY() >= area
+    end)
+    cached_navs_by_size[area] = filtered
+    return filtered
 end
 
 function TTTBots.Lib.CallEveryNTicks(bot, callback, N)
