@@ -56,6 +56,7 @@ function TTTBots.Lib.GetAliveEvilBots()
             table.insert(alive, ply)
         end
     end
+    return alive
 end
 
 -- Generate lowercase alphanumeric string of length 6

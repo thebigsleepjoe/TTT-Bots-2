@@ -21,17 +21,17 @@ TTTBots.EvilCoordinator = {
     ---@field public Started boolean Whether the round has started or not
     ---@field public MeetingPos Vector Where the evil bots are gathering
     ---@field public RoundStartTime number The CurTime the round started at
+    ---@field public TimeThreshold number The time before we stop doing the GATHER action.
     RoundInfo = {
         --- Reset RoundInfo stats to default values
         ---@see RoundInfo
         Reset = function(self, started)
-            self.Tick = 0
             self.ActionGoal = ACT.GATHER
             self.BotActions = {}
             self.Started = started or false
             self.MeetingPos = nil
             self.RoundStartTime = CurTime()
-            self.TimeThreshold = math.random(20, 50) -- The time before we stop doing the GATHER action.
+            self.TimeThreshold = math.random(20, 40)
         end,
         TimeSinceStart = function(self)
             return CurTime() - self.RoundStartTime
@@ -51,29 +51,35 @@ function EvilCoordinator.Init()
     RoundInfo:Reset()
 end
 
-function EvilCoordinator.OnRoundStart()
-    RoundInfo:Reset(true)
-    local meetingArea = table.Random(lib.GetNavsOfGreaterArea(1000) or navmesh.GetAllNavAreas() or {})
-    if IsValid(meetingArea) then
-        RoundInfo.MeetingPos = meetingArea:GetCenter()
-    end
-end
-
 --- Wrapper to set RoundInfo.ActionGoal and maybe call something else in the future
+---@param action ACT
+---@return ACT Action The same as param action.
 function EvilCoordinator.SetAllAction(action)
     RoundInfo.ActionGoal = action
+    return action
 end
 
 function EvilCoordinator.CommandBots()
     if RoundInfo.ActionGoal == ACT.ATTACKALL then return end -- We have already decided to attack all players. No need to do anything fancy
     local evilBots = lib.GetAliveEvilBots()
     local numEvil = #evilBots
-    if #numEvil == 1 then -- No need to coordinate a single bot.
-        RoundInfo.ActionGoal = ACT.ATTACKALL
-        return
+    if numEvil == 1 then -- No need to coordinate a single bot.
+        return EvilCoordinator.SetAllAction(ACT.ATTACKALL)
     end
 
-    -- TODO: Logic for gathering, attacking, etc.
+    if RoundInfo:TimeSinceStart() > RoundInfo.TimeThreshold then
+        return EvilCoordinator.SetAllAction(ACT.ATTACKALL)
+    else
+        return EvilCoordinator.SetAllAction(ACT.GATHER)
+    end
+end
+
+function EvilCoordinator.OnRoundStart()
+    RoundInfo:Reset(true)
+    local meetingArea = table.Random(lib.GetNavsOfGreaterArea(1000) or navmesh.GetAllNavAreas() or {})
+    if IsValid(meetingArea) then
+        RoundInfo.MeetingPos = meetingArea:GetCenter()
+    end
 end
 
 hook.Add("TTTBeginRound", "TTTBots.EvilCoordinator.OnRoundStart", EvilCoordinator.OnRoundStart)
@@ -85,8 +91,11 @@ end
 hook.Add("TTTEndRound", "TTTBots.EvilCoordinator.OnRoundEnd", EvilCoordinator.OnRoundEnd)
 
 function EvilCoordinator.Tick()
-    if RoundInfo.Tick == 0 then EvilCoordinator.Init() end
-    if not RoundInfo.Started then return end
-    print("EvilCoordinator.Tick")
+    RoundInfo.Tick = (RoundInfo.Tick or 0) + 1
+    if RoundInfo.Tick == 1 then EvilCoordinator.Init() end
+    if not RoundInfo.Started then
+        return
+    end
     EvilCoordinator.CommandBots()
+    print("EvilCoordinator.Tick; Current action is " .. tostring(RoundInfo.ActionGoal))
 end
