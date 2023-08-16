@@ -29,7 +29,9 @@ TTTBots.Traits = {
         description = "Using C4 or a jihad bomb (if modded), [HE] enjoys blowing things up",
         conflicts = {},
         traitor_only = true,
-        effects = {}
+        effects = {
+            ignoreOrders = true, -- Ignore evil coordinator orders
+        }
     },
     --- Sus actions give self +50% suspicion
     suspicious = {
@@ -73,6 +75,7 @@ TTTBots.Traits = {
             hearing = 0.75,
             suspicion = 0.75,
             investigateNoise = 0.5, -- rarely seek out noise
+            ignoreOrders = true,    -- Ignore evil coordinator orders
         }
     },
     --- Significantly brain damaged. Not good at hearing, memory, or target acquisition.
@@ -85,6 +88,7 @@ TTTBots.Traits = {
             hearing = 0.5,
             suspicion = 0.5,
             investigateNoise = 0.2, -- very rarely seek out noise
+            ignoreOrders = true,    -- Ignore evil coordinator orders
         }
     },
     -- Good hearing, memory, and target acquisition than the average player.
@@ -119,6 +123,7 @@ TTTBots.Traits = {
             hearing = 1.15,
             suspicion = 1.25,
             aggression = 0.8,
+            ignoreOrders = true, -- Ignore evil coordinator orders
         }
     },
     --- Tends to wander into popular nav areas, but can still wander elsewhere
@@ -183,7 +188,9 @@ TTTBots.Traits = {
         description = "Adept with a sniper rifle",
         conflicts = { "meleer" },
         traitor_only = false,
-        effects = {}
+        effects = {
+            ignoreOrders = true
+        }
     },
     --- Pulls out crowbar and kills people the old fashioned way. Modifies attack behavior
     meleer = {
@@ -201,7 +208,9 @@ TTTBots.Traits = {
         description = "Prefers to use knives when traitor.",
         conflicts = {},
         traitor_only = false,
-        effects = {}
+        effects = {
+            ignoreOrders = true
+        }
     },
     --- Uses the flare gun to burn corpses he leaves
     bodyburner = {
@@ -221,7 +230,7 @@ TTTBots.Traits = {
             hearing = 1.1,
         }
     },
-    --- Instead of wandering randomly, hunkers in a random hidden spot
+    --- Instead of wandering randomly, hunkers in a random hidden spot (ONLY WHEN NOT EVIL)
     camper = {
         name = "camper",
         description = "As an innocent, [HE] chooses an area to hunker down in",
@@ -254,6 +263,7 @@ TTTBots.Traits = {
         effects = {
             investigateNoise = 5, -- 5x more likely to investigate noises
             aggression = 1.5,
+            ignoreOrders = true,  -- Ignore evil coordinator orders
         }
     },
     --- 1.5x suspicion gain, is more observant
@@ -289,6 +299,7 @@ TTTBots.Traits = {
             hearing = 0.3,
             suspicion = 0.5,
             aggression = 2,
+            ignoreOrders = true, -- Ignore evil coordinator orders
         }
     },
     --- Can use the disguiser

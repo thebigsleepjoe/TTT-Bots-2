@@ -158,6 +158,20 @@ function BotPersonality:HasPTraitIn(hashtable)
     return self.bot:HasPTraitIn(hashtable)
 end
 
+function BotPersonality:GetIgnoresOrders()
+    if self.bot.ignoreOrders ~= nil then return self.bot.ignoreOrders end
+    -- go through each trait and check if it has "ignoreOrders" in its effects set to true
+    local traits = self:GetTraitData()
+    for _, trait in ipairs(traits) do
+        if trait.effects and trait.effects.ignoreOrders then
+            self.bot.ignoreOrders = true
+            return true
+        end
+    end
+    self.bot.ignoreOrders = false
+    return false
+end
+
 ---Wrapper for bot:AverageTraitMultFor(attribute)
 ---@param attribute string
 ---@return number

@@ -324,13 +324,36 @@ function TTTBots.Lib.DistanceXY(pos1, pos2)
     return math.sqrt((pos1.x - pos2.x) ^ 2 + (pos1.y - pos2.y) ^ 2)
 end
 
+local isEvilCache = {}
+local EVIL_CACHE_DURATION = 5 -- Duration in seconds for how long to cache results.
+
 --- Uses built-in ply:HasEvilTeam but is nil-safe. Basically if they're a traitor.
 ---@param ply Player
 ---@return boolean
 function TTTBots.Lib.IsEvil(ply)
+    -- Cleanup expired cache entries.
+    local currentTime = CurTime()
+    for k, v in pairs(isEvilCache) do
+        if currentTime - v.time > EVIL_CACHE_DURATION then
+            isEvilCache[k] = nil
+        end
+    end
+
+    -- Check for cached value.
+    if isEvilCache[ply] and currentTime - isEvilCache[ply].time <= EVIL_CACHE_DURATION then
+        return isEvilCache[ply].value
+    end
+
+    -- Compute the evil status if not in cache or expired.
     if not ply then return nil end
-    if not ply:IsPlayer() then return false end
-    return ply:HasEvilTeam()
+    if not ply:IsPlayer() then
+        isEvilCache[ply] = { value = false, time = currentTime }
+        return false
+    end
+
+    local isEvil = ply:HasEvilTeam()
+    isEvilCache[ply] = { value = isEvil, time = currentTime }
+    return isEvil
 end
 
 --- Uses built-in ply:GetDetective but is nil-safe. Basically if they're a detective.
