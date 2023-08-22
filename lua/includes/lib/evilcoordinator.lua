@@ -55,6 +55,7 @@ end
 ---@param action ACT
 ---@return ACT Action The same as param action.
 function EvilCoordinator.SetAllAction(action)
+    if RoundInfo.ACtionGoal == action then return action end
     local isDebug = lib.GetConVarBool("debug_evil")
     if isDebug then
         print(string.format("Evil Coordinator: Commanding bots to do %s", action or "<UNDEFINED>"))
@@ -112,5 +113,4 @@ function EvilCoordinator.Tick()
         return
     end
     EvilCoordinator.CommandBots()
-    print("EvilCoordinator.Tick; Current action is " .. tostring(RoundInfo.ActionGoal))
 end
