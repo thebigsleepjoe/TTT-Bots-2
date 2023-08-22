@@ -31,7 +31,7 @@ TTTBots.EvilCoordinator = {
             self.Started = started or false
             self.MeetingPos = nil
             self.RoundStartTime = CurTime()
-            self.TimeThreshold = math.random(20, 40)
+            self.TimeThreshold = math.random(25, 60)
         end,
         TimeSinceStart = function(self)
             return CurTime() - self.RoundStartTime
@@ -55,7 +55,7 @@ end
 ---@param action ACT
 ---@return ACT Action The same as param action.
 function EvilCoordinator.SetAllAction(action)
-    if RoundInfo.ACtionGoal == action then return action end
+    if RoundInfo.ActionGoal == action then return action end
     local isDebug = lib.GetConVarBool("debug_evil")
     if isDebug then
         print(string.format("Evil Coordinator: Commanding bots to do %s", action or "<UNDEFINED>"))

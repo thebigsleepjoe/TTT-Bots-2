@@ -62,6 +62,7 @@ function DoEvil:AttackAll(bot)
     local target = table.Random(knownTargets)
     if not lib.IsPlayerAlive(target) then return STATUS.FAILURE end
     bot.attackTarget = target
+    bot:Say("Attacking target thanks to evil coordinator")
     return STATUS.RUNNING
 end
 

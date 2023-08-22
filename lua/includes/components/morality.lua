@@ -45,9 +45,9 @@ BotMorality.SUSPICIONVALUES = {
     FollowingMe = 3, -- This player has been following me for more than 10 seconds
 
     -- Shooting at a player
-    ShotAtMe = 9,      -- This player has been shooting at me
-    ShotAt = 2,        -- This player has been shooting at someone
-    ShotAtTrusted = 9, -- This player has been shooting at a Trusted
+    ShotAtMe = 7,      -- This player has been shooting at me
+    ShotAt = 5,        -- This player has been shooting at someone
+    ShotAtTrusted = 6, -- This player has been shooting at a Trusted
 
     -- Throwing a grenade
     ThrowDiscombob = 2, -- This player has thrown a discombobulator
@@ -123,13 +123,14 @@ function BotMorality:ChangeSuspicion(target, reason, mult)
     if lib.IsEvil(self.bot) or lib.IsPolice(target) then return end
 
     local susValue = self.SUSPICIONVALUES[reason] or ErrorNoHalt("Invalid suspicion reason: " .. reason)
-    local sus = (self:GetSuspicion(target)) + (susValue * mult)
+    local increase = math.ceil(susValue * mult)
+    local sus = (self:GetSuspicion(target)) + (increase)
     self.suspicions[target] = math.floor(sus)
 
     self:AnnounceIfThreshold(target)
     self:SetAttackIfTargetEvil(target)
 
-    print(string.format("%s's suspicion on %s has changed by %d", self.bot:Nick(), target:Nick(), susValue * mult))
+    print(string.format("%s's suspicion on %s has changed by %d", self.bot:Nick(), target:Nick(), increase))
 end
 
 function BotMorality:GetSuspicion(target)
