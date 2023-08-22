@@ -4,12 +4,12 @@
 
 ---@enum ACT
 local ACT = {
-    GATHER = 1,    --- Gather the bots at a location
-    ATTACK = 2,    --- Attack a certain target
-    DEFEND = 3,    --- Defend a location
-    ROAM = 4,      --- Roam around the map
-    IGNORE = 5,    --- Ignore our instructions (used for bots w certain personality types)
-    ATTACKALL = 6, --- Attack all players you can see
+    GATHER = "GATHER",       --- Gather the bots at a location
+    ATTACK = "ATTACK",       --- Attack a certain target
+    DEFEND = "DEFEND",       --- Defend a location
+    ROAM = "ROAM",           --- Roam around the map
+    IGNORE = "IGNORE",       --- Ignore our instructions (used for bots w certain personality types)
+    ATTACKALL = "ATTACKALL", --- Attack all players you can see
 }
 
 ---@class EvilCoordinator
@@ -57,6 +57,17 @@ end
 function EvilCoordinator.SetAllAction(action)
     RoundInfo.ActionGoal = action
     return action
+end
+
+--- Get the orders for a bot, as assigned per the coordinator.
+--- TODO: Implement this properly later.
+function EvilCoordinator.GetOrders(bot)
+    return RoundInfo.ActionGoal
+end
+
+--- Equivalent to EvilCoordinator.RoundInfo.MeetingPos
+function EvilCoordinator.GetGatherPos()
+    return RoundInfo.MeetingPos
 end
 
 function EvilCoordinator.CommandBots()
