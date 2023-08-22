@@ -314,13 +314,25 @@ function Memory:GetRecentlySeenPlayers(withinSecs)
 end
 
 --- Gets a list of positions of players that we have seen recently.
----@return table<Vector> positions ["playername"]=Vector
+---@return table<Vector> positions [Player]=Vector
 function Memory:GetKnownPlayersPos()
     local positions = {}
     for i, ply in pairs(player.GetAll()) do
         local pnp = self.playerKnownPositions[ply:Nick()]
         if not pnp then continue end
-        positions[ply:Nick()] = pnp.pos
+        positions[ply] = pnp.pos
+    end
+    return positions
+end
+
+--- Basically same as GetKnownPlayersPos, but filters for 'not lib.IsEvil(player)'
+function Memory:GetKnownInnocentsPos()
+    local positions = {}
+    for i, ply in pairs(player.GetAll()) do
+        if lib.IsEvil(ply) then continue end
+        local pnp = self.playerKnownPositions[ply:Nick()]
+        if not pnp then continue end
+        positions[ply] = pnp.pos
     end
     return positions
 end

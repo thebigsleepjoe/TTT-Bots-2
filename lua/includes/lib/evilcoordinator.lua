@@ -55,6 +55,10 @@ end
 ---@param action ACT
 ---@return ACT Action The same as param action.
 function EvilCoordinator.SetAllAction(action)
+    local isDebug = lib.GetConVarBool("debug_evil")
+    if isDebug then
+        print(string.format("Evil Coordinator: Commanding bots to do %s", action or "<UNDEFINED>"))
+    end
     RoundInfo.ActionGoal = action
     return action
 end

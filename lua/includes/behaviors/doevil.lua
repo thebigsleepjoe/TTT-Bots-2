@@ -24,7 +24,8 @@ local EvilCoordinator = TTTBots.EvilCoordinator
 function DoEvil:Validate(bot)
     ---@type CPersonality
     local personality = bot.components.personality
-    return personality:GetIgnoresOrders() and lib.IsPlayerAlive(bot) and lib.IsEvil(bot)
+    local isDisabled = lib.GetConVarBool("disable_coordinator")
+    return not isDisabled and personality:GetIgnoresOrders() and lib.IsPlayerAlive(bot) and lib.IsEvil(bot)
 end
 
 --- Called when the behavior is started
@@ -43,6 +44,18 @@ function DoEvil:Gather(bot)
     local locomotor = bot.components.locomotor
     locomotor:SetGoal(gatherPos)
 
+    return STATUS.RUNNING
+end
+
+--- Order "ATTACKALL" to attack all nearby non-evil players.
+function DoEvil:AttackAll(bot)
+    -- local innocentsVisible = lib.GetAllVisible(bot:EyePos(), true)
+    local memory = bot.component.memory
+    local knownTargets = memory:GetKnownInnocentsPos()
+    if #knownTargets == 0 then return STATUS.FAILURE end -- For technical reasons, we must return FAILURE. Otherwise, the bot will be stuck in this state forever.
+    local target = table.Random(knownTargets)
+    if not lib.IsPlayerAlive(target) then return STATUS.FAILURE end
+    bot.attackTarget = target
     return STATUS.RUNNING
 end
 

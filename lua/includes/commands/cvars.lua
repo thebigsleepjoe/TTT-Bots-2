@@ -32,13 +32,19 @@ CreateConVar("ttt_bot_debug_doors", "1", FCVAR,
     "Enables debug for doors. Requires built-in developer convar to be 1 for drawings.")
 CreateConVar("ttt_bot_debug_attack", "1", FCVAR,
     "Enables debug for attacking. Requires built-in developer convar to be 1 for drawings.")
+CreateConVar("ttt_bot_debug_evil", "1", FCVAR,
+    "Enables debug for the Evil Coordinator.")
 
 -- Pathfinding cvars
 CreateConVar("ttt_bot_pathfinding_cpf", "50", FCVAR,
-    "How many pathfinding calculations to do per frame. Higher values = more CPU usage, but faster pathfinding.")
+    "Don't change this unless you know what you are doing. How many pathfinding calculations to do per frame. Higher values = more CPU usage, but faster pathfinding.")
 CreateConVar("ttt_bot_pathfinding_cpf_scaling", "1", FCVAR,
-    "Should we dynamically multiply the pathfinding calculations per frame by the number of bots? (e.g. 50 cpf * 2 bots = 100 cpf)")
+    "Don't change this unless you know what you are doing. Should we dynamically multiply the pathfinding calculations per frame by the number of bots? (e.g. 50 cpf * 2 bots = 100 cpf)")
+CreateConVar("ttt_bot_enable_rdm", "0", FCVAR, -- TODO: Implement RDM
+    "Enables RDM (random deathmatch). This isn't advised for most situations, but can offer some extra variety should you want it.")
 
 -- Behavior cvars
 CreateConVar("ttt_bot_radar_chance", "100", FCVAR,
     "Chance that a traitor bot will simulate having radar as a traitor (internally they must be an 'evil' role).")
+CreateConVar("ttt_bot_disable_coordinator", "0", FCVAR,
+    "Disables the Evil Coordinator module. Evil bots will not coordinate with each other.")
