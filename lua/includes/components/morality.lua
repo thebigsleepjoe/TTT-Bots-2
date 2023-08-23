@@ -260,6 +260,36 @@ function BotMorality:OnWitnessHurtTraitor(victim, attacker, healthRemaining, dam
     end
 end
 
+function BotMorality:OnWitnessKill(victim, attacker)
+    -- For this function, we will allow the bots to technically cheat and know what role the victim was. They will not know what role the attacker is.
+    -- This allows us to save time and resources in optimization and let players have a more fun experience, despite technically being a cheat.
+    if not lib.IsPlayerAlive(self.bot) then return end
+    local vicIsEvil = lib.IsEvil(victim)
+
+    -- change suspicion on the attacker by KillTraitor, KillTrusted, or Kill. Depending on role.
+    if vicIsEvil then
+        self:ChangeSuspicion(attacker, "KillTraitor")
+    elseif lib.IsPolice(victim) then
+        self:ChangeSuspicion(attacker, "KillTrusted")
+    else
+        self:ChangeSuspicion(attacker, "Kill")
+    end
+end
+
+hook.Add("PlayerDeath", "TTTBots.Components.Morality.PlayerDeath", function(victim, weapon, attacker)
+    if not (IsValid(victim) and victim:IsPlayer()) then return end
+    if not (IsValid(attacker) and attacker:IsPlayer()) then return end
+    if not victim:Visible(attacker) then return end -- This must be an indirect attack, like C4 or fire.
+    local witnesses = lib.GetAllWitnesses(attacker:EyePos(), true)
+    table.insert(witnesses, victim)
+
+    for i, witness in pairs(witnesses) do
+        if witness and witness.components then
+            witness.components.morality:OnWitnessKill(victim, attacker)
+        end
+    end
+end)
+
 --- When we witness someone getting hurt.
 function BotMorality:OnWitnessHurt(victim, attacker, healthRemaining, damageTaken)
     if lib.IsEvil(self.bot) then
