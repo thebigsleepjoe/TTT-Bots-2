@@ -1,5 +1,7 @@
+---@class Match
 TTTBots.Match = {}
 
+---@class Match
 local Match = TTTBots.Match
 
 Match.RoundActive = Match.RoundActive or false

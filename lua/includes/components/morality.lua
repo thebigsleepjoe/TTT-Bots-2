@@ -390,3 +390,36 @@ hook.Add("TTTBodyFound", "TTTBots.Components.Morality.BodyFound", function(ply, 
         end
     end
 end)
+
+function BotMorality.IsPlayerNearUnfoundCorpse(ply, corpses)
+    local IsIdentified = CORPSE.GetFound
+    for _, corpse in pairs(corpses) do
+        if not IsValid(corpse) then continue end
+        if IsIdentified(corpse) then continue end
+        local dist = ply:GetPos():Distance(corpse:GetPos())
+        local THRESHOLD = 500
+        if ply:Visible(corpse) and (dist < THRESHOLD) then
+            return true
+        end
+    end
+    return false
+end
+
+--- Table of [Player]=number showing seconds near unidentified corpses
+--- Does not stack. If a player is near 2 corpses, it will only count as 1. This is to prevent innocents discovering massacres and being killed for it.
+local playersNearBodies = {}
+timer.Create("TTTBots.Components.Morality.PlayerCorpseTimer", 1, 0, function()
+    if TTTBots.Match.RoundActive == false then return end
+    local alivePlayers = TTTBots.Match.AlivePlayers
+    local corpses = TTTBots.Match.Corpses
+
+    for i, ply in pairs(alivePlayers) do
+        if not IsValid(ply) then continue end
+        local isNearCorpse = BotMorality.IsPlayerNearUnfoundCorpse(ply, corpses)
+        if isNearCorpse then
+            playersNearBodies[ply] = (playersNearBodies[ply] or 0) + 1
+        else
+            playersNearBodies[ply] = math.max((playersNearBodies[ply] or 0) - 1, 0)
+        end
+    end
+end)
