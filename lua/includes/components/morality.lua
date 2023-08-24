@@ -32,10 +32,10 @@ BotMorality.SUSPICIONVALUES = {
     TraitorWeapon = 5, -- This player has a traitor weapon
 
     -- Corpse-related events
-    NearUnidentified = 2,   -- This player is near an unidentified body and hasn't identified it in more than 5 seconds
-    IdentifiedTraitor = -2, -- This player has identified a traitor's corpse
-    IdentifiedInnocent = 1, -- This player has identified an innocent's corpse
-    IdentifiedTrusted = 1,  -- This player has identified a Trusted's corpse
+    NearUnidentified = 2,    -- This player is near an unidentified body and hasn't identified it in more than 5 seconds
+    IdentifiedTraitor = -3,  -- This player has identified a traitor's corpse
+    IdentifiedInnocent = -2, -- This player has identified an innocent's corpse
+    IdentifiedTrusted = -2,  -- This player has identified a Trusted's corpse
 
     -- Interacting with C4
     DefuseC4 = -7, -- This player is defusing C4
@@ -356,8 +356,6 @@ hook.Add("EntityFireBullets", "TTTBots.Components.Morality.FireBullets", functio
     end
 end)
 
-
-
 hook.Add("PlayerHurt", "TTTBots.Components.Morality.PlayerHurt", function(victim, attacker, healthRemaining, damageTaken)
     if not (IsValid(victim) and victim:IsPlayer()) then return end
     if not (IsValid(attacker) and attacker:IsPlayer()) then return end
@@ -369,6 +367,26 @@ hook.Add("PlayerHurt", "TTTBots.Components.Morality.PlayerHurt", function(victim
     for i, witness in pairs(witnesses) do
         if witness and witness.components then
             witness.components.morality:OnWitnessHurt(victim, attacker, healthRemaining, damageTaken)
+        end
+    end
+end)
+
+hook.Add("TTTBodyFound", "TTTBots.Components.Morality.BodyFound", function(ply, deadply, rag)
+    if not (IsValid(ply) and ply:IsPlayer()) then return end
+    if not (IsValid(deadply) and deadply:IsPlayer()) then return end
+    local deadplyIsEvil = lib.IsEvil(deadply)
+    local deadplyIsPolice = lib.IsPolice(deadply)
+
+    for i, bot in pairs(lib.GetAliveBots()) do
+        local morality = bot.components and bot.components.morality
+        local isBotEvil = lib.IsEvil(bot)
+        if isBotEvil or not morality then continue end
+        if deadplyIsEvil then
+            morality:ChangeSuspicion(ply, "IdentifiedTraitor")
+        elseif deadplyIsPolice then
+            morality:ChangeSuspicion(ply, "IdentifiedTrusted")
+        else
+            morality:ChangeSuspicion(ply, "IdentifiedInnocent")
         end
     end
 end)
