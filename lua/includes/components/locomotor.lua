@@ -160,15 +160,11 @@ function BotLocomotor:ValidatePath()
     error("Deprecated function. Use HasPath instead.")
 end
 
-function BotLocomotor:UpdateEyeAnglesFinal()
-    if self.lookPosOverride then
-        self.lookPos = self:GetLookPosOverride()
-    else
-        if self.lookPosGoal then
-            self.lookPos = self:GetLookPosGoal()
-        end
-    end
-
+--- Legacy functionn to lerp eyeangles. This is not used anymore because it doesn't look realistic enough.
+--- It's still here just in case.
+---@see BotLocomotor.UpdateEyeAnglesFinal
+---@deprecated
+function BotLocomotor:LerpEyeAnglesFinal()
     local targetAngles = (self.lookPos - self.bot:EyePos()):Angle()
     local currentAngles = self.bot:EyeAngles()
     local rotationSpeed = 4 * (self.lookPosOverride and 1.75 or 1) -- Modify this value to change rotation speed
@@ -184,6 +180,42 @@ function BotLocomotor:UpdateEyeAnglesFinal()
     local newPitch = Lerp(pitchFraction, currentAngles.p, currentAngles.p + pitchDiff)
 
     self.bot:SetEyeAngles(Angle(newPitch, newYaw, 0))
+end
+
+function BotLocomotor:RotateEyeAnglesTo(targetPos)
+    local delta = FrameTime()
+    local RPS = 360                   -- Rotation speed per second (degrees)
+    local rotationSpeed = RPS * delta -- How fast we can rotate this frame.
+
+    local currentAngles = self.bot:EyeAngles()
+    local targetAngles = (targetPos - self.bot:EyePos()):Angle()
+
+    local yawDiff = math.AngleDifference(targetAngles.y, currentAngles.y)
+    local pitchDiff = math.AngleDifference(targetAngles.p, currentAngles.p)
+
+    -- Limit the yaw/pitch difference based on the rotationSpeed.
+    local newYawDiff = math.Clamp(yawDiff, -rotationSpeed, rotationSpeed)
+    local newPitchDiff = math.Clamp(pitchDiff, -rotationSpeed, rotationSpeed)
+
+    local newYaw = currentAngles.y + newYawDiff
+    local newPitch = currentAngles.p + newPitchDiff
+
+    self.bot:SetEyeAngles(Angle(newPitch, newYaw, 0))
+end
+
+--- This is the function responsible for actually changing the eye angles of the bot on the server's side.
+--- It uses lookPosOverride/lookPosGoal to determine where to look.
+function BotLocomotor:UpdateEyeAnglesFinal()
+    if self.lookPosOverride then
+        self.lookPos = self:GetLookPosOverride()
+    else
+        if self.lookPosGoal then
+            self.lookPos = self:GetLookPosGoal()
+        end
+    end
+
+    -- self:LerpEyeAnglesFinal()
+    self:RotateEyeAnglesTo(self.lookPos)
 end
 
 --- Aims at a given pos for "time" seconds (optional). If no time, then one-time set.
@@ -1153,8 +1185,8 @@ function BotLocomotor:StartCommand(cmd)
         cmd:SetButtons(cmd:GetButtons() + IN_USE)
     end
 
-    if (self.attack and not self.attackReleaseTime) or
-        (self.attack and self.attackReleaseTime and self.attackReleaseTime > CurTime()) then
+    if (self.attack and not self.attackReleaseTime) or                                       -- if we are attacking and we don't have an attack release time
+        (self.attack and self.attackReleaseTime and self.attackReleaseTime > CurTime()) then -- or if we are attacking and we have an attack release time and it's not yet time to release:
         cmd:SetButtons(cmd:GetButtons() + IN_ATTACK)
     end
 
