@@ -182,20 +182,34 @@ function BotLocomotor:LerpEyeAnglesFinal()
     self.bot:SetEyeAngles(Angle(newPitch, newYaw, 0))
 end
 
+function QuadraticEase(t)
+    return t * t
+end
+
 function BotLocomotor:RotateEyeAnglesTo(targetPos)
+    -- Settings for easier tweaking
+    local RPS = 360                -- Max rotation speed per second (degrees)
+    local EASE_DIVISOR = 90        -- This influences the easing curve's scaling (lower means more rapid changes in the middle of the curve)
+    local MIN_ROTATION_SPEED = 0.4 -- Minimum factor for the easing, ensures movement even when differences are small
+
+    -- Calculate dependent variables
     local delta = FrameTime()
-    local RPS = 360                   -- Rotation speed per second (degrees)
-    local rotationSpeed = RPS * delta -- How fast we can rotate this frame.
+    local rotationSpeed = RPS * delta
 
     local currentAngles = self.bot:EyeAngles()
     local targetAngles = (targetPos - self.bot:EyePos()):Angle()
-
     local yawDiff = math.AngleDifference(targetAngles.y, currentAngles.y)
     local pitchDiff = math.AngleDifference(targetAngles.p, currentAngles.p)
 
-    -- Limit the yaw/pitch difference based on the rotationSpeed.
-    local newYawDiff = math.Clamp(yawDiff, -rotationSpeed, rotationSpeed)
-    local newPitchDiff = math.Clamp(pitchDiff, -rotationSpeed, rotationSpeed)
+    -- Easing function modulation
+    local modulatedYawSpeed = rotationSpeed *
+    QuadraticEase(math.Clamp(math.abs(yawDiff) / EASE_DIVISOR, MIN_ROTATION_SPEED, 1))
+    local modulatedPitchSpeed = rotationSpeed *
+    QuadraticEase(math.Clamp(math.abs(pitchDiff) / EASE_DIVISOR, MIN_ROTATION_SPEED, 1))
+
+    -- Limit yaw/pitch based on the modulated rotationSpeed
+    local newYawDiff = math.Clamp(yawDiff, -modulatedYawSpeed, modulatedYawSpeed)
+    local newPitchDiff = math.Clamp(pitchDiff, -modulatedPitchSpeed, modulatedPitchSpeed)
 
     local newYaw = currentAngles.y + newYawDiff
     local newPitch = currentAngles.p + newPitchDiff
