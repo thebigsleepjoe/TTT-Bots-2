@@ -182,39 +182,43 @@ function BotLocomotor:LerpEyeAnglesFinal()
     self.bot:SetEyeAngles(Angle(newPitch, newYaw, 0))
 end
 
-function QuadraticEase(t)
-    return t * t
+--- Return the angle, in degrees, to the target from where we are currently looking.
+---@param pos Vector
+---@return number yawDiff, number pitchDiff
+function BotLocomotor:GetEyeAngleDiffTo(pos)
+    local currentAngles = self.bot:EyeAngles()
+    local targetAngles = (pos - self.bot:EyePos()):Angle()
+    local yawDiff = math.AngleDifference(targetAngles.y, currentAngles.y)
+    local pitchDiff = math.AngleDifference(targetAngles.p, currentAngles.p)
+    return yawDiff, pitchDiff
 end
 
 function BotLocomotor:RotateEyeAnglesTo(targetPos)
     -- Settings for easier tweaking
-    local RPS = 360                -- Max rotation speed per second (degrees)
-    local EASE_DIVISOR = 90        -- This influences the easing curve's scaling (lower means more rapid changes in the middle of the curve)
-    local MIN_ROTATION_SPEED = 0.4 -- Minimum factor for the easing, ensures movement even when differences are small
+    local RPS = 360                 -- Max rotation speed per second (degrees)
+    local MIN_ROTATION_SPEED = 0.15 -- Minimum factor for the easing, ensures movement even when differences are small
+    local MAX_ROTATION_SPEED = 1    -- Maximum factor for the easing, prevents snapping
 
     -- Calculate dependent variables
     local delta = FrameTime()
     local rotationSpeed = RPS * delta
 
     local currentAngles = self.bot:EyeAngles()
-    local targetAngles = (targetPos - self.bot:EyePos()):Angle()
-    local yawDiff = math.AngleDifference(targetAngles.y, currentAngles.y)
-    local pitchDiff = math.AngleDifference(targetAngles.p, currentAngles.p)
+    local yawDiffDeg, pitchDiffDeg = self:GetEyeAngleDiffTo(targetPos)
 
-    -- Easing function modulation
-    local modulatedYawSpeed = rotationSpeed *
-    QuadraticEase(math.Clamp(math.abs(yawDiff) / EASE_DIVISOR, MIN_ROTATION_SPEED, 1))
-    local modulatedPitchSpeed = rotationSpeed *
-    QuadraticEase(math.Clamp(math.abs(pitchDiff) / EASE_DIVISOR, MIN_ROTATION_SPEED, 1))
+    local avgDiffDeg = (math.abs(yawDiffDeg) + math.abs(pitchDiffDeg)) / 2
 
-    -- Limit yaw/pitch based on the modulated rotationSpeed
-    local newYawDiff = math.Clamp(yawDiff, -modulatedYawSpeed, modulatedYawSpeed)
-    local newPitchDiff = math.Clamp(pitchDiff, -modulatedPitchSpeed, modulatedPitchSpeed)
+    -- Normalize the difference to range [0, 1]
+    local factor = avgDiffDeg / 180 -- Since avgDiffDeg will be between 0 to 180 degrees
 
-    local newYaw = currentAngles.y + newYawDiff
-    local newPitch = currentAngles.p + newPitchDiff
+    -- Scale this by the min and max rotation speeds
+    local adjustedSpeed = MIN_ROTATION_SPEED + (MAX_ROTATION_SPEED - MIN_ROTATION_SPEED) * factor
 
-    self.bot:SetEyeAngles(Angle(newPitch, newYaw, 0))
+    -- Determine how much we should change our pitch and yaw this frame
+    local pitchChange = math.Clamp(pitchDiffDeg * adjustedSpeed, -rotationSpeed, rotationSpeed)
+    local yawChange = math.Clamp(yawDiffDeg * adjustedSpeed, -rotationSpeed, rotationSpeed)
+
+    self.bot:SetEyeAngles(Angle(currentAngles.p + pitchChange, currentAngles.y + yawChange, 0))
 end
 
 --- This is the function responsible for actually changing the eye angles of the bot on the server's side.

@@ -99,14 +99,17 @@ function Attack:Engage(bot, targetPos)
     end
 
     if not preventAttackBecauseMelee then
-        loco:StartAttack()
-        lib.CallEveryNTicks(
-            bot,
-            function()
-                loco:SetRandomStrafe()
-            end,
-            math.ceil(TTTBots.Tickrate * 1)
-        )
+        if (self:LookingCloseToTarget(bot, target)) then
+            loco:StartAttack()
+
+            lib.CallEveryNTicks(
+                bot,
+                function()
+                    loco:SetRandomStrafe()
+                end,
+                math.ceil(TTTBots.Tickrate * 1)
+            )
+        end
     else
         loco:StopAttack()
         loco:SetStrafe()
@@ -132,8 +135,8 @@ end
 function Attack:PredictMovement(target)
     local vel = target:GetVelocity()
     local predictionSecs = 1.0 / TTTBots.Tickrate
-    local predictionMultSalt = math.random(20, 100) / 100.0
-    local predictionMult = (1 + predictionMultSalt) -- Used due to linear interp being inaccurate.
+    local predictionMultSalt = math.random(80, 120) / 100.0
+    local predictionMult = (1 + predictionMultSalt) * 0.8
     local predictionRelative = (vel * predictionSecs * predictionMult)
 
     local dvlpr = lib.GetDebugFor("attack")
@@ -144,6 +147,18 @@ function Attack:PredictMovement(target)
     end
 
     return predictionRelative
+end
+
+function Attack:LookingCloseToTarget(bot, target)
+    local targetPos = target:GetPos()
+    ---@type CLocomotor
+    local locomotor = bot.components.locomotor
+    local degDiff = math.abs(locomotor:GetEyeAngleDiffTo(targetPos))
+
+    local THRESHOLD = 10
+    local isLookingClose = degDiff < THRESHOLD
+
+    return isLookingClose
 end
 
 --- Determine what mode of attack (attackMode) we are in.
