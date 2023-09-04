@@ -111,6 +111,15 @@ function ladderMeta:GetPortals() return {} end
 
 local navMeta = FindMetaTable("CNavArea")
 
+--- Calls self:GetCorner( number cornerId ) for each corner (0 - 3)
+function navMeta:GetCorners()
+    local corners = {}
+    for i = 0, 3 do
+        corners[i] = self:GetCorner(i)
+    end
+    return corners
+end
+
 function navMeta:GetPossibleStuckCost()
     local commonStucks = TTTBots.Components.Locomotor.commonStuckPositions
     for i, tbl in pairs(commonStucks) do
@@ -188,6 +197,20 @@ end
 
 --- Retrieve the connecting point between two navareas
 function navMeta:GetConnectingEdge(other)
+    if other:IsLadder() then
+        local myCenter = self:GetCenter()
+        local ladderBottom = other:GetBottom()
+        local ladderTop = other:GetTop()
+
+        local distBottom = myCenter:Distance(ladderBottom)
+        local distTop = myCenter:Distance(ladderTop)
+
+        if (distBottom < distTop) then
+            return ladderBottom
+        else
+            return ladderTop
+        end
+    end
     local edge = self:GetClosestPointOnArea(other:GetCenter())
     -- snap edge onto other's navarea
     local otherEdge = other:GetClosestPointOnArea(edge)
@@ -515,11 +538,128 @@ function TTTBots.PathManager.PlacePointsOnNavarea(vectors, areas)
     return points
 end
 
+--- Same as :GetCorners but is 1-indexed instead of zero-indexed
+function navMeta:GetCorners2()
+    local corners = {}
+    for i = 1, 4 do
+        corners[i] = self:GetCorner(i - 1)
+    end
+    return corners
+end
+
+function TTTBots.PathManager.GetPaddedNavCorners(cnavarea)
+    local PADDING = 32
+    local MIN_PERIMETER = 64
+    if cnavarea:GetSizeX() < MIN_PERIMETER or cnavarea:GetSizeY() < MIN_PERIMETER then
+        return cnavarea:GetCorners2()
+    end
+    local center = cnavarea:GetCenter()
+    local corners = cnavarea:GetCorners2()
+
+    -- Move each corner 32 units closer to the center
+    for i, corner in pairs(corners) do
+        local dir = (corner - center):GetNormalized()
+        corners[i] = corner - dir * PADDING
+    end
+
+    return corners
+end
+
+-- Function to find the closest point on a line segment defined by points 'start' and 'end' to a given 'point'.
+-- This function essentially projects 'point' onto the line segment and clamps it to the segment's boundaries.
+local function ClosestPointOnLineSegment(start, endpoint, point)
+    -- Calculate the vectors relative to 'start'
+    local startPointToP = point - start
+    local startToEnd = endpoint - start
+
+    -- Calculate the squared length of the segment (used for normalization purposes)
+    local segmentLengthSquared = startToEnd:Dot(startToEnd)
+
+    -- Calculate the projection of startPointToP onto startToEnd
+    -- This gives us a scalar value which tells us how far along startToEnd our projected point is
+    local t = startPointToP:Dot(startToEnd) / segmentLengthSquared
+
+    -- Clamp t to the range [0, 1] to ensure the point lies on the segment
+    t = math.Clamp(t, 0, 1)
+
+    -- Calculate and return the actual point on the segment
+    return start + startToEnd * t
+end
+
+-- Function to find the closest point on a rectangle (defined by its four 'corners') to a given 'point'.
+local function ClosestPointOnRectangle(corners, point)
+    if #corners ~= 4 then
+        error("Expected 4 corners for a rectangle")
+    end
+
+    -- Define the four edges of the rectangle
+    local edges = {
+        { corners[1], corners[2] },
+        { corners[2], corners[3] },
+        { corners[3], corners[4] },
+        { corners[4], corners[1] }
+    }
+
+    -- Initialize our search for the closest point
+    local closestPoint = nil
+    local shortestDistance = math.huge
+
+    -- Iterate through each edge and find the closest point on that edge to our 'point'
+    for _, edge in ipairs(edges) do
+        local pointOnEdge = ClosestPointOnLineSegment(edge[1], edge[2], point)
+        local distanceToEdge = point:Distance(pointOnEdge)
+
+        -- If this edge's point is closer than previously found points, update our closest point
+        if distanceToEdge < shortestDistance then
+            shortestDistance = distanceToEdge
+            closestPoint = pointOnEdge
+        end
+    end
+
+    return closestPoint
+end
+
+local paddingCache = {}
+local closestCache = {} -- indexed by "navarea id : navarea id"
+local function getClosestCache(areaA, areaB)
+    local index = areaA:GetID() .. ":" .. areaB:GetID()
+    if closestCache[index] then return closestCache[index] end
+
+    local paddingMe = paddingCache[areaA] or TTTBots.PathManager.GetPaddedNavCorners(areaA)
+    if not paddingCache[areaA] then paddingCache[areaA] = paddingMe end
+
+    local closest = ClosestPointOnRectangle(paddingMe, areaB:GetCenter())
+    closestCache[index] = closest
+    return closest
+end
+
+--- Return the closest point along our padding to their center. Accounts for ladders by returning either the closest pos (top or bottom)
+function navMeta:GetConnectingEdgePadded(other)
+    if other:IsLadder() then return self:GetConnectingEdge(other) end
+    local closest = getClosestCache(self, other)
+    return closest
+end
+
+local function addPointToPoints(pointsTbl, point, area, type, ladder_dir)
+    if point == nil then error("Point cannot be nil") end
+    table.insert(pointsTbl, {
+        pos = point,
+        area = area,
+        type = type,
+        ladder_dir = ladder_dir,
+    })
+
+    -- local dbg = TTTBots.Lib.GetDebugFor("pathfinding")
+    -- if dbg then
+    --     print(string.format("Area #%s: Added a point at %s;", area:GetID(), point))
+    -- end
+end
+
 --- Use a simple algorithm to smooth the path. Calculate connection types between each navarea, and use that to determine
 --- how to smooth the path, and instruct the navigator on what to do.
 ---@param path table Table of CNavAreas and CNavLadders that compose a real path, from start to finish.
 ---@return table PreparedPath table of vectors and how to navigate them.
-function TTTBots.PathManager.PreparePathForLocomotor(path)
+function TTTBots.PathManager.PathPostProcess(path)
     --[[
         Point example:
         {
@@ -530,149 +670,63 @@ function TTTBots.PathManager.PreparePathForLocomotor(path)
         }
     ]]
     local points = {}
+    local climbDir = nil
+    for i, navArea in ipairs(path) do
+        local isLadder = navArea:IsLadder()
+        local isLast = i == #path
+        local isFirst = i == 1
+        local center = navArea:GetCenter()
 
-    if path == nil or type(path) ~= "table" or #path == 0 then return points end
+        local nextNavArea = (not isLast) and path[i + 1]
+        local nextIsLadder = nextNavArea and nextNavArea:IsLadder()
+        local nextCenter = nextNavArea and nextNavArea:GetCenter()
+        local nextIsLower = nextCenter and (center.z > nextCenter.z)
 
-    --[[
-        1.) If this is the first node, add the center point of the navarea to the path.
-        2.) If this is the last node, add the center point of the navarea to the path.
-        3.) If this is a middle node (not first nor center):
-            a.) If the prior node is a ladder:
-                i.) First determine what direction the ladder is supposed to be going.
-                    This can be done by checking if the 2nd to last area (must be a cnavarea) is above or below the ladder's GetCenter().
-                ii.) If the 2nd to last area is above the ladder, the ladder is going down. Otherwise, up. And the placement of the
-                    point is respective to that.
+        local lastNavArea = (not isFirst) and path[i - 1]
+        local lastIsLadder = lastNavArea and lastNavArea:IsLadder()
+        local lastCenter = lastNavArea and lastNavArea:GetCenter()
+        local lastIsLower = lastCenter and (center.z > lastCenter.z)
 
-            b.) If the prior node is not a ladder, but the current one IS:
-                i.) Determine the direction of the ladder, same as above.
-                ii.) Add the point to the path, respective to the direction of the ladder.
-
-            c.) If the prior node is not a ladder, and the current one is not a ladder:
-                i.) Add the navmeta:GetConnectingEdge() point to the path. This is very simple, and is the most common case.
-                ii.) Check if we need to jump between the last navarea and this one.
-                iii.) Check if we need to fall between the last navarea and this one.
-                iv.) Check if we need to crouch on this navarea.
-    ]]
-    for i = 1, #path do
-        local secondlastnode = i > 2 and path[i - 2] or nil
-        local lastnode = i > 1 and path[i - 1] or nil
-        local currentnode = path[i]
-        local nextnode = i ~= #path and path[i + 1] or nil
-
-        -- 1.)
-        if i == 1 then
-            -- table.insert(points, {
-            --     pos = currentnode:GetCenter(),
-            --     area = currentnode,
-            --     type = "walk",
-            -- })
-
-            -- 2.)
+        if nextIsLadder and nextIsLower then
+            climbDir = "down"
+        elseif nextIsLadder and not nextIsLower then
+            climbDir = "up"
         else
-            if i == #path then
-                table.insert(points, {
-                    pos = currentnode:GetCenter(),
-                    area = currentnode,
-                    type = "walk",
-                })
-
-                -- 3.)
-            else
-                -- a.)
-                if lastnode:IsLadder() then
-                    local ladder = lastnode
-                    local ladder_dir = nil
-
-                    -- i.)
-                    if lastnode:GetCenter().z > currentnode:GetCenter().z then
-                        ladder_dir = "down"
-                    else
-                        ladder_dir = "up"
-                    end
-
-                    -- ii.)
-                    if ladder_dir == "down" then
-                        table.insert(points, {
-                            pos = ladder:GetBottom2(),
-                            area = ladder,
-                            type = "ladder",
-                            ladder_dir = "down",
-                        })
-                    else
-                        table.insert(points, {
-                            pos = ladder:GetTop2(),
-                            area = ladder,
-                            type = "ladder",
-                            ladder_dir = "up",
-                        })
-                    end
-
-                    -- b.)
-                else
-                    if currentnode:IsLadder() then
-                        local ladder = currentnode
-                        local ladder_dir = nil
-
-                        -- i.)
-                        if currentnode:GetCenter().z > nextnode:GetCenter().z then
-                            ladder_dir = "down"
-                        else
-                            ladder_dir = "up"
-                        end
-
-                        -- ii.)
-                        if ladder_dir == "down" then
-                            table.insert(points, {
-                                pos = ladder:GetTop2(),
-                                area = ladder,
-                                type = "ladder",
-                                ladder_dir = "down",
-                            })
-                        else
-                            table.insert(points, {
-                                pos = ladder:GetBottom2(),
-                                area = ladder,
-                                type = "ladder",
-                                ladder_dir = "up",
-                            })
-                        end
-
-                        -- c.)
-                    else
-                        local cedge = currentnode:GetConnectingEdge(lastnode)
-                        --[[local mtype = lastnode and not lastnode:IsLadder() and
-                            lastnode:GetConnectionTypeBetween(currentnode) or "walk"]]
-                        local mtype = secondlastnode and not secondlastnode:IsLadder() and
-                            secondlastnode:GetConnectionTypeBetween(lastnode) or "walk"
-
-                        local area = currentnode:GetSizeX() * currentnode:GetSizeY()
-
-                        if (mtype ~= "fall" or area < 500) then
-                            table.insert(points, {
-                                pos = currentnode:GetCenter(),
-                                area = currentnode,
-                                type = mtype,
-                            })
-                        else
-                            table.insert(points, {
-                                pos = cedge,
-                                area = currentnode,
-                                type = mtype,
-                            })
-                        end
-
-                        if area > 40000 then
-                            -- add the center
-                            table.insert(points, {
-                                pos = currentnode:GetCenter(),
-                                area = currentnode,
-                                type = "walk",
-                            })
-                        end
-                    end
-                end
-            end
+            climbDir = nil
         end
+
+        if isLadder then
+            if not climbDir then print("No ladder dir in node #" .. i) end
+            local ladderGoal = (climbDir == "up") and navArea:GetTop2() or navArea:GetBottom2()
+            addPointToPoints(points, ladderGoal, navArea, "ladder", climbDir)
+            continue
+        end
+
+        -- if we're the first, get the center and then the connecting point between this and the next area.
+        if isFirst then
+            local closestPoint = navArea:GetConnectingEdgePadded(nextNavArea)
+            addPointToPoints(points, navArea:GetCenter(), navArea, navArea:GetConnectionTypeBetween(nextNavArea), nil)
+            addPointToPoints(points, closestPoint, navArea, navArea:GetConnectionTypeBetween(nextNavArea), nil)
+            continue
+        end
+
+        -- if we're not the first, get the connecting point between last and this, and then get the point between this and next
+        if not isLast then
+            if not lastIsLadder then
+                local closestLast = lastNavArea:GetConnectingEdgePadded(navArea)
+                addPointToPoints(points, closestLast, navArea, navArea:GetConnectionTypeBetween(lastNavArea), nil)
+            end
+            local closestNext = navArea:GetConnectingEdgePadded(nextNavArea)
+            addPointToPoints(points, closestNext, navArea, navArea:GetConnectionTypeBetween(nextNavArea), nil)
+            continue
+        end
+
+        -- if we're the last, get the connecting point between last and this, and then get the destination
+        if not lastIsLadder then
+            local closestLast = lastNavArea:GetConnectingEdgePadded(navArea)
+            addPointToPoints(points, closestLast, navArea, navArea:GetConnectionTypeBetween(lastNavArea), nil)
+        end
+        addPointToPoints(points, navArea:GetCenter(), navArea, navArea:GetConnectionTypeBetween(lastNavArea), nil)
     end
 
     return points
@@ -796,7 +850,7 @@ hook.Add("Tick", "TTTBots.PathManager.PathCoroutine", function()
             TimeSince = function(self)
                 return CurTime() - self.generatedAt
             end,
-            preparedPath = path and type(path) == "table" and TTTBots.PathManager.PreparePathForLocomotor(path)
+            preparedPath = path and type(path) == "table" and TTTBots.PathManager.PathPostProcess(path)
         }
     ]]
     local queued = TTTBots.PathManager.queuedPaths
@@ -820,7 +874,7 @@ hook.Add("Tick", "TTTBots.PathManager.PathCoroutine", function()
         local path = result
         local pathID = queuedPath.pathID
         local owner = queuedPath.owner
-        local preparedPath = (path and type(path) == "table" and TTTBots.PathManager.PreparePathForLocomotor(path)) or
+        local preparedPath = (path and type(path) == "table" and TTTBots.PathManager.PathPostProcess(path)) or
             nil
 
         -- print("Result of generation was " .. tostring(result) .. " (type " .. type(result) .. ")")

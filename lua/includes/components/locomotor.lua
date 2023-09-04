@@ -622,7 +622,7 @@ end
 function BotLocomotor:UpdateMovement()
     self:SetJumping(false)
     self:SetCrouching(false)
-    -- self:SetStrafe(nil)
+    self:SetStrafe(nil)
     self:SetUsing(false)
     self:OverrideMoveNormal(nil)
     self:StopPriorityMovement()
@@ -971,6 +971,8 @@ function BotLocomotor:FollowPath()
         for i = 1, #preparedPath - 1 do
             local p1 = i == 1 and bot:GetPos() or preparedPath[i].pos
             TTTBots.DebugServer.DrawLineBetween(p1, preparedPath[i + 1].pos, Color(0, 125, 255))
+            -- Draw sphere at each point
+            TTTBots.DebugServer.DrawSphere(preparedPath[i].pos, 5, Color(0, 125, 255, 0))
         end
     end
 
@@ -989,10 +991,14 @@ function BotLocomotor:FollowPath()
     end
 
     if dvlpr then
-        -- TTTBots.DebugServer.DrawSphere(nextPos, TTTBots.PathManager.completeRange, Color(255, 255, 0, 50))
         local nextpostxt = string.format("NextPos (height difference is %s)", nextPos.z - bot:GetPos().z)
         TTTBots.DebugServer.DrawText(nextPos, nextpostxt, Color(255, 255, 255))
-        -- TTTBots.DebugServer.DrawLineBetween(bot:GetPos(), nextPos, Color(255, 255, 255))
+
+        local strafeDir = self:GetStrafe()
+        if strafeDir then
+            local strafePos = bot:GetPos() + (bot:GetRight() * 100 * (strafeDir == "left" and -1 or 1))
+            TTTBots.DebugServer.DrawLineBetween(bot:GetPos(), strafePos, Color(255, 0, 0))
+        end
     end
 
     -- self:DestroyBlockingEntities()
