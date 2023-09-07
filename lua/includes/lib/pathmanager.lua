@@ -14,6 +14,9 @@ function ladderMeta:GetCenter()
     return (start + ending) / 2
 end
 
+local LADDER_FORWARD_TOP = 10
+local LADDER_FORWARD_BOTTOM = 7
+
 --- Get the top of the ladder offset by the forward normal vector
 function ladderMeta:GetTop2()
     local top = self:GetTop()
@@ -38,7 +41,7 @@ function ladderMeta:GetTop2()
     end
 
     top.z = highest
-    local adjusted = Vector(top.x, top.y, highest) + Vector(0, 0, 32) + forward * 14
+    local adjusted = Vector(top.x, top.y, highest) + Vector(0, 0, 32) + forward * LADDER_FORWARD_TOP
 
     TTTBots.DebugServer.DrawCross(top, 10, Color(255, 0, 0), 5, "ladderTop")
     TTTBots.DebugServer.DrawLineBetween(top, adjusted, Color(255, 0, 0), 5, "ladderTop2")
@@ -50,7 +53,7 @@ function ladderMeta:GetBottom2()
     local bottom = self:GetBottom()
     local forward = self:GetNormal()
 
-    return bottom + forward * 10
+    return bottom + forward * LADDER_FORWARD_BOTTOM
 end
 
 function ladderMeta:IsLadder()
@@ -619,10 +622,20 @@ local function ClosestPointOnRectangle(corners, point)
     return closestPoint
 end
 
+--- Converts a Vector3 to a rounded, compact string representation.
+--- @param vec Vector3: The vector to convert.
+--- @return string: A compact, rounded string representation of the vector.
+local function VectorToString(vec)
+    local x = math.Round(vec.x)
+    local y = math.Round(vec.y)
+    local z = math.Round(vec.z)
+    return x .. "," .. y .. "," .. z
+end
+
 local paddingCache = {}
 local closestCache = {} -- indexed by "navarea id : navarea id"
-local function getClosestCache(areaA, areaB)
-    local index = areaA:GetID() .. ":" .. areaB:GetID()
+local function getClosestCache(areaA, areaB, pos)
+    local index = areaA:GetID() .. ":" .. areaB:GetID() .. ((pos and VectorToString(pos)) or "")
     if closestCache[index] then return closestCache[index] end
 
     local paddingMe = paddingCache[areaA] or TTTBots.PathManager.GetPaddedNavCorners(areaA)
@@ -634,9 +647,13 @@ local function getClosestCache(areaA, areaB)
 end
 
 --- Return the closest point along our padding to their center. Accounts for ladders by returning either the closest pos (top or bottom)
-function navMeta:GetConnectingEdgePadded(other)
+---@param other CNavArea the nav area to get the closest point to
+---@param centerOrPos Vector3 defaults to the other nav area's center, but can be a vector3 within other
+---@return Vector3 pos the closest point on our nav area to the other nav area, within padding
+function navMeta:GetClosestPaddedPoint(other, centerOrPos)
     if other:IsLadder() then return self:GetConnectingEdge(other) end
-    local closest = getClosestCache(self, other)
+    centerOrPos = centerOrPos or other:GetCenter()
+    local closest = getClosestCache(self, other, centerOrPos)
     return closest
 end
 
@@ -655,38 +672,45 @@ local function addPointToPoints(pointsTbl, point, area, type, ladder_dir)
     -- end
 end
 
---- Use a simple algorithm to smooth the path. Calculate connection types between each navarea, and use that to determine
---- how to smooth the path, and instruct the navigator on what to do.
----@param path table Table of CNavAreas and CNavLadders that compose a real path, from start to finish.
----@return table PreparedPath table of vectors and how to navigate them.
+--- The `TTTBots.PathManager.PathPostProcess` function processes a given path to determine the navigation strategies required
+--- to move between each point in the path. It identifies actions like "jump", "ladder", "walk", or "fall" that a navigator must
+--- undertake to move smoothly from one point to the next.
+---
+--- @param path table: A sequence of CNavAreas and CNavLadders, representing a path from start to finish.
+--- @return table: A table containing a set of points with their positions, associated navigation areas, navigation actions,
+--- and any ladder-related directions.
 function TTTBots.PathManager.PathPostProcess(path)
     --[[
-        Point example:
+        Point structure:
         {
-            pos = Vector(0, 0, 0),
-            area = navarea,
-            type = "jump" or "ladder" or "walk" or "fall", (if we have to do X to get here from the last point)
-            ladder_dir = "up" or "down", (if ladder, else nil)
+            pos = Vector(0, 0, 0),     -- Position of the point.
+            area = navarea,            -- Associated navigation area.
+            type = "jump" or "ladder" or "walk" or "fall", -- Action required to reach this point from the last point.
+            ladder_dir = "up" or "down", -- Direction to move on the ladder (if it's a ladder), else nil.
         }
     ]]
     local points = {}
     local climbDir = nil
+
     for i, navArea in ipairs(path) do
         local isLadder = navArea:IsLadder()
         local isLast = i == #path
         local isFirst = i == 1
         local center = navArea:GetCenter()
 
+        -- Information about the next navigation area in the path.
         local nextNavArea = (not isLast) and path[i + 1]
         local nextIsLadder = nextNavArea and nextNavArea:IsLadder()
         local nextCenter = nextNavArea and nextNavArea:GetCenter()
         local nextIsLower = nextCenter and (center.z > nextCenter.z)
 
+        -- Information about the previous navigation area in the path.
         local lastNavArea = (not isFirst) and path[i - 1]
         local lastIsLadder = lastNavArea and lastNavArea:IsLadder()
         local lastCenter = lastNavArea and lastNavArea:GetCenter()
         local lastIsLower = lastCenter and (center.z > lastCenter.z)
 
+        -- Determine the direction to climb if nextNavArea is a ladder.
         if nextIsLadder and nextIsLower then
             climbDir = "down"
         elseif nextIsLadder and not nextIsLower then
@@ -695,38 +719,53 @@ function TTTBots.PathManager.PathPostProcess(path)
             climbDir = nil
         end
 
+        -- Handle ladder areas.
         if isLadder then
             if not climbDir then print("No ladder dir in node #" .. i) end
             local ladderGoal = (climbDir == "up") and navArea:GetTop2() or navArea:GetBottom2()
+            local ladderStart = (climbDir == "up") and navArea:GetBottom2() or navArea:GetTop2()
             addPointToPoints(points, ladderGoal, navArea, "ladder", climbDir)
-            continue
-        end
+            addPointToPoints(points, ladderStart, navArea, "ladder", climbDir)
+        else
+            -- Handle first navigation area in the path.
+            if isFirst then
+                local closestPoint = navArea:GetClosestPaddedPoint(nextNavArea)
+                addPointToPoints(points, navArea:GetCenter(), navArea, navArea:GetConnectionTypeBetween(nextNavArea), nil)
+                addPointToPoints(points, closestPoint, navArea, navArea:GetConnectionTypeBetween(nextNavArea), nil)
+            elseif not isLast then
+                -- Handle intermediate navigation areas.
+                -- First, check if our area is too small to justify complex pathing.
+                -- FIXME: Make this check apply to the last and next areas as well within this section. The pathing is abhorrent in some cases.
+                local areaOfArea = navArea:GetSizeX() * navArea:GetSizeY()
+                if areaOfArea < 4096 then
+                    addPointToPoints(points, navArea:GetCenter(), navArea, navArea:GetConnectionTypeBetween(nextNavArea),
+                        nil)
+                    continue
+                end
 
-        -- if we're the first, get the center and then the connecting point between this and the next area.
-        if isFirst then
-            local closestPoint = navArea:GetConnectingEdgePadded(nextNavArea)
-            addPointToPoints(points, navArea:GetCenter(), navArea, navArea:GetConnectionTypeBetween(nextNavArea), nil)
-            addPointToPoints(points, closestPoint, navArea, navArea:GetConnectionTypeBetween(nextNavArea), nil)
-            continue
-        end
+                if not lastIsLadder then
+                    -- Get the padded connecting edge from last to current
+                    local closestLast = lastNavArea:GetClosestPaddedPoint(navArea)
+                    addPointToPoints(points, closestLast, navArea, navArea:GetConnectionTypeBetween(lastNavArea), nil)
 
-        -- if we're not the first, get the connecting point between last and this, and then get the point between this and next
-        if not isLast then
-            if not lastIsLadder then
-                local closestLast = lastNavArea:GetConnectingEdgePadded(navArea)
-                addPointToPoints(points, closestLast, navArea, navArea:GetConnectionTypeBetween(lastNavArea), nil)
+                    -- Also get the closest point along our navmesh to the last connecting edge for consistency
+                    local closestUsToLast = navArea:GetClosestPaddedPoint(lastNavArea, closestLast)
+                    addPointToPoints(points, closestUsToLast, navArea, navArea:GetConnectionTypeBetween(lastNavArea), nil)
+                end
+                if not nextIsLadder then
+                    -- Get the padded connecting edge from current to next
+                    local closestNext = navArea:GetClosestPaddedPoint(nextNavArea)
+                    addPointToPoints(points, closestNext, navArea, navArea:GetConnectionTypeBetween(nextNavArea), nil)
+                end
+            else
+                -- Handle the last navigation area in the path.
+                if not lastIsLadder then
+                    local closestLast = lastNavArea:GetClosestPaddedPoint(navArea)
+                    addPointToPoints(points, closestLast, navArea, navArea:GetConnectionTypeBetween(lastNavArea), nil)
+                end
+                addPointToPoints(points, navArea:GetCenter(), navArea, navArea:GetConnectionTypeBetween(lastNavArea), nil)
             end
-            local closestNext = navArea:GetConnectingEdgePadded(nextNavArea)
-            addPointToPoints(points, closestNext, navArea, navArea:GetConnectionTypeBetween(nextNavArea), nil)
-            continue
         end
-
-        -- if we're the last, get the connecting point between last and this, and then get the destination
-        if not lastIsLadder then
-            local closestLast = lastNavArea:GetConnectingEdgePadded(navArea)
-            addPointToPoints(points, closestLast, navArea, navArea:GetConnectionTypeBetween(lastNavArea), nil)
-        end
-        addPointToPoints(points, navArea:GetCenter(), navArea, navArea:GetConnectionTypeBetween(lastNavArea), nil)
     end
 
     return points
