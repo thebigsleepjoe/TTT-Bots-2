@@ -749,7 +749,7 @@ function BotLocomotor:UpdatePath()
         self.pathInfo = {
             path = path,
             pathid = pathid,
-            preparedPath = path.preparedPath,
+            processedPath = path.processedPath,
             pathIndex = 1, -- the index of the next path node to go to
             owner = self.bot,
         }
@@ -889,9 +889,9 @@ end
 --- Determine the next pos along our current path
 function BotLocomotor:DetermineNextPos()
     local pathinfo = self:GetPath().path
-    if not pathinfo or not pathinfo.path or not pathinfo.preparedPath then return nil end
+    if not pathinfo or not pathinfo.path or not pathinfo.processedPath then return nil end
     local purePath = pathinfo.path
-    local prepPath = pathinfo.preparedPath
+    local prepPath = pathinfo.processedPath
 
     local bot = self.bot
     local botPos = bot:GetPos()
@@ -956,8 +956,8 @@ function BotLocomotor:FollowPath()
     local bot = self.bot
     local pathInfo = self:GetPath()
 
-    local preparedPath = pathInfo.preparedPath
-    if not preparedPath or #preparedPath == 0 then return false end
+    local processedPath = pathInfo.processedPath
+    if not processedPath or #processedPath == 0 then return false end
 
     -- Check if impossible
     local isImpossible = TTTBots.PathManager.impossiblePaths[pathInfo.pathid] ~= nil
@@ -967,12 +967,12 @@ function BotLocomotor:FollowPath()
     end
     -- PrintTable(self:GetPath())
 
-    if dvlpr and preparedPath then
-        for i = 1, #preparedPath - 1 do
-            local p1 = i == 1 and bot:GetPos() or preparedPath[i].pos
-            TTTBots.DebugServer.DrawLineBetween(p1, preparedPath[i + 1].pos, Color(0, 125, 255))
+    if dvlpr and processedPath then
+        for i = 1, #processedPath - 1 do
+            local p1 = i == 1 and bot:GetPos() or processedPath[i].pos
+            TTTBots.DebugServer.DrawLineBetween(p1, processedPath[i + 1].pos, Color(0, 125, 255))
             -- Draw sphere at each point
-            TTTBots.DebugServer.DrawSphere(preparedPath[i].pos, 5, Color(0, 125, 255, 0))
+            TTTBots.DebugServer.DrawSphere(processedPath[i].pos, 5, Color(0, 125, 255, 0))
         end
     end
 
@@ -1014,7 +1014,7 @@ function BotLocomotor:UpdateViewAngles(cmd)
         return
     end
 
-    local preparedPath = self:HasPath() and self:GetPath().preparedPath
+    local processedPath = self:HasPath() and self:GetPath().processedPath
     local goal = self.goalPos
 
 
