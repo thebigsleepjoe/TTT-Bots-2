@@ -14,8 +14,8 @@ function ladderMeta:GetCenter()
     return (start + ending) / 2
 end
 
-local LADDER_FORWARD_TOP = 8
-local LADDER_FORWARD_BOTTOM = 8
+local LADDER_FORWARD_TOP = 14
+local LADDER_FORWARD_BOTTOM = 10
 
 --- Get the top of the ladder offset by the forward normal vector
 function ladderMeta:GetTop2()
@@ -726,13 +726,14 @@ function TTTBots.PathManager.PathPostProcess(path)
             climbDir = "down"
         elseif nextIsLadder and not nextIsLower then
             climbDir = "up"
-        else
-            climbDir = nil
+        elseif nextIsLadder then
+            -- print("Couldn't resolve climb direction; " .. tostring(nextIsLadder) .. ", " .. tostring(nextIsLower))
         end
 
         -- Handle ladder areas.
         if isLadder then
             if not climbDir then print("No ladder dir in node #" .. i) end
+            print("Direction of ladder travel is " .. tostring(climbDir) .. " in node #" .. i)
             local ladderGoal = (climbDir == "up") and navArea:GetTop2() or navArea:GetBottom2()
             local ladderStart = (climbDir == "up") and navArea:GetBottom2() or navArea:GetTop2()
             addPointToPoints(points, ladderStart, navArea, "ladder", climbDir)
@@ -746,29 +747,31 @@ function TTTBots.PathManager.PathPostProcess(path)
             elseif not isLast then
                 -- Handle intermediate navigation areas.
                 -- First, check if our area is too small to justify complex pathing.
-                -- TODO: Make this check apply to the last and next areas as well within this section. The pathing is abhorrent in some cases.
                 if navArea:IsSmall() then
                     addPointToPoints(points, navArea:GetCenter(), navArea, nextNavArea, nil)
                     continue
                 end
 
-                if not lastIsLadder and (lastNavArea and not lastNavArea:IsSmall()) then
+                if not lastIsLadder then
                     -- Get the padded connecting edge from last to current. Does not apply if last is small
-                    local closestLast = lastNavArea:GetClosestPaddedPoint(navArea)
-                    addPointToPoints(points, closestLast, navArea, lastNavArea, nil)
+                    if not lastIsSmall then
+                        local closestLast = lastNavArea:GetClosestPaddedPoint(navArea)
+                        addPointToPoints(points, closestLast, navArea, lastNavArea, nil)
+                    end
 
                     -- Also get the closest point along our navmesh to the last connecting edge for consistency
-                    local closestUsToLast = navArea:GetClosestPaddedPoint(lastNavArea, closestLast)
+                    local closestUsToLast = navArea:GetClosestPaddedPoint(lastNavArea,
+                        closestLast or lastNavArea:GetCenter())
                     addPointToPoints(points, closestUsToLast, navArea, lastNavArea, nil)
                 end
-                if not nextIsLadder and (nextNavArea and not nextNavArea:IsSmall()) then
+                if not nextIsLadder then
                     -- Get the padded connecting edge from current to next
                     local closestNext = navArea:GetClosestPaddedPoint(nextNavArea)
                     addPointToPoints(points, closestNext, navArea, nextNavArea, nil)
                 end
             else
                 -- Handle the last navigation area in the path.
-                if not lastIsLadder and (nextNavArea and not nextNavArea:IsSmall()) then
+                if not lastIsLadder and not nextIsSmall then
                     local closestLast = lastNavArea:GetClosestPaddedPoint(navArea)
                     addPointToPoints(points, closestLast, navArea, lastNavArea, nil)
                 end
@@ -898,7 +901,7 @@ hook.Add("Tick", "TTTBots.PathManager.PathCoroutine", function()
             TimeSince = function(self)
                 return CurTime() - self.generatedAt
             end,
-            preparedPath = path and type(path) == "table" and TTTBots.PathManager.PathPostProcess(path)
+            processedPath = path and type(path) == "table" and TTTBots.PathManager.PathPostProcess(path)
         }
     ]]
     local queued = TTTBots.PathManager.queuedPaths
@@ -922,7 +925,7 @@ hook.Add("Tick", "TTTBots.PathManager.PathCoroutine", function()
         local path = result
         local pathID = queuedPath.pathID
         local owner = queuedPath.owner
-        local preparedPath = (path and type(path) == "table" and TTTBots.PathManager.PathPostProcess(path)) or
+        local processedPath = (path and type(path) == "table" and TTTBots.PathManager.PathPostProcess(path)) or
             nil
 
         -- print("Result of generation was " .. tostring(result) .. " (type " .. type(result) .. ")")
@@ -932,10 +935,10 @@ hook.Add("Tick", "TTTBots.PathManager.PathCoroutine", function()
             path = path,
             generatedAt = CurTime(),
             TimeSince = function(self) return CurTime() - self.generatedAt end,
-            preparedPath = preparedPath
+            processedPath = processedPath
         }
 
-        if not path or not preparedPath or #preparedPath == 0 then
+        if not path or not processedPath or #processedPath == 0 then
             -- path is impossible add it to impossiblePaths
             TTTBots.PathManager.impossiblePaths[pathID] = true
             -- print("Found impossible path, " .. pathID)

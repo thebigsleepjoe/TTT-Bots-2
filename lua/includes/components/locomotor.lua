@@ -886,6 +886,11 @@ local function getClosestInTable(tbl, origin)
     return tbl[closestI], closestI
 end
 
+local NEXTPOS_COMPLETE_DIST_CANSEE = 32
+local NEXTPOS_COMPLETE_DIST_CANTSEE = 16
+local NEXTPOS_COMPLETE_DIST_VERTICAL = 64
+local NEXTPOS_COMPLETE_DIST_VERTICAL_MAXDIST = 128
+
 --- Determine the next pos along our current path
 function BotLocomotor:DetermineNextPos()
     local pathinfo = self:GetPath().path
@@ -918,11 +923,15 @@ function BotLocomotor:DetermineNextPos()
 
     local nextPos = nextUncompleted.pos
 
-    -- now check if we're within 70 units of the next node and can see it
     local dist = botPos:Distance(nextPos)
+    local distZ = math.abs(botPos.z - nextPos.z)
     -- local dist = self:GetXYDist(botPos, nextPos)
     local canSee = self:VisionTestWorldMask(botEyePos, nextPos + Vector(0, 0, 16))
-    if (dist < 32 and canSee) or dist < 16 then
+    if
+        (dist < NEXTPOS_COMPLETE_DIST_CANSEE and canSee)
+        or dist < NEXTPOS_COMPLETE_DIST_CANTSEE
+        or (distZ < NEXTPOS_COMPLETE_DIST_VERTICAL and dist < NEXTPOS_COMPLETE_DIST_VERTICAL_MAXDIST)
+    then
         nextUncompleted.completed = true
         return self:DetermineNextPos()
     end
@@ -971,8 +980,9 @@ function BotLocomotor:FollowPath()
         for i = 1, #processedPath - 1 do
             local p1 = i == 1 and bot:GetPos() or processedPath[i].pos
             TTTBots.DebugServer.DrawLineBetween(p1, processedPath[i + 1].pos, Color(0, 125, 255))
-            -- Draw sphere at each point
-            TTTBots.DebugServer.DrawSphere(processedPath[i].pos, 5, Color(0, 125, 255, 0))
+            -- Instead draw a vertical red line of length 72:
+            TTTBots.DebugServer.DrawLineBetween(processedPath[i].pos, processedPath[i].pos + Vector(0, 0, 32),
+                Color(255, 0, 0))
         end
     end
 
@@ -996,6 +1006,7 @@ function BotLocomotor:FollowPath()
 
         local strafeDir = self:GetStrafe()
         if strafeDir then
+            print("Strafing direction: " .. strafeDir)
             local strafePos = bot:GetPos() + (bot:GetRight() * 100 * (strafeDir == "left" and -1 or 1))
             TTTBots.DebugServer.DrawLineBetween(bot:GetPos(), strafePos, Color(255, 0, 0))
         end
