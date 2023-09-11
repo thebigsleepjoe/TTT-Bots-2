@@ -12,6 +12,13 @@ local lib = TTTBots.Lib
 ---@class CLocomotor
 local BotLocomotor = TTTBots.Components.Locomotor
 
+-- Define constants
+local NEXTPOS_COMPLETE_DIST_CANSEE = 32
+local NEXTPOS_COMPLETE_DIST_CANTSEE = 16
+local NEXTPOS_COMPLETE_DIST_VERTICAL = 64
+local NEXTPOS_COMPLETE_DIST_VERTICAL_MAXDIST = 72
+
+
 function BotLocomotor:New(bot)
     local newLocomotor = {}
     setmetatable(newLocomotor, {
@@ -886,11 +893,6 @@ local function getClosestInTable(tbl, origin)
     return tbl[closestI], closestI
 end
 
-local NEXTPOS_COMPLETE_DIST_CANSEE = 32
-local NEXTPOS_COMPLETE_DIST_CANTSEE = 16
-local NEXTPOS_COMPLETE_DIST_VERTICAL = 64
-local NEXTPOS_COMPLETE_DIST_VERTICAL_MAXDIST = 128
-
 --- Determine the next pos along our current path
 function BotLocomotor:DetermineNextPos()
     local pathinfo = self:GetPath().path
@@ -923,14 +925,14 @@ function BotLocomotor:DetermineNextPos()
 
     local nextPos = nextUncompleted.pos
 
-    local dist = botPos:Distance(nextPos)
+    local distXY = lib.DistanceXY(botPos, nextPos)
     local distZ = math.abs(botPos.z - nextPos.z)
     -- local dist = self:GetXYDist(botPos, nextPos)
     local canSee = self:VisionTestWorldMask(botEyePos, nextPos + Vector(0, 0, 16))
     if
-        (dist < NEXTPOS_COMPLETE_DIST_CANSEE and canSee)
-        or dist < NEXTPOS_COMPLETE_DIST_CANTSEE
-        or (distZ < NEXTPOS_COMPLETE_DIST_VERTICAL and dist < NEXTPOS_COMPLETE_DIST_VERTICAL_MAXDIST)
+        (distZ < NEXTPOS_COMPLETE_DIST_VERTICAL and distXY < NEXTPOS_COMPLETE_DIST_VERTICAL_MAXDIST)
+        or (distXY < NEXTPOS_COMPLETE_DIST_CANSEE and canSee)
+        or distXY < NEXTPOS_COMPLETE_DIST_CANTSEE
     then
         nextUncompleted.completed = true
         return self:DetermineNextPos()
@@ -1126,7 +1128,7 @@ function BotLocomotor:Reload()
     self.reload = true
 end
 
----@deprecated
+---@deprecated see StartAttack and StopAttack: these are untimed and generally neater.
 function BotLocomotor:SetAttack(attack, time)
     self.attack = attack
     if time then

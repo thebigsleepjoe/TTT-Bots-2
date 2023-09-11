@@ -3,6 +3,9 @@ TTTBots.PathManager.cullSeconds = 5
 TTTBots.PathManager.maxCachedPaths = 200
 TTTBots.PathManager.completeRange = 32 -- 32 = half player height
 
+-- Define constants
+local LADDER_FORWARD_TOP = 14
+local LADDER_FORWARD_BOTTOM = 10
 
 --[[ Introduce new navmesh/navarea meta functions to make our lives easier ]]
 local ladderMeta = FindMetaTable("CNavLadder")
@@ -13,9 +16,6 @@ function ladderMeta:GetCenter()
 
     return (start + ending) / 2
 end
-
-local LADDER_FORWARD_TOP = 14
-local LADDER_FORWARD_BOTTOM = 10
 
 --- Get the top of the ladder offset by the forward normal vector
 function ladderMeta:GetTop2()
