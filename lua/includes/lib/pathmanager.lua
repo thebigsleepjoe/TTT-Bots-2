@@ -5,7 +5,7 @@ TTTBots.PathManager.completeRange = 32 -- 32 = half player height
 
 -- Define constants
 local LADDER_FORWARD_TOP = 14
-local LADDER_FORWARD_BOTTOM = 10
+local LADDER_FORWARD_BOTTOM = 8
 
 --[[ Introduce new navmesh/navarea meta functions to make our lives easier ]]
 local ladderMeta = FindMetaTable("CNavLadder")
