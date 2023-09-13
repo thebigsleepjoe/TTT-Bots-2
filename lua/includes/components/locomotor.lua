@@ -721,6 +721,16 @@ function BotLocomotor:IsStuck()
     return dist < 8
 end
 
+function BotLocomotor:CanSeeAnyNodesWithinDist(path, range)
+    for i, nav in pairs(path) do
+        local center = nav:GetCenter()
+        if self.bot:VisibleVec(center) and (center:Distance(self.bot:GetPos()) < range) then
+            return true
+        end
+    end
+    return false
+end
+
 --- Update the path. Requests a path from our current position to our goal position.
 ---@return string status Status of the pathing, mostly flavor/debugging text.
 function BotLocomotor:UpdatePath()
@@ -734,7 +744,15 @@ function BotLocomotor:UpdatePath()
     local path = self:GetPath()
     local goalNav = navmesh.GetNearestNavArea(goalPos)
     local pathLength = self:GetPathLength()
-    if (self:HasPath() and pathLength > 0 and path.path.path[self:GetPathLength()] == goalNav) then
+
+    local hasPath = self:HasPath()
+    local endIsGoal = hasPath
+        and path.path.path[self:GetPathLength()] == goalNav -- true if we already have a path to the goal
+    if hasPath and endIsGoal and not self:CanSeeAnyNodesWithinDist(path.path.path, 500) then
+        local dvlpr = lib.GetConVarBool("debug_pathfinding")
+        if dvlpr then print(self.bot:Nick() .. " path is too far") end
+        -- return "path_too_far"
+    elseif (hasPath and pathLength > 0 and endIsGoal) then
         return "pathing_currently"
     end
 
