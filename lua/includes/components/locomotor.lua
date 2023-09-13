@@ -15,8 +15,8 @@ local BotLocomotor = TTTBots.Components.Locomotor
 -- Define constants
 local NEXTPOS_COMPLETE_DIST_CANSEE = 32
 local NEXTPOS_COMPLETE_DIST_CANTSEE = 16
-local NEXTPOS_COMPLETE_DIST_VERTICAL = 64
-local NEXTPOS_COMPLETE_DIST_VERTICAL_MAXDIST = 72
+local NEXTPOS_COMPLETE_DIST_VERTICAL_RANGE = 64  --- The range considered, irrespective of visual range, when above NEXTPOS_COMPLETE_DIST_VERTICAL_THRESH
+local NEXTPOS_COMPLETE_DIST_VERTICAL_THRESH = 64 --- The Z axis must have a difference of this value to consider NEXTPOS_COMPLETE_DIST_VERTICAL_RANGE
 
 
 function BotLocomotor:New(bot)
@@ -920,7 +920,7 @@ function BotLocomotor:DetermineNextPos()
     if lastCompleted and not self:VisionTestWorldMask(botEyePos, lastCompleted.pos + Vector(0, 0, 16)) and not self:VisionTestWorldMask(botEyePos, nextUncompleted.pos + Vector(0, 0, 16)) then
         lastCompleted.completed = false
         if dvlpr then print("Bot " .. self.bot:Nick() .. " is stuck, marking last completed node as uncompleted") end
-        return nil -- return nil because if we return DetermineNextPos we will soft lock
+        return nil, lastCompleted -- return nil because if we return DetermineNextPos we will soft lock
     end
 
     local nextPos = nextUncompleted.pos
@@ -930,7 +930,7 @@ function BotLocomotor:DetermineNextPos()
     -- local dist = self:GetXYDist(botPos, nextPos)
     local canSee = self:VisionTestWorldMask(botEyePos, nextPos + Vector(0, 0, 16))
     if
-        (distZ < NEXTPOS_COMPLETE_DIST_VERTICAL and distXY < NEXTPOS_COMPLETE_DIST_VERTICAL_MAXDIST)
+        (distZ > NEXTPOS_COMPLETE_DIST_VERTICAL_THRESH and distXY < NEXTPOS_COMPLETE_DIST_VERTICAL_RANGE)
         or (distXY < NEXTPOS_COMPLETE_DIST_CANSEE and canSee)
         or distXY < NEXTPOS_COMPLETE_DIST_CANTSEE
     then
@@ -938,7 +938,7 @@ function BotLocomotor:DetermineNextPos()
         return self:DetermineNextPos()
     end
 
-    return nextPos, nextUncompleted.i
+    return nextPos, nextUncompleted
 end
 
 --- If there are any blocking entities, aim our crowbar and IN_ATTACK at them
@@ -1019,6 +1019,11 @@ function BotLocomotor:FollowPath()
     return true
 end
 
+function BotLocomotor:IsFalling()
+    local vel = self.bot:GetVelocity()
+    return vel.z < -100
+end
+
 function BotLocomotor:UpdateViewAngles(cmd)
     local override = self:GetLookPosOverride()
     if override then
@@ -1030,8 +1035,13 @@ function BotLocomotor:UpdateViewAngles(cmd)
     local processedPath = self:HasPath() and self:GetPath().processedPath
     local goal = self.goalPos
 
-
     if self.nextPos then
+        if self:IsFalling() and not self:IsOnLadder() then
+            self.lookPosGoal = self.nextPos
+            self:UpdateEyeAnglesFinal()
+            return
+        end
+
         local nextPosNormal = (self.nextPos - self.bot:GetPos()):GetNormal()
         local outwards = self.bot:GetPos() + nextPosNormal * 1200
         self:GetSetTimedVariable("randomLook", outwards, math.random(0.5, 2))
