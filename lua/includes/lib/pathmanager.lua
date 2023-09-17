@@ -6,6 +6,7 @@ TTTBots.PathManager.completeRange = 32 -- 32 = half player height
 -- Define constants
 local LADDER_FORWARD_TOP = 14
 local LADDER_FORWARD_BOTTOM = 8
+local LADDER_TOP_FORWARD_OFFSET = 64 --- Applies to when the bot is navigating up a ladder, and needs to move forward after getting to the top
 
 --[[ Introduce new navmesh/navarea meta functions to make our lives easier ]]
 local ladderMeta = FindMetaTable("CNavLadder")
@@ -738,6 +739,15 @@ function TTTBots.PathManager.PathPostProcess(path)
             local ladderStart = (climbDir == "up") and navArea:GetBottom2() or navArea:GetTop2()
             addPointToPoints(points, ladderStart, navArea, "ladder", climbDir)
             addPointToPoints(points, ladderGoal, navArea, "ladder", climbDir)
+
+            if climbDir == "up" then
+                -- Add the opposite forward at the top of the ladder (basically some units behind the ladder at the top)\
+                local ladderTop = navArea:GetTop2()
+                local ladderForward = navArea:GetNormal()
+                local ladderBackwardOfset = -1 * ladderForward * LADDER_TOP_FORWARD_OFFSET
+                local ladderTopBackward = ladderTop + ladderBackwardOfset
+                addPointToPoints(points, ladderTopBackward, navArea, "ladder", climbDir)
+            end
         else
             -- Handle first navigation area in the path.
             if isFirst then
