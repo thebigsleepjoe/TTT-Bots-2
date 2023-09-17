@@ -1182,7 +1182,12 @@ function BotLocomotor:StartCommand(cmd)
     -- Set buttons for jumping if :GetJumping() is true
     -- The way jumping works is a little quirky, as it cannot be held down. We must release it occasionally
     if self:GetJumping() and (self.jumpReleaseTime < CurTime()) or self.jumpReleaseTime == nil then
-        cmd:SetButtons(IN_JUMP + IN_DUCK)
+        local onGround = self.bot:OnGround()
+        if not onGround then
+            cmd:SetButtons(IN_JUMP + IN_DUCK)
+        else
+            cmd:SetButtons(IN_JUMP)
+        end
         self.jumpReleaseTime = CurTime() + 0.1
 
         if dvlpr then
