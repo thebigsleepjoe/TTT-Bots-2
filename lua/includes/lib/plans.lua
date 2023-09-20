@@ -70,6 +70,46 @@ end
 
 TTTBots.Plans.Cleanup() -- Call when this is first executed
 
+local conditionsHashedFuncs = {
+    PlyMin = function(conditions, data)
+        return data.NumPlysA >= conditions.PlyMin
+    end,
+    PlyMax = function(conditions, data)
+        return data.NumPlysA <= conditions.PlyMax
+    end,
+    MinTraitors = function(conditions, data)
+        return data.NumTraitorsA >= conditions.MinTraitors
+    end,
+    MaxTraitors = function(conditions, data)
+        return data.NumTraitorsA <= conditions.MaxTraitors
+    end,
+    MinHumanTraitors = function(conditions, data)
+        return data.NumHumanTraitorsA >= conditions.MinHumanTraitors
+    end,
+    MaxHumanTraitors = function(conditions, data)
+        return data.NumHumanTraitorsA <= conditions.MaxHumanTraitors
+    end,
+    Chance = function(conditions, data)
+        return math.random(1, 100) <= (conditions.Chance or 100)
+    end,
+}
+function TTTBots.Plans.AreConditionsValid(conditions)
+    local Data = {
+        NumPlysA = #TTTBots.Match.AlivePlayers,
+        NumTraitorsA = #TTTBots.Match.TraitorsInRound,
+        NumHumanTraitorsA = #TTTBots.Match.AliveHumanTraitors,
+    }
+    for key, value in pairs(conditions) do
+        local func = conditionsHashedFuncs[key]
+        if func then
+            local result = func(conditions, Data)
+            if not result then
+                return false
+            end
+        end
+    end
+end
+
 function TTTBots.Plans.Tick()
     if not TTTBots.Plans.IsRoundActive() then
         TTTBots.Plans.Cleanup()
