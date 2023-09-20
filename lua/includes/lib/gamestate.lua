@@ -12,6 +12,8 @@ Match.PlayersInRound = Match.PlayersInRound or {}
 Match.ConfirmedDead = Match.ConfirmedDead or {}
 Match.DamageLogs = Match.DamageLogs or {}
 Match.AlivePlayers = {}
+Match.AliveTraitors = {}
+Match.AliveHumanTraitors = {}
 Match.SecondsPassed = 0 --- Time since match began. This is important for traitor bots.
 
 function Match.Tick()
@@ -36,6 +38,8 @@ function Match.ResetStats(roundActive)
     Match.PlayersInRound = {}
     Match.DamageLogs = {}
     Match.AlivePlayers = {}
+    Match.AliveTraitors = {}
+    Match.AliveHumanTraitors = {}
     Match.SecondsPassed = 0
 
     -- Just gonna put this here since it's related to resetting stats.
@@ -61,9 +65,18 @@ end
 
 function Match.UpdateAlivePlayers()
     Match.AlivePlayers = {}
+    Match.AliveHumanTraitors = {}
+    Match.AliveTraitors = {}
     for i, v in pairs(player.GetAll()) do
         if TTTBots.Lib.IsPlayerAlive(v) then
             table.insert(Match.AlivePlayers, v)
+            if TTTBots.Lib.IsEvil(v) then
+                if not v:IsBot() then
+                    table.insert(Match.AliveHumanTraitors, v)
+                else
+                    table.insert(Match.AliveTraitors, v)
+                end
+            end
         end
     end
 end
@@ -76,10 +89,10 @@ hook.Add("TTTBeginRound", "Match.BeginRound", function()
     Match.ResetStats(true)
     for _, ply in pairs(player.GetAll()) do
         if TTTBots.Lib.IsPlayerAlive(ply) then
-            Match.PlayersInRound[ply:Nick()] = true
-            table.insert(Match.AlivePlayers, ply)
+            Match.PlayersInRound[ply] = true
         end
     end
+    Match.UpdateAlivePlayers()
 end)
 
 hook.Add("TTTEndRound", "Match.EndRound", function()
@@ -99,8 +112,8 @@ hook.Add("TTTBodyFound", "Match.BodyFound", function(discoverer, deceased, ragdo
     if not Match.RoundActive then return end
     if not IsValid(deceased) then return end
     if not deceased:IsPlayer() then return end
-    if not Match.PlayersInRound[deceased:Nick()] then return end
-    Match.ConfirmedDead[deceased:Nick()] = true
+    if not Match.PlayersInRound[deceased] then return end
+    Match.ConfirmedDead[deceased] = true
 end)
 
 hook.Add("PlayerHurt", "Match.PlayerHurt", function(victim, attacker, healthRemaining, damageTaken)

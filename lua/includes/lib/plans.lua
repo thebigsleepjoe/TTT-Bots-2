@@ -96,7 +96,7 @@ local conditionsHashedFuncs = {
 function TTTBots.Plans.AreConditionsValid(conditions)
     local Data = {
         NumPlysA = #TTTBots.Match.AlivePlayers,
-        NumTraitorsA = #TTTBots.Match.TraitorsInRound,
+        NumTraitorsA = #TTTBots.Match.AliveTraitors,
         NumHumanTraitorsA = #TTTBots.Match.AliveHumanTraitors,
     }
     for key, value in pairs(conditions) do
@@ -108,6 +108,10 @@ function TTTBots.Plans.AreConditionsValid(conditions)
             end
         end
     end
+end
+
+function TTTBots.Plans.GetFirstBestPreset()
+
 end
 
 function TTTBots.Plans.Tick()
