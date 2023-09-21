@@ -10,7 +10,7 @@ local PRESETS = {
             MaxTraitors = nil,
             Chance = 100,
         },
-        Plans = {
+        Jobs = {
             -- 10% chance to plant bomb
             {
                 Chance = 10,
@@ -51,7 +51,7 @@ local PRESETS = {
             MaxTraitors = nil,
             Chance = 100,
         },
-        Plans = {
+        Jobs = {
             -- have 2x plant if there are at least 3 traitors
             {
                 Chance = 40,

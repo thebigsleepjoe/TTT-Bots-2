@@ -532,6 +532,21 @@ function TTTBots.Lib.GetNearestNavArea(pos)
     end
 end
 
+--- Deep copy a table and return a new replica.
+function TTTBots.Lib.DeepCopy(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in next, orig, nil do
+            copy[TTTBots.Lib.DeepCopy(orig_key)] = TTTBots.Lib.DeepCopy(orig_value)
+        end
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
+
 -- Wrapper for "ttt_bot_" + name convars
 -- Prepends "ttt_bot_" to the name of the convar, and returns the boolean value of the convar.
 function TTTBots.Lib.GetConVarBool(name)

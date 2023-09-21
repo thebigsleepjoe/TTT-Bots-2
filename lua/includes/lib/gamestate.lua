@@ -22,6 +22,10 @@ function Match.Tick()
     Match.SecondsPassed = (Match.SecondsPassed or 0) + (1 / TTTBots.Tickrate)
 end
 
+function Match.IsRoundActive()
+    return Match.RoundActive
+end
+
 function Match.CleanupNullCorpses()
     for i, v in pairs(Match.Corpses) do
         if not IsValid(v) or v == NULL then

@@ -44,10 +44,6 @@ TTTBots.Plans = {
 }
 include("includes/data/planpresets.lua") --- Load data into TTTBots.Plans.PRESETS
 
-function TTTBots.Plans.IsRoundActive()
-    return TTTBots.Match.RoundActive
-end
-
 --- When a bot wants to share the status with this module (bot->server), it will call this function.
 function TTTBots.Plans.BotUpdateStatus(bot, status)
     local tbl = {
@@ -112,6 +108,7 @@ function TTTBots.Plans.AreConditionsValid(conditions)
     end
 end
 
+--- Returns the first best preset in TTTBots.Plans.PRESETS, according to the conditions.
 function TTTBots.Plans.GetFirstBestPreset()
     local PRESETS = TTTBots.Plans.PRESETS
     local Default = PRESETS.Default
@@ -127,12 +124,12 @@ function TTTBots.Plans.GetFirstBestPreset()
 end
 
 function TTTBots.Plans.Tick()
-    if not TTTBots.Plans.IsRoundActive() then
+    if not TTTBots.Match.RoundActive then
         TTTBots.Plans.Cleanup()
         return
     end
     if not TTTBots.Plans.SelectedPlan then
-        TTTBots.Plans.SelectedPlan = TTTBots.Plans.GetFirstBestPreset()
+        TTTBots.Plans.SelectedPlan = TTTBots.Lib.DeepCopy(TTTBots.Plans.GetFirstBestPreset())
         TTTBots.Plans.CurrentPlanState = TTTBots.Plans.PLANSTATES.START
     end
 end
