@@ -18,7 +18,7 @@ local SETTINGS = {
     GATHER_DISTANCE = 500,
 }
 
-local EvilCoordinator = TTTBots.EvilCoordinator
+local PlanCoordinator = TTTBots.PlanCoordinator
 
 --- Validate the behavior
 function DoEvil:Validate(bot)
@@ -26,7 +26,7 @@ function DoEvil:Validate(bot)
     local personality = bot.components.personality
     local isDisabled = lib.GetConVarBool("disable_coordinator")
     local isDebug = true
-    return (EvilCoordinator.RoundInfo.Started
+    return (PlanCoordinator.RoundInfo.Started
         and not isDisabled
         and (isDebug or personality:GetIgnoresOrders())
         and lib.IsPlayerAlive(bot)
@@ -38,9 +38,9 @@ function DoEvil:OnStart(bot)
     return STATUS.RUNNING
 end
 
---- Order "GATHER" to move towards the determined location under EvilCoordinator.GetGatherPos
+--- Order "GATHER" to move towards the determined location under PlanCoordinator.GetGatherPos
 function DoEvil:Gather(bot)
-    local gatherPos = EvilCoordinator.GetGatherPos()
+    local gatherPos = PlanCoordinator.GetGatherPos()
     if not gatherPos then return end
 
     local distTo = bot:GetPos():Distance(gatherPos)
@@ -68,7 +68,7 @@ end
 
 --- Called when the behavior's last state is running
 function DoEvil:OnRunning(bot)
-    local order = EvilCoordinator.GetOrders(bot)
+    local order = PlanCoordinator.GetOrders(bot)
     if not order then return STATUS.FAILURE end
     local ordersHash = {
         GATHER = self.Gather,
