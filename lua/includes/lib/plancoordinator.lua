@@ -15,9 +15,24 @@ local IsRoundActive = TTTBots.Match.IsRoundActive --- @type function
 -- hook.Add("TTTBeginRound", "TTTBots.PlanCoordinator.OnRoundStart", PlanCoordinator.OnRoundStart)
 -- hook.Add("TTTEndRound", "TTTBots.PlanCoordinator.OnRoundEnd", PlanCoordinator.OnRoundEnd)
 
-function PlanCoordinator.TestJob(job)
+function PlanCoordinator.TestJob(job, shouldIncrement)
     local conditions = job.Conditions
-    -- TODO: Check conditions
+    if job.Skip then return false end
+    local jobValid = TTTBots.Plans.AreConditionsValid(job)
+    job.Skip = not jobValid
+    if not jobValid then return false end
+
+    local nAssigned = job.NumAssigned or 0
+    local maxAssigned = job.MaxAssigned or 99
+
+    if nAssigned >= maxAssigned then
+        job.Skip = true
+        return false
+    end
+
+    if shouldIncrement then job.NumAssigned = nAssigned + 1 end
+
+    return true
 end
 
 --- Returns the next unassigned job in the assigned Plan's sequence.

@@ -16,7 +16,7 @@ local PRESETS = {
                 Chance = 10,
                 Action = ACTIONS.PLANT,
                 Target = TARGETS.CALC_BOMBSPOT,
-                NumAssigned = 1,
+                MaxAssigned = 1,
                 Conditions = {}
             },
             -- everyone else will gather for 10-24 seconds
@@ -24,7 +24,7 @@ local PRESETS = {
                 Chance = 80,
                 Action = ACTIONS.GATHER,
                 Target = TARGETS.CALC_POPULAR_AREA,
-                NumAssigned = 99,
+                MaxAssigned = 99,
                 MinDuration = 10,
                 MaxDuration = 24,
                 Conditions = {
@@ -36,7 +36,7 @@ local PRESETS = {
                 Chance = 100,
                 Action = ACTIONS.ATTACKANY,
                 Target = TARGETS.RAND_ENEMY,
-                NumAssigned = 99,
+                MaxAssigned = 99,
                 Conditions = {
                     MinTraitors = 2,
                 }
@@ -57,7 +57,7 @@ local PRESETS = {
                 Chance = 40,
                 Action = ACTIONS.PLANT,
                 Target = TARGETS.CALC_BOMBSPOT,
-                NumAssigned = 2,
+                MaxAssigned = 2,
                 Conditions = {
                     MinTraitors = 3,
                 }
@@ -67,7 +67,7 @@ local PRESETS = {
                 Chance = 20,
                 Action = ACTIONS.PLANT,
                 Target = TARGETS.CALC_BOMBSPOT,
-                NumAssigned = 1,
+                MaxAssigned = 1,
                 Conditions = {
                     MaxTraitors = 2,
                 }
@@ -77,7 +77,7 @@ local PRESETS = {
                 Chance = 50,
                 Action = ACTIONS.FOLLOW,
                 Target = TARGETS.RAND_POLICE,
-                NumAssigned = 1,
+                MaxAssigned = 1,
                 Conditions = {}
             },
             -- everyone idle should follow any human traitors for 20-40 seconds (fails if no human traitors)
@@ -85,7 +85,7 @@ local PRESETS = {
                 Chance = 100,
                 Action = ACTIONS.FOLLOW,
                 Target = TARGETS.RAND_FRIENDLY_HUMAN,
-                NumAssigned = 99,
+                MaxAssigned = 99,
                 MinDuration = 20,
                 MaxDuration = 40,
                 Conditions = {
@@ -97,7 +97,7 @@ local PRESETS = {
                 Chance = 100,
                 Action = ACTIONS.GATHER,
                 Target = TARGETS.CALC_POPULAR_AREA,
-                NumAssigned = 99,
+                MaxAssigned = 99,
                 MinDuration = 10,
                 MaxDuration = 24,
                 Conditions = {
@@ -109,7 +109,7 @@ local PRESETS = {
                 Chance = 100,
                 Action = ACTIONS.ATTACKANY,
                 Target = TARGETS.RAND_ENEMY,
-                NumAssigned = 99,
+                MaxAssigned = 99,
                 Conditions = {
                     MinTraitors = 2,
                 }
