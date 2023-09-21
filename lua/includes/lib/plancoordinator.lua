@@ -4,7 +4,7 @@
 include("includes/lib/plans.lua")
 
 TTTBots.PlanCoordinator = {}
-local Coordinator = TTTBots.PlanCoordinator
+local PlanCoordinator = TTTBots.PlanCoordinator
 local Plans = TTTBots.Plans
 local ACTIONS = Plans.ACTIONS
 local PLANSTATES = Plans.PLANSTATES
@@ -15,6 +15,7 @@ local IsRoundActive = TTTBots.Match.IsRoundActive --- @type function
 -- hook.Add("TTTBeginRound", "TTTBots.PlanCoordinator.OnRoundStart", PlanCoordinator.OnRoundStart)
 -- hook.Add("TTTEndRound", "TTTBots.PlanCoordinator.OnRoundEnd", PlanCoordinator.OnRoundEnd)
 
+--- NOTE: due to how this function works, job chances are calculated PER assignment; it is possible to assign 1 bot when the max is 2 if the chance < 100%
 function PlanCoordinator.TestJob(job, shouldIncrement)
     local conditions = job.Conditions
     if job.Skip then return false end
@@ -38,9 +39,19 @@ end
 --- Returns the next unassigned job in the assigned Plan's sequence.
 function PlanCoordinator.GetNextJob()
     if not IsRoundActive() then return nil end
-    if not Plans.SelectedPlan then return nil end
     local selectedPlan = Plans.SelectedPlan
-    -- TODO: Check conditions and return first unskipped/unassigned job
+    if not selectedPlan then return nil end
+    local jobs = selectedPlan.Jobs
+    for i, job in pairs(jobs) do
+        local test = PlanCoordinator.TestJob(job, true)
+        if test then return job end
+    end
+
+    print("Reached end of plan stack, defaulting to attack everyone")
+    return {
+        Action = ACTIONS.ATTACKANY,
+        Target = TARGETS.NEAREST_ENEMY,
+    }
 end
 
 function PlanCoordinator.Tick()

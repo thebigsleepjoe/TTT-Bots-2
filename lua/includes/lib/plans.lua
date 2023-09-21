@@ -32,6 +32,7 @@ TTTBots.Plans = {
         RAND_FRIENDLY_HUMAN = "RandomFriendlyHuman", --- A friendly human player, selected randomly
         RAND_ENEMY = "RandomEnemy",                  --- A non-traitor player, selected randomly
         RAND_POLICE = "RandomPolice",                --- A police player, selected randomly
+        NEAREST_ENEMY = "NearestEnemy",              --- The nearest enemy player
         NEAREST_HIDINGSPOT = "NearestHidingSpot",    --- The nearest hiding spot
         FARTHEST_HIDINGSPOT = "FarthestHidingSpot",  --- The farthest hiding spot
         NEAREST_SNIPERSPOT = "NearestSniperSpot",    --- The nearest sniper spot

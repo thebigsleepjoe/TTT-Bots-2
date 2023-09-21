@@ -35,7 +35,7 @@ local PRESETS = {
             {
                 Chance = 100,
                 Action = ACTIONS.ATTACKANY,
-                Target = TARGETS.RAND_ENEMY,
+                Target = TARGETS.NEAREST_ENEMY,
                 MaxAssigned = 99,
                 Conditions = {
                     MinTraitors = 2,
@@ -108,7 +108,7 @@ local PRESETS = {
             {
                 Chance = 100,
                 Action = ACTIONS.ATTACKANY,
-                Target = TARGETS.RAND_ENEMY,
+                Target = TARGETS.NEAREST_ENEMY,
                 MaxAssigned = 99,
                 Conditions = {
                     MinTraitors = 2,
