@@ -40,6 +40,7 @@ TTTBots.Plans = {
     },
     BotStatuses = {},
     CurrentPlanState = "",
+    SelectedPlan = nil,
 }
 include("includes/data/planpresets.lua") --- Load data into TTTBots.Plans.PRESETS
 
@@ -66,9 +67,10 @@ end
 function TTTBots.Plans.Cleanup()
     TTTBots.Plans.BotStatuses = {}
     TTTBots.Plans.CurrentPlanState = "Waiting"
+    TTTBots.Plans.SelectedPlan = nil
 end
 
-TTTBots.Plans.Cleanup() -- Call when this is first executed
+TTTBots.Plans.Cleanup() -- Call when this script is first executed
 
 local conditionsHashedFuncs = {
     PlyMin = function(conditions, data)
@@ -111,7 +113,17 @@ function TTTBots.Plans.AreConditionsValid(conditions)
 end
 
 function TTTBots.Plans.GetFirstBestPreset()
+    local PRESETS = TTTBots.Plans.PRESETS
+    local Default = PRESETS.Default
 
+    for i, preset in pairs(PRESETS) do
+        local conditions = preset.Conditions
+        local valid = TTTBots.Plans.AreConditionsValid(conditions)
+
+        if valid then return preset end
+    end
+
+    return Default
 end
 
 function TTTBots.Plans.Tick()
@@ -119,5 +131,8 @@ function TTTBots.Plans.Tick()
         TTTBots.Plans.Cleanup()
         return
     end
-    -- TODO: Implement this.
+    if not TTTBots.Plans.SelectedPlan then
+        TTTBots.Plans.SelectedPlan = TTTBots.Plans.GetFirstBestPreset()
+        TTTBots.Plans.CurrentPlanState = TTTBots.Plans.PLANSTATES.START
+    end
 end
