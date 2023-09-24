@@ -599,13 +599,13 @@ function TTTBots.Lib.CacheSpotsOfType(key)
     spotCache[key] = spots
 end
 
-function TTTBots.Lib.GetCoverSpots() return TTTBots.Lib.CacheSpotsOfType("cover") end
+function TTTBots.Lib.GetCoverSpots() return TTTBots.Lib.CacheSpotsOfType("cover") or {} end
 
-function TTTBots.Lib.GetGoodSnipeSpots() return TTTBots.Lib.CacheSpotsOfType("goodsnipe") end
+function TTTBots.Lib.GetGoodSnipeSpots() return TTTBots.Lib.CacheSpotsOfType("goodsnipe") or {} end
 
-function TTTBots.Lib.GetBestSnipeSpots() return TTTBots.Lib.CacheSpotsOfType("bestsnipe") end
+function TTTBots.Lib.GetBestSnipeSpots() return TTTBots.Lib.CacheSpotsOfType("bestsnipe") or {} end
 
-function TTTBots.Lib.GetExposedSpots() return TTTBots.Lib.CacheSpotsOfType("exposed") end
+function TTTBots.Lib.GetExposedSpots() return TTTBots.Lib.CacheSpotsOfType("exposed") or {} end
 
 --- Call this function at first run on a map (assuming navmesh has loaded) to cache all spots.
 function TTTBots.Lib.CacheAllSpots()

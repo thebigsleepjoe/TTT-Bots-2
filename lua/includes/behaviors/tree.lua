@@ -16,7 +16,7 @@ TTTBots.Behaviors.BehaviorTree = { -- Acts as one big priority node
     b.ClearBreakables,
     b.InvestigateCorpse,
     b.FindWeapon,
-    b.followplan,
+    b.FollowPlan,
     b.InvestigateNoise,
     -- b.FindAmmo,
     -- b.Heal,
