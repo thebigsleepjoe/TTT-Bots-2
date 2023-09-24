@@ -86,11 +86,49 @@ function PlanCoordinator.CalcPopularArea(caller)
     return targetPos
 end
 
---- A Target Hashtable function to calculate a target for a job.
-function PlanCoordinator.CalcFarthestHidingSpot(caller) end
+local function getClosestVec(origin, vecs)
+    local closestVec = nil
+    local closestDist = 0
+    for i, vec in pairs(vecs) do
+        local dist = vec:Distance(origin)
+        if not closestVec or dist < closestDist then
+            closestVec = vec
+            closestDist = dist
+        end
+    end
+    return closestVec, closestDist
+end
+
+local function getFarthestVec(origin, vecs)
+    local farthestVec = nil
+    local farthestDist = 0
+    for i, vec in pairs(vecs) do
+        local dist = vec:Distance(origin)
+        if not farthestVec or dist > farthestDist then
+            farthestVec = vec
+            farthestDist = dist
+        end
+    end
+    return farthestVec, farthestDist
+end
 
 --- A Target Hashtable function to calculate a target for a job.
-function PlanCoordinator.CalcFarthestSniperSpot(caller) end
+function PlanCoordinator.CalcFarthestHidingSpot(caller)
+    local spots = TTTBots.Lib.GetCoverSpots()
+    local callerPos = caller:GetPos()
+    local farthestSpot, farthestDist = getFarthestVec(callerPos, spots)
+
+    return farthestSpot
+end
+
+--- A Target Hashtable function to calculate a target for a job.
+function PlanCoordinator.CalcFarthestSniperSpot(caller)
+    local spots = TTTBots.Lib.GetBestSnipeSpots()
+    local callerPos = caller:GetPos()
+    local farthestSpot, farthestDist = getFarthestVec(callerPos, spots)
+
+    return farthestSpot
+end
 
 --- A Target Hashtable function to calculate a target for a job.
 function PlanCoordinator.CalcNearestEnemy(caller) end
