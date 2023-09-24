@@ -123,7 +123,7 @@ end
 
 --- A Target Hashtable function to calculate a target for a job.
 function PlanCoordinator.CalcFarthestSniperSpot(caller)
-    local spots = TTTBots.Lib.GetBestSnipeSpots()
+    local spots = TTTBots.Lib.GetBestSniperSpots()
     local callerPos = caller:GetPos()
     local farthestSpot, farthestDist = getFarthestVec(callerPos, spots)
 
@@ -131,25 +131,57 @@ function PlanCoordinator.CalcFarthestSniperSpot(caller)
 end
 
 --- A Target Hashtable function to calculate a target for a job.
-function PlanCoordinator.CalcNearestEnemy(caller) end
+function PlanCoordinator.CalcNearestEnemy(caller)
+    local closestInnocent = TTTBots.Lib.GetClosest(TTTBots.Match.AliveNonEvil, caller)
+
+    return closestInnocent
+end
 
 --- A Target Hashtable function to calculate a target for a job.
-function PlanCoordinator.CalcNearestHidingSpot(caller) end
+function PlanCoordinator.CalcNearestHidingSpot(caller)
+    local spots = TTTBots.Lib.GetCoverSpots()
+    local callerPos = caller:GetPos()
+    local closestSpot, closestDist = getClosestVec(callerPos, spots)
+
+    return closestSpot
+end
 
 --- A Target Hashtable function to calculate a target for a job.
-function PlanCoordinator.CalcNearestSniperSpot(caller) end
+function PlanCoordinator.CalcNearestSnipeSpot(caller)
+    local spots = TTTBots.Lib.GetBestSniperSpots()
+    local callerPos = caller:GetPos()
+    local closestSpot, closestDist = getClosestVec(callerPos, spots)
+
+    return closestSpot
+end
 
 --- A Target Hashtable function to calculate a target for a job.
-function PlanCoordinator.CalcRandEnemy(caller) end
+function PlanCoordinator.CalcRandEnemy(caller)
+    local randInnocent = table.Random(TTTBots.Match.AliveNonEvil)
+
+    return randInnocent
+end
 
 --- A Target Hashtable function to calculate a target for a job.
-function PlanCoordinator.CalcRandFriendly(caller) end
+function PlanCoordinator.CalcRandFriendly(caller)
+    local randFriendly = table.Random(TTTBots.Match.AliveTraitors)
+
+    return randFriendly
+end
 
 --- A Target Hashtable function to calculate a target for a job.
-function PlanCoordinator.CalcRandFriendlyHuman(caller) end
+function PlanCoordinator.CalcRandFriendlyHuman(caller)
+    local randFriendlyHuman = table.Random(TTTBots.Match.AliveHumanTraitors)
+
+    return randFriendlyHuman or table.Random(TTTBots.Match.AliveTraitors)
+end
 
 --- A Target Hashtable function to calculate a target for a job.
-function PlanCoordinator.CalcRandPolice(caller) end
+function PlanCoordinator.CalcRandPolice(caller)
+    local randPolice = table.Random(TTTBots.Match.AlivePolice)
+
+    return randPolice
+end
 
 local P = PlanCoordinator
 local targetHashTable = {
@@ -158,7 +190,7 @@ local targetHashTable = {
     [TARGETS.FARTHEST_SNIPERSPOT] = P.CalcFarthestSniperSpot,
     [TARGETS.NEAREST_ENEMY] = P.CalcNearestEnemy,
     [TARGETS.NEAREST_HIDINGSPOT] = P.CalcNearestHidingSpot,
-    [TARGETS.NEAREST_SNIPERSPOT] = P.CalcNearestSniperSpot,
+    [TARGETS.NEAREST_SNIPERSPOT] = P.CalcNearestSnipeSpot,
     [TARGETS.NOT_APPLICABLE] = function() return nil end,
     [TARGETS.RAND_ENEMY] = P.CalcRandEnemy,
     [TARGETS.RAND_FRIENDLY] = P.CalcRandFriendly,

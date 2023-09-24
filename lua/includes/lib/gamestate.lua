@@ -14,6 +14,8 @@ Match.DamageLogs = Match.DamageLogs or {}
 Match.AlivePlayers = {}
 Match.AliveTraitors = {}
 Match.AliveHumanTraitors = {}
+Match.AliveNonEvil = {}
+Match.AlivePolice = {}
 Match.SecondsPassed = 0 --- Time since match began. This is important for traitor bots.
 
 function Match.Tick()
@@ -44,6 +46,8 @@ function Match.ResetStats(roundActive)
     Match.AlivePlayers = {}
     Match.AliveTraitors = {}
     Match.AliveHumanTraitors = {}
+    Match.AliveNonEvil = {}
+    Match.AlivePolice = {}
     Match.SecondsPassed = 0
 
     -- Just gonna put this here since it's related to resetting stats.
@@ -70,6 +74,7 @@ end
 function Match.UpdateAlivePlayers()
     Match.AlivePlayers = {}
     Match.AliveHumanTraitors = {}
+    Match.AliveNonEvil = {}
     Match.AliveTraitors = {}
     for i, v in pairs(player.GetAll()) do
         if TTTBots.Lib.IsPlayerAlive(v) then
@@ -80,6 +85,10 @@ function Match.UpdateAlivePlayers()
                 else
                     table.insert(Match.AliveTraitors, v)
                 end
+            elseif TTTBots.Lib.IsPolice(v) then
+                table.insert(Match.AlivePolice, v)
+            else
+                table.insert(Match.AliveNonEvil, v)
             end
         end
     end
