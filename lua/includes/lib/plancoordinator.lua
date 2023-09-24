@@ -37,13 +37,14 @@ function PlanCoordinator.TestJob(job, shouldIncrement)
 end
 
 --- Returns the next unassigned job in the assigned Plan's sequence.
-function PlanCoordinator.GetNextJob()
+---@param isAssignment boolean if this is being used to assign a job. default to false. if true then removes a/the job from stack
+function PlanCoordinator.GetNextJob(isAssignment)
     if not IsRoundActive() then return nil end
     local selectedPlan = Plans.SelectedPlan
     if not selectedPlan then return nil end
     local jobs = selectedPlan.Jobs
     for i, job in pairs(jobs) do
-        local test = PlanCoordinator.TestJob(job, true)
+        local test = PlanCoordinator.TestJob(job, isAssignment)
         if test then return job end
     end
 
@@ -52,6 +53,34 @@ function PlanCoordinator.GetNextJob()
         Action = ACTIONS.ATTACKANY,
         Target = TARGETS.NEAREST_ENEMY,
     }
+end
+
+local targetHashTable = {
+    [TARGETS.CALC_BOMBSPOT] = PlanCoordinator.CalculateTargetBombSpot,
+    [TARGETS.CALC_POPULAR_AREA] = PlanCoordinator.CalculateTargetPopularArea,
+    [TARGETS.FARTHEST_HIDINGSPOT] = PlanCoordinator.CalculateTargetFarthestHidingSpot,
+    [TARGETS.FARTHEST_SNIPERSPOT] = PlanCoordinator.CalculateTargetFarthestSniperSpot,
+    [TARGETS.NEAREST_ENEMY] = PlanCoordinator.CalculateTargetNearestEnemy,
+    [TARGETS.NEAREST_HIDINGSPOT] = PlanCoordinator.CalculateTargetNearestHidingSpot,
+    [TARGETS.NEAREST_SNIPERSPOT] = PlanCoordinator.CalculateTargetNearestSniperSpot,
+    [TARGETS.NOT_APPLICABLE] = function() return nil end,
+    [TARGETS.RAND_ENEMY] = PlanCoordinator.CalculateTargetRandEnemy,
+    [TARGETS.RAND_FRIENDLY] = PlanCoordinator.CalculateTargetRandFriendly,
+    [TARGETS.RAND_FRIENDLY_HUMAN] = PlanCoordinator.CalculateTargetRandFriendlyHuman,
+    [TARGETS.RAND_POLICE] = PlanCoordinator.CalculateTargetRandPolice,
+}
+
+--- Calculates the target for a job, based upon the job's Target string.
+---@param job table
+---@return table Job the job, with the TargetObj field set. The TargetObj can also be retrieved with the second return value.
+---@return Player|Vector3|nil TargetObj the target object, depending on the target type.
+function PlanCoordinator.CalculateTargetForJob(job)
+    local target = job.Target
+    local targetFunc = targetHashTable[target]
+    if not targetFunc then ErrorNoHalt("TargetFunc is not a real Target: " .. tostring(target)) end
+
+    job.TargetObj = targetFunc(job)
+    return job, job.TargetObj
 end
 
 function PlanCoordinator.Tick()
