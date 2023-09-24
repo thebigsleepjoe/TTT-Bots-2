@@ -48,6 +48,8 @@ local function initializeMod()
     local Lib = TTTBots.Lib
     local PathManager = TTTBots.PathManager
 
+    Lib.CacheAllSpots() -- Cache all navmesh spots (cover, exposed, sniper spots, etc.)
+
     local function _testBotAttack()
         local alivePlayers = Lib.GetAlivePlayers()
         -- Go over each alive bot using lib.GetAliveBots() and set target to a random lib.GetAlivePlayers() player

@@ -547,6 +547,53 @@ function TTTBots.Lib.DeepCopy(orig)
     return copy
 end
 
+local spotCache = {
+    cover = {},
+    goodsnipe = {},
+    bestsnipe = {},
+    exposed = {},
+}
+local spotCacheIDs = {
+    cover = 1,
+    goodsnipe = 2,
+    bestsnipe = 4,
+    exposed = 8,
+}
+--- Caches, or returns the cache if already exists, of the given spotCacheIDs key
+---@param key string
+---@return table
+function TTTBots.Lib.CacheSpotsOfType(key)
+    local id = spotCacheIDs[key]
+    if #spotCache[key] > 0 then return spotCache[key] end
+    local spots = {}
+    local navs = navmesh.GetAllNavAreas()
+    for i, v in pairs(navs) do
+        if not v:IsLadder() then
+            local spotsHere = v:GetHidingSpots(id) -- get spots of type 1
+            for i2, v2 in pairs(spotsHere) do
+                table.insert(spots, v2)
+            end
+        end
+    end
+    spotCache[key] = spots
+end
+
+function TTTBots.Lib.GetCoverSpots() return TTTBots.Lib.CacheSpotsOfType("cover") end
+
+function TTTBots.Lib.GetGoodSnipeSpots() return TTTBots.Lib.CacheSpotsOfType("goodsnipe") end
+
+function TTTBots.Lib.GetBestSnipeSpots() return TTTBots.Lib.CacheSpotsOfType("bestsnipe") end
+
+function TTTBots.Lib.GetExposedSpots() return TTTBots.Lib.CacheSpotsOfType("exposed") end
+
+--- Call this function at first run on a map (assuming navmesh has loaded) to cache all spots.
+function TTTBots.Lib.CacheAllSpots()
+    TTTBots.Lib.GetCoverSpots()
+    TTTBots.Lib.GetGoodSnipeSpots()
+    TTTBots.Lib.GetBestSnipeSpots()
+    TTTBots.Lib.GetExposedSpots()
+end
+
 -- Wrapper for "ttt_bot_" + name convars
 -- Prepends "ttt_bot_" to the name of the convar, and returns the boolean value of the convar.
 function TTTBots.Lib.GetConVarBool(name)
