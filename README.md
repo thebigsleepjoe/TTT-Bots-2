@@ -1,3 +1,5 @@
+WARNING: THIS IS NOT READY FOR PRODUCTION USE.
+
 ![TTT Bots Header](tttbots-banner2.png)
 ## What is this?
 This is a player bot addon for the Trouble in Terrorist Town gamemode in Garry's Mod. It is currently a **WIP**.
