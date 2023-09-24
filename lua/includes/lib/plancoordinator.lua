@@ -55,19 +55,42 @@ function PlanCoordinator.GetNextJob(isAssignment)
     }
 end
 
+function PlanCoordinator.CalcBombSpot() end
+
+function PlanCoordinator.CalcPopularArea() end
+
+function PlanCoordinator.CalcFarthestHidingSpot() end
+
+function PlanCoordinator.CalcFarthestSniperSpot() end
+
+function PlanCoordinator.CalcNearestEnemy() end
+
+function PlanCoordinator.CalcNearestHidingSpot() end
+
+function PlanCoordinator.CalcNearestSniperSpot() end
+
+function PlanCoordinator.CalcRandEnemy() end
+
+function PlanCoordinator.CalcRandFriendly() end
+
+function PlanCoordinator.CalcRandFriendlyHuman() end
+
+function PlanCoordinator.CalcRandPolice() end
+
+local P = PlanCoordinator
 local targetHashTable = {
-    [TARGETS.CALC_BOMBSPOT] = PlanCoordinator.CalculateTargetBombSpot,
-    [TARGETS.CALC_POPULAR_AREA] = PlanCoordinator.CalculateTargetPopularArea,
-    [TARGETS.FARTHEST_HIDINGSPOT] = PlanCoordinator.CalculateTargetFarthestHidingSpot,
-    [TARGETS.FARTHEST_SNIPERSPOT] = PlanCoordinator.CalculateTargetFarthestSniperSpot,
-    [TARGETS.NEAREST_ENEMY] = PlanCoordinator.CalculateTargetNearestEnemy,
-    [TARGETS.NEAREST_HIDINGSPOT] = PlanCoordinator.CalculateTargetNearestHidingSpot,
-    [TARGETS.NEAREST_SNIPERSPOT] = PlanCoordinator.CalculateTargetNearestSniperSpot,
+    [TARGETS.ANY_BOMBSPOT] = P.CalcBombSpot,
+    [TARGETS.FARTHEST_HIDINGSPOT] = P.CalcFarthestHidingSpot,
+    [TARGETS.FARTHEST_SNIPERSPOT] = P.CalcFarthestSniperSpot,
+    [TARGETS.NEAREST_ENEMY] = P.CalcNearestEnemy,
+    [TARGETS.NEAREST_HIDINGSPOT] = P.CalcNearestHidingSpot,
+    [TARGETS.NEAREST_SNIPERSPOT] = P.CalcNearestSniperSpot,
     [TARGETS.NOT_APPLICABLE] = function() return nil end,
-    [TARGETS.RAND_ENEMY] = PlanCoordinator.CalculateTargetRandEnemy,
-    [TARGETS.RAND_FRIENDLY] = PlanCoordinator.CalculateTargetRandFriendly,
-    [TARGETS.RAND_FRIENDLY_HUMAN] = PlanCoordinator.CalculateTargetRandFriendlyHuman,
-    [TARGETS.RAND_POLICE] = PlanCoordinator.CalculateTargetRandPolice,
+    [TARGETS.RAND_ENEMY] = P.CalcRandEnemy,
+    [TARGETS.RAND_FRIENDLY] = P.CalcRandFriendly,
+    [TARGETS.RAND_FRIENDLY_HUMAN] = P.CalcRandFriendlyHuman,
+    [TARGETS.RAND_POLICE] = P.CalcRandPolice,
+    [TARGETS.RAND_POPULAR_AREA] = P.CalcPopularArea,
 }
 
 --- Calculates the target for a job, based upon the job's Target string.

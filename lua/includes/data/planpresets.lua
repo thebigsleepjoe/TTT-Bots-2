@@ -15,7 +15,7 @@ local PRESETS = {
             {
                 Chance = 10,
                 Action = ACTIONS.PLANT,
-                Target = TARGETS.CALC_BOMBSPOT,
+                Target = TARGETS.ANY_BOMBSPOT,
                 MaxAssigned = 1,
                 Conditions = {}
             },
@@ -23,7 +23,7 @@ local PRESETS = {
             {
                 Chance = 80,
                 Action = ACTIONS.GATHER,
-                Target = TARGETS.CALC_POPULAR_AREA,
+                Target = TARGETS.RAND_POPULAR_AREA,
                 MaxAssigned = 99,
                 MinDuration = 10,
                 MaxDuration = 24,
@@ -56,7 +56,7 @@ local PRESETS = {
             {
                 Chance = 40,
                 Action = ACTIONS.PLANT,
-                Target = TARGETS.CALC_BOMBSPOT,
+                Target = TARGETS.ANY_BOMBSPOT,
                 MaxAssigned = 2,
                 Conditions = {
                     MinTraitors = 3,
@@ -66,7 +66,7 @@ local PRESETS = {
             {
                 Chance = 20,
                 Action = ACTIONS.PLANT,
-                Target = TARGETS.CALC_BOMBSPOT,
+                Target = TARGETS.ANY_BOMBSPOT,
                 MaxAssigned = 1,
                 Conditions = {
                     MaxTraitors = 2,
@@ -96,7 +96,7 @@ local PRESETS = {
             {
                 Chance = 100,
                 Action = ACTIONS.GATHER,
-                Target = TARGETS.CALC_POPULAR_AREA,
+                Target = TARGETS.RAND_POPULAR_AREA,
                 MaxAssigned = 99,
                 MinDuration = 10,
                 MaxDuration = 24,
