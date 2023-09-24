@@ -37,45 +37,65 @@ function PlanCoordinator.TestJob(job, shouldIncrement)
 end
 
 --- Returns the next unassigned job in the assigned Plan's sequence.
----@param isAssignment boolean if this is being used to assign a job. default to false. if true then removes a/the job from stack
-function PlanCoordinator.GetNextJob(isAssignment)
+---@param isAssignment boolean|nil if this is being used to assign a job. default to false. if true then removes a/the job from stack
+---@param caller Player|nil the player who is calling this function. used for calculating targets if isAssignment is true. otherwise optional
+function PlanCoordinator.GetNextJob(isAssignment, caller)
     if not IsRoundActive() then return nil end
     local selectedPlan = Plans.SelectedPlan
     if not selectedPlan then return nil end
     local jobs = selectedPlan.Jobs
-    for i, job in pairs(jobs) do
-        local test = PlanCoordinator.TestJob(job, isAssignment)
-        if test then return job end
-    end
-
-    print("Reached end of plan stack, defaulting to attack everyone")
-    return {
+    local assignedJob = { -- default job
         Action = ACTIONS.ATTACKANY,
         Target = TARGETS.NEAREST_ENEMY,
     }
+    for i, job in pairs(jobs) do
+        local test = PlanCoordinator.TestJob(job, isAssignment)
+        if test then
+            assignedJob = job
+            break
+        end
+    end
+
+    if isAssignment then
+        assignedJob = PlanCoordinator.CalculateTargetForJob(assignedJob, caller)
+    end
+    return job
 end
 
-function PlanCoordinator.CalcBombSpot() end
+--- A Target Hashtable function to calculate a target for a job.
+function PlanCoordinator.CalcBombSpot(caller)
 
-function PlanCoordinator.CalcPopularArea() end
+end
 
-function PlanCoordinator.CalcFarthestHidingSpot() end
+--- A Target Hashtable function to calculate a target for a job.
+function PlanCoordinator.CalcPopularArea(caller) end
 
-function PlanCoordinator.CalcFarthestSniperSpot() end
+--- A Target Hashtable function to calculate a target for a job.
+function PlanCoordinator.CalcFarthestHidingSpot(caller) end
 
-function PlanCoordinator.CalcNearestEnemy() end
+--- A Target Hashtable function to calculate a target for a job.
+function PlanCoordinator.CalcFarthestSniperSpot(caller) end
 
-function PlanCoordinator.CalcNearestHidingSpot() end
+--- A Target Hashtable function to calculate a target for a job.
+function PlanCoordinator.CalcNearestEnemy(caller) end
 
-function PlanCoordinator.CalcNearestSniperSpot() end
+--- A Target Hashtable function to calculate a target for a job.
+function PlanCoordinator.CalcNearestHidingSpot(caller) end
 
-function PlanCoordinator.CalcRandEnemy() end
+--- A Target Hashtable function to calculate a target for a job.
+function PlanCoordinator.CalcNearestSniperSpot(caller) end
 
-function PlanCoordinator.CalcRandFriendly() end
+--- A Target Hashtable function to calculate a target for a job.
+function PlanCoordinator.CalcRandEnemy(caller) end
 
-function PlanCoordinator.CalcRandFriendlyHuman() end
+--- A Target Hashtable function to calculate a target for a job.
+function PlanCoordinator.CalcRandFriendly(caller) end
 
-function PlanCoordinator.CalcRandPolice() end
+--- A Target Hashtable function to calculate a target for a job.
+function PlanCoordinator.CalcRandFriendlyHuman(caller) end
+
+--- A Target Hashtable function to calculate a target for a job.
+function PlanCoordinator.CalcRandPolice(caller) end
 
 local P = PlanCoordinator
 local targetHashTable = {
@@ -97,12 +117,12 @@ local targetHashTable = {
 ---@param job table
 ---@return table Job the job, with the TargetObj field set. The TargetObj can also be retrieved with the second return value.
 ---@return Player|Vector3|nil TargetObj the target object, depending on the target type.
-function PlanCoordinator.CalculateTargetForJob(job)
+function PlanCoordinator.CalculateTargetForJob(job, caller)
     local target = job.Target
     local targetFunc = targetHashTable[target]
     if not targetFunc then ErrorNoHalt("TargetFunc is not a real Target: " .. tostring(target)) end
 
-    job.TargetObj = targetFunc(job)
+    job.TargetObj = targetFunc(caller)
     return job, job.TargetObj
 end
 
