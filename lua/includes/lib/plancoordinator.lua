@@ -59,16 +59,32 @@ function PlanCoordinator.GetNextJob(isAssignment, caller)
     if isAssignment then
         assignedJob = PlanCoordinator.CalculateTargetForJob(assignedJob, caller)
     end
-    return job
+    return assignedJob
 end
 
 --- A Target Hashtable function to calculate a target for a job.
 function PlanCoordinator.CalcBombSpot(caller)
+    local coverSpots = TTTBots.Lib.GetCoverSpots()
+    local getWitnesses = TTTBots.Lib.GetAllWitnessesBasic
 
+    for i, spot in pairs(coverSpots) do
+        local witnesses = getWitnesses(spot, TTTBots.Match.AlivePlayers, caller) -- get all living witnesses to spot except caller
+        if #witnesses == 0 then
+            return spot
+        end
+    end
+
+    print("couldn't find any spots to plant a bomb...")
+    return nil
 end
 
 --- A Target Hashtable function to calculate a target for a job.
-function PlanCoordinator.CalcPopularArea(caller) end
+function PlanCoordinator.CalcPopularArea(caller)
+    local randArea = TTTBots.Lib.GetRandomPopularNav()
+    local targetPos = navmesh.GetNavAreaByID(randArea):GetRandomPoint()
+
+    return targetPos
+end
 
 --- A Target Hashtable function to calculate a target for a job.
 function PlanCoordinator.CalcFarthestHidingSpot(caller) end

@@ -50,6 +50,17 @@ local function initializeMod()
 
     Lib.CacheAllSpots() -- Cache all navmesh spots (cover, exposed, sniper spots, etc.)
 
+    local debugSpots = true
+
+    if debugSpots then
+        local f = string.format
+        print(f("On this map, there are:"))
+        print(f("%d hiding/cover spots", #Lib.GetCoverSpots()))
+        print(f("%d exposed spots", #Lib.GetExposedSpots()))
+        print(f("%d sniper spots", #Lib.GetGoodSnipeSpots()))
+        print(f("%d great sniper spots", #Lib.GetBestSnipeSpots()))
+    end
+
     local function _testBotAttack()
         local alivePlayers = Lib.GetAlivePlayers()
         -- Go over each alive bot using lib.GetAliveBots() and set target to a random lib.GetAlivePlayers() player

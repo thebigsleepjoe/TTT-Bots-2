@@ -36,3 +36,24 @@ timer.Create("TTTBots.Lib.PopularNavsTimer", 1, 0, function()
     --     TTTBots.DebugServer.DrawText(pos, txt, 1, "popularnavs" .. i)
     -- end
 end)
+
+function TTTBots.Lib.GetPopularNavs()
+    return TTTBots.Lib.PopularNavsSorted
+end
+
+function TTTBots.Lib.GetTopNPopularNavs(n)
+    local sorted = TTTBots.Lib.GetPopularNavs()
+    local topN = {}
+    for i = 1, n do
+        if not sorted[i] then break end
+        table.insert(topN, sorted[i])
+    end
+    return topN
+end
+
+--- Get a random popular nav area from the top 8 most popular nav areas (or fewer if there are less than 8)
+function TTTBots.Lib.GetRandomPopularNav()
+    local topN = TTTBots.Lib.GetTopNPopularNavs(8)
+    local rand = math.random(1, #topN)
+    return topN[rand][1]
+end

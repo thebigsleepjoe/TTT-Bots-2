@@ -12,6 +12,8 @@ include("includes/components/memory.lua")
 include("includes/components/morality.lua")
 include("includes/components/chatter.lua")
 
+local BASIC_VISIBILITY_RANGE = 4000 --- Threshold to be considred for the :VisibleVec function in a basic visibility check.
+
 local format = string.format
 
 local alivePlayers = {}
@@ -178,6 +180,25 @@ function TTTBots.Lib.CanSeeArc(ply, pos, arc)
     end
 
     return ply:VisibleVec(pos)
+end
+
+--- Return a table of every given player within range that also have a sightline to the position.
+---@param pos Vector The position to check
+---@param playerTbl table<Player>|nil (optional) defaults to all living players
+---@param ignorePly Player|nil a player to ignore in the check, if any
+function TTTBots.Lib.GetAllWitnessesBasic(pos, playerTbl, ignorePly)
+    local RANGE = BASIC_VISIBILITY_RANGE
+    local witnesses = {}
+    for i, ply in pairs(playerTbl) do
+        if ply:GetPos():Distance(pos) <= RANGE then
+            if ply == ignorePly then continue end
+            local sawthat = ply:VisibleVec(pos)
+            if sawthat then
+                table.insert(witnesses, ply)
+            end
+        end
+    end
+    return witnesses
 end
 
 ---Get a list of players/bots that can see the position. This factors in for a FOV of 90.
