@@ -74,7 +74,6 @@ local function initializeMod()
             print(f("Bot %s is targeting %s", bot:Nick(), newTarget:Nick()))
         end
     end
-
     -- Bot behavior
     timer.Create("TTTBots_Tick", 1 / TTTBots.Tickrate, 0, function()
         local call, err = pcall(function()
@@ -82,7 +81,10 @@ local function initializeMod()
             TTTBots.Match.Tick()
             TTTBots.Behaviors.Tree()
             TTTBots.PlanCoordinator.Tick()
-            for i, bot in pairs(player.GetBots()) do
+            local bots = TTTBots.Bots
+            print("ticking " .. #bots .. " bots")
+            print("total players in game: " .. #player.GetAll())
+            for i, bot in pairs(bots) do
                 -- TTTBots.DebugServer.RenderDebugFor(bot, { "all" })
 
                 for i, component in pairs(bot.components) do
@@ -94,6 +96,7 @@ local function initializeMod()
                 end
 
                 bot.tick = bot.components.locomotor.tick
+                print("ticked bot on tick #" .. (bot.tick or 0))
                 bot.timeInGame = (bot.timeInGame or 0) + (1 / TTTBots.Tickrate)
             end
         end, function(err)

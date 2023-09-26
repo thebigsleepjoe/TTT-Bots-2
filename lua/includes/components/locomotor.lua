@@ -1294,7 +1294,7 @@ Example commonStuckPositions table: (every position within 200 units of center i
 timer.Create("TTTBots.Locomotor.StuckTracker", 1, 0, function()
     local stuckBots = TTTBots.Components.Locomotor.stuckBots
     local commonStucks = TTTBots.Components.Locomotor.commonStuckPositions
-    local bots = player.GetBots()
+    local bots = TTTBots.Bots
 
     ---------------------------
     -- Update stuckBots table
@@ -1384,7 +1384,7 @@ timer.Create("TTTBots.Locomotor.StuckTracker.Debug", 0.1, 0, function()
 end)
 
 timer.Create("TTTBots.Locomotor.lookPosOverride.ForgetOverride", 1.0 / TTTBots.Tickrate, 0, function()
-    for i, bot in pairs(player.GetBots()) do
+    for i, bot in pairs(TTTBots.Bots) do
         if not (bot and bot.components and bot.components.locomotor) then continue end
         local loco = bot.components.locomotor
         local endTime = loco.lookPosOverrideEnd

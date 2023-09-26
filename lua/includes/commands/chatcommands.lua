@@ -118,7 +118,7 @@ Chat.Commands = {
                 "You do not have permission to execute this command. You must be a superadmin.")
             return
         end
-        local nBots = #player.GetBots()
+        local nBots = #TTTBots.Bots
         concommand.Run(ply, "ttt_bot_kickall")
         concommand.Run(ply, "ttt_roundrestart")
         concommand.Run(ply, "ttt_bot_add", { tostring(nBots) })

@@ -24,6 +24,7 @@ end
 
 --- Validate the behavior
 function FollowPlan:Validate(bot)
+    print("validating followplan")
     if self:ShouldIgnorePlans(bot) then return false end
     if not TTTBots.Plans.SelectedPlan then return false end
     return true

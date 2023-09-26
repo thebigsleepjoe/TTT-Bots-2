@@ -1,5 +1,15 @@
 ---@class Match
 TTTBots.Match = {}
+TTTBots.Bots = {} --- Bots in the game right now. We have to do this because of a silly bug with TTTBots.Bots
+
+timer.Create("TTTBots.Match.UpdateBotsTable", 1, 0, function()
+    TTTBots.Bots = {}
+    for i, v in pairs(player.GetAll()) do
+        if v:IsBot() then
+            table.insert(TTTBots.Bots, v)
+        end
+    end
+end)
 
 ---@class Match
 local Match = TTTBots.Match
@@ -51,7 +61,7 @@ function Match.ResetStats(roundActive)
     Match.SecondsPassed = 0
 
     -- Just gonna put this here since it's related to resetting stats.
-    for i, v in pairs(player.GetBots()) do
+    for i, v in pairs(TTTBots.Bots) do
         v.attackTarget = nil
     end
 end

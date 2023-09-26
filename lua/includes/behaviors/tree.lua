@@ -33,7 +33,7 @@ local STATUS = {
 function TTTBots.Behaviors.Tree()
     local tree = TTTBots.Behaviors.BehaviorTree
 
-    for _, bot in pairs(player.GetBots()) do
+    for _, bot in pairs(TTTBots.Bots) do
         if not IsValid(bot) or not TTTBots.Lib.IsPlayerAlive(bot) then continue end
         local behaviorChanged
 

@@ -18,7 +18,7 @@ concommand.Add("ttt_bot_add", function(ply, cmd, args)
 end)
 
 concommand.Add("ttt_bot_kickall", function(ply, cmd, args)
-    for _, bot in pairs(player.GetBots()) do
+    for _, bot in pairs(TTTBots.Bots) do
         bot:Kick("Kicked by " .. (ply and ply:Nick() or "[Server]") .. " using ttt_bot_kickall")
     end
 end)
@@ -29,7 +29,7 @@ concommand.Add("ttt_bot_kick", function(ply, cmd, args)
         TTTBots.Chat.MessagePlayer(ply, "You must specify a bot name.")
         return
     end
-    for _, bot in pairs(player.GetBots()) do
+    for _, bot in pairs(TTTBots.Bots) do
         if bot:Nick() == botname or botname == "all" then
             bot:Kick("Kicked by " .. (ply and ply:Nick() or "[Server]") .. " using ttt_bot_kick")
         end
@@ -49,7 +49,7 @@ concommand.Add("ttt_bot_debug_locomotor", function(ply, cmd, args)
 
     -- Wait for a quarter-second, then teleport the human player to the bot.
     timer.Simple(0.25, function()
-        local bot = player.GetBots()[1]
+        local bot = TTTBots.Bots[1]
         if not bot then return end
         ply:SetPos(bot:GetPos() + Vector(0, 0, 50))
     end)

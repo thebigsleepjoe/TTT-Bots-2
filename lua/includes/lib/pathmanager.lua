@@ -315,7 +315,7 @@ function TTTBots.PathManager.Astar2(start, goal, playerFilter)
     local totalNeighbors = navmesh.GetNavAreaCount()
     -- Coroutine
     local cpf = TTTBots.Lib.GetConVarInt("pathfinding_cpf") *
-        (TTTBots.Lib.GetConVarBool("pathfinding_cpf_scaling") and (math.max(#player.GetBots(), 5) * 0.2) or 1)
+        (TTTBots.Lib.GetConVarBool("pathfinding_cpf_scaling") and (math.max(#TTTBots.Bots, 5) * 0.2) or 1)
     local cn = 0
 
     if start == goal then return false end

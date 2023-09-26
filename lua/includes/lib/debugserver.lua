@@ -57,7 +57,7 @@ net.Receive("TTTBots_RequestData", function(len, ply)
     if not ply:IsSuperAdmin() then return end
     local botData = {} -- todo
 
-    for i, bot in pairs(player.GetBots()) do
+    for i, bot in pairs(TTTBots.Bots) do
         if not (bot and bot.components and bot.components.locomotor) then continue end
         ---@type CLocomotor
         local locomotor = bot.components.locomotor

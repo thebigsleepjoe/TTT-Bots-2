@@ -474,7 +474,7 @@ function Memory:GetRecentSounds()
 end
 
 timer.Create("TTTBots_CullSoundMemory", 1, 0, function()
-    for i, v in pairs(player.GetBots()) do
+    for i, v in pairs(TTTBots.Bots) do
         if not (v and v.components and v.components.memory) then continue end
         v.components.memory:CullSoundMemory()
     end
@@ -484,7 +484,7 @@ end)
 ---@param info SoundInfo
 ---@param soundData table
 function Memory.HandleSoundForAllBots(info, soundData)
-    for i, v in pairs(player.GetBots()) do
+    for i, v in pairs(TTTBots.Bots) do
         if not lib.IsPlayerAlive(v) then continue end
         local mem = v.components.memory
 

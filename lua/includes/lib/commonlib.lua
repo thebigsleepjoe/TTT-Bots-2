@@ -43,7 +43,7 @@ end
 
 function TTTBots.Lib.GetAliveBots()
     local alive = {}
-    for _, ply in ipairs(player.GetBots()) do
+    for _, ply in ipairs(TTTBots.Bots) do
         if TTTBots.Lib.IsPlayerAlive(ply) then
             table.insert(alive, ply)
         end
@@ -53,7 +53,7 @@ end
 
 function TTTBots.Lib.GetAliveEvilBots()
     local alive = {}
-    for _, ply in ipairs(player.GetBots()) do
+    for _, ply in ipairs(TTTBots.Bots) do
         if TTTBots.Lib.IsPlayerAlive(ply) and TTTBots.Lib.IsEvil(ply) then
             table.insert(alive, ply)
         end
@@ -207,7 +207,7 @@ end
 ---@return table
 function TTTBots.Lib.GetAllWitnesses(pos, botsOnly)
     local witnesses = {}
-    for _, ply in ipairs(botsOnly and player.GetBots() or player.GetAll()) do
+    for _, ply in ipairs(botsOnly and TTTBots.Bots or player.GetAll()) do
         if TTTBots.Lib.IsPlayerAlive(ply) then
             local sawthat = TTTBots.Lib.CanSeeArc(ply, pos, 90)
             if sawthat then
