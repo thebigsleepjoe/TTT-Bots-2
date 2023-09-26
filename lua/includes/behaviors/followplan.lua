@@ -7,6 +7,8 @@ local FollowPlan = TTTBots.Behaviors.FollowPlan
 FollowPlan.Name = "FollowPlan"
 FollowPlan.Description = "Follow the plan assigned to us by the game coordinator."
 FollowPlan.Interruptible = true
+-- When debugging the component and you want to print extra info, use this:
+FollowPlan.Debug = true
 
 local STATUS = {
     RUNNING = 1,
@@ -16,15 +18,15 @@ local STATUS = {
 
 --- Ignore plans if we aren't evil or have a conflicting personality trait.
 function FollowPlan:ShouldIgnorePlans(bot)
-    if not TTTBots.Lib.IsEvil(bot) then return true end                   -- ignore plans if we aren't evil
-    if bot.components.personality:GetIgnoresOrders() then return true end -- ignore plans if we have a conflicting personality trait
+    local isEvil = TTTBots.Lib.IsEvil(bot)
+    if not isEvil then return true end                                                             -- ignore plans if we aren't evil
+    if not FollowPlan.Debug and bot.components.personality:GetIgnoresOrders() then return true end -- ignore plans if we have a conflicting personality trait
 
-    return true
+    return false
 end
 
 --- Validate the behavior
 function FollowPlan:Validate(bot)
-    print("validating followplan")
     if self:ShouldIgnorePlans(bot) then return false end
     if not TTTBots.Plans.SelectedPlan then return false end
     return true

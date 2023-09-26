@@ -82,10 +82,9 @@ local function initializeMod()
             TTTBots.Behaviors.Tree()
             TTTBots.PlanCoordinator.Tick()
             local bots = TTTBots.Bots
-            print("ticking " .. #bots .. " bots")
-            print("total players in game: " .. #player.GetAll())
             for i, bot in pairs(bots) do
                 -- TTTBots.DebugServer.RenderDebugFor(bot, { "all" })
+                if not (IsValid(bot) and bot and bot.components) then continue end -- Sometimes a weird bug or edge case occurs, just ignore it
 
                 for i, component in pairs(bot.components) do
                     if component.Think == nil then
@@ -96,7 +95,6 @@ local function initializeMod()
                 end
 
                 bot.tick = bot.components.locomotor.tick
-                print("ticked bot on tick #" .. (bot.tick or 0))
                 bot.timeInGame = (bot.timeInGame or 0) + (1 / TTTBots.Tickrate)
             end
         end, function(err)
