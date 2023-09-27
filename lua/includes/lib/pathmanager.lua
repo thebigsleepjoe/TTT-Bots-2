@@ -44,8 +44,8 @@ function ladderMeta:GetTop2()
     top.z = highest
     local adjusted = Vector(top.x, top.y, highest) + Vector(0, 0, 32) + forward * LADDER_FORWARD_TOP
 
-    TTTBots.DebugServer.DrawCross(top, 10, Color(255, 0, 0), 5, "ladderTop")
-    TTTBots.DebugServer.DrawLineBetween(top, adjusted, Color(255, 0, 0), 5, "ladderTop2")
+    -- TTTBots.DebugServer.DrawCross(top, 10, Color(255, 0, 0), 5, "ladderTop")
+    -- TTTBots.DebugServer.DrawLineBetween(top, adjusted, Color(255, 0, 0), 5, "ladderTop2")
 
     return adjusted
 end
