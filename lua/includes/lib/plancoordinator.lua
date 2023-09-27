@@ -58,6 +58,9 @@ function PlanCoordinator.GetNextJob(isAssignment, caller)
 
     if isAssignment then
         assignedJob = PlanCoordinator.CalculateTargetForJob(assignedJob, caller)
+        local timeNow = CurTime()
+        assignedJob.TimeAssigned = timeNow
+        assignedJob.ExpiryTime = timeNow + math.random((assignedJob.MinDuration or 5), (assignedJob.MaxDuration or 10))
     end
     return assignedJob
 end

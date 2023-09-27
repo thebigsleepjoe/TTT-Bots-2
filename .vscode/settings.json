@@ -24,6 +24,7 @@
         "ScrW",
         "ScrH",
         "hook",
-        "CORPSE"
+        "CORPSE",
+        "PrintTable"
     ]
 }

@@ -129,7 +129,6 @@ function TTTBots.Plans.Tick()
         TTTBots.Plans.Cleanup()
         return
     end
-    print("Trying to select a plan;" .. " SelectedPlan = " .. tostring(TTTBots.Plans.SelectedPlan))
     if not TTTBots.Plans.SelectedPlan then
         TTTBots.Plans.SelectedPlan = TTTBots.Lib.DeepCopy(TTTBots.Plans.GetFirstBestPreset())
         TTTBots.Plans.CurrentPlanState = TTTBots.Plans.PLANSTATES.START
