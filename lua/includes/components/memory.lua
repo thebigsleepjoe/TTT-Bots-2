@@ -486,6 +486,7 @@ end)
 function Memory.HandleSoundForAllBots(info, soundData)
     for i, v in pairs(TTTBots.Bots) do
         if not lib.IsPlayerAlive(v) then continue end
+        if not (v and v.components and v.components.memory) then continue end
         local mem = v.components.memory
 
         -- local hasAgent = info.EntInfo.Entity or info.EntInfo.Owner

@@ -34,7 +34,7 @@ function InvestigateCorpse:GetVisibleUnidentified(bot)
         if not IsValid(corpse) then continue end
         local visible = bot:Visible(corpse)
         local found = CORPSE.GetFound(corpse, false)
-        TTTBots.DebugServer.DrawCross(corpse:GetPos(), 10, Color(255, 0, 0), 1, "body")
+        -- TTTBots.DebugServer.DrawCross(corpse:GetPos(), 10, Color(255, 0, 0), 1, "body")
         if not found and visible then
             table.insert(results, corpse)
         end
