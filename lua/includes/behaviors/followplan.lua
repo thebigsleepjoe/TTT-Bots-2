@@ -27,19 +27,54 @@ end
 
 --- Validate the behavior
 function FollowPlan:Validate(bot)
+    if not TTTBots.Match.RoundActive and bot.Job then bot.Job = nil end
+    if bot.Job then return true end
     if self:ShouldIgnorePlans(bot) then return false end
     if not TTTBots.Plans.SelectedPlan then return false end
+    if not bot.Job and not self:AutoSetBotJob(bot) then return false end
     return true
+end
+
+function FollowPlan:GetBotJob(bot) return bot.Job end
+
+function FollowPlan:GetJobState(bot)
+    local job = self:GetBotJob(bot)
+    return (job and job.State) or TTTBots.Plans.BOTSTATES.IDLE
+end
+
+--- Grabs an available job from the PlanCoordinator and assigns it to the bot.
+---@param bot Player the bot to assign a job to
+---@return boolean|table false if no job was assigned, otherwise the job
+function FollowPlan:AutoSetBotJob(bot)
+    bot.Job = nil
+    local job = TTTBots.PlanCoordinator.GetNextJob(true, bot)
+    if not job then
+        if FollowPlan.Debug then print("No jobs remaining for bot " .. bot:Nick()) end
+        return false
+    end
+    job.State = TTTBots.Plans.BOTSTATES.IDLE
+    bot.Job = job
+    return job
+end
+
+--- Finds a new job if one isn't already set. Returns false if a) no job, b) already employed, or c) job is not finished.
+function FollowPlan:FindNewJobIfAvailable(bot)
+    local isDone = self:GetJobState(bot) == TTTBots.Plans.BOTSTATES.FINISHED
+    local isEmployed = bot.Job ~= nil
+    if not (isDone and isEmployed) then return false end
+    return self:AutoSetBotJob(bot)
 end
 
 --- Called when the behavior is started
 function FollowPlan:OnStart(bot)
     print("Start following the plan")
-    return STATUS.SUCCESS -- just for now, debug purposes
+    return STATUS.RUNNING
 end
 
 --- Called when the behavior's last state is running
 function FollowPlan:OnRunning(bot)
+    print("Bot's assigned job: ")
+    PrintTable(bot.Job)
 end
 
 --- Called when the behavior returns a success state

@@ -132,7 +132,7 @@ end
 
 --- A Target Hashtable function to calculate a target for a job.
 function PlanCoordinator.CalcNearestEnemy(caller)
-    local closestInnocent = TTTBots.Lib.GetClosest(TTTBots.Match.AliveNonEvil, caller)
+    local closestInnocent = TTTBots.Lib.GetClosest(TTTBots.Match.AliveNonEvil, caller:GetPos())
 
     return closestInnocent
 end
