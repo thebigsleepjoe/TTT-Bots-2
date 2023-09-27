@@ -195,6 +195,22 @@ function BotInventoryMgr:AutoManageInventory()
     end
 end
 
+--- Gives the bot weapon_ttt_c4 if he doesn't have it already.
+function BotInventoryMgr:GiveC4()
+    local hasC4 = false
+    local weapons = self.bot:GetWeapons()
+    for _, wep in pairs(weapons) do
+        if wep:GetClass() == "weapon_ttt_c4" then
+            hasC4 = true
+            break
+        end
+    end
+
+    if not hasC4 then
+        self.bot:Give("weapon_ttt_c4")
+    end
+end
+
 function BotInventoryMgr:PauseAutoSwitch()
     self.pauseAutoSwitch = true
 end
