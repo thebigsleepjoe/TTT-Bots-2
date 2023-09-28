@@ -130,10 +130,69 @@ function FollowPlan:OnStart(bot)
     return STATUS.RUNNING
 end
 
+local printf = function(str, ...) print(string.format(str, ...)) end
+local actRunnings = {
+    [ACTIONS.ATTACKANY] = function(bot, job)
+        local target = job.TargetObj
+        if not IsValid(target) then return STATUS.FAILURE end
+        local targetPos = target:GetPos()
+        if lib.CanSee(bot, target) then
+            bot.components.locomotor:StartAttack(target)
+            return STATUS.RUNNING
+        else
+            bot.components.locomotor:SetGoalPos(targetPos)
+            return STATUS.RUNNING
+        end
+    end,
+    [ACTIONS.DEFEND] = function(bot, job)
+        -- path to the TargetObj (which is a Vec3) and stand there
+        -- TODO: Implement properly and auto-attack enemy targets that we can see.
+        local targetPos = job.TargetObj
+        bot.components.locomotor:SetGoalPos(targetPos)
+        return STATUS.RUNNING
+    end,
+    [ACTIONS.DEFUSE] = function(bot, job)
+        -- TODO: Implement defusing plan (probably never will do this, as traitors do not need to defuse C4)
+        printf("Bot %s attempting to perform unimplemented action DEFUSE", bot:Nick())
+        return STATUS.FAILURE
+    end,
+    [ACTIONS.FOLLOW] = function(bot, job)
+        -- set the path goal to the TargetObj's :GetPos location.
+        -- TODO: This needs to be more subtle.
+        local target = job.TargetObj
+        if not IsValid(target) then return STATUS.FAILURE end
+        local targetPos = target:GetPos()
+        bot.components.locomotor:SetGoalPos(targetPos)
+        return STATUS.RUNNING
+    end,
+    [ACTIONS.GATHER] = function(bot, job)
+        -- set the patch to the TargetObj (which is a vec3) and stand there.
+        -- TODO: Expand on this behavior and make it more subtle.
+        local targetPos = job.TargetObj
+        bot.components.locomotor:SetGoalPos(targetPos)
+        return STATUS.RUNNING
+    end,
+    [ACTIONS.IGNORE] = function(bot, job)
+        printf("This should not be getting called. Ever. Called by bot %s", bot:Nick())
+        return STATUS.FAILURE
+    end,
+    [ACTIONS.PLANT] = function(bot, job)
+        -- TODO: Implement bomb planting as a feature for traitors.
+        printf("Bot %s attempting to perform unimplemented action PLANT", bot:Nick())
+        return STATUS.FAILURE
+    end,
+    [ACTIONS.ROAM] = function(bot, job)
+        -- walk directly to the TargetObj (vec3).
+        -- TODO: Make this dynamically change the position so we actually roam.
+        local targetPos = job.TargetObj
+        bot.components.locomotor:SetGoalPos(targetPos)
+        return STATUS.RUNNING
+    end
+}
+actRunnings[ACTIONS.ATTACK] = actRunnings[ACTIONS.ATTACKANY]
 --- Called when the behavior's last state is running
 function FollowPlan:OnRunning(bot)
-    print("Running action: " .. tostring(bot.Job.Action))
-    return STATUS.RUNNING
+    return actRunnings[bot.Job.Action](bot, bot.Job)
 end
 
 --- Called when the behavior returns a success state
@@ -146,4 +205,5 @@ end
 
 --- Called when the behavior ends
 function FollowPlan:OnEnd(bot)
+    bot.Job = nil
 end
