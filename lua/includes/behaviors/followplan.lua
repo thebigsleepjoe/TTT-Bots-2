@@ -134,15 +134,8 @@ local printf = function(str, ...) print(string.format(str, ...)) end
 local actRunnings = {
     [ACTIONS.ATTACKANY] = function(bot, job)
         local target = job.TargetObj
-        if not IsValid(target) then return STATUS.FAILURE end
-        local targetPos = target:GetPos()
-        if lib.CanSee(bot, target) then
-            bot.components.locomotor:StartAttack(target)
-            return STATUS.RUNNING
-        else
-            bot.components.locomotor:SetGoalPos(targetPos)
-            return STATUS.RUNNING
-        end
+        if not (IsValid(target) and lib.IsPlayerAlive(target)) then return STATUS.FAILURE end
+        bot.attackTarget = bot
     end,
     [ACTIONS.DEFEND] = function(bot, job)
         -- path to the TargetObj (which is a Vec3) and stand there

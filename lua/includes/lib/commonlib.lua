@@ -350,30 +350,33 @@ local EVIL_CACHE_DURATION = 5 -- Duration in seconds for how long to cache resul
 
 --- Uses built-in ply:HasEvilTeam but is nil-safe. Basically if they're a traitor.
 ---@param ply Player
+---@param skipCache boolean Optional, defaults to false
 ---@return boolean
-function TTTBots.Lib.IsEvil(ply)
-    -- Cleanup expired cache entries.
+function TTTBots.Lib.IsEvil(ply, skipCache)
     local currentTime = CurTime()
-    for k, v in pairs(isEvilCache) do
-        if currentTime - v.time > EVIL_CACHE_DURATION then
-            isEvilCache[k] = nil
+    if not skipCache then
+        -- Cleanup expired cache entries.
+        for k, v in pairs(isEvilCache) do
+            if currentTime - v.time > EVIL_CACHE_DURATION then
+                isEvilCache[k] = nil
+            end
         end
-    end
 
-    -- Check for cached value.
-    if isEvilCache[ply] and currentTime - isEvilCache[ply].time <= EVIL_CACHE_DURATION then
-        return isEvilCache[ply].value
+        -- Check for cached value.
+        if isEvilCache[ply] and currentTime - isEvilCache[ply].time <= EVIL_CACHE_DURATION then
+            return isEvilCache[ply].value
+        end
     end
 
     -- Compute the evil status if not in cache or expired.
     if not ply then return nil end
     if not ply:IsPlayer() then
-        isEvilCache[ply] = { value = false, time = currentTime }
+        if not skipCache then isEvilCache[ply] = { value = false, time = currentTime } end
         return false
     end
 
     local isEvil = ply:HasEvilTeam()
-    isEvilCache[ply] = { value = isEvil, time = currentTime }
+    if not skipCache then isEvilCache[ply] = { value = isEvil, time = currentTime } end
     return isEvil
 end
 
@@ -473,6 +476,7 @@ function TTTBots.Lib.GetClosest(entities, pos)
     local closest = nil
     local closestDist = 99999
     for i, v in pairs(entities) do
+        if not (IsValid(v) and v:IsPlayer() and TTTBots.Lib.IsPlayerAlive(v)) then continue end
         local dist = v:GetPos():Distance(pos)
         if dist < closestDist then
             closest = v

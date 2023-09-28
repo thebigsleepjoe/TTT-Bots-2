@@ -89,13 +89,14 @@ function Match.UpdateAlivePlayers()
     for i, v in pairs(player.GetAll()) do
         if TTTBots.Lib.IsPlayerAlive(v) then
             table.insert(Match.AlivePlayers, v)
-            if TTTBots.Lib.IsEvil(v) then
+            if TTTBots.Lib.IsEvil(v, true) then
                 if not v:IsBot() then
                     table.insert(Match.AliveHumanTraitors, v)
                 else
                     table.insert(Match.AliveTraitors, v)
                 end
             elseif TTTBots.Lib.IsPolice(v) then
+                table.insert(Match.AliveNonEvil, v)
                 table.insert(Match.AlivePolice, v)
             else
                 table.insert(Match.AliveNonEvil, v)
