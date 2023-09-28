@@ -378,10 +378,12 @@ function BotInventoryMgr:GetInventoryString()
         local clip = info.clip or 0
         local max = info.max_ammo or 0
         local total = info.ammo --- how much ammo in inv
+        local needsReload = info.needs_reload
 
         -- example "\nPrimary weapon_name (DPS: 100; TTK: 2.5s) [8/10 shots, of %d]"
         str = str ..
-            string.format("\n%s %s (DPS: %s; TTK: %ss) [%d/%d shots, of %d]", slot, name, dps, ttk, clip, max, total)
+            string.format("\n%s %s (DPS: %s; TTK: %ss) [%d/%d shots, of %d]. NeedsReload=%s",
+                slot, name, dps, ttk, clip, max, total, needsReload)
     end
     return str
 end

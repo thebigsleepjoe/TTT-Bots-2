@@ -1257,7 +1257,11 @@ function BotLocomotor:StartCommand(cmd)
 
     if (self.attack and not self.attackReleaseTime) or                                       -- if we are attacking and we don't have an attack release time
         (self.attack and self.attackReleaseTime and self.attackReleaseTime > CurTime()) then -- or if we are attacking and we have an attack release time and it's not yet time to release:
-        cmd:SetButtons(cmd:GetButtons() + IN_ATTACK)
+        -- stop attack from interrupting reload
+        local currentWep = self.bot.components.inventorymgr:GetHeldWeaponInfo()
+        if (currentWep and (not currentWep.needs_reload)) or not currentWep then
+            cmd:SetButtons(cmd:GetButtons() + IN_ATTACK)
+        end
     end
 
     if self.reload then
