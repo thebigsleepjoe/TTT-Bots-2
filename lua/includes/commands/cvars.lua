@@ -19,21 +19,23 @@ CreateConVar("ttt_bot_names_allowgeneric", "1", FCVAR,
 
 -- Debug cvars
 CreateConVar("ttt_bot_debug_pathfinding", "1", FCVAR,
-    "Enables debug for pathfinding. Requires built-in developer convar to be 1 for drawings.")
+    "[May console spam. Development use only] Enables debug for pathfinding. Requires built-in developer convar to be 1 for drawings.")
 CreateConVar("ttt_bot_debug_look", "1", FCVAR,
-    "Enables debug for looking at things. Requires built-in developer convar to be 1 for drawings.")
+    "[May console spam. Development use only] Enables debug for looking at things. Requires built-in developer convar to be 1 for drawings.")
 CreateConVar("ttt_bot_debug_misc", "1", FCVAR,
-    "Enables misc debug. Requires built-in developer convar to be 1 for drawings.")
+    "[May console spam. Development use only] Enables misc debug. Requires built-in developer convar to be 1 for drawings.")
 CreateConVar("ttt_bot_debug_stuckpositions", "1", FCVAR,
-    "Enables debug for stuck positions. Requires built-in developer convar to be 1 for drawings.")
+    "[May console spam. Development use only] Enables debug for stuck positions. Requires built-in developer convar to be 1 for drawings.")
 CreateConVar("ttt_bot_debug_obstacles", "1", FCVAR,
-    "Enables debug for recognized obstacles. Requires built-in developer convar to be 1 for drawings.")
+    "[May console spam. Development use only] Enables debug for recognized obstacles. Requires built-in developer convar to be 1 for drawings.")
 CreateConVar("ttt_bot_debug_doors", "1", FCVAR,
-    "Enables debug for doors. Requires built-in developer convar to be 1 for drawings.")
+    "[May console spam. Development use only] Enables debug for doors. Requires built-in developer convar to be 1 for drawings.")
 CreateConVar("ttt_bot_debug_attack", "1", FCVAR,
-    "Enables debug for attacking. Requires built-in developer convar to be 1 for drawings.")
+    "[May console spam. Development use only] Enables debug for attacking. Requires built-in developer convar to be 1 for drawings.")
 CreateConVar("ttt_bot_debug_evil", "1", FCVAR,
-    "Enables debug for the Evil Coordinator.")
+    "[May console spam. Development use only] Enables debug for the Evil Coordinator.")
+CreateConVar("ttt_bot_debug_inventory", "1", FCVAR,
+    "[May console spam. Development use only] Enables debug for inventory management.")
 
 -- Pathfinding cvars
 CreateConVar("ttt_bot_pathfinding_cpf", "50", FCVAR,

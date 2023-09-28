@@ -221,6 +221,9 @@ end
 
 function BotInventoryMgr:Think()
     if not lib.IsPlayerAlive(self.bot) then return end
+    if lib.GetDebugFor("inventory") then
+        self:PrintInventory()
+    end
     self.tick = self.tick + 1
 
     -- Manage our own inventory, but only if we have not been paused
@@ -367,14 +370,28 @@ function BotInventoryMgr:GetInventoryString()
     local weapons = self.bot:GetWeapons()
     local str = ""
     for _, wep in pairs(weapons) do
-        -- example "\nPrimary weapon_name (DPS: 100; TTK: 2.5s)"
         local info = self:GetWeaponInfo(wep)
         local slot = info.slot
         local name = info.print_name
         local dps = info.dps
         local ttk = info.time_to_kill
+        local clip = info.clip or 0
+        local max = info.max_ammo or 0
+        local total = info.ammo --- how much ammo in inv
 
-        str = str .. string.format("\n%s %s (DPS: %s; TTK: %ss)", slot, name, dps, ttk)
+        -- example "\nPrimary weapon_name (DPS: 100; TTK: 2.5s) [8/10 shots, of %d]"
+        str = str ..
+            string.format("\n%s %s (DPS: %s; TTK: %ss) [%d/%d shots, of %d]", slot, name, dps, ttk, clip, max, total)
     end
     return str
+end
+
+local function printf(str, ...)
+    print(string.format(str, ...))
+end
+
+function BotInventoryMgr:PrintInventory()
+    printf("===III=== Inventory for bot %s ===III===", self.bot:Nick())
+    printf(self:GetInventoryString())
+    printf("===III=== End inventory ===III===")
 end
