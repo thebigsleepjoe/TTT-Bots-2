@@ -44,7 +44,7 @@ local Memory = TTTBots.Components.Memory
 local DEAD = "DEAD"
 local ALIVE = "ALIVE"
 local FORGET = {
-    Base = 20,
+    Base = 30,
     Variance = 5,
     Traits = {
         -- Personality traits that multiply Base
