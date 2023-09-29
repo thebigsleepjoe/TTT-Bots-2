@@ -1,3 +1,5 @@
+include("includes/lib/chattertxt.lua")
+
 ---@class CChatter
 TTTBots.Components.Chatter = TTTBots.Components.Chatter or {}
 
@@ -54,6 +56,14 @@ function BotChatter:On(event_name, args)
     if dvlpr then
         print(string.format("Event %s called with %d args.", event_name, #args))
     end
+
+    local localizedString = TTTBots.LocalizedStrings.GetLine(event_name, "en", self.bot)
+    if localizedString then
+        self:SayRaw(localizedString)
+        return true
+    end
+
+    return false
 end
 
 function BotChatter:Think()

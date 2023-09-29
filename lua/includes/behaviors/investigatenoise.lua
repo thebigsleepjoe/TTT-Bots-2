@@ -50,7 +50,7 @@ function InvestigateNoise:FindClosestSound(bot, mustBeVisible)
 end
 
 function InvestigateNoise:OnStart(bot)
-    bot.components.chatter:On("investigate_noise")
+    bot.components.chatter:On("investigate_noise", {})
     return STATUS.Running
 end
 
