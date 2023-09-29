@@ -1,7 +1,10 @@
 local FCVAR = FCVAR_ARCHIVE + FCVAR_NOTIFY + FCVAR_REPLICATED + FCVAR_LUA_SERVER
 
+-- Misc cvars
+CreateConVar("ttt_bot_language", "en", FCVAR,
+    "Changes the language that the bots speak in text chat, and may modify some GUI strings. Example is 'en' or 'es'")
+
 -- Gameplay-effecting cvars
--- todo
 
 -- Naming cvars
 CreateConVar("ttt_bot_names_allowcommunity", "1", FCVAR,

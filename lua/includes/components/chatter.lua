@@ -33,8 +33,15 @@ function BotChatter:Initialize(bot)
     self.bot = bot
 end
 
-function BotChatter:SayRaw(text)
-    self.bot:Say(text)
+function BotChatter:SayRaw(text, teamOnly)
+    self.bot:Say(text, teamOnly)
+end
+
+function BotChatter:Say(text, teamOnly)
+    local delay = (math.random(0, 100) / 100.0) * 2
+    timer.Simple(delay, function()
+        self:SayRaw(text, teamOnly)
+    end)
 end
 
 local RADIO = {
@@ -45,21 +52,21 @@ function BotChatter:QuickRadio(msgName, msgTarget)
     hook.Run("TTTPlayerRadioCommand", self.bot, msgName, msgTarget)
     local txt = RADIO[msgName]
     if not txt then ErrorNoHalt("Unknown message type " .. msgName) end
-    self.bot:Say(string.format(txt, msgTarget:Nick()))
+    self:SayRaw(string.format(txt, msgTarget:Nick()))
 end
 
 --- A generic wrapper for when an event happens, to be implemented further in the future
 ---@param event_name string
 ---@param args table<any> A table of arguments passed to the event
-function BotChatter:On(event_name, args)
+function BotChatter:On(event_name, args, teamOnly)
     local dvlpr = lib.GetConVarBool("debug_misc")
     if dvlpr then
         print(string.format("Event %s called with %d args.", event_name, #args))
     end
 
-    local localizedString = TTTBots.LocalizedStrings.GetLine(event_name, "en", self.bot)
+    local localizedString = TTTBots.LocalizedStrings.GetLocalizedLine(event_name, self.bot, args)
     if localizedString then
-        self:SayRaw(localizedString)
+        self:Say(localizedString, teamOnly)
         return true
     end
 
@@ -67,5 +74,22 @@ function BotChatter:On(event_name, args)
 end
 
 function BotChatter:Think()
-
 end
+
+-- hook for GM:PlayerCanSeePlayersChat(text, taemOnly, listener, sender)
+hook.Add("PlayerCanSeePlayersChat", "TTTBots_PlayerCanSeePlayersChat", function(text, teamOnly, listener, sender)
+    if IsValid(sender) and sender:IsBot() and teamOnly then
+        if lib.IsPlayerAlive(sender) then
+            local isEvil = lib.IsEvil(sender)
+            if not isEvil then
+                sender:Say(text)
+                return false
+            end
+            if listener:IsInTeam(sender) then
+                return true
+            end
+        else
+            return false
+        end
+    end
+end)

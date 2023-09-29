@@ -202,23 +202,24 @@ function FollowPlan:OnEnd(bot)
 end
 
 -- Hook for PlayerSay to force give ourselves a follow job if a teammate traitor says in team chat to "follow"
-hook.Add("PlayerSay", "TTTBots_FollowPlan_PlayerSay", function(ply, text, teamChat)
-    printf("PlayerSay %s: %s (%s)", ply:Nick(), text, teamChat and "team" or "global")
+hook.Add("PlayerSay", "TTTBots_FollowPlan_PlayerSay", function(sender, text, teamChat)
+    if sender:IsBot() then return true end
+    -- printf("PlayerSay %s: %s (%s)", sender:Nick(), text, teamChat and "team" or "global")
     if not teamChat then return true end
-    if not (lib.IsPlayerAlive(ply) and lib.IsEvil(ply)) then return true end
+    if not (lib.IsPlayerAlive(sender) and lib.IsEvil(sender)) then return true end
     if not string.find(string.lower(text), "follow", 1, true) then return true end
 
-    local bot = TTTBots.Lib.GetClosest(TTTBots.Lib.GetAliveEvilBots(), ply:GetPos())
+    local bot = TTTBots.Lib.GetClosest(TTTBots.Lib.GetAliveEvilBots(), sender:GetPos())
 
     local newJob = {
         Action = ACTIONS.FOLLOW,
-        TargetObj = ply,
+        TargetObj = sender,
         State = TTTBots.Plans.BOTSTATES.IDLE,
         MinDuration = 20,
         MaxDuration = 60
     }
 
-    bot.components.chatter:On("FollowRequest", { player = ply })
+    bot.components.chatter:On("FollowRequest", { player = sender:Nick() }, true)
 
     bot.Job = newJob
 

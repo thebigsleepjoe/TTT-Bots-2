@@ -42,8 +42,10 @@ end
 ---@return string|nil
 function TTTBots.LocalizedStrings.GetLine(event_name, lang, bot, attemptN)
     if attemptN and attemptN > 20 then return nil end
-    local tbl = TTTBots.LocalizedStrings[lang][event_name]
+    local tbl = TTTBots.LocalizedStrings[lang] and TTTBots.LocalizedStrings[lang][event_name]
     if not tbl then
+        TTTBots.LocalizedStrings[lang] = TTTBots.LocalizedStrings[lang] or {}
+        TTTBots.LocalizedStrings[lang][event_name] = TTTBots.LocalizedStrings[lang][event_name] or {}
         print("No localized strings for event " .. event_name .. " in language " .. lang)
         return
     end
@@ -55,6 +57,11 @@ function TTTBots.LocalizedStrings.GetLine(event_name, lang, bot, attemptN)
     end
 
     return randLine.line
+end
+
+function TTTBots.LocalizedStrings.GetLocalizedLine(event_name, bot, params)
+    local lang = TTTBots.Lib.GetConVarString("language")
+    return TTTBots.LocalizedStrings.FormatLine(TTTBots.LocalizedStrings.GetLine(event_name, lang, bot), params)
 end
 
 include("includes/data/chat_en.lua")
