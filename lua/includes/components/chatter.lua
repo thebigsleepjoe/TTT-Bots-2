@@ -64,8 +64,17 @@ function BotChatter:On(event_name, args, teamOnly)
         print(string.format("Event %s called with %d args.", event_name, #args))
     end
 
+    --- Base chances to react to the events via chat
+    local chancesOf100 = {
+        InvestigateNoise = 15
+    }
+
     local localizedString = TTTBots.LocalizedStrings.GetLocalizedLine(event_name, self.bot, args)
     if localizedString then
+        if chancesOf100[event_name] then
+            local chance = chancesOf100[event_name]
+            if math.random(0, 100) > chance then return false end
+        end
         self:Say(localizedString, teamOnly)
         return true
     end
