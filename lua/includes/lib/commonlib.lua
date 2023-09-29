@@ -350,7 +350,7 @@ local EVIL_CACHE_DURATION = 5 -- Duration in seconds for how long to cache resul
 
 --- Uses built-in ply:HasEvilTeam but is nil-safe. Basically if they're a traitor.
 ---@param ply Player
----@param skipCache boolean Optional, defaults to false
+---@param skipCache boolean|nil Optional, defaults to false
 ---@return boolean
 function TTTBots.Lib.IsEvil(ply, skipCache)
     local currentTime = CurTime()
