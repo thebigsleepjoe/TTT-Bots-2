@@ -52,7 +52,7 @@ function FollowPlan:AutoSetBotJob(bot)
 end
 
 local function validateJobTime(job)
-    return CurTime() > job.ExpiryTime
+    return CurTime() < job.ExpiryTime
 end
 
 local actValidations = {
@@ -111,16 +111,26 @@ end
 
 --- Validate the behavior
 function FollowPlan:Validate(bot)
-    if not TTTBots.Match.RoundActive and bot.Job then bot.Job = nil end
+    if not TTTBots.Match.RoundActive and bot.Job then
+        bot.Job = nil
+        if FollowPlan.Debug then print(string.format("%s cleared job due to round not being active", bot:Nick())) end
+    end
     if bot.Job then return true end
-    if self:ShouldIgnorePlans(bot) then return false end
-    if not TTTBots.Plans.SelectedPlan then return false end
+    -- if self:ShouldIgnorePlans(bot) then
+    --     if FollowPlan.Debug then print(string.format("%s ignored plans", bot:Nick())) end
+    --     return false
+    -- end
+    if not TTTBots.Plans.SelectedPlan then
+        if FollowPlan.Debug then print(string.format("%s no selected plan", bot:Nick())) end
+        return false
+    end
     self:FindNewJobIfAvailable(bot)
     return true
 end
 
 --- Called when the behavior is started
 function FollowPlan:OnStart(bot)
+    if not bot.Job then return STATUS.FAILURE end
     if FollowPlan.Debug then
         print(" === JOB ASSIGNED ===")
         print(bot:Nick() .. "'s assigned job table: ")
@@ -134,8 +144,12 @@ local printf = function(str, ...) print(string.format(str, ...)) end
 local actRunnings = {
     [ACTIONS.ATTACKANY] = function(bot, job)
         local target = job.TargetObj
-        if not (IsValid(target) and lib.IsPlayerAlive(target)) then return STATUS.FAILURE end
+        if not (IsValid(target) and lib.IsPlayerAlive(target)) then
+            if FollowPlan.Debug then print(string.format("%s's target is invalid or dead.", bot:Nick())) end
+            return STATUS.FAILURE
+        end
         bot.attackTarget = bot
+        return STATUS.RUNNING
     end,
     [ACTIONS.DEFEND] = function(bot, job)
         -- path to the TargetObj (which is a Vec3) and stand there
@@ -185,7 +199,11 @@ local actRunnings = {
 actRunnings[ACTIONS.ATTACK] = actRunnings[ACTIONS.ATTACKANY]
 --- Called when the behavior's last state is running
 function FollowPlan:OnRunning(bot)
-    return actRunnings[bot.Job.Action](bot, bot.Job)
+    if TTTBots.Match.RoundActive == false then return STATUS.FAILURE end
+    if bot.Job == nil then return STATUS.FAILURE end
+    local status = actRunnings[bot.Job.Action](bot, bot.Job)
+    printf("Running job %s for bot %s. Status is %s", bot.Job.Action, bot:Nick(), tostring(status))
+    return status
 end
 
 --- Called when the behavior returns a success state
