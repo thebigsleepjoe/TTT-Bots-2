@@ -41,6 +41,7 @@ function BotPersonality:Initialize(bot)
     self.preferOnlySecondary = math.random(1, 100) < 10     -- Prefer ONLY using secondary unless no secondary or no ammo
 
     self.traits = self:GetNoConflictTraits(4)
+    self.archetype = self:GetClosestArchetype()
 
     --- How angry the bot is, from 1-100. Adds onto pressure. At 100% rage, the bot will leave and be replaced.
     self.rage = 0
@@ -49,6 +50,26 @@ function BotPersonality:Initialize(bot)
 
 
     self.bot = bot
+end
+
+function BotPersonality:GetClosestArchetype()
+    local traitData = self:GetTraitData()
+    local archetypes = {}
+    for i, trait in pairs(traitData) do
+        if trait.archetype then
+            archetypes[trait.archetype] = (archetypes[trait.archetype] or 0) + 1
+        end
+    end
+    local sortedArchetypes = {}
+    for archetype, count in pairs(archetypes) do
+        table.insert(sortedArchetypes, { archetype = archetype, count = count })
+    end
+    table.sort(sortedArchetypes, function(a, b) return a.count > b.count end)
+    if sortedArchetypes[1] then
+        return sortedArchetypes[1].archetype
+    else
+        return "default"
+    end
 end
 
 --- flavors text based on gender pronouns (self.HIM, .HIS, .HE)

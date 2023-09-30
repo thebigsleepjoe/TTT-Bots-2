@@ -5,8 +5,8 @@ TTTBots.LocalizedStrings = {}
 ---@param event_name string The name of the event
 ---@param line string The line to add
 ---@param lang string The language to add the line to, e.g. "en"
----@param conditions function A callback function, passed the bot, that returns a boolean indicating whether the line should be chosen at runtime.
-function TTTBots.LocalizedStrings.AddLine(event_name, line, lang, conditions)
+---@param archetype string A string corresponding to a TTTBots.Archetypes enum
+function TTTBots.LocalizedStrings.AddLine(event_name, line, lang, archetype)
     local lang = lang or "en"
     local langtable = TTTBots.LocalizedStrings[lang]
     if not langtable then
@@ -17,7 +17,7 @@ function TTTBots.LocalizedStrings.AddLine(event_name, line, lang, conditions)
 
     table.insert(langtable[event_name], {
         line = line,
-        conditions = conditions or (function() return true end)
+        archetype = archetype or "default"
     })
 
     -- print(string.format("Added line '%s' to event '%s' in language '%s'", line, event_name, lang))
@@ -34,6 +34,21 @@ function TTTBots.LocalizedStrings.FormatLine(line, params)
     return line
 end
 
+local function getArchetypalLines(bot, localizedTbl, forceDefault)
+    local archetypeLocalized = {}
+    local personality = bot.components.personality ---@type CPersonality
+    for i, entry in pairs(localizedTbl) do
+        if entry.archetype == (forceDefault and TTTBots.Archetypes.Default) or personality.archetype then
+            table.insert(archetypeLocalized, entry)
+        end
+    end
+    if #archetypeLocalized == 0 and not forceDefault then -- add forceDefault check to prevent infinite recursion
+        return getArchetypalLines(bot, localizedTbl, true)
+    end
+
+    return archetypeLocalized
+end
+
 --- Gets a random valid line from the given event name and language. After 20 attempts, it will return nil.
 ---@param event_name string
 ---@param lang string
@@ -42,21 +57,19 @@ end
 ---@return string|nil
 function TTTBots.LocalizedStrings.GetLine(event_name, lang, bot, attemptN)
     if attemptN and attemptN > 20 then return nil end
-    local tbl = TTTBots.LocalizedStrings[lang] and TTTBots.LocalizedStrings[lang][event_name]
-    if not tbl then
+    local localizedTbl = TTTBots.LocalizedStrings[lang] and TTTBots.LocalizedStrings[lang][event_name]
+    if not localizedTbl then
         TTTBots.LocalizedStrings[lang] = TTTBots.LocalizedStrings[lang] or {}
         TTTBots.LocalizedStrings[lang][event_name] = TTTBots.LocalizedStrings[lang][event_name] or {}
-        print("No localized strings for event " .. event_name .. " in language " .. lang)
+        print("No localized strings for event " ..
+            event_name .. " in language " .. lang .. "... try setting lang cvar to 'en'.")
         return
     end
 
-    local randLine = table.Random(tbl)
-    local lineValid = randLine.conditions(bot)
-    if not lineValid then
-        return TTTBots.LocalizedStrings.GetLine(event_name, lang, bot, (attemptN and attemptN + 1) or 2)
-    end
+    local archetypeLocalizedLines = getArchetypalLines(bot, localizedTbl)
+    local randArchetypal = table.Random(archetypeLocalizedLines)
 
-    return randLine.line
+    return randArchetypal.line
 end
 
 function TTTBots.LocalizedStrings.GetLocalizedLine(event_name, bot, params)

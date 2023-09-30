@@ -1,3 +1,18 @@
+--- This is a table used mostly for chatter and flavor text. It is not used for any gameplay purposes.
+TTTBots.Archetypes = {
+    Tryhard = "Tryhard/nerd", --- Says nerdy/tryhard things often
+    Hothead = "Hothead",      --- Quick to anger in his communication
+    Stoic = "Stoic",          --- Rarely complains/gloats
+    Dumb = "Dumb",            --- huh?
+    Nice = "Nice",            --- Says nice things often, loves to compliment.
+    Bad = "Bad",              --- just bad
+    Teamer = "Teamer",        --- loves to say "us" instead of "me"
+    Sus = "Sus/Quirky",       --- "guys im the traitor" ... that kind of thing
+    Casual = "Casual",        --- loves to make jokes, talks in lowercase most of the time
+    Default = "default",      --- default archetype; used as a fallback
+}
+local A = TTTBots.Archetypes
+
 TTTBots.Traits = {
     --- Quick to attack (innocent) and ignores evaluation of danger when picking a target (traitor)
     aggressive = {
@@ -6,6 +21,7 @@ TTTBots.Traits = {
         "[HE] often picks targets hastily, regardless of being right or wrong, and pays no mind to witnesses",
         conflicts = { "passive", "cautious" },
         traitor_only = false,
+        archetype = A.Hothead,
         effects = {
             suspicion = 3,        -- high suspicion gain to encourage attacking
             investigateNoise = 2, -- more likely to seek out noise
@@ -18,6 +34,7 @@ TTTBots.Traits = {
         description = "When not a traitor, [HE] avoids fights and runs away instead",
         conflicts = { "aggressive", "rdmer" },
         traitor_only = false,
+        archetype = A.Stoic,
         effects = {
             investigateNoise = 0, -- never seek out noise
             aggression = 0.8,     -- Less aggressive as traitor
@@ -39,6 +56,7 @@ TTTBots.Traits = {
         description = "Players tend to mistrust [HIM] and are quick to assume [HE] is a traitor",
         conflicts = { "gullible" },
         traitor_only = false,
+        archetype = A.Sus,
         effects = {
             suspicion = 1.5,
             suspicionMe = 1.5, -- make others build suspicion on us faster
@@ -50,6 +68,7 @@ TTTBots.Traits = {
         description = "Under pressure, [HE] struggles with aiming accuracy",
         conflicts = { "goodaim" },
         traitor_only = false,
+        archetype = A.Bad,
         effects = {
             pressure = 2.5,
             inaccuracy = 2
@@ -61,6 +80,7 @@ TTTBots.Traits = {
         description = "[HE] has better aim than the average player",
         conflicts = { "badaim" },
         traitor_only = false,
+        archetype = A.Tryhard,
         effects = {
             pressure = 0.1,
         }
@@ -71,6 +91,7 @@ TTTBots.Traits = {
         description = "Occasionally, [HE] overlooks bodies and traitor weapons",
         conflicts = { "observant", "veryobservant" },
         traitor_only = false,
+        archetype = A.Dumb,
         effects = {
             hearing = 0.75,
             suspicion = 0.75,
@@ -84,6 +105,7 @@ TTTBots.Traits = {
         description = "Unless a detective, [HE] seldom searches bodies or notices traitor weapons",
         conflicts = { "observant", "veryobservant" },
         traitor_only = false,
+        archetype = A.Dumb,
         effects = {
             hearing = 0.5,
             suspicion = 0.5,
@@ -97,6 +119,7 @@ TTTBots.Traits = {
         description = "Spotting bodies and traitor weapons comes easily to [HIM]",
         conflicts = { "oblivious", "veryoblivious" },
         traitor_only = false,
+        archetype = A.Tryhard,
         effects = {
             hearing = 1.25,
             investigateNoise = 1.5, -- more likely to seek out noise
@@ -108,6 +131,7 @@ TTTBots.Traits = {
         description = "[HE] instantly detects bodies and traitor weapons in the vicinity",
         conflicts = { "oblivious", "veryoblivious" },
         traitor_only = false,
+        archetype = A.Tryhard,
         effects = {
             hearing = 1.5,
             investigateNoise = 2, -- more likely to seek out noise
@@ -119,6 +143,7 @@ TTTBots.Traits = {
         description = "[HE] prefers to steer clear of crowds",
         conflicts = { "lovescrowds", "teamplayer" },
         traitor_only = false,
+        archetype = A.Sus,
         effects = {
             hearing = 1.15,
             suspicion = 1.25,
@@ -132,6 +157,7 @@ TTTBots.Traits = {
         description = "Crowded spaces attract [HIM]",
         conflicts = { "loner" },
         traitor_only = false,
+        archetype = A.Teamer,
         effects = {
             hearing = 0.8,
         }
@@ -142,6 +168,7 @@ TTTBots.Traits = {
         description = "Helping teammates is a priority for [HIM]",
         conflicts = { "loner", "rdmer" },
         traitor_only = true,
+        archetype = A.Teamer,
         effects = {
             aggression = 1.4, -- More likely to take on more targets as traitor
         }
@@ -152,6 +179,7 @@ TTTBots.Traits = {
         description = "[HE] follows players around",
         conflicts = { "loner", "rdmer" },
         traitor_only = false,
+        archetype = A.Teamer,
         effects = {}
     },
     --- Attacks random person regardless of team. THIS SHOULD BE DISABLED BY DEFAULT!
@@ -160,6 +188,7 @@ TTTBots.Traits = {
         description = "[HE] kills people at random",
         conflicts = { "passive", "teamplayer" },
         traitor_only = false,
+        archetype = A.Hothead,
         effects = {}
     },
     --- Makes traitors 3x as likely to attack him at random
@@ -198,6 +227,7 @@ TTTBots.Traits = {
         description = "Prefers crowbars at further ranges than normal.",
         conflicts = { "sniper" },
         traitor_only = false,
+        archetype = A.Casual,
         effects = {
             meleeRange = 2,
         }
@@ -244,7 +274,9 @@ TTTBots.Traits = {
         description = "[HE] communicates more frequently",
         conflicts = { "silent" },
         traitor_only = false,
-        effects = {}
+        effects = {
+            textchat = 2.0
+        }
     },
     --- Does not use any chat whatsoever
     silent = {
@@ -252,7 +284,9 @@ TTTBots.Traits = {
         description = "[HE] keeps communication to a minimum",
         conflicts = { "talkative" },
         traitor_only = false,
-        effects = {}
+        effects = {
+            textchat = 0.0
+        }
     },
     --- Roams into high-stress areas and walks towards gunshots for fun.
     risktaker = {
@@ -260,6 +294,7 @@ TTTBots.Traits = {
         description = "[HE] ventures into dangerous areas for the thrill",
         conflicts = { "cautious", "camper" },
         traitor_only = false,
+        archetype = A.Hothead,
         effects = {
             investigateNoise = 5, -- 5x more likely to investigate noises
             aggression = 1.5,
@@ -284,6 +319,7 @@ TTTBots.Traits = {
         description = "[HE] tends to believe others easily, doesn't care about suspicion that much",
         conflicts = { "suspicious" },
         traitor_only = false,
+        archetype = A.Dumb,
         effects = {
             suspicion = 0.5
         }
@@ -295,6 +331,7 @@ TTTBots.Traits = {
         description = "Apathetic, [HE] can be unresponsive at times",
         conflicts = { "talkative", "teamplayer", "cautious" },
         traitor_only = false,
+        archetype = A.Dumb,
         effects = {
             hearing = 0.3,
             suspicion = 0.5,
@@ -307,6 +344,7 @@ TTTBots.Traits = {
         name = "disguiser",
         description = "As a traitor, [HE] loves [HIS] disguiser",
         conflicts = {},
+        archetype = A.Tryhard,
         traitor_only = true,
         effects = {}
     },
@@ -334,6 +372,7 @@ TTTBots.Traits = {
         description = "[HE] cannot hear too well or has [HIS] volume lowered",
         conflicts = { "deaf", "highvolume" },
         traitor_only = false,
+        archetype = A.Casual,
         effects = {
             hearing = 0.8,
         }
@@ -344,6 +383,7 @@ TTTBots.Traits = {
         description = "[HE] can hear very well or has [HIS] volume raised",
         conflicts = { "deaf", "lowvolume" },
         traitor_only = false,
+        archetype = A.Tryhard,
         effects = {
             hearing = 1.2,
         }
@@ -354,6 +394,7 @@ TTTBots.Traits = {
         description = "[HE] gets angry easily",
         conflicts = { "pacifist" },
         traitor_only = false,
+        archetype = A.Hothead,
         effects = {
             rage = 2.0,
         }
@@ -364,6 +405,7 @@ TTTBots.Traits = {
         description = "[HE] is a pacifist",
         conflicts = { "rager" },
         traitor_only = false,
+        archetype = A.Stoic,
         effects = {
             rage = 0.5,
         }
