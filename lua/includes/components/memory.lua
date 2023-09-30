@@ -374,7 +374,7 @@ end
 function Memory:GetHearingMultiplier()
     if self.HearingMultiplier then return self.HearingMultiplier end
     local bot = self.bot
-    local mult = bot:AverageTraitMultFor("hearing")
+    local mult = bot:GetTraitMult("hearing")
 
     self.HearingMultiplier = mult
     return mult

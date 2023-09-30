@@ -40,7 +40,7 @@ function BotPersonality:Initialize(bot)
     ---@deprecated not implemented yet
     self.preferOnlySecondary = math.random(1, 100) < 10     -- Prefer ONLY using secondary unless no secondary or no ammo
 
-    self.traits = self:GetSomeTraits(4)
+    self.traits = self:GetNoConflictTraits(4)
 
     --- How angry the bot is, from 1-100. Adds onto pressure. At 100% rage, the bot will leave and be replaced.
     self.rage = 0
@@ -57,10 +57,12 @@ function BotPersonality:FlavorText(text)
     return str
 end
 
+--- Return the bot's list of traits. These are just keynames and not the actual trait objects.
 function BotPersonality:GetTraits()
     return self.traits
 end
 
+--- Returns a table of trait data, which is a table of actual trait objects, instead of the keys themselves (like GetTraits())
 function BotPersonality:GetTraitData()
     if self.traitData then return self.traitData end
     self.traitData = {}
@@ -70,6 +72,7 @@ function BotPersonality:GetTraitData()
     return self.traitData
 end
 
+--- Returns a table of strings that are the flavored trait descriptions. Basically human-readable explanations of each trait.
 function BotPersonality:GetFlavoredTraits()
     local traits = {}
     for i, trait in ipairs(self.traits) do
@@ -117,7 +120,7 @@ end
 --- Returns a set of num traits that are non-conflicting. Don't get too many, otherwise it'll crash or take a long time.
 ---@param num number
 ---@return table
-function BotPersonality:GetSomeTraits(num)
+function BotPersonality:GetNoConflictTraits(num)
     local selectedTraits = {}
     local traitorTraits = 0
 
@@ -147,15 +150,15 @@ function BotPersonality:GetSomeTraits(num)
     return selectedTraits
 end
 
---- Functionally same as Player:HasPTrait(trait_name)
+--- Functionally same as Player:HasTrait(trait_name)
 ---@param trait_name string
 ---@return boolean
-function BotPersonality:HasPTrait(trait_name)
-    return self.bot:HasPTrait(trait_name)
+function BotPersonality:HasTrait(trait_name)
+    return self.bot:HasTrait(trait_name)
 end
 
-function BotPersonality:HasPTraitIn(hashtable)
-    return self.bot:HasPTraitIn(hashtable)
+function BotPersonality:HasTraitIn(hashtable)
+    return self.bot:HasTraitIn(hashtable)
 end
 
 function BotPersonality:GetIgnoresOrders()
@@ -172,11 +175,11 @@ function BotPersonality:GetIgnoresOrders()
     return false
 end
 
----Wrapper for bot:AverageTraitMultFor(attribute)
+---Wrapper for bot:GetTraitMult(attribute)
 ---@param attribute string
 ---@return number
-function BotPersonality:AverageTraitMultFor(attribute)
-    return self.bot:AverageTraitMultFor(attribute)
+function BotPersonality:GetTraitMult(attribute)
+    return self.bot:GetTraitMult(attribute)
 end
 
 local plyMeta = FindMetaTable("Player")
@@ -190,7 +193,7 @@ end
 ---Get the average trait multiplier for a given personality attribute. This could be hearing, fov, etc.
 ---@param attribute string
 ---@return number
-function plyMeta:AverageTraitMultFor(attribute)
+function plyMeta:GetTraitMult(attribute)
     local traits = self.components.personality:GetTraitData()
     local avg = 1
     if not traits then return avg end
@@ -203,7 +206,7 @@ end
 --- Check if the bot has a specific trait, by name.
 ---@param trait_name string
 ---@return boolean hasTrait
-function plyMeta:HasPTrait(trait_name)
+function plyMeta:HasTrait(trait_name)
     if self.components and self.components.personality then
         local traits = self.components.personality:GetTraits()
         for _, trait in ipairs(traits) do
@@ -218,7 +221,7 @@ end
 --- Check if the bot has any traits that match the entries in the hashtable.
 ---@param hashtable table<string, boolean>
 ---@return boolean hasTrait
-function plyMeta:HasPTraitIn(hashtable)
+function plyMeta:HasTraitIn(hashtable)
     local traits = self.components.personality:GetTraits()
     for _, trait in ipairs(traits) do
         if hashtable[trait] then

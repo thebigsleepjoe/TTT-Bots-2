@@ -32,7 +32,7 @@ local FOLLOWING_TRAITS = {
 ---@param bot Player
 ---@return boolean
 function Follow:IsFollower(bot)
-    return lib.IsEvil(bot) or bot:HasPTraitIn(FOLLOWING_TRAITS)
+    return lib.IsEvil(bot) or bot:HasTraitIn(FOLLOWING_TRAITS)
 end
 
 --- Similar to IsFollower, but returns mathematical chance of deciding to follow a new person this tick.
@@ -50,7 +50,7 @@ end
 function Follow:GetFollowTargets(bot)
     local targets = {}
     local isEvil = lib.IsEvil(bot)
-    local followTeammates = isEvil and bot:HasPTrait("teamplayer") -- Only applies for traitors
+    local followTeammates = isEvil and bot:HasTrait("teamplayer") -- Only applies for traitors
 
     ---@type CMemory
     local memory = bot.components.memory

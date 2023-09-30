@@ -184,7 +184,7 @@ function BotMorality:GetRandomVictimFrom(playerlist)
 
     for i, player in pairs(playerlist) do
         if player:IsBot() then
-            local victim = player:AverageTraitMultFor("victim")
+            local victim = player:GetTraitMult("victim")
             table.insert(tbl, lib.SetWeight(player, victim))
         else
             table.insert(tbl, lib.SetWeight(player, 1))
@@ -201,7 +201,7 @@ function BotMorality:TickIfTraitor()
     if not (roundStarted and isEvil) then return end
     if self.bot.attackTarget ~= nil then return end
 
-    local aggression = (self.bot:AverageTraitMultFor("aggression")) * (self.bot.rage or 1)
+    local aggression = (self.bot:GetTraitMult("aggression")) * (self.bot.rage or 1)
     local time_modifier = TTTBots.Match.SecondsPassed / 45 -- Increase chance to attack over time.
 
     local maxTargets = math.max(2, math.ceil(aggression * 2 * time_modifier))

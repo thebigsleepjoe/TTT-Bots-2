@@ -9,7 +9,7 @@ local ALRT = function(event, line, traits)
         local personality = sender and sender.components and sender.components.personality
         if not personality then return false end
         for i, trait in pairs(traits) do
-            if personality:HasPTrait(trait) then
+            if personality:HasTrait(trait) then
                 return true
             end
         end
