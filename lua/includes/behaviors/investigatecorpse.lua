@@ -68,7 +68,7 @@ function InvestigateCorpse:OnStart(bot)
     if closestCorpse == nil then return STATUS.FAILURE end
 
     bot.corpseToID = closestCorpse
-    bot.components.chatter:On("CorpseSpotted", { corpse = bot.corpseToID })
+    bot.components.chatter:On("InvestigateCorpse", { corpse = bot.corpseToID })
     return STATUS.RUNNING
 end
 

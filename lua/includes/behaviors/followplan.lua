@@ -129,19 +129,21 @@ function FollowPlan:Validate(bot)
     return true
 end
 
+local printf = function(str, ...) print(string.format(str, ...)) end
+
 --- Called when the behavior is started
 function FollowPlan:OnStart(bot)
     if not bot.Job then return STATUS.FAILURE end
     if FollowPlan.Debug then
-        print(" === JOB ASSIGNED ===")
-        print(bot:Nick() .. "'s assigned job table: ")
-        PrintTable(bot.Job)
-        print(" === END JOB ===")
+        -- print(" === JOB ASSIGNED ===")
+        -- print(bot:Nick() .. "'s assigned job table: ")
+        -- PrintTable(bot.Job)
+        -- print(" === END JOB ===")
+        printf("JOB '%s' assigned to bot %s", bot.Job.Action, bot:Nick())
     end
     return STATUS.RUNNING
 end
 
-local printf = function(str, ...) print(string.format(str, ...)) end
 local actRunnings = {
     [ACTIONS.ATTACKANY] = function(bot, job)
         local target = job.TargetObj
@@ -203,7 +205,7 @@ function FollowPlan:OnRunning(bot)
     if TTTBots.Match.RoundActive == false then return STATUS.FAILURE end
     if bot.Job == nil then return STATUS.FAILURE end
     local status = actRunnings[bot.Job.Action](bot, bot.Job)
-    printf("Running job %s for bot %s. Status is %s", bot.Job.Action, bot:Nick(), tostring(status))
+    -- printf("Running job %s for bot %s. Status is %s", bot.Job.Action, bot:Nick(), tostring(status))
     return status
 end
 

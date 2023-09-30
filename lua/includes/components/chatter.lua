@@ -66,7 +66,8 @@ function BotChatter:On(event_name, args, teamOnly)
 
     --- Base chances to react to the events via chat
     local chancesOf100 = {
-        InvestigateNoise = 15
+        InvestigateNoise = 15,
+        InvestigateCorpse = 15,
     }
 
     local localizedString = TTTBots.LocalizedStrings.GetLocalizedLine(event_name, self.bot, args)

@@ -29,7 +29,7 @@ end
 ---@return string line The formatted line
 function TTTBots.LocalizedStrings.FormatLine(line, params)
     for key, value in pairs(params) do
-        line = line:gsub("{{" .. key .. "}}", value)
+        line = line:gsub("{{" .. tostring(key) .. "}}", tostring(value))
     end
     return line
 end
