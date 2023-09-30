@@ -111,17 +111,18 @@ end
 
 --- Validate the behavior
 function FollowPlan:Validate(bot)
+    local validate_debug = false
     if not TTTBots.Match.RoundActive and bot.Job then
         bot.Job = nil
-        if FollowPlan.Debug then print(string.format("%s cleared job due to round not being active", bot:Nick())) end
+        if validate_debug then print(string.format("%s cleared job due to round not being active", bot:Nick())) end
     end
     if bot.Job then return true end
-    -- if self:ShouldIgnorePlans(bot) then
-    --     if FollowPlan.Debug then print(string.format("%s ignored plans", bot:Nick())) end
-    --     return false
-    -- end
+    if self:ShouldIgnorePlans(bot) then
+        if validate_debug then print(string.format("%s ignored plans", bot:Nick())) end
+        return false
+    end
     if not TTTBots.Plans.SelectedPlan then
-        if FollowPlan.Debug then print(string.format("%s no selected plan", bot:Nick())) end
+        if validate_debug then print(string.format("%s no selected plan", bot:Nick())) end
         return false
     end
     self:FindNewJobIfAvailable(bot)
