@@ -51,7 +51,7 @@ function PlanCoordinator.GetNextJob(isAssignment, caller)
     for i, job in pairs(jobs) do
         local test = PlanCoordinator.TestJob(job, isAssignment)
         if test then
-            assignedJob = job
+            assignedJob = table.Copy(job) -- create a deep copy of the job
             break
         end
     end

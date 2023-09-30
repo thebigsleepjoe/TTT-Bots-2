@@ -190,10 +190,12 @@ end
 
 --- Called when the behavior returns a success state
 function FollowPlan:OnSuccess(bot)
+    print(string.format("%s completed job: %s", bot:Nick(), bot.Job))
 end
 
 --- Called when the behavior returns a failure state
 function FollowPlan:OnFailure(bot)
+    print(string.format("%s failed job: %s", bot:Nick(), bot.Job))
 end
 
 --- Called when the behavior ends
@@ -218,7 +220,6 @@ hook.Add("PlayerSay", "TTTBots_FollowPlan_PlayerSay", function(sender, text, tea
         MinDuration = 20,
         MaxDuration = 60
     }
-
     bot.components.chatter:On("FollowRequest", { player = sender:Nick() }, true)
 
     bot.Job = newJob
