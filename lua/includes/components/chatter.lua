@@ -38,9 +38,14 @@ function BotChatter:SayRaw(text, teamOnly)
 end
 
 function BotChatter:Say(text, teamOnly)
+    if self.typing then return false end
     local delay = (math.random(0, 100) / 100.0) * 2
+    self.typing = true
     timer.Simple(delay, function()
-        self:SayRaw(text, teamOnly)
+        if self then
+            self:SayRaw(text, teamOnly)
+            self.typing = false
+        end
     end)
 end
 
@@ -68,14 +73,17 @@ function BotChatter:On(event_name, args, teamOnly)
     local chancesOf100 = {
         InvestigateNoise = 15,
         InvestigateCorpse = 15,
+        LifeCheck = 50,
     }
+
+    local personality = self.bot.components.personality --- @type CPersonality
+    if chancesOf100[event_name] then
+        local chance = chancesOf100[event_name]
+        if math.random(0, 100) > (chance * personality:GetTraitMult("textchat")) then return false end
+    end
 
     local localizedString = TTTBots.LocalizedStrings.GetLocalizedLine(event_name, self.bot, args)
     if localizedString then
-        if chancesOf100[event_name] then
-            local chance = chancesOf100[event_name]
-            if math.random(0, 100) > chance then return false end
-        end
         self:Say(localizedString, teamOnly)
         return true
     end
@@ -100,6 +108,32 @@ hook.Add("PlayerCanSeePlayersChat", "TTTBots_PlayerCanSeePlayersChat", function(
             end
         else
             return false
+        end
+    end
+end)
+
+
+-- Define a hash table to hold our keywords and their corresponding events
+local keywordEvents = {
+    ["life check"] = "LifeCheck",
+    ["who is alive"] = "LifeCheck",
+    ["lc?"] = "LifeCheck",
+}
+
+-- Helper function to handle the chat events
+local function handleEvent(eventName)
+    for i, v in pairs(TTTBots.Bots) do
+        v.components.chatter:On(eventName, {}, false)
+    end
+end
+
+-- Convert text to lowercase and check if it contains any keyword from the table
+hook.Add("PlayerSay", "TTTBots.Chatter.PromptResponse", function(sender, text, teamChat)
+    text = string.lower(text) -- Convert text to lowercase for case-insensitive comparison
+
+    for keyword, event in pairs(keywordEvents) do
+        if string.find(text, keyword) then
+            handleEvent(event)
         end
     end
 end)
