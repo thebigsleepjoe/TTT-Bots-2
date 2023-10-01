@@ -118,7 +118,7 @@ local keywordEvents = {
     ["life check"] = "LifeCheck",
     ["who is alive"] = "LifeCheck",
     ["lc?"] = "LifeCheck",
-    ["kos"] = "KOSCallout",
+    -- ["kos"] = "KOSCallout",
 }
 
 -- Helper function to handle the chat events
