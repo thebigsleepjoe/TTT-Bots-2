@@ -1,4 +1,4 @@
-local function CheckCompatibleGamemode() -- ripped from CommonLib
+local function CheckCompatibleGamemode() -- ripped from botlib
     local compatible = { "terrortown" }
     return table.HasValue(compatible, engine.ActiveGamemode())
 end

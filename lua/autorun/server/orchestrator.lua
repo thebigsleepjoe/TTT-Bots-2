@@ -24,7 +24,7 @@ end
 local hasNavmesh = function() return navmesh.GetNavAreaCount() > 0 end
 
 local function initializeMod()
-    include("includes/lib/commonlib.lua")
+    include("includes/lib/botlib.lua")
     -- Initialize all of our other libraries
     include("includes/lib/pathmanager.lua")
     include("includes/lib/debugserver.lua")
