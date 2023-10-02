@@ -439,9 +439,10 @@ function TTTBots.PathManager.RequestPath(owner, startPos, finishPos, isAreas)
             "No startPos and/or finishPos, keep your functions safe from this error.")
     end
     if not TTTBots.Lib.IsPlayerAlive(owner) then
-        print("Tried generating path for owner " .. tostring(owner) .. " but they are dead.")
-        error(
-            "The bot you are generating a path for is dead. Your path generation should be made safer.")
+        -- print("Tried generating path for owner " .. tostring(owner) .. " but they are dead.")
+        -- error(
+        --     "The bot you are generating a path for is dead. Your path generation should be made safer.")
+        return
     end
 
     local startArea = (isAreas and startPos) or

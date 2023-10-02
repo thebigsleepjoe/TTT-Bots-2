@@ -24,7 +24,7 @@ local function updateAlivePlayers()
         alivePlayers[ply] = (IsValid(ply) and not (ply:IsSpec()) and ply:Alive() and ply:Health() > 0)
     end
 end
-timer.Create("TTTBots.Lib.AlivePlayersInterval", 1, 0, updateAlivePlayers)
+timer.Create("TTTBots.Lib.AlivePlayersInterval", 1 / TTTBots.Tickrate, 0, updateAlivePlayers)
 
 -- Check if not :IsSpec and :Alive
 function TTTBots.Lib.IsPlayerAlive(ply)
