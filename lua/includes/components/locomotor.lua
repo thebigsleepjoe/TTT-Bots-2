@@ -757,6 +757,7 @@ function BotLocomotor:UpdatePath()
     end
 
 
+    if not lib.IsPlayerAlive(self.bot) then return "bot_dead" end
     -- If we don't have a path, request one
     local pathid, path, status = TTTBots.PathManager.RequestPath(self.bot, self.bot:GetPos(), goalPos, false)
 

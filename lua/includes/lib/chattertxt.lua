@@ -28,6 +28,7 @@ end
 ---@param params table<string, string> A table of parameters to replace in the line
 ---@return string line The formatted line
 function TTTBots.LocalizedStrings.FormatLine(line, params)
+    if not line then return "" end
     for key, value in pairs(params) do
         line = line:gsub("{{" .. tostring(key) .. "}}", tostring(value))
     end
@@ -68,6 +69,8 @@ function TTTBots.LocalizedStrings.GetLine(event_name, lang, bot, attemptN)
 
     local archetypeLocalizedLines = getArchetypalLines(bot, localizedTbl)
     local randArchetypal = table.Random(archetypeLocalizedLines)
+
+    if not randArchetypal then return nil end
 
     return randArchetypal.line
 end

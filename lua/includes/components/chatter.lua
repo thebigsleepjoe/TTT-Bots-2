@@ -117,7 +117,6 @@ end)
 local keywordEvents = {
     ["life check"] = "LifeCheck",
     ["who is alive"] = "LifeCheck",
-    ["lc?"] = "LifeCheck",
     -- ["kos"] = "KOSCallout",
 }
 
@@ -128,13 +127,15 @@ local function handleEvent(eventName)
     end
 end
 
--- Convert text to lowercase and check if it contains any keyword from the table
 hook.Add("PlayerSay", "TTTBots.Chatter.PromptResponse", function(sender, text, teamChat)
     local text2 = string.lower(text) -- Convert text to lowercase for case-insensitive comparison
 
     for keyword, event in pairs(keywordEvents) do
         if string.find(text2, keyword) then
-            handleEvent(event)
+            print("~~~~~~~~~~~~~~~")
+            print(string.format("Match [%s]! Triggered event (%s) with string: '%s'", keyword, event, text))
+            print("~~~~~~~~~~~~~~~")
+            handleEvent(event) -- Pass the full chat message to handleEvent
         end
     end
 end)
