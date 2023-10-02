@@ -125,7 +125,8 @@ function FollowPlan:Validate(bot)
         if validate_debug then print(string.format("%s no selected plan", bot:Nick())) end
         return false
     end
-    self:FindNewJobIfAvailable(bot)
+    local jobAvailable = self:FindNewJobIfAvailable(bot)
+    if not jobAvailable then return false end
     return true
 end
 

@@ -3,6 +3,15 @@ local Line = function(event, line, archetype)
     return TTTBots.LocalizedStrings.AddLine(event, line, "en", archetype)
 end
 
+Line("Plan.ATTACKANY", "I'm going to attack {{player}}.", A.Default)
+Line("Plan.ATTACK", "I'm going to attack {{player}}.", A.Default)
+Line("Plan.PLANT", "I'm going to plant a bomb.", A.Default)
+Line("Plan.DEFUSE", "I'm going to defuse a bomb.", A.Default)
+Line("Plan.FOLLOW", "I'm going to follow {{player}}", A.Default)
+Line("Plan.GATHER", "Let's all gather over there.", A.Default)
+Line("Plan.DEFEND", "I'm going to defend this area.", A.Default)
+Line("Plan.ROAM", "I'm going to roam around for a bit.", A.Default)
+Line("Plan.IGNORE", "I feel like doing my own thing this time around.", A.Default)
 
 Line("FollowRequest", "Sure, I'll follow you.", A.Default)
 Line("FollowRequest", "Okay, I'll follow you.", A.Default)

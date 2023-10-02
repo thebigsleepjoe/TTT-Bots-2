@@ -77,4 +77,12 @@ function TTTBots.LocalizedStrings.GetLocalizedLine(event_name, bot, params)
     return TTTBots.LocalizedStrings.FormatLine(TTTBots.LocalizedStrings.GetLine(event_name, lang, bot), params)
 end
 
+--- Return true if the event has any lines associated in this language.
+---@param event_name string
+---@return boolean
+function TTTBots.LocalizedStrings.TestEventExists(event_name)
+    local lang = TTTBots.Lib.GetConVarString("language")
+    return TTTBots.LocalizedStrings[lang] and TTTBots.LocalizedStrings[lang][event_name] and true or false
+end
+
 include("includes/data/chat_en.lua")
