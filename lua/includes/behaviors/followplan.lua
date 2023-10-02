@@ -239,12 +239,11 @@ end
 
 -- Hook for PlayerSay to force give ourselves a follow job if a teammate traitor says in team chat to "follow"
 hook.Add("PlayerSay", "TTTBots_FollowPlan_PlayerSay", function(sender, text, teamChat)
-    -- FIXME: Rebuild this function cuz it breaks chat commands.
-    if sender:IsBot() then return true end
+    if sender:IsBot() then return end
     -- printf("PlayerSay %s: %s (%s)", sender:Nick(), text, teamChat and "team" or "global")
-    if not teamChat then return true end
-    if not (lib.IsPlayerAlive(sender) and lib.IsEvil(sender)) then return true end
-    if not string.find(string.lower(text), "follow", 1, true) then return true end
+    if not teamChat then return end
+    if not (lib.IsPlayerAlive(sender) and lib.IsEvil(sender)) then return end
+    if not string.find(string.lower(text), "follow", 1, true) then return end
 
     local bot = TTTBots.Lib.GetClosest(TTTBots.Lib.GetAliveEvilBots(), sender:GetPos())
 
@@ -258,6 +257,4 @@ hook.Add("PlayerSay", "TTTBots_FollowPlan_PlayerSay", function(sender, text, tea
     bot.components.chatter:On("FollowRequest", { player = sender:Nick() }, true)
 
     bot.Job = newJob
-
-    return true
 end)
