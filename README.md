@@ -82,6 +82,8 @@ User customization/administration:
 5. 📃 Ban certain traits from being selected, have a UI to explain assigned traits
 6. 📃 Have a full UI for bot customization
 7. ✅ Include basic bot chat commands, like !addbot
+8. 📃 Enable custom player models for bots. Will likely be done thru cvar.
+9. 📃 Enable/disable bots blending in on the scoreboard via fake ping, profile pictures, or "BOT" prefix. Some users may not like them blending in with real players.
 
 Traitor bot coordination:
 1. ✅ Traitor bots should share their plans with other traitors
@@ -93,3 +95,4 @@ Misc. features and non-programming stuff:
 1. 📃 Ensure TTT/2 cross-compatibility
 2. 📃 CUSTOM Tutorial on how to create navmeshes + how to let them use ladders
 3. 📃 Push the first 'ready' build to Steam
+4. 📃 Extreme baby-proofing: tell user if no navmesh, no player slots, etc. Maybe even link them to tutorial from #2.
