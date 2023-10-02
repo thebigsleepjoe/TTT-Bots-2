@@ -71,6 +71,7 @@ Combat:
 4. 📃 Bots should feel pressure when aiming (less accuracy), and should be affected by rage (i.e., losing streaks)
 5. 📃 Bot camera should 'flick' when getting shot at, particularly if from behind
 6. 📃 Traitor bots should use knives to assassinate innocents
+7. 📃 Bots using shotguns should walk towards their target while strafing
 
 User customization/administration:
 1. 📃 Difficulty settings; make bots more accurate, have better hearing, etc.
