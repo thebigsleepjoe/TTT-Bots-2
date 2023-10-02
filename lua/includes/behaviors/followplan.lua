@@ -131,6 +131,7 @@ function FollowPlan:Validate(bot)
 end
 
 local printf = function(str, ...) print(string.format(str, ...)) end
+local f = string.format
 
 --- Called when the behavior is started
 function FollowPlan:OnStart(bot)
@@ -143,6 +144,14 @@ function FollowPlan:OnStart(bot)
         printf("JOB '%s' assigned to bot %s", bot.Job.Action, bot:Nick())
     end
     return STATUS.RUNNING
+end
+
+local function botChatterWhenJobStart(bot, job)
+    local chatter = bot.components.chatter
+    if job.HasChatted then return end
+    chatter:On(f("Plan.%s", job.Action), { target = job.TargetObj }, true)
+    job.HasChatted = true
+    return true
 end
 
 local actRunnings = {
@@ -206,6 +215,9 @@ function FollowPlan:OnRunning(bot)
     if TTTBots.Match.RoundActive == false then return STATUS.FAILURE end
     if bot.Job == nil then return STATUS.FAILURE end
     local status = actRunnings[bot.Job.Action](bot, bot.Job)
+    if status == STATUS.RUNNING then
+        botChatterWhenJobStart(bot, bot.Job)
+    end
     -- printf("Running job %s for bot %s. Status is %s", bot.Job.Action, bot:Nick(), tostring(status))
     return status
 end
@@ -227,6 +239,7 @@ end
 
 -- Hook for PlayerSay to force give ourselves a follow job if a teammate traitor says in team chat to "follow"
 hook.Add("PlayerSay", "TTTBots_FollowPlan_PlayerSay", function(sender, text, teamChat)
+    -- FIXME: Rebuild this function cuz it breaks chat commands.
     if sender:IsBot() then return true end
     -- printf("PlayerSay %s: %s (%s)", sender:Nick(), text, teamChat and "team" or "global")
     if not teamChat then return true end

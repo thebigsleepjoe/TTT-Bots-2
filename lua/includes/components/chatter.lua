@@ -130,10 +130,10 @@ end
 
 -- Convert text to lowercase and check if it contains any keyword from the table
 hook.Add("PlayerSay", "TTTBots.Chatter.PromptResponse", function(sender, text, teamChat)
-    text = string.lower(text) -- Convert text to lowercase for case-insensitive comparison
+    local text2 = string.lower(text) -- Convert text to lowercase for case-insensitive comparison
 
     for keyword, event in pairs(keywordEvents) do
-        if string.find(text, keyword) then
+        if string.find(text2, keyword) then
             handleEvent(event)
         end
     end

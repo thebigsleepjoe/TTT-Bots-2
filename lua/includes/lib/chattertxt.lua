@@ -85,4 +85,14 @@ function TTTBots.LocalizedStrings.TestEventExists(event_name)
     return TTTBots.LocalizedStrings[lang] and TTTBots.LocalizedStrings[lang][event_name] and true or false
 end
 
+function TTTBots.LocalizedStrings.GetLocalizedPlanLine(event_name, bot, params)
+    local lang = TTTBots.Lib.GetConVarString("language")
+    local modifiedEvent = "Plan." .. event_name
+    local exists = TTTBots.LocalizedStrings.TestEventExists(modifiedEvent)
+
+    if not exists then return false end
+
+    return TTTBots.LocalizedStrings.FormatLine(TTTBots.LocalizedStrings.GetLine(modifiedEvent, lang, bot), params)
+end
+
 include("includes/data/chat_en.lua")
