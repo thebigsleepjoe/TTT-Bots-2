@@ -1,6 +1,6 @@
 ⚠️⚠️⚠️ WARNING: THIS IS NOT READY FOR PRODUCTION USE. ⚠️⚠️⚠️
 
-The repo may be public, but the master branch is constantly being updated at least weekly, and should not be relieb upon for 'errorless' gameplay until this warning is removed.
+The repo may be public, but the master branch is constantly being updated at least weekly with often untested code. Do not use this for non-development use until this warning is removed.
 
 ![TTT Bots Header](tttbots-banner2.png)
 ## What is this?
@@ -8,10 +8,22 @@ This is a player bot addon for the Trouble in Terrorist Town gamemode in Garry's
 
 It is designed to be as modular as possible, allowing for easy customization and expansion. It is designed for TTT2, while being fully playable in regular TTT.
 
+## How to use
+1. Download the latest version from the Steam Workshop **(Will go here when ready)**
+2. Start a p2p or dedicated server with sufficient player slots on a map with a navmesh or on one of the included maps.
+3. *As a superadmin,* either type `!addbot X` in chat, or write `ttt_bot_add X` in the console.
+4. You're done!
+
+## Commands
+TODO: Put a wiki here
+
 ## Progress:
 🚧 = WIP as of last master update
+
 ✅ = Done/done 'enough' (may still be tweaked)
+
 ❌ = Can't/won't do
+
 📃 = Planned
 
 Locomotion:
@@ -39,7 +51,6 @@ Morality:
 7. 📃 SUS: Players disguised are always KOS
 8. 📃 SUS: KOS callouts should be made and listened to (from trusted players).
 
-
 Basic behavior tree (this is out of order):
 1. ✅ Wandering
 2. ✅ Attack or hunt current target (WITHOUT wallhacks)
@@ -59,6 +70,7 @@ Combat:
 3. 📃 Bots should strafe properly while shooting
 4. 📃 Bots should feel pressure when aiming (less accuracy), and should be affected by rage (i.e., losing streaks)
 5. 📃 Bot camera should 'flick' when getting shot at, particularly if from behind
+6. 📃 Traitor bots should use knives to assassinate innocents
 
 User customization/administration:
 1. 📃 Difficulty settings; make bots more accurate, have better hearing, etc.
@@ -79,12 +91,3 @@ Misc. features and non-programming stuff:
 1. 📃 Ensure TTT/2 cross-compatibility
 2. 📃 CUSTOM Tutorial on how to create navmeshes + how to let them use ladders
 3. 📃 Push the first 'ready' build to Steam
-
-## How to use
-1. Download the latest version from the Steam Workshop **(Will go here when ready)**
-2. Start a p2p or dedicated server with sufficient player slots on a map with a navmesh or on one of the included maps.
-3. *As a superadmin,* either type `!addbot X` in chat, or write `ttt_bot_add X` in the console.
-4. You're done!
-
-## Commands
-TODO: Put a wiki here
