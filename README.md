@@ -73,6 +73,7 @@ Combat:
 5. 📃 Bot camera should 'flick' when getting shot at, particularly if from behind
 6. 📃 Traitor bots should use knives to assassinate innocents
 7. 📃 Bots using shotguns should walk towards their target while strafing
+8. 📃 Bots should hold fire if a teamkill might happen
 
 User customization/administration:
 1. 📃 Difficulty settings; make bots more accurate, have better hearing, etc.
