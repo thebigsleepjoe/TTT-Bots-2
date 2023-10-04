@@ -1,4 +1,6 @@
-TTTBots.LocalizedStrings = {}
+TTTBots.LocalizedStrings = {
+    Priorities = {}
+}
 
 --- Add a line into the localized strings table, according to its language. Depending on the type of event, the line may contain parameters.
 --- An example is "Hi, my name is {{botname}}" -> "Hi, my name is Bob"
@@ -77,7 +79,24 @@ end
 
 function TTTBots.LocalizedStrings.GetLocalizedLine(event_name, bot, params)
     local lang = TTTBots.Lib.GetConVarString("language")
-    return TTTBots.LocalizedStrings.FormatLine(TTTBots.LocalizedStrings.GetLine(event_name, lang, bot), params)
+
+    -- Test that the event event_name exists in the language.
+    local exists = TTTBots.LocalizedStrings.TestEventExists(event_name)
+    if not exists then
+        print("No localized strings for event " ..
+            event_name .. " in language " .. lang .. "... try setting lang cvar to 'en'.")
+        return false
+    end
+    -- Check if this selected category is enabled, per the user's settings.
+    local categoryEnabled = TTTBots.LocalizedStrings.CategoryIsEnabled(event_name)
+    if not categoryEnabled then return false end
+
+    -- Get the localized line for this event, then format it.
+    local formatted = TTTBots.LocalizedStrings.FormatLine(TTTBots.LocalizedStrings.GetLine(event_name, lang, bot), params)
+
+    -- Sometimes it will format to nothing or be nil, so we check for that.
+    if not formatted or formatted == "" then return false end
+    return formatted
 end
 
 --- Return true if the event has any lines associated in this language.
@@ -96,6 +115,24 @@ function TTTBots.LocalizedStrings.GetLocalizedPlanLine(event_name, bot, params)
     if not exists then return false end
 
     return TTTBots.LocalizedStrings.FormatLine(TTTBots.LocalizedStrings.GetLine(modifiedEvent, lang, bot), params)
+end
+
+--- Registers an event type with the given priority. This is used to cull undesired chatter (user customization)
+function TTTBots.LocalizedStrings.RegisterCategory(event_name, lang, priority)
+    local lang = lang or "en"
+    local langtable = TTTBots.LocalizedStrings[lang]
+    if not langtable then
+        TTTBots.LocalizedStrings[lang] = {}
+        langtable = TTTBots.LocalizedStrings[lang]
+    end
+    langtable[event_name] = langtable[event_name] or {}
+    TTTBots.LocalizedStrings.Priorities[event_name] = priority
+end
+
+function TTTBots.LocalizedStrings.CategoryIsEnabled(event_name)
+    local maxlevel = TTTBots.Lib.GetConVarFloat("chatter_lvl")
+    local level = TTTBots.LocalizedStrings.Priorities[event_name]
+    return level and (level <= maxlevel) or false
 end
 
 include("includes/data/chat_en.lua")

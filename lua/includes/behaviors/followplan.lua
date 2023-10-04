@@ -112,6 +112,10 @@ end
 --- Validate the behavior
 function FollowPlan:Validate(bot)
     local validate_debug = false
+    if not TTTBots.Match.PlansCanStart() then
+        if validate_debug then print(string.format("%s ignored plans due to round not being able to start", bot:Nick())) end
+        return false
+    end
     if not TTTBots.Match.RoundActive and bot.Job then
         bot.Job = nil
         if validate_debug then print(string.format("%s cleared job due to round not being active", bot:Nick())) end

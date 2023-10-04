@@ -3,8 +3,14 @@ local FCVAR = FCVAR_ARCHIVE + FCVAR_NOTIFY + FCVAR_REPLICATED + FCVAR_LUA_SERVER
 -- Misc cvars
 CreateConVar("ttt_bot_language", "en", FCVAR,
     "Changes the language that the bots speak in text chat, and may modify some GUI strings. Example is 'en' or 'es'")
+CreateConVar("ttt_bot_chatter_lvl", "3", FCVAR,
+    "The level of chatter that bots will have. 0 = none (not even KOS), 1 = critical only (like KOS), 2 = >= callouts/important only, 3 = everything.")
 
 -- Gameplay-effecting cvars
+CreateConVar("ttt_bot_plans_mindelay", "8", FCVAR,
+    "The delay when a round starts before traitor bots may follow automatic plans.")
+CreateConVar("ttt_bot_plans_maxdelay", "16", FCVAR,
+    "The maximum duration when a round starts before traitor bots may follow automatic plans.")
 
 -- Naming cvars
 CreateConVar("ttt_bot_names_allowcommunity", "1", FCVAR,

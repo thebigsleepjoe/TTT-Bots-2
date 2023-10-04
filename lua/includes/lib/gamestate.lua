@@ -31,7 +31,25 @@ Match.SecondsPassed = 0 --- Time since match began. This is important for traito
 function Match.Tick()
     if not Match.RoundActive then return end
     Match.CleanupNullCorpses()
-    Match.SecondsPassed = (Match.SecondsPassed or 0) + (1 / TTTBots.Tickrate)
+    Match.SecondsPassed = (Match.Time()) + (1 / TTTBots.Tickrate)
+end
+
+--- Returns true if enough time, as defined by plans_mindelay and _maxdelay, has passed since the round began. Used for automatic plan execution by bots.
+function Match.PlansCanStart()
+    if not Match.RoundActive then return false end
+    local minTime = TTTBots.Lib.GetConVarFloat("plans_mindelay")
+    local time = Match.Time()
+    if time < minTime then return false end
+    local maxTime = TTTBots.Lib.GetConVarFloat("plans_maxdelay")
+    if time > maxTime then return true end
+    local randi = math.random(minTime, maxTime)
+    return time > randi
+end
+
+--- Returns the time in seconds since the match began.
+---@return number seconds
+function Match.Time()
+    return (Match.RoundActive and Match.SecondsPassed) or 0
 end
 
 function Match.IsRoundActive()
@@ -105,7 +123,7 @@ function Match.UpdateAlivePlayers()
     end
 end
 
-timer.Create("TTTBots.Match.UpdateAlivePlayers", 1, 0, function()
+timer.Create("TTTBots.Match.UpdateAlivePlayers", 0.5, 0, function()
     Match.UpdateAlivePlayers()
 end)
 

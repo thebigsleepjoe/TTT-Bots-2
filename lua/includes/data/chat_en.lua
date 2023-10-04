@@ -1,21 +1,57 @@
+local P = {
+    CRITICAL = 1,  --- KOS, user interaction, etc.
+    IMPORTANT = 2, --- Important, but not necessarily critical
+    NORMAL = 3,    --- Mostly flavor text or misc. chitchat
+}
+
 local LoadLang = function()
     local A = TTTBots.Archetypes
     local Line = function(event, line, archetype)
         return TTTBots.LocalizedStrings.AddLine(event, line, "en", archetype)
     end
+    local RegisterCategory = function(event, priority)
+        return TTTBots.LocalizedStrings.RegisterCategory(event, "en", priority)
+    end
     local f = string.format
     local ACTS = TTTBots.Plans.ACTIONS
 
+
+    -----------------------------------------------------------
+    -- TRAITORS SHARING PLANS
+    -----------------------------------------------------------
+
+    RegisterCategory(f("Plan.%s", ACTS["ATTACKANY"]), P.CRITICAL)
     Line(f("Plan.%s", ACTS["ATTACKANY"]), "I'm going to attack {{player}}.", A.Default)
+
+    RegisterCategory(f("Plan.%s", ACTS["ATTACK"]), P.CRITICAL)
     Line(f("Plan.%s", ACTS["ATTACK"]), "I'm going to attack {{player}}.", A.Default)
+
+    RegisterCategory(f("Plan.%s", ACTS["PLANT"]), P.CRITICAL)
     Line(f("Plan.%s", ACTS["PLANT"]), "I'm going to plant a bomb.", A.Default)
+
+    RegisterCategory(f("Plan.%s", ACTS["DEFUSE"]), P.CRITICAL)
     Line(f("Plan.%s", ACTS["DEFUSE"]), "I'm going to defuse a bomb.", A.Default)
+
+    RegisterCategory(f("Plan.%s", ACTS["FOLLOW"]), P.CRITICAL)
     Line(f("Plan.%s", ACTS["FOLLOW"]), "I'm going to follow {{player}}", A.Default)
+
+    RegisterCategory(f("Plan.%s", ACTS["GATHER"]), P.CRITICAL)
     Line(f("Plan.%s", ACTS["GATHER"]), "Let's all gather over there.", A.Default)
+
+    RegisterCategory(f("Plan.%s", ACTS["DEFEND"]), P.CRITICAL)
     Line(f("Plan.%s", ACTS["DEFEND"]), "I'm going to defend this area.", A.Default)
+
+    RegisterCategory(f("Plan.%s", ACTS["ROAM"]), P.CRITICAL)
     Line(f("Plan.%s", ACTS["ROAM"]), "I'm going to roam around for a bit.", A.Default)
+
+    RegisterCategory(f("Plan.%s", ACTS["IGNORE"]), P.CRITICAL)
     Line(f("Plan.%s", ACTS["IGNORE"]), "I feel like doing my own thing this time around.", A.Default)
 
+    -----------------------------------------------------------
+    -- FOLLOW REQUESTS
+    -----------------------------------------------------------
+
+    RegisterCategory("FollowRequest", P.CRITICAL)
     Line("FollowRequest", "Sure, I'll follow you.", A.Default)
     Line("FollowRequest", "Okay, I'll follow you.", A.Default)
     Line("FollowRequest", "Alright, I'll follow you.", A.Default)
@@ -64,6 +100,11 @@ local LoadLang = function()
     Line("FollowRequest", "on my way", A.Casual)
     Line("FollowRequest", "sure, bud", A.Casual)
 
+    -----------------------------------------------------------
+    -- INVESTIGATIONS
+    -----------------------------------------------------------
+
+    RegisterCategory("InvestigateCorpse", P.IMPORTANT)
     Line("InvestigateCorpse", "I found a body!")
     Line("InvestigateCorpse", "I found a dead body!")
     Line("InvestigateCorpse", "Found a body.")
@@ -76,12 +117,13 @@ local LoadLang = function()
     Line("InvestigateCorpse", "corpse", A.Casual)
     Line("InvestigateCorpse", "body here", A.Casual)
 
+    RegisterCategory("InvestigateNoise", P.NORMAL)
     Line("InvestigateNoise", "I heard something.")
     Line("InvestigateNoise", "What was that?")
     Line("InvestigateNoise", "What was that noise?")
     Line("InvestigateNoise", "Did you hear that?")
     Line("InvestigateNoise", "Gonna go see what that was about")
-    Line("InvestigateNoise", "Uhhhh life check") -- TODO: Implement life checks?
+    Line("InvestigateNoise", "Uhhhh life check")
     Line("InvestigateNoise", "pew pew pew", A.Casual)
     Line("InvestigateNoise", "that sounded not good", A.Casual)
     Line("InvestigateNoise", "that sounded bad", A.Casual)
@@ -91,6 +133,11 @@ local LoadLang = function()
     Line("InvestigateNoise", "okay that's not good", A.Casual)
     Line("InvestigateNoise", "life check", A.Casual)
 
+    -----------------------------------------------------------
+    -- LIFE CHECKS
+    -----------------------------------------------------------
+
+    RegisterCategory("LifeCheck", P.IMPORTANT)
     Line("LifeCheck", "I'm alive", A.Default)
     Line("LifeCheck", "Reporting in!", A.Default)
     Line("LifeCheck", "Functioning as expected.", A.Default)
