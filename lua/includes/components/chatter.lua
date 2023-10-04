@@ -39,7 +39,8 @@ end
 
 function BotChatter:Say(text, teamOnly)
     if self.typing then return false end
-    local delay = (math.random(0, 100) / 100.0) * 2
+    local cps = lib.GetConVarFloat("chatter_cps")
+    local delay = (string.len(text) / cps) * (math.random(100, 300) / 100)
     self.typing = true
     timer.Simple(delay, function()
         if self then

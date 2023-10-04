@@ -5,6 +5,8 @@ CreateConVar("ttt_bot_language", "en", FCVAR,
     "Changes the language that the bots speak in text chat, and may modify some GUI strings. Example is 'en' or 'es'")
 CreateConVar("ttt_bot_chatter_lvl", "3", FCVAR,
     "The level of chatter that bots will have. 0 = none (not even KOS), 1 = critical only (like KOS), 2 = >= callouts/important only, 3 = everything.")
+CreateConVar("ttt_bot_chatter_cps", "15", FCVAR,
+    "Determines the typing speed of bots, in characters per second. Higher values = faster typing = more chatting.")
 
 -- Gameplay-effecting cvars
 CreateConVar("ttt_bot_plans_mindelay", "8", FCVAR,
