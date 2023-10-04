@@ -70,6 +70,25 @@ function Attack:Seek(bot, targetPos)
     bot.wasPathing = true --- Used to one-time stop loco when we start engaging
 end
 
+function Attack:GetTargetHeadPos(targetPly)
+    local fallback = targetPly:EyePos()
+
+    local head_bone_index = targetPly:LookupBone("ValveBiped.Bip01_Head1")
+    if not head_bone_index then
+        print("Returning fallback; no bone index for target.")
+        return fallback
+    end
+
+    local head_pos, head_ang = targetPly:GetBonePosition(head_bone_index)
+
+    if head_pos then
+        return head_pos
+    else
+        print("Returning fallback, couldn't retrieve head_pos from bone index " .. head_bone_index)
+        return fallback
+    end
+end
+
 function Attack:Engage(bot, targetPos)
     local target = bot.attackTarget
     ---@class CInventory
@@ -126,7 +145,7 @@ function Attack:Engage(bot, targetPos)
         )
     end
 
-    loco:AimAt(target:EyePos() - Vector(0, 0, 8) + self:PredictMovement(target))
+    loco:AimAt(self:GetTargetHeadPos(target) + self:PredictMovement(target))
 end
 
 ---Predict the (relative) movement of the target player using basic linear prediction
