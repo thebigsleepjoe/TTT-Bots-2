@@ -75,6 +75,10 @@ function TTTBots.Behaviors.Tree()
         elseif newState == STATUS.FAILURE then
             currentBehavior:OnFailure(bot)
         end
+
+        if not currentBehavior or not currentBehavior:Validate(bot) then
+            print(string.format("Couldn't get any behaviors to tick on bot %s", bot:Nick()))
+        end
     end
 
     return STATUS.FAILURE
