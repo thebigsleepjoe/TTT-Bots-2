@@ -110,11 +110,8 @@ end
 function TTTBots.LocalizedStrings.GetLocalizedPlanLine(event_name, bot, params)
     local lang = TTTBots.Lib.GetConVarString("language")
     local modifiedEvent = "Plan." .. event_name
-    local exists = TTTBots.LocalizedStrings.TestEventExists(modifiedEvent)
 
-    if not exists then return false end
-
-    return TTTBots.LocalizedStrings.FormatLine(TTTBots.LocalizedStrings.GetLine(modifiedEvent, lang, bot), params)
+    return TTTBots.LocalizedStrings.GetLocalizedLine(modifiedEvent, bot, params)
 end
 
 --- Registers an event type with the given priority. This is used to cull undesired chatter (user customization)

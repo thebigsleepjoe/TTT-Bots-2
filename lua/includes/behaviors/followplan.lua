@@ -151,9 +151,12 @@ function FollowPlan:OnStart(bot)
 end
 
 local function botChatterWhenJobStart(bot, job)
+    if not lib.IsPlayerAlive(bot) then return end
     local chatter = bot.components.chatter
     if job.HasChatted then return end
-    chatter:On(f("Plan.%s", job.Action), { target = job.TargetObj }, true)
+    local tobj = job.TargetObj
+    local plyName = IsValid(tobj) and tobj:IsPlayer() and tobj:Nick() or "<unresolved>"
+    chatter:On(f("Plan.%s", job.Action), { target = job.TargetObj, player = plyName }, true)
     job.HasChatted = true
     return true
 end
