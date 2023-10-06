@@ -89,6 +89,25 @@ function Attack:GetTargetHeadPos(targetPly)
     end
 end
 
+function Attack:GetTargetBodyPos(targetPly)
+    local fallback = targetPly:GetPos() + Vector(0, 0, 30)
+
+    local spine_bone_index = targetPly:LookupBone("ValveBiped.Bip01_Spine2")
+    if not spine_bone_index then
+        print("Returning fallback; no bone index for target.")
+        return fallback
+    end
+
+    local spine_pos, spine_ang = targetPly:GetBonePosition(spine_bone_index)
+
+    if spine_pos then
+        return spine_pos
+    else
+        print("Returning fallback, couldn't retrieve spine_pos from bone index " .. spine_bone_index)
+        return fallback
+    end
+end
+
 function Attack:Engage(bot, targetPos)
     local target = bot.attackTarget
     ---@class CInventory
@@ -145,7 +164,13 @@ function Attack:Engage(bot, targetPos)
         )
     end
 
-    loco:AimAt(self:GetTargetHeadPos(target) + self:PredictMovement(target))
+    local aimTarget = self:GetTargetHeadPos(target)
+
+    if weapon.is_shotgun then
+        aimTarget = self:GetTargetBodyPos(target)
+    end
+
+    loco:AimAt(aimTarget + self:PredictMovement(target))
 end
 
 ---Predict the (relative) movement of the target player using basic linear prediction

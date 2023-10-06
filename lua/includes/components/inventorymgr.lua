@@ -58,6 +58,7 @@ end
 ---@field time_to_kill number Time to kill of the weapon
 ---@field is_automatic boolean If the weapon is automatic
 ---@field is_sniper boolean If the weapon is a sniper
+---@field is_shotgun boolean If the weapon is a shotgun
 
 ---Returns the WeaponInfo table of the given entity
 ---@param wep Weapon
@@ -130,6 +131,8 @@ function BotInventoryMgr:GetWeaponInfo(wep)
     info.silent = wep.IsSilent
     -- If we can drop it
     info.can_drop = wep.AllowDrop
+    -- If it is a shotgun
+    info.is_shotgun = string.find(info.ammo_type or "", "buckshot") ~= nil
 
     info.damage = wep.Primary and wep.Primary.Damage
     info.rpm = math.ceil(wep.Primary and (1 / wep.Primary.Delay) * 60)
