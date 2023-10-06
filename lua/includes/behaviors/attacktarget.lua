@@ -154,8 +154,8 @@ end
 function Attack:PredictMovement(target)
     local vel = target:GetVelocity()
     local predictionSecs = 1.0 / TTTBots.Tickrate
-    local predictionMultSalt = math.random(80, 120) / 100.0
-    local predictionMult = (1 + predictionMultSalt) * 0.8
+    local predictionMultSalt = math.random(90, 110) / 100.0
+    local predictionMult = (1 + predictionMultSalt) * 0.7
     local predictionRelative = (vel * predictionSecs * predictionMult)
 
     local dvlpr = lib.GetDebugFor("attack")
