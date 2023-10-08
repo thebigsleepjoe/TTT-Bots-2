@@ -108,6 +108,10 @@ function Attack:GetTargetBodyPos(targetPly)
     end
 end
 
+function Attack:ShouldAimAtBody(bot, weapon)
+    return weapon.is_shotgun or weapon.is_melee
+end
+
 function Attack:Engage(bot, targetPos)
     local target = bot.attackTarget
     ---@class CInventory
@@ -164,11 +168,11 @@ function Attack:Engage(bot, targetPos)
         )
     end
 
-    local aimTarget = self:GetTargetHeadPos(target)
-
-    if weapon.is_shotgun or weapon.is_melee then
-        print(string.format("BOT %s is aiming at %s's body.", bot:Nick(), target:Nick()))
+    local aimTarget
+    if Attack:ShouldAimAtBody(bot, weapon) then
         aimTarget = self:GetTargetBodyPos(target)
+    else
+        aimTarget = self:GetTargetHeadPos(target)
     end
 
     loco:AimAt(aimTarget + self:PredictMovement(target))
