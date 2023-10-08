@@ -112,6 +112,32 @@ function Attack:ShouldAimAtBody(bot, weapon)
     return weapon.is_shotgun or weapon.is_melee
 end
 
+--- Tells loco to strafe
+---@param weapon WeaponInfo
+---@param loco CLocomotor
+function Attack:StrafeIfNecessary(bot, weapon, loco)
+    if not (bot.attackTarget and bot.attackTarget.GetPos) then return false end
+    local distToTarget = bot:GetPos():Distance(bot.attackTarget:GetPos())
+    local shouldStrafe = (
+        distToTarget > 200
+    -- and
+    )
+
+    if not shouldStrafe then return end
+
+    local strafeDir = math.random(0, 1) == 0 and -1 or 1
+    loco:SetStrafe(strafeDir)
+
+    return true -- We are strafing
+end
+
+--- Handles strafing, moving towards/away from our target, etc.
+---@param weapon WeaponInfo
+---@param loco CLocomotor
+function Attack:HandleAttackMovement(bot, weapon, loco)
+    self:StrafeIfNecessary(bot, weapon, loco)
+end
+
 function Attack:Engage(bot, targetPos)
     local target = bot.attackTarget
     ---@class CInventory
@@ -174,6 +200,8 @@ function Attack:Engage(bot, targetPos)
     else
         aimTarget = self:GetTargetHeadPos(target)
     end
+
+    self:HandleAttackMovement(aimTarget, weapon)
 
     loco:AimAt(aimTarget + self:PredictMovement(target))
 end

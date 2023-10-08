@@ -47,6 +47,8 @@ CreateConVar("ttt_bot_debug_evil", "1", FCVAR,
     "[May console spam. Development use only] Enables debug for the Evil Coordinator.")
 CreateConVar("ttt_bot_debug_inventory", "1", FCVAR,
     "[May console spam. Development use only] Enables debug for inventory management.")
+CreateConVar("ttt_bot_debug_strafe", "1", FCVAR,
+    "[May console spam. Development use only] Enables debug drawing for strafing. Requires 'developer 1' first.")
 
 -- Pathfinding cvars
 CreateConVar("ttt_bot_pathfinding_cpf", "50", FCVAR,

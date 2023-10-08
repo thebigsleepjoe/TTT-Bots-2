@@ -63,6 +63,7 @@ function BotLocomotor:Initialize(bot)
     self.moveNormalOverride = nil         -- Override movement normal, mostly used within this component.
 
     self.strafe = nil                     -- "left" or "right" or nil
+    self.strafeTimeout = 0                -- The next tick our strafe will time out on, which is when it will be set to nil.
     self.forceForward = false             -- If true, then the bot will always move forward
 
     self.crouch = false
@@ -272,7 +273,12 @@ function BotLocomotor:ClearLookPosOverride() self.lookPosOverride = nil end
 
 function BotLocomotor:SetMoveLerpSpeed(speed) self.moveLerpSpeed = speed end
 
-function BotLocomotor:SetStrafe(value) self.strafe = value end
+--- Set the direction of our strafing to either "left", "right", or nil. Non-nil values timeout after 2 ticks.
+---@param value string|nil the strafe direction, or nil for none.
+function BotLocomotor:SetStrafe(value)
+    if value then self.strafeTimeout = self.tick + (TTTBots.Tickrate / 2) end -- expire after 1/2 second
+    self.strafe = value
+end
 
 function BotLocomotor:SetRandomStrafe()
     local options = {
@@ -299,7 +305,20 @@ function BotLocomotor:GetCurrentLookPos() return self.lookPos or self.bot:GetEye
 
 function BotLocomotor:GetMoveLerpSpeed() return self.moveLerpSpeed end
 
-function BotLocomotor:GetStrafe() return self.strafe end
+--- Sets self.strafe to nil if strafeTimeout has been reached; returns self.strafe
+---@return string|nil
+function BotLocomotor:CancelStrafeIfTimeout()
+    if (self.strafeTimeout or 0) < self.tick then
+        self:SetStrafe(nil)
+        -- print(string.format("strafe timeout; %d vs %d", self.strafeTimeout, self.tick))
+    end
+    return self.strafe
+end
+
+---@return string|nil
+function BotLocomotor:GetStrafe()
+    return self:CancelStrafeIfTimeout()
+end
 
 function BotLocomotor:GetGoalPos()
     -- BotLocomotor:GetXYDist(a, b)
@@ -629,7 +648,6 @@ end
 function BotLocomotor:UpdateMovement()
     self:SetJumping(false)
     self:SetCrouching(false)
-    self:SetStrafe(nil)
     self:SetUsing(false)
     self:OverrideMoveNormal(nil)
     self:StopPriorityMovement()
@@ -1231,9 +1249,12 @@ function BotLocomotor:StartCommand(cmd)
     --- SET VIEW ANGLES USING UpdateViewAngles HELPER FUNCTION 📷
     self:UpdateViewAngles(cmd) -- The real view angles
 
+    --- STRAFESTR FOR LADDER + STRAFE CALCS 🏃
+    local strafeStr = self:GetStrafe()
+
     --- MANAGE LADDER MOVEMENT 🪜
     if self:IsOnLadder() then -- Ladder movement
-        local strafe_dir = (self:GetStrafe() == "left" and IN_MOVELEFT) or (self:GetStrafe() == "right" and IN_MOVERIGHT) or
+        local strafe_dir = (strafeStr == "left" and IN_MOVELEFT) or (strafeStr == "right" and IN_MOVERIGHT) or
             0
         cmd:SetButtons(IN_FORWARD + strafe_dir)
 
@@ -1242,9 +1263,17 @@ function BotLocomotor:StartCommand(cmd)
 
     --- STRAFE CALCULATIONS 🏃
     local side = cmd:GetSideMove()
-    side = (self:GetStrafe() == "left" and -400)
-        or (self:GetStrafe() == "right" and 400)
+    side = (strafeStr == "left" and -400)
+        or (strafeStr == "right" and 400)
         or 0
+
+    local dbgStrafe = lib.GetConVarBool("debug_strafe")
+    if dbgStrafe and strafeStr ~= nil then
+        -- Draw a line towards the direction of our strafe, out 100 units.
+        local strafePos = self.bot:GetPos() + (self.bot:GetRight() * 100 * (side == -400 and -1 or 1))
+        TTTBots.DebugServer.DrawLineBetween(self.bot:GetPos(), strafePos, Color(255, 0, 0))
+        -- print(string.format("Bot %s strafe dir is %s", self.bot:Nick(), strafeStr))
+    end
 
     --- MANAGE MOVEMENT SIDE/FORWARD 🏃
     local forward = self.movementVec == nil and 0 or 400
