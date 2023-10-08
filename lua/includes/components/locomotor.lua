@@ -284,6 +284,11 @@ function BotLocomotor:SetStrafe(value)
     self.strafe = value
 end
 
+function BotLocomotor:SetForceForward(value)
+    if value then self.forceForwardTimeout = self.tick + (TTTBots.Tickrate) end -- expire after 1 second
+    self.forceForward = value
+end
+
 function BotLocomotor:SetRandomStrafe()
     local options = {
         "left", "right"
@@ -319,9 +324,24 @@ function BotLocomotor:CancelStrafeIfTimeout()
     return self.strafe
 end
 
+--- Sets self.forceForward to nil if forceForwardTimeout has been reached; returns self.forceForward
+---@return boolean|nil
+function BotLocomotor:CancelForceForwardIfTimeout()
+    if (self.forceForwardTimeout or 0) < self.tick then
+        self:SetForceForward(nil)
+        -- print(string.format("ForceForward timeout; %d vs %d", self.ForceForwardTimeout, self.tick))
+    end
+    return self.forceForward
+end
+
 ---@return string|nil
 function BotLocomotor:GetStrafe()
     return self:CancelStrafeIfTimeout()
+end
+
+---@return boolean|nil
+function BotLocomotor:GetForceForward()
+    return self:CancelForceForwardIfTimeout()
 end
 
 function BotLocomotor:GetGoalPos()
@@ -664,7 +684,6 @@ function BotLocomotor:UpdateMovement()
     self:SetUsing(false)
     self:OverrideMoveNormal(nil)
     self:StopPriorityMovement()
-    self.forceForward = false
     self.tryingMove = false
     self:SetIsCliffed()
     if self.dontmove then return end
@@ -1279,19 +1298,26 @@ function BotLocomotor:StartCommand(cmd)
     side = (strafeStr == "left" and -400)
         or (strafeStr == "right" and 400)
         or 0
-
+    local forceForward = self:GetForceForward()
     local dbgStrafe = lib.GetConVarBool("debug_strafe")
-    if dbgStrafe and strafeStr ~= nil then
-        -- Draw a line towards the direction of our strafe, out 100 units.
-        local strafePos = self.bot:GetPos() + (self.bot:GetRight() * 100 * (side == -400 and -1 or 1))
-        TTTBots.DebugServer.DrawLineBetween(self.bot:GetPos(), strafePos, Color(255, 0, 0))
-        -- print(string.format("Bot %s strafe dir is %s", self.bot:Nick(), strafeStr))
+    if dbgStrafe then
+        if strafeStr ~= nil then
+            -- Draw a line towards the direction of our strafe, out 100 units.
+            local strafePos = self.bot:GetPos() + (self.bot:GetRight() * 100 * (side == -400 and -1 or 1))
+            TTTBots.DebugServer.DrawLineBetween(self.bot:GetPos(), strafePos, Color(255, 0, 0))
+        end
+
+        if forceForward and self.movementVec then
+            -- Draw a line forward 100 units
+            local forwardPos = self.bot:GetPos() + (self.bot:GetForward() * 100)
+            TTTBots.DebugServer.DrawLineBetween(self.bot:GetPos(), forwardPos, Color(0, 255, 0))
+        end
     end
 
     --- MANAGE MOVEMENT SIDE/FORWARD 🏃
     local forward = self.movementVec == nil and 0 or 400
     cmd:SetSideMove(side)
-    cmd:SetForwardMove((not self.forceForward and forward) or 400)
+    cmd:SetForwardMove((not forceForward and forward) or 400)
 
     -- Set up movement to always be up. This doesn't seem to do much tbh
     cmd:SetUpMove(400)

@@ -136,11 +136,40 @@ function Attack:StrafeIfNecessary(bot, weapon, loco)
     return true -- We are strafing
 end
 
+local IDEAL_APPROACH_DIST = 200
+
+function Attack:ShouldApproachWith(bot, weapon)
+    return weapon.is_shotgun or weapon.is_melee
+end
+
+function Attack:ApproachIfNecessary(bot, weapon, loco)
+    if not (bot.attackTarget and bot.attackTarget.GetPos) then return false end
+    if not self:ShouldApproachWith(bot, weapon) then return false end
+
+    local distToTarget = bot:GetPos():Distance(bot.attackTarget:GetPos())
+    local shouldApproach = (
+        distToTarget > IDEAL_APPROACH_DIST
+    )
+    local forceStop = (
+        distToTarget < IDEAL_APPROACH_DIST
+    )
+    if forceStop then
+        loco:SetForceForward(false)
+        return false
+    end -- Stop forcing forward if we are close enough
+    if not shouldApproach then return false end
+
+    loco:SetForceForward(true)
+
+    return true -- We are approaching
+end
+
 --- Handles strafing, moving towards/away from our target, etc.
 ---@param weapon WeaponInfo
 ---@param loco CLocomotor
 function Attack:HandleAttackMovement(bot, weapon, loco)
     self:StrafeIfNecessary(bot, weapon, loco)
+    self:ApproachIfNecessary(bot, weapon, loco)
 end
 
 function Attack:Engage(bot, targetPos)
@@ -206,7 +235,7 @@ function Attack:Engage(bot, targetPos)
         aimTarget = self:GetTargetHeadPos(target)
     end
 
-    self:HandleAttackMovement(aimTarget, weapon)
+    self:HandleAttackMovement(bot, weapon, loco)
 
     loco:AimAt(aimTarget + self:PredictMovement(target))
 end
