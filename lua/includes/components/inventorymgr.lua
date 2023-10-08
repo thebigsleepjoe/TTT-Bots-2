@@ -38,6 +38,7 @@ end
 ---@field max_ammo number MAX Ammo in the clip
 ---@field ammo number Ammo in the inventory
 ---@field ammo_type number Ammo type of the weapon, https://wiki.facepunch.com/gmod/Default_Ammo_Types
+---@field ammo_type_string string Ammo type of the string, after having been converted from the number. See ammo_type.
 ---@field slot string Slot of the weapon, functionally just a string version of the Kind
 ---@field hold_type string Hold type of the weapon, typically used for animations
 ---@field is_gun boolean If the weapon is a gun (that is, if it has a clip or not)
@@ -59,6 +60,50 @@ end
 ---@field is_automatic boolean If the weapon is automatic
 ---@field is_sniper boolean If the weapon is a sniper
 ---@field is_shotgun boolean If the weapon is a shotgun
+---@field is_melee boolean If the weapon is a shotgun
+
+--- A hash table for the ammo_type field in an info table. See https://wiki.facepunch.com/gmod/Default_Ammo_Types
+local ammoTypes = {
+    [1] = { name = "ar2", description = "weapon_ar2 ammo" },
+    [2] = { name = "ar2altfire", description = "weapon_ar2 altfire ammo" },
+    [3] = { name = "pistol", description = "weapon_pistol ammo" },
+    [4] = { name = "smg1", description = "weapon_smg1 ammo" },
+    [5] = { name = "357", description = "weapon_357 ammo" },
+    [6] = { name = "xbowbolt", description = "weapon_crossbow ammo" },
+    [7] = { name = "buckshot", description = "weapon_shotgun ammo" },
+    [8] = { name = "rpg_round", description = "weapon_rpg ammo" },
+    [9] = { name = "smg1_grenade", description = "weapon_smg1 altfire ammo" },
+    [10] = { name = "grenade", description = "weapon_frag ammo" },
+    [11] = { name = "slam", description = "weapon_slam ammo" },
+    [12] = { name = "alyxgun", description = "weapon_alyxgun ammo" },
+    [13] = { name = "sniperround", description = "combine sniper ammo" },
+    [14] = { name = "sniperpenetratedround", description = "combine sniper alternate ammo" },
+    [15] = { name = "thumper", description = "" },
+    [16] = { name = "gravity", description = "" },
+    [17] = { name = "battery", description = "" },
+    [18] = { name = "gaussenergy", description = "" },
+    [19] = { name = "combinecannon", description = "" },
+    [20] = { name = "airboatgun", description = "airboat mounted gun ammo" },
+    [21] = { name = "striderminigun", description = "strider minigun ammo" },
+    [22] = { name = "helicoptergun", description = "attack helicopter ammo" },
+    [23] = { name = "9mmround", description = "hl:s pistol ammo" },
+    [24] = { name = "357round", description = "hl:s .357 ammo" },
+    [25] = { name = "buckshothl1", description = "hl:s shotgun ammo" },
+    [26] = { name = "xbowbolthl1", description = "hl:s crossbow ammo" },
+    [27] = { name = "mp5_grenade", description = "hl:s mp5 grenade ammo" },
+    [28] = { name = "rpg_rocket", description = "hl:s rocket launcher ammo" },
+    [29] = { name = "uranium", description = "hl:s gauss/gluon gun ammo" },
+    [30] = { name = "grenadehl1", description = "hl:s grenade ammo" },
+    [31] = { name = "hornet", description = "hl:s hornet ammo" },
+    [32] = { name = "snark", description = "hl:s snark ammo" },
+    [33] = { name = "tripmine", description = "hl:s tripmine ammo" },
+    [34] = { name = "satchel", description = "hl:s satchel charge ammo" },
+    [35] = { name = "12mmround", description = "hl:s related ammo (heavy turret entity?)" },
+    [36] = { name = "striderminigundirect", description = "npc_strider \"enableaggressivebehavior\" ammo (less damage)" },
+    [37] = { name = "combineheavycannon", description = "the \"combine autogun\" ammo from half-life 2: episode 2" }
+}
+
+
 
 ---Returns the WeaponInfo table of the given entity
 ---@param wep Weapon
@@ -77,6 +122,8 @@ function BotInventoryMgr:GetWeaponInfo(wep)
     info.ammo = self.bot:GetAmmoCount(wep:GetPrimaryAmmoType())
     -- Ammo type of the weapon
     info.ammo_type = wep:GetPrimaryAmmoType()
+    -- The string version of the ammo type
+    info.ammo_type_string = ammoTypes[info.ammo_type] and ammoTypes[info.ammo_type].name or "unknown"
     -- Slot of the weapon, functionally just a string version of the Kind
     info.slot = (
         wep.Kind == 1 and "melee"
@@ -132,7 +179,9 @@ function BotInventoryMgr:GetWeaponInfo(wep)
     -- If we can drop it
     info.can_drop = wep.AllowDrop
     -- If it is a shotgun
-    info.is_shotgun = string.find(info.ammo_type or "", "buckshot") ~= nil
+    info.is_shotgun = string.find(info.ammo_type_string or "", "buckshot") ~= nil
+    -- If it is melee
+    info.is_melee = info.clip == -1
 
     info.damage = wep.Primary and wep.Primary.Damage
     info.rpm = math.ceil(wep.Primary and (1 / wep.Primary.Delay) * 60)
@@ -383,10 +432,12 @@ function BotInventoryMgr:GetInventoryString()
         local total = info.ammo --- how much ammo in inv
         local needsReload = info.needs_reload
 
+        local shotstring = info.is_shotgun and "(shotgun)" or ""
+
         -- example "\nPrimary weapon_name (DPS: 100; TTK: 2.5s) [8/10 shots, of %d]"
         str = str ..
-            string.format("\n%s %s (DPS: %s; TTK: %ss) [%d/%d shots, of %d]. NeedsReload=%s",
-                slot, name, dps, ttk, clip, max, total, needsReload)
+            string.format("\n%s %s %s (DPS: %s; TTK: %ss) [%d/%d shots, of %d]. {NeedsReload=%s, ammo_type_string=%s}",
+                slot, shotstring, name, dps, ttk, clip, max, total, needsReload, info.ammo_type_string)
     end
     return str
 end

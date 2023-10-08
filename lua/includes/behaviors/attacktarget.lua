@@ -166,7 +166,8 @@ function Attack:Engage(bot, targetPos)
 
     local aimTarget = self:GetTargetHeadPos(target)
 
-    if weapon.is_shotgun then
+    if weapon.is_shotgun or weapon.is_melee then
+        print(string.format("BOT %s is aiming at %s's body.", bot:Nick(), target:Nick()))
         aimTarget = self:GetTargetBodyPos(target)
     end
 
