@@ -111,7 +111,7 @@ function BotPersonality:PrintFlavoredTraits()
     end
 end
 
-local DECAY_BOREDOM = -0.0005 -- at 100% rate, with no interruptions, this is about 2000 secs (32 mins) to reach 0 from 1
+local DECAY_BOREDOM = -0.0005 -- at 100% rate, with no interruptions, this is about 2000 secs (32 mins) to reach 1 from 0
 local DECAY_PRESSURE = 0.05   -- at 100% rate, with no interruptions, this is about 20 secs to reach 0 from 1
 local DECAY_RAGE = 0.002      -- at 100% rate, with no interruptions, this is about 500 secs (8 mins) to reach 0 from 1
 
@@ -140,7 +140,8 @@ function BotPersonality:GetBoredom() return BOREDOM_ENABLED and self.boredom or 
 ---@param x number
 ---@return number
 function BotPersonality:AddRage(x)
-    self.rage = clamp(self.rage + x, 0, 1)
+    local modifier = lib.GetConVarFloat("rage_rate") / 100
+    self.rage = clamp(self.rage + (x * modifier), 0, 1)
 
     return self.rage
 end
@@ -149,7 +150,8 @@ end
 ---@param x number
 ---@return number
 function BotPersonality:AddPressure(x)
-    self.pressure = clamp(self.pressure + x, 0, 1)
+    local modifier = lib.GetConVarFloat("pressure_rate") / 100
+    self.pressure = clamp(self.pressure + (x * modifier), 0, 1)
 
     return self.pressure
 end
@@ -158,7 +160,8 @@ end
 ---@param x number
 ---@return number
 function BotPersonality:AddBoredom(x)
-    self.boredom = clamp(self.boredom + x, 0, 1)
+    local modifier = lib.GetConVarFloat("boredom_rate") / 100
+    self.boredom = clamp(self.boredom + (x * modifier), 0, 1)
 
     return self.boredom
 end
