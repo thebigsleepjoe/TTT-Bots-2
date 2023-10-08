@@ -117,15 +117,20 @@ end
 ---@param loco CLocomotor
 function Attack:StrafeIfNecessary(bot, weapon, loco)
     if not (bot.attackTarget and bot.attackTarget.GetPos) then return false end
+
+    -- Do not strafe if we are on a cliff. We will fall off.
+    local isCliffed = loco:GetIsCliffed()
+    if isCliffed then return false end
+
     local distToTarget = bot:GetPos():Distance(bot.attackTarget:GetPos())
     local shouldStrafe = (
         distToTarget > 200
     -- and
     )
 
-    if not shouldStrafe then return end
+    if not shouldStrafe then return false end
 
-    local strafeDir = math.random(0, 1) == 0 and -1 or 1
+    local strafeDir = math.random(0, 1) == 0 and "left" or "right"
     loco:SetStrafe(strafeDir)
 
     return true -- We are strafing

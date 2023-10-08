@@ -276,7 +276,11 @@ function BotLocomotor:SetMoveLerpSpeed(speed) self.moveLerpSpeed = speed end
 --- Set the direction of our strafing to either "left", "right", or nil. Non-nil values timeout after 2 ticks.
 ---@param value string|nil the strafe direction, or nil for none.
 function BotLocomotor:SetStrafe(value)
-    if value then self.strafeTimeout = self.tick + (TTTBots.Tickrate / 2) end -- expire after 1/2 second
+    if type(value) == "number" then
+        print("Strafe direction cannot be a number")
+        return
+    end
+    if value then self.strafeTimeout = self.tick + (TTTBots.Tickrate) end -- expire after 1 second
     self.strafe = value
 end
 
@@ -524,7 +528,7 @@ end
 --- Determine if we're "Cliffed" (i.e., on the edge of something)
 --- by doing two traces to our right and left, starting from EyePos and ending 100 units down, offset by 50 units to the right or left.
 ---@return boolean Cliffed True if we're cliffed (on the edge of something), false if we're not.
-function BotLocomotor:GetIsCliffed()
+function BotLocomotor:SetIsCliffed()
     local pos = self.bot:EyePos()
     local right = self.bot:GetRight()
     local forward = self.bot:GetForward()
@@ -548,7 +552,16 @@ function BotLocomotor:GetIsCliffed()
     -- TTTBots.DebugServer.DrawLineBetween(pos, pos + (right * 50) + down, Color(255, 0, 0))
     -- TTTBots.DebugServer.DrawLineBetween(pos, pos - (right * 50) + down, Color(255, 0, 0))
 
-    return not (rightTrace.Hit and leftTrace.Hit)
+    self.isCliffed = not (rightTrace.Hit and leftTrace.Hit)
+    self.isCliffedDirection = (rightTrace.Hit and "left") or (leftTrace.Hit and "right") or false
+
+    return self.isCliffed
+end
+
+--- Check if we're "cliffed" this tick. Basically this just means "is one of our strafe directions next to an edge?"
+---@return boolean
+function BotLocomotor:GetIsCliffed()
+    return self.isCliffed
 end
 
 --- Fetch obstacle props from our obstacletracker component, and modify the moveNormal
@@ -653,6 +666,7 @@ function BotLocomotor:UpdateMovement()
     self:StopPriorityMovement()
     self.forceForward = false
     self.tryingMove = false
+    self:SetIsCliffed()
     if self.dontmove then return end
 
     local followingPath = self:FollowPath() -- true if doing proper pathing
