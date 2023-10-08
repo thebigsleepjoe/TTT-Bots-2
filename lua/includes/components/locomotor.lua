@@ -667,7 +667,6 @@ function BotLocomotor:UpdateMovement()
         if (botArea == goalArea) then
             --self:LerpMovement(0.1, goal)
             self:SetPriorityGoal(goal)
-            -- self.forceForward = true
             self.tryingMove = true
         end
     end
