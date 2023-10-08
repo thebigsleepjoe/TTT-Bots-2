@@ -1175,12 +1175,12 @@ function BotLocomotor:StartCommand(cmd)
     local dvlpr = lib.GetDebugFor("pathfinding")
 
 
-    -- SetButtons to IN_DUCK if crouch is true
+    -- SetButtons to IN_DUCK if crouch is true 🦆
     cmd:SetButtons(
         (self:GetCrouching() or self:GetJumping()) and IN_DUCK or 0
     )
 
-    -- Set buttons for jumping if :GetJumping() is true
+    -- Set buttons for jumping if :GetJumping() is true 🦘
     -- The way jumping works is a little quirky, as it cannot be held down. We must release it occasionally
     if self:GetJumping() and (self.jumpReleaseTime < CurTime()) or self.jumpReleaseTime == nil then
         local onGround = self.bot:OnGround()
@@ -1196,6 +1196,7 @@ function BotLocomotor:StartCommand(cmd)
         end
     end
 
+    -- WALK TOWARDS NEXT POSITION ON PATH (OR IMMEDIATE PRIORITY GOAL), IF WE HAVE ONE 🏃
     if self:HasPath() and not self:GetPriorityGoal() then
         self:LerpMovement(0.1, self.nextPos)
     elseif self:GetPriorityGoal() then
@@ -1203,21 +1204,23 @@ function BotLocomotor:StartCommand(cmd)
         if dvlpr then TTTBots.DebugServer.DrawCross(self.movePriorityVec, 10, Color(0, 255, 255)) end
     end
 
-    if self.movementVec and self:GetXYDist(self.movementVec, self.bot:GetPos()) < 16 then
-        self.movementVec = nil
-    end
-
-    if self.movementVec ~= nil then
-        local ang = (self.movementVec - self.bot:GetPos()):Angle()
-        -- local moveNormalOverride = self:GetMoveNormalOverride()
-        -- if moveNormalOverride then
-        --     ang = moveNormalOverride:Angle()
-        -- end
-        if dvlpr then
-            TTTBots.DebugServer.DrawCross(self.movementVec, 5, Color(255, 255, 255), nil,
-                self.bot:Nick() .. "movementVec")
+    -- If there is a movement vector, check the distance between the movement vector and the bot's position, to see if we can stop moving.
+    if self.movementVec then
+        local dist = self:GetXYDist(self.movementVec, self.bot:GetPos())
+        -- If the distance is less than 16, set the movement vector to nil. We have reached our destination.
+        if dist < 16 then
+            self.movementVec = nil
+        else
+            -- Calculate the movement angles using the movement vector and the bot's position
+            local ang = (self.movementVec - self.bot:GetPos()):Angle()
+            -- If debug mode is enabled, draw a cross at the movement vector
+            if dvlpr then
+                TTTBots.DebugServer.DrawCross(self.movementVec, 5, Color(255, 255, 255), nil,
+                    self.bot:Nick() .. "movementVec")
+            end
+            -- Set the view angles using the movement angles
+            cmd:SetViewAngles(ang)
         end
-        cmd:SetViewAngles(ang) -- This is actually the movement angles, not the view angles. It's confusingly named.
     end
 
     local goalPos = self:GetGoalPos()
@@ -1225,16 +1228,10 @@ function BotLocomotor:StartCommand(cmd)
         self.movementVec = nil
     end
 
+    --- SET VIEW ANGLES USING UpdateViewAngles HELPER FUNCTION 📷
     self:UpdateViewAngles(cmd) -- The real view angles
 
-    -- Set forward and side movement
-    local forward = self.movementVec == nil and 0 or 400
-
-    local side = cmd:GetSideMove()
-    side = (self:GetStrafe() == "left" and -400)
-        or (self:GetStrafe() == "right" and 400)
-        or 0
-
+    --- MANAGE LADDER MOVEMENT 🪜
     if self:IsOnLadder() then -- Ladder movement
         local strafe_dir = (self:GetStrafe() == "left" and IN_MOVELEFT) or (self:GetStrafe() == "right" and IN_MOVERIGHT) or
             0
@@ -1243,12 +1240,21 @@ function BotLocomotor:StartCommand(cmd)
         return
     end
 
-    cmd:SetSideMove(side)
-    cmd:SetForwardMove(not self.forceForward and forward or 400)
+    --- STRAFE CALCULATIONS 🏃
+    local side = cmd:GetSideMove()
+    side = (self:GetStrafe() == "left" and -400)
+        or (self:GetStrafe() == "right" and 400)
+        or 0
 
-    -- Set up movement to always be up
+    --- MANAGE MOVEMENT SIDE/FORWARD 🏃
+    local forward = self.movementVec == nil and 0 or 400
+    cmd:SetSideMove(side)
+    cmd:SetForwardMove((not self.forceForward and forward) or 400)
+
+    -- Set up movement to always be up. This doesn't seem to do much tbh
     cmd:SetUpMove(400)
 
+    --- MANAGE BOT DOOR HANDLING 🚪
     if self:GetUsing() and self:DoorOpenTimer() then
         if dvlpr then
             TTTBots.DebugServer.DrawText(self.bot:GetPos(), "Opening door", Color(255, 255, 255))
@@ -1256,6 +1262,7 @@ function BotLocomotor:StartCommand(cmd)
         cmd:SetButtons(cmd:GetButtons() + IN_USE)
     end
 
+    --- MANAGE ATTACKING OF THE BOT 🔫
     if (self.attack and not self.attackReleaseTime) or                                       -- if we are attacking and we don't have an attack release time
         (self.attack and self.attackReleaseTime and self.attackReleaseTime > CurTime()) then -- or if we are attacking and we have an attack release time and it's not yet time to release:
         -- stop attack from interrupting reload
@@ -1265,12 +1272,14 @@ function BotLocomotor:StartCommand(cmd)
         end
     end
 
+    --- MANAGE RELOADING OF THE BOT 🔫
     if self.reload then
         cmd:SetButtons(cmd:GetButtons() + IN_RELOAD)
         self.reload = false
     end
 
-    cmd:SetButtons(cmd:GetButtons() + IN_RUN)
+    -- TODO: use IN_RUN to sprint around. cannot be held down constantly or else it won't work.
+    cmd:SetButtons(cmd:GetButtons())
 
     self.moveNormal = cmd:GetViewAngles():Forward()
 end
