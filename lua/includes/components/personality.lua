@@ -328,3 +328,86 @@ function plyMeta:HasTraitIn(hashtable)
     end
     return false
 end
+
+-- ON DYING
+local DEATH_RAGE_BASE = 0.2    -- Increase rage on death by this amount
+local DEATH_PRESSURE_BASE = -1 -- Remove pressure when dying
+local DEATH_BOREDOM_BASE = 0.1 -- Increase boredom on death by this amount
+
+-- ON KILLING ANOTHER PLAYER
+local KILL_RAGE_BASE = -0.1     -- Decrease rage on kill by this amount
+local KILL_PRESSURE_BASE = -0.2 -- Decrease pressure on kill by this amount
+local KILL_BOREDOM_BASE = -0.1  -- Decrease boredom on kill by this amount
+
+hook.Add("PlayerDeath", "TTTBots.Personality.PlayerDeath", function(bot, inflictor, attacker)
+    if bot:IsBot() then
+        local personality = bot and bot.components and bot.components.personality
+        if not personality then return end
+        personality:AddRage(DEATH_RAGE_BASE)
+        personality:AddPressure(DEATH_PRESSURE_BASE)
+        personality:AddBoredom(DEATH_BOREDOM_BASE)
+    end
+
+    if attacker and IsValid(attacker) and attacker:IsBot() then
+        local personality = attacker and attacker.components and attacker.components.personality
+        if not personality then return end
+        personality:AddRage(KILL_RAGE_BASE)
+        personality:AddPressure(KILL_PRESSURE_BASE)
+        personality:AddBoredom(KILL_BOREDOM_BASE)
+    end
+end)
+
+local LOSE_RAGE_BASE = 0.1         -- Increase rage by this amount when losing a round
+local LOSE_PRESSURE_BASE = 0.1     -- Increase pressure by this amount when losing a round
+local LOSE_BOREDOM_BASE = 0.05     -- Increase boredom by this amount when losing a round
+local SURVIVAL_LOSE_MODIFIER = 0.5 -- Multiply the above values by this amount if the bot survives the round
+
+local WIN_RAGE_BASE = -0.3         -- Decrease rage by this amount when winning a round
+local WIN_PRESSURE_BASE = -1       -- Decrease pressure by this amount when winning a round
+local WIN_BOREDOM_BASE = -0.05     -- Decrease boredom by this amount when winning a round
+local SURVIVAL_WIN_MODIFIER = 2    -- Multiply the above values by this amount if the bot survives the round
+
+local function updateBotAttributes(traitorsWon)
+    for i, bot in pairs(TTTBots.Bots) do
+        local personality = bot and bot.components and bot.components.personality
+        if not personality then continue end
+        local botEvil = lib.IsEvil(bot)
+        local botSurvived = lib.IsPlayerAlive(bot)
+
+        if botEvil then
+            if traitorsWon then
+                personality:AddRage(WIN_RAGE_BASE * (botSurvived and SURVIVAL_WIN_MODIFIER or 1))
+                personality:AddPressure(WIN_PRESSURE_BASE * (botSurvived and SURVIVAL_WIN_MODIFIER or 1))
+                personality:AddBoredom(WIN_BOREDOM_BASE * (botSurvived and SURVIVAL_WIN_MODIFIER or 1))
+            else
+                personality:AddRage(LOSE_RAGE_BASE * (botSurvived and SURVIVAL_LOSE_MODIFIER or 1))
+                personality:AddPressure(LOSE_PRESSURE_BASE * (botSurvived and SURVIVAL_LOSE_MODIFIER or 1))
+                personality:AddBoredom(LOSE_BOREDOM_BASE * (botSurvived and SURVIVAL_LOSE_MODIFIER or 1))
+            end
+        else
+            if traitorsWon then
+                personality:AddRage(LOSE_RAGE_BASE * (botSurvived and SURVIVAL_LOSE_MODIFIER or 1))
+                personality:AddPressure(LOSE_PRESSURE_BASE * (botSurvived and SURVIVAL_LOSE_MODIFIER or 1))
+                personality:AddBoredom(LOSE_BOREDOM_BASE * (botSurvived and SURVIVAL_LOSE_MODIFIER or 1))
+            else
+                personality:AddRage(WIN_RAGE_BASE * (botSurvived and SURVIVAL_WIN_MODIFIER or 1))
+                personality:AddPressure(WIN_PRESSURE_BASE * (botSurvived and SURVIVAL_WIN_MODIFIER or 1))
+                personality:AddBoredom(WIN_BOREDOM_BASE * (botSurvived and SURVIVAL_WIN_MODIFIER or 1))
+            end
+        end
+    end
+end
+
+hook.Add("TTTEndRound", "TTTBots.Personality.EndRound", function(result)
+    local RESULTS = {
+        innocents = "innocents",
+        traitors = "traitors",
+    }
+    if not RESULTS[result] then return end
+
+    if result == RESULTS.innocents then
+        updateBotAttributes(false)
+    else
+        updateBotAttributes(true)
+    end
+end)
