@@ -43,10 +43,12 @@ function BotPersonality:Initialize(bot)
     self.traits = self:GetNoConflictTraits(4)
     self.archetype = self:GetClosestArchetype()
 
-    --- How angry the bot is, from 1-100. Adds onto pressure. At 100% rage, the bot will leave and be replaced.
+    --- How angry the bot is, from 1-100. Adds onto pressure. At 100% rage, the bot will leave voluntary (if enabled).
     self.rage = 0
     --- How pressured the bot is feeling (effects aim) from 1-100.
     self.pressure = 0
+    --- How bored the bot is. Affects how long until they voluntarily leave the server (and get replaced)
+    self.boredom = 0
 
 
     self.bot = bot
@@ -109,8 +111,80 @@ function BotPersonality:PrintFlavoredTraits()
     end
 end
 
+local DECAY_BOREDOM = -0.0005 -- at 100% rate, with no interruptions, this is about 2000 secs (32 mins) to reach 0 from 1
+local DECAY_PRESSURE = 0.05   -- at 100% rate, with no interruptions, this is about 20 secs to reach 0 from 1
+local DECAY_RAGE = 0.002      -- at 100% rate, with no interruptions, this is about 500 secs (8 mins) to reach 0 from 1
+
+local BOREDOM_ENABLED = 1
+local PRESSURE_ENABLED = 1
+local RAGE_ENABLED = 1
+
+local function clamp(n, min, max)
+    return math.min(math.max(n, min), max)
+end
+
+--- decrement the value n by decayAmt, while saying within [0,1]
+local function decayN(n, decayAmt)
+    return clamp((n or 0) - decayAmt, 0, 1)
+end
+--- Returns the bot's rage, if enabled, else 0.
+function BotPersonality:GetRage() return RAGE_ENABLED and self.rage or 0 end
+
+--- Returns the bot's pressure, if enabled, else 0.
+function BotPersonality:GetPressure() return PRESSURE_ENABLED and self.pressure or 0 end
+
+--- Returns the bot's boredom, if enabled, else 0.
+function BotPersonality:GetBoredom() return BOREDOM_ENABLED and self.boredom or 0 end
+
+--- Increment the given statistic and return the new value.
+---@param x number
+---@return number
+function BotPersonality:AddRage(x)
+    self.rage = clamp(self.rage + x, 0, 1)
+
+    return self.rage
+end
+
+--- Increment the given statistic and return the new value.
+---@param x number
+---@return number
+function BotPersonality:AddPressure(x)
+    self.pressure = clamp(self.pressure + x, 0, 1)
+
+    return self.pressure
+end
+
+--- Increment the given statistic and return the new value.
+---@param x number
+---@return number
+function BotPersonality:AddBoredom(x)
+    self.boredom = clamp(self.boredom + x, 0, 1)
+
+    return self.boredom
+end
+
+--- Decay boredom, pressure, and rage.
+function BotPersonality:DecayStats()
+    local stats = {
+        { name = "boredom",  decay = DECAY_BOREDOM,  addfunc = self.AddBoredom,  enabled = BOREDOM_ENABLED },
+        { name = "pressure", decay = DECAY_PRESSURE, addfunc = self.AddPressure, enabled = PRESSURE_ENABLED },
+        { name = "rage",     decay = DECAY_RAGE,     addfunc = self.AddRage,     enabled = RAGE_ENABLED },
+    }
+
+    for _, stat in ipairs(stats) do
+        if not stat.enabled then continue end
+        if stat.decay ~= 0 then
+            stat.addfunc(self, -stat.decay / TTTBots.Tickrate)
+        end
+    end
+end
+
 function BotPersonality:Think()
-    -- No need to think, this is a passive component
+    BOREDOM_ENABLED = TTTBots.Lib.GetConVarBool("boredom")
+    PRESSURE_ENABLED = TTTBots.Lib.GetConVarBool("pressure")
+    RAGE_ENABLED = TTTBots.Lib.GetConVarBool("rage")
+
+    self:DecayStats()
 end
 
 --- Get a pure random trait name.

@@ -50,6 +50,20 @@ CreateConVar("ttt_bot_debug_inventory", "1", FCVAR,
 CreateConVar("ttt_bot_debug_strafe", "1", FCVAR,
     "[May console spam. Development use only] Enables debug drawing for strafing. Requires 'developer 1' first.")
 
+-- Personality cvars
+CreateConVar("ttt_bot_boredom", "1", FCVAR,
+    "Enables boredom. Bots will leave the server if they get too bored. If RDM is enabled, then some bots will be more likely RDM when (very) bored")
+CreateConVar("ttt_bot_boredom_rate", "100", FCVAR,
+    "How quickly bots get bored. *THIS IS A PERCENTAGE*. Higher values = faster boredom. Only does anything if ttt_bot_boredom is enabled.")
+CreateConVar("ttt_bot_pressure", "1", FCVAR,
+    "Enables pressure. Bots will have worse aim if they are under pressure. Certain traits may make some bots better under pressure, increasing difficulty.")
+CreateConVar("ttt_bot_pressure_rate", "100", FCVAR,
+    "How quickly bots accrue pressure. *THIS IS A PERCENTAGE*. Higher values = faster pressure gain. Only does anything if ttt_bot_pressure is enabled.")
+CreateConVar("ttt_bot_rage", "1", FCVAR,
+    "Enables rage. Like boredom, bots will leave, and even be more likely to RDM if RDM is enabled. This will also build onto pressure, if enabled, and may make bots more aggressive in chat.")
+CreateConVar("ttt_bot_rage_rate", "100", FCVAR,
+    "How quickly bots get angry. *THIS IS A PERCENTAGE*. Higher values = faster anger. Only does anything if ttt_bot_rage is enabled.")
+
 -- Pathfinding cvars
 CreateConVar("ttt_bot_pathfinding_cpf", "50", FCVAR,
     "Don't change this unless you know what you are doing. How many pathfinding calculations to do per frame. Higher values = more CPU usage, but faster pathfinding.")

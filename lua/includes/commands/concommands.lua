@@ -139,3 +139,19 @@ concommand.Add("ttt_bot_print_archetypes", function(ply, cmd, args)
         end
     end
 end)
+
+--- Print rage, boredom, and pressure for all bots.
+concommand.Add("ttt_bot_print_rbp", function(ply, cmd, args)
+    if not ply or not (ply and ply:IsSuperAdmin()) then return end -- cmd only works as server or SA
+    print("PER-BOT RAGE-BOREDOM-PRESSURE PRINTOUT")
+    print("--------------------------------")
+    for i, v in pairs(TTTBots.Bots) do
+        if v and v.components and v.components.personality then
+            local personality = v.components.personality ---@type CPersonality
+            printf("[BOT %s] R: %.2f, B: %.2f, P: %.2f", v:Nick(), (personality.rage or 0),
+                (personality.boredom or 0),
+                (personality.pressure or 0))
+        end
+    end
+    print("--------------------------------")
+end)
