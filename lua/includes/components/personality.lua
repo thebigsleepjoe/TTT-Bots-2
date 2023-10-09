@@ -54,6 +54,10 @@ function BotPersonality:Initialize(bot)
     self.bot = bot
 end
 
+function BotPersonality:GetStatRateFor(name)
+    return self[name .. "Rate"] or 1
+end
+
 function BotPersonality:GetClosestArchetype()
     local traitData = self:GetTraitData()
     local archetypes = {}
@@ -140,7 +144,7 @@ function BotPersonality:GetBoredom() return BOREDOM_ENABLED and self.boredom or 
 ---@param x number
 ---@return number
 function BotPersonality:AddRage(x)
-    local modifier = lib.GetConVarFloat("rage_rate") / 100
+    local modifier = self:GetStatRateFor("rage") * (lib.GetConVarFloat("rage_rate") / 100)
     self.rage = clamp(self.rage + (x * modifier), 0, 1)
 
     return self.rage
@@ -150,7 +154,7 @@ end
 ---@param x number
 ---@return number
 function BotPersonality:AddPressure(x)
-    local modifier = lib.GetConVarFloat("pressure_rate") / 100
+    local modifier = self:GetStatRateFor("pressure") * (lib.GetConVarFloat("pressure_rate") / 100)
     self.pressure = clamp(self.pressure + (x * modifier), 0, 1)
 
     return self.pressure
@@ -160,7 +164,7 @@ end
 ---@param x number
 ---@return number
 function BotPersonality:AddBoredom(x)
-    local modifier = lib.GetConVarFloat("boredom_rate") / 100
+    local modifier = self:GetStatRateFor("boredom") * (lib.GetConVarFloat("boredom_rate") / 100)
     self.boredom = clamp(self.boredom + (x * modifier), 0, 1)
 
     return self.boredom
@@ -177,12 +181,18 @@ function BotPersonality:DecayStats()
     for _, stat in ipairs(stats) do
         if not stat.enabled then continue end
         if stat.decay ~= 0 then
-            stat.addfunc(self, -stat.decay / TTTBots.Tickrate)
+            stat.addfunc(self, (-stat.decay / TTTBots.Tickrate) / (self:GetStatRateFor(stat.name))) -- stats are not affected by personality traits
         end
     end
 end
 
 function BotPersonality:Think()
+    if not (self.rageRate and self.pressureRate and self.boredomRate) then
+        self.rageRate = (self:GetTraitMult("rageRate") or 1)         --- The multiplier of the given stat based off the bot's personality. Applies to increases and decreases
+        self.pressureRate = (self:GetTraitMult("pressureRate") or 1) --- The multiplier of the given stat based off the bot's personality. Applies to increases and decreases
+        self.boredomRate = (self:GetTraitMult("boredomRate") or 1)   --- The multiplier of the given stat based off the bot's personality. Applies to increases and decreases
+    end
+
     BOREDOM_ENABLED = TTTBots.Lib.GetConVarBool("boredom")
     PRESSURE_ENABLED = TTTBots.Lib.GetConVarBool("pressure")
     RAGE_ENABLED = TTTBots.Lib.GetConVarBool("rage")
