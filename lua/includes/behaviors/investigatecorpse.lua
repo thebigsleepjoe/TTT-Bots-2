@@ -67,28 +67,28 @@ function InvestigateCorpse:OnStart(bot)
     local closestCorpse = lib.GetClosest(visibleCorpses, bot:GetPos())
     if closestCorpse == nil then return STATUS.FAILURE end
 
-    bot.corpseToID = closestCorpse
-    bot.components.chatter:On("InvestigateCorpse", { corpse = bot.corpseToID })
+    bot.corpseTarget = closestCorpse
+    bot.components.chatter:On("InvestigateCorpse", { corpse = bot.corpseTarget })
     return STATUS.RUNNING
 end
 
 --- Called when the behavior's last state is running
 function InvestigateCorpse:OnRunning(bot)
-    if CORPSE.GetFound(bot.corpseToID, false) then
+    if CORPSE.GetFound(bot.corpseTarget, false) then
         return STATUS.SUCCESS
     end
-    if not CORPSE.IsValidBody(bot.corpseToID) then
+    if not (IsValid(bot.corspeTarget) and CORPSE.IsValidBody(bot.corpseTarget)) then
         return STATUS.FAILURE
     end
     local loco = bot.components.locomotor
-    loco:AimAt(bot.corpseToID:GetPos())
-    loco:SetGoalPos(bot.corpseToID:GetPos())
+    loco:AimAt(bot.corpseTarget:GetPos())
+    loco:SetGoalPos(bot.corpseTarget:GetPos())
 
-    local distToBody = bot:GetPos():Distance(bot.corpseToID:GetPos())
+    local distToBody = bot:GetPos():Distance(bot.corpseTarget:GetPos())
     if distToBody < 80 then
         loco:Stop()
-        CORPSE.ShowSearch(bot, bot.corpseToID, false, false)
-        CORPSE.SetFound(bot.corpseToID, true)
+        CORPSE.ShowSearch(bot, bot.corpseTarget, false, false)
+        CORPSE.SetFound(bot.corpseTarget, true)
         return STATUS.SUCCESS
     end
     return STATUS.RUNNING
@@ -104,5 +104,5 @@ end
 
 --- Called when the behavior ends
 function InvestigateCorpse:OnEnd(bot)
-    bot.corpseToID = nil
+    bot.corpseTarget = nil
 end
