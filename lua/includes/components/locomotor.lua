@@ -1074,13 +1074,6 @@ function BotLocomotor:FollowPath()
     if dvlpr then
         local nextpostxt = string.format("NextPos (height difference is %s)", nextPos.z - bot:GetPos().z)
         TTTBots.DebugServer.DrawText(nextPos, nextpostxt, Color(255, 255, 255))
-
-        local strafeDir = self:GetStrafe()
-        if strafeDir then
-            print("Strafing direction: " .. strafeDir)
-            local strafePos = bot:GetPos() + (bot:GetRight() * 100 * (strafeDir == "left" and -1 or 1))
-            TTTBots.DebugServer.DrawLineBetween(bot:GetPos(), strafePos, Color(255, 0, 0))
-        end
     end
 
     -- self:DestroyBlockingEntities()
