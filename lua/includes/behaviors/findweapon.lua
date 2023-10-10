@@ -20,7 +20,16 @@ function FindWeapon:HasPrimary(bot)
     return primary ~= nil
 end
 
+--- Cache for GetWeaponsNear
+---@field weapons table
+---@field time number
+local getWeaponsNearCache = nil
+local GWNC_EXPIRY = 2
+
 function FindWeapon:GetWeaponsNear(bot, radius)
+    if getWeaponsNearCache and getWeaponsNearCache.time + GWNC_EXPIRY > CurTime() then
+        return getWeaponsNearCache.weapons
+    end
     local im = bot.components.inventorymgr
     radius = radius or 1000
     local weapons = {}
@@ -29,6 +38,10 @@ function FindWeapon:GetWeaponsNear(bot, radius)
             table.insert(weapons, v)
         end
     end
+    getWeaponsNearCache = {
+        weapons = weapons,
+        time = CurTime(),
+    }
     return weapons
 end
 
@@ -50,15 +63,24 @@ function FindWeapon:CanReachWeapon(ent)
     return func(ent:GetPos())
 end
 
+--- Cache the result of GetWeaponFor;
+---@field ent Entity the weapon/ent
+---@field time number the time the cache was created
+local getWeaponForCache = nil
+local GWFC_EXPIRY = 1
 --- Find a **primary** weapon on the ground nearest to **bot**
 ---@param bot Player
 ---@return Entity
 function FindWeapon:GetWeaponFor(bot)
+    if getWeaponForCache and (getWeaponForCache.time + GWFC_EXPIRY) > CurTime() then
+        return getWeaponForCache.ent
+    end
     -- Return the nearest weapon to bot:GetPos()
     local weapons = self:GetWeaponsNear(bot)
     local closestWeapon = nil
     local closestDist
     for k, v in pairs(weapons) do
+        if not IsValid(v) then continue end
         local dist = bot:GetPos():Distance(v:GetPos())
         if self:WeaponIsPrimary(v)
             and self:WeaponOnGround(v)
@@ -71,6 +93,10 @@ function FindWeapon:GetWeaponFor(bot)
             closestWeapon = v
         end
     end
+    getWeaponForCache = {
+        ent = closestWeapon,
+        time = CurTime(),
+    }
     return closestWeapon
 end
 
@@ -121,7 +147,6 @@ function FindWeapon:OnRunning(bot)
 
     bot.findweapon.target = (self:ValidateTarget(bot) and bot.findweapon.target) or self:GetWeaponFor(bot)
     if not self:ValidateTarget(bot) then
-        print("Failed because target is invalid")
         return STATUS.Failure
     end
 
