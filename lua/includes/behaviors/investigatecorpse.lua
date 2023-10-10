@@ -50,13 +50,33 @@ function InvestigateCorpse:GetShouldNoticeCorpse(bot)
     return lib.CalculatePercentChance(basePct * mult)
 end
 
+function InvestigateCorpse:CorpseValid(rag)
+    if rag == nil then return false, "nil" end                          -- The corpse is nil.
+    if not IsValid(rag) then return false, "invalid" end                -- The corpse is invalid.
+    if not CORPSE.IsValidBody(rag) then return false, "invalidbody" end -- The corpse is not a valid body.
+    if CORPSE.GetFound(rag, false) then return false, "discovered" end  -- The corpse was discovered.
+
+    return true, "valid"
+end
+
 --- Validate the behavior
 function InvestigateCorpse:Validate(bot)
-    local visibleCorpses = self:GetVisibleUnidentified(bot)
-    if not (visibleCorpses and #visibleCorpses > 0) then return false end
-    local closestCorpse = lib.GetClosest(visibleCorpses, bot:GetPos())
-    bot.corpseTarget = closestCorpse
-    return lib.IsGood(bot) and closestCorpse ~= nil and #visibleCorpses > 0
+    local curCorpse = bot.corpseTarget
+    if self:CorpseValid(curCorpse) then
+        return true
+    end
+
+    local options = self:GetVisibleUnidentified(bot)
+    if options and #options == 0 then return false end
+
+    local closest = lib.GetClosest(options, bot:GetPos())
+    if not self:CorpseValid(closest) then return false end
+
+    local unreachable = TTTBots.PathManager.IsUnreachableVec(bot:GetPos(), closest:GetPos())
+    if not unreachable then return false end
+
+    bot.corpseTarget = closest
+    return true
 end
 
 --- Called when the behavior is started
@@ -67,10 +87,9 @@ end
 
 --- Called when the behavior's last state is running
 function InvestigateCorpse:OnRunning(bot)
-    if CORPSE.GetFound(bot.corpseTarget, false) then
-        return STATUS.SUCCESS
-    end
-    if not (IsValid(bot.corspeTarget) and CORPSE.IsValidBody(bot.corpseTarget)) then
+    local validation, result = self:CorpseValid(bot.corpseTarget)
+    if not validation then
+        print("failed while running because corpse is " .. result)
         return STATUS.FAILURE
     end
     local loco = bot.components.locomotor

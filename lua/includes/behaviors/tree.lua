@@ -76,22 +76,22 @@ function TTTBots.Behaviors.Tree()
             currentBehavior:OnFailure(bot)
         end
 
-        if not currentBehavior or not currentBehavior:Validate(bot) then
-            print(string.format("Couldn't get any behaviors to tick on bot %s", bot:Nick()))
-        else
-            print(string.format("[BT] Bot %s is running behavior %s", bot:Nick(), currentBehavior.Name))
-            -- local printf = function(...)
-            --     print(string.format(...))
-            -- end
+        -- if not currentBehavior or not currentBehavior:Validate(bot) then
+        --     print(string.format("Couldn't get any behaviors to tick on bot %s", bot:Nick()))
+        -- else
+        --     print(string.format("[BT] Bot %s is running behavior %s", bot:Nick(), currentBehavior.Name))
+        --     -- local printf = function(...)
+        --     --     print(string.format(...))
+        --     -- end
 
-            -- printf("============= BOT %s BEHAVIOR =============", bot:Nick())
-            -- printf("Behavior: %s", currentBehavior.Name)
-            -- printf("Status: %s",
-            --     newState == STATUS.SUCCESS and "SUCCESS" or newState == STATUS.FAILURE and "FAILURE" or "RUNNING")
-            -- printf(behaviorChanged and "Behavior changed" or "Behavior unchanged")
-            -- printf(interruptible and "Behavior interruptible" or "Behavior uninterruptible")
-            -- printf("============================================")
-        end
+        --     -- printf("============= BOT %s BEHAVIOR =============", bot:Nick())
+        --     -- printf("Behavior: %s", currentBehavior.Name)
+        --     -- printf("Status: %s",
+        --     --     newState == STATUS.SUCCESS and "SUCCESS" or newState == STATUS.FAILURE and "FAILURE" or "RUNNING")
+        --     -- printf(behaviorChanged and "Behavior changed" or "Behavior unchanged")
+        --     -- printf(interruptible and "Behavior interruptible" or "Behavior uninterruptible")
+        --     -- printf("============================================")
+        -- end
     end
 
     return STATUS.FAILURE
