@@ -43,7 +43,7 @@ function BotChatter:Say(text, teamOnly)
     local delay = (string.len(text) / cps) * (math.random(100, 300) / 100)
     self.typing = true
     timer.Simple(delay, function()
-        if self then
+        if self.bot then
             self:SayRaw(text, teamOnly)
             self.typing = false
         end

@@ -186,6 +186,22 @@ function BotPersonality:DecayStats()
     end
 end
 
+local DISCONNECT_BOREDOM_THRESHOLD = 0.95
+local DISCONNECT_RAGE_THRESHOLD = 0.98
+function BotPersonality:DisconnectIfDesired()
+    local roundActive = TTTBots.Match.RoundActive
+    local isAlive = TTTBots.Lib.IsPlayerAlive(self.bot)
+    if (roundActive or not isAlive) then return false end -- don't dc during a round, that's rude!
+    if self.disconnecting then return true end
+    local cvar = lib.GetConVarBool("allow_leaving")
+    if not cvar then return end -- module is disabled
+    if self:GetBoredom() >= DISCONNECT_BOREDOM_THRESHOLD then
+        self.disconnecting = TTTBots.Lib.VoluntaryDisconnect(self.bot, "Boredom")
+    elseif self:GetRage() >= DISCONNECT_RAGE_THRESHOLD then
+        self.disconnecting = TTTBots.Lib.VoluntaryDisconnect(self.bot, "Rage")
+    end
+end
+
 function BotPersonality:Think()
     if not (self.rageRate and self.pressureRate and self.boredomRate) then
         self.rageRate = (self:GetTraitMult("rageRate") or 1)         --- The multiplier of the given stat based off the bot's personality. Applies to increases and decreases
@@ -198,6 +214,8 @@ function BotPersonality:Think()
     RAGE_ENABLED = TTTBots.Lib.GetConVarBool("rage")
 
     self:DecayStats()
+
+    self:DisconnectIfDesired()
 end
 
 --- Get a pure random trait name.

@@ -15,10 +15,125 @@ local LoadLang = function()
     local f = string.format
     local ACTS = TTTBots.Plans.ACTIONS
 
+    -----------------------------------------------------------
+    -- ENTRANCE/EXIT FROM SERVER
+    -----------------------------------------------------------
+
+
+    RegisterCategory("DisconnectBoredom", P.CRITICAL)
+    Line("DisconnectBoredom", "I'm bored. Bye.", A.Default)
+    Line("DisconnectBoredom", "Nothing's happening here. I'm out.", A.Default)
+    Line("DisconnectBoredom", "See ya when there's more action.", A.Default)
+    Line("DisconnectBoredom", "Not much going on. Catch you later.", A.Default)
+    Line("DisconnectBoredom", "This isn't my jam. Later.", A.Default)
+    Line("DisconnectBoredom", "I'm checking out. Peace.", A.Default)
+
+    Line("DisconnectBoredom", "cya later", A.Casual)
+    Line("DisconnectBoredom", "brb, this ain't it", A.Casual)
+    Line("DisconnectBoredom", "catch ya on the flip side.", A.Casual)
+    Line("DisconnectBoredom", "later", A.Casual)
+    Line("DisconnectBoredom", "holla later, peeps.", A.Casual)
+    Line("DisconnectBoredom", "ill be back (no i wont)", A.Casual)
+
+    Line("DisconnectBoredom", "What a snore-fest. I'm gone.", A.Bad)
+    Line("DisconnectBoredom", "Wake me up when it's interesting. Out.", A.Bad)
+    Line("DisconnectBoredom", "Yawn... Later losers.", A.Bad)
+    Line("DisconnectBoredom", "This game is boring. I'm leaving.", A.Bad)
+    Line("DisconnectBoredom", "This sucks. I'm done.", A.Bad)
+    Line("DisconnectBoredom", "You guys are boring. Bye.", A.Bad)
+
+    Line("DisconnectBoredom", "where's the exit button lol", A.Dumb)
+    Line("DisconnectBoredom", "how do you quit garry's mod", A.Dumb)
+    Line("DisconnectBoredom", "how do you turn this off?", A.Dumb)
+    Line("DisconnectBoredom", "duh... bye or something", A.Dumb)
+    Line("DisconnectBoredom", "I'm stuck. Oh wait, there's a quit button.", A.Dumb)
+    Line("DisconnectBoredom", "This too complicated. Bai.", A.Dumb)
+
+    Line("DisconnectBoredom", "Later pricks", A.Hothead)
+    Line("DisconnectBoredom", "You're all insufferable. Goodbye.", A.Hothead)
+    Line("DisconnectBoredom", "I'm out before I lose it.", A.Hothead)
+    Line("DisconnectBoredom", "Enough of this nonsense. Later.", A.Hothead)
+    Line("DisconnectBoredom", "I can't with you people. Bye.", A.Hothead)
+    Line("DisconnectBoredom", "Ugh, I'm done. Peace.", A.Hothead)
+
+    Line("DisconnectBoredom", "I'm gonna do something else. Bye!!", A.Nice)
+    Line("DisconnectBoredom", "It's been fun, but I'm heading out. Take care!", A.Nice)
+    Line("DisconnectBoredom", "You all are great, but I need a break. Bye!", A.Nice)
+    Line("DisconnectBoredom", "Had a good time, see you all soon!", A.Nice)
+    Line("DisconnectBoredom", "Thanks for the company. Until next time!", A.Nice)
+    Line("DisconnectBoredom", "It's been lovely. Catch you later!", A.Nice)
+
+    Line("DisconnectBoredom", "Goodbye.", A.Stoic)
+    Line("DisconnectBoredom", "Farewell.", A.Stoic)
+    Line("DisconnectBoredom", "I am leaving now.", A.Stoic)
+    Line("DisconnectBoredom", "It is time for me to go.", A.Stoic)
+    Line("DisconnectBoredom", "I shall depart.", A.Stoic)
+    Line("DisconnectBoredom", "Farewell for now.", A.Stoic)
+
+    Line("DisconnectBoredom", "Gonna to play Valorant.", A.Tryhard)
+    Line("DisconnectBoredom", "Switching to a more competitive game. Bye.", A.Tryhard)
+    Line("DisconnectBoredom", "Need more challenge. Later.", A.Tryhard)
+    Line("DisconnectBoredom", "Off to practice. Ciao.", A.Tryhard)
+    Line("DisconnectBoredom", "Can't level up here. I'm out.", A.Tryhard)
+    Line("DisconnectBoredom", "Going to up my game elsewhere. Farewell.", A.Tryhard)
+
+
+    RegisterCategory("DisconnectRage", P.CRITICAL)
+    Line("DisconnectRage", "Screw you guys.", A.Default)
+    Line("DisconnectRage", "I've had it with this!", A.Default)
+    Line("DisconnectRage", "This is just too much. I'm out!", A.Default)
+    Line("DisconnectRage", "Seriously?! Done with this nonsense.", A.Default)
+    Line("DisconnectRage", "Enough's enough.", A.Default)
+    Line("DisconnectRage", "This is the last straw. Bye.", A.Default)
+
+    Line("DisconnectRage", "ugh, screw this", A.Casual)
+    Line("DisconnectRage", "I'm done, y'all. Peace.", A.Casual)
+    Line("DisconnectRage", "Nope. Can't even.", A.Casual)
+    Line("DisconnectRage", "This ain't it, chief.", A.Casual)
+    Line("DisconnectRage", "I'm outtie. This sucks.", A.Casual)
+
+    Line("DisconnectRage", "What a pathetic waste of time.", A.Bad)
+    Line("DisconnectRage", "You all are the worst. Later.", A.Bad)
+    Line("DisconnectRage", "Good riddance. I'm out.", A.Bad)
+    Line("DisconnectRage", "I can't stand this garbage. Bye.", A.Bad)
+    Line("DisconnectRage", "This game's a joke. Later losers.", A.Bad)
+
+    Line("DisconnectRage", "Why game hard? I leave.", A.Dumb)
+    Line("DisconnectRage", "This too tough. Bye bye.", A.Dumb)
+    Line("DisconnectRage", "Me mad. Me go.", A.Dumb)
+    Line("DisconnectRage", "Game make head hurt. Bai.", A.Dumb)
+    Line("DisconnectRage", "Why everyone mean? Me out.", A.Dumb)
+
+    Line("DisconnectRage", "Screw all of you!", A.Hothead)
+    Line("DisconnectRage", "I can't take you idiots anymore!", A.Hothead)
+    Line("DisconnectRage", "Done with this BS. Peace!", A.Hothead)
+    Line("DisconnectRage", "Everyone here sucks. I'm gone.", A.Hothead)
+    Line("DisconnectRage", "I swear, you people... I'm out!", A.Hothead)
+
+    Line("DisconnectRage", "Sorry everyone, I need to cool down. Bye.", A.Nice)
+    Line("DisconnectRage", "I'm getting a bit frustrated. Need to step away. Take care.", A.Nice)
+    Line("DisconnectRage", "I think I need a break. See you all later!", A.Nice)
+    Line("DisconnectRage", "I'm feeling overwhelmed. Until next time.", A.Nice)
+    Line("DisconnectRage", "Sorry, this isn't my day. Catch you all later!", A.Nice)
+
+    Line("DisconnectRage", "I am departing now.", A.Stoic)
+    Line("DisconnectRage", "This is not worth my time.", A.Stoic)
+    Line("DisconnectRage", "I shall leave.", A.Stoic)
+    Line("DisconnectRage", "It's best I go.", A.Stoic)
+    Line("DisconnectRage", "I see no point in continuing. Goodbye.", A.Stoic)
+
+    Line("DisconnectRage", "Team, we'll regroup later. I'm out.", A.Teamer)
+    Line("DisconnectRage", "I need REAL competition. This is a joke.", A.Tryhard)
+    Line("DisconnectRage", "Pathetic. I'm off to a better game.", A.Tryhard)
+    Line("DisconnectRage", "I can't level up with this trash. Later.", A.Tryhard)
+    Line("DisconnectRage", "Waste of my skills. I'm gone.", A.Tryhard)
+    Line("DisconnectRage", "This isn't worth my time. Bye losers.", A.Tryhard)
+
 
     -----------------------------------------------------------
     -- TRAITORS SHARING PLANS
     -----------------------------------------------------------
+
 
     RegisterCategory(f("Plan.%s", ACTS["ATTACKANY"]), P.CRITICAL)
     Line(f("Plan.%s", ACTS["ATTACKANY"]), "I'm going to attack {{player}}.", A.Default)
@@ -45,6 +160,7 @@ local LoadLang = function()
     Line(f("Plan.%s", ACTS["ATTACKANY"]), "I'll take {{player}} on alone. Easy-peasy", A.Tryhard)
     Line(f("Plan.%s", ACTS["ATTACKANY"]), "Dibs on {{player}}. Don't take my ace", A.Tryhard)
 
+
     RegisterCategory(f("Plan.%s", ACTS["ATTACK"]), P.CRITICAL)
     Line(f("Plan.%s", ACTS["ATTACKANY"]), "I'm going to attack {{player}}.", A.Default)
     Line(f("Plan.%s", ACTS["ATTACKANY"]), "I've got {{player}}.", A.Default)
@@ -70,17 +186,21 @@ local LoadLang = function()
     Line(f("Plan.%s", ACTS["ATTACKANY"]), "I'll take {{player}} on alone. Easy-peasy", A.Tryhard)
     Line(f("Plan.%s", ACTS["ATTACKANY"]), "Dibs on {{player}}. Don't take my ace", A.Tryhard)
 
+
     RegisterCategory(f("Plan.%s", ACTS["PLANT"]), P.CRITICAL)
     Line(f("Plan.%s", ACTS["PLANT"]), "I'm going to plant a bomb.", A.Default)
     Line(f("Plan.%s", ACTS["PLANT"]), "I'm planting a bomb.", A.Default)
     Line(f("Plan.%s", ACTS["PLANT"]), "Placing a bomb!", A.Default)
     Line(f("Plan.%s", ACTS["PLANT"]), "Gonna rig this place to blow.", A.Default)
 
+
     RegisterCategory(f("Plan.%s", ACTS["DEFUSE"]), P.CRITICAL)
     Line(f("Plan.%s", ACTS["DEFUSE"]), "I'm going to defuse a bomb.", A.Default)
 
+
     RegisterCategory(f("Plan.%s", ACTS["FOLLOW"]), P.CRITICAL)
     Line(f("Plan.%s", ACTS["FOLLOW"]), "I'm going to follow {{player}}", A.Default)
+
 
     RegisterCategory(f("Plan.%s", ACTS["GATHER"]), P.CRITICAL)
     Line(f("Plan.%s", ACTS["GATHER"]), "Let's all gather over there.", A.Default)
@@ -102,11 +222,14 @@ local LoadLang = function()
     Line(f("Plan.%s", ACTS["GATHER"]), "Where all my friends at? Let's all work together.", A.Nice)
     Line(f("Plan.%s", ACTS["GATHER"]), "Let's all gather up, I need some friends for this one.", A.Nice)
 
+
     RegisterCategory(f("Plan.%s", ACTS["DEFEND"]), P.CRITICAL)
     Line(f("Plan.%s", ACTS["DEFEND"]), "I'm going to defend this area.", A.Default)
 
+
     RegisterCategory(f("Plan.%s", ACTS["ROAM"]), P.CRITICAL)
     Line(f("Plan.%s", ACTS["ROAM"]), "I'm going to roam around for a bit.", A.Default)
+
 
     RegisterCategory(f("Plan.%s", ACTS["IGNORE"]), P.CRITICAL)
     Line(f("Plan.%s", ACTS["IGNORE"]), "I feel like doing my own thing this time around.", A.Default)
@@ -164,9 +287,11 @@ local LoadLang = function()
     Line("FollowRequest", "on my way", A.Casual)
     Line("FollowRequest", "sure, bud", A.Casual)
 
+
     -----------------------------------------------------------
     -- INVESTIGATIONS
     -----------------------------------------------------------
+
 
     RegisterCategory("InvestigateCorpse", P.IMPORTANT)
     Line("InvestigateCorpse", "I found a body!")
@@ -180,6 +305,7 @@ local LoadLang = function()
     Line("InvestigateCorpse", "there's a body over here", A.Casual)
     Line("InvestigateCorpse", "corpse", A.Casual)
     Line("InvestigateCorpse", "body here", A.Casual)
+
 
     RegisterCategory("InvestigateNoise", P.NORMAL)
     Line("InvestigateNoise", "I heard something.")
@@ -197,9 +323,11 @@ local LoadLang = function()
     Line("InvestigateNoise", "okay that's not good", A.Casual)
     Line("InvestigateNoise", "life check", A.Casual)
 
+
     -----------------------------------------------------------
     -- LIFE CHECKS
     -----------------------------------------------------------
+
 
     RegisterCategory("LifeCheck", P.IMPORTANT)
     Line("LifeCheck", "I'm alive", A.Default)

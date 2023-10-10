@@ -416,7 +416,7 @@ function TTTBots.Lib.BotCanReachPos(pos)
 end
 
 --- Create a bot, optionally with a name.
----@param name string Optional, defaults to random name
+---@param name string|nil Optional, defaults to random name
 ---@return any
 function TTTBots.Lib.CreateBot(name)
     if not TTTBots.Lib.CheckIfPlayerSlots() then
@@ -519,6 +519,25 @@ function TTTBots.Lib.GetClosestLadder(pos)
         end
     end
     return closestLadder, closestDist
+end
+
+function TTTBots.Lib.VoluntaryDisconnect(bot, reason)
+    if bot.disconnecting then return true end -- already disconnecting
+    bot.disconnecting = true
+    local chatter = bot and bot.components and bot.components.chatter
+    if not chatter then return true end
+
+    chatter:On("Disconnect" .. reason, { bot = bot, name = bot:Nick() })
+    timer.Simple(math.random(3, 5), function()
+        if not bot then return end
+        if not IsValid(bot) then return end
+        bot:Kick("[BOT] Clint disconnect due to boredom. Disable with ttt_bot_allow_leaving cvar")
+    end)
+
+    -- schedule another bot to re-join in anywhere between 8 and 33 seconds
+    timer.Simple(math.random(8, 33), function()
+        TTTBots.Lib.CreateBot()
+    end)
 end
 
 --- Functionally the same as navmesh.GetNavArea(pos), but includes ladder areas.

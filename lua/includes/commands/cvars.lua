@@ -63,6 +63,8 @@ CreateConVar("ttt_bot_rage", "1", FCVAR,
     "Enables rage. Like boredom, bots will leave, and even be more likely to RDM if RDM is enabled. This will also build onto pressure, if enabled, and may make bots more aggressive in chat.")
 CreateConVar("ttt_bot_rage_rate", "100", FCVAR,
     "How quickly bots get angry. *THIS IS A PERCENTAGE*. Higher values = faster anger. Only does anything if ttt_bot_rage is enabled.")
+CreateConVar("ttt_bot_allow_leaving", "1", FCVAR,
+    "Enables bots to leave the server if they get too bored or angry. Bots that leave voluntarily will automatically have a replacement join within 30 seconds.")
 
 -- Pathfinding cvars
 CreateConVar("ttt_bot_pathfinding_cpf", "50", FCVAR,

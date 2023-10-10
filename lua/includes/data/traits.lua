@@ -440,4 +440,41 @@ TTTBots.Traits = {
             pressureRate = 3.0,
         }
     },
+    --- 2.5x higher boredom rate, 1.5x higher rage rate
+    bemused = {
+        name = "bemused",
+        description = "[HE] is easily bored and angered",
+        conflicts = { "easilyamused" },
+        traitor_only = false,
+        archetype = A.HotHead,
+        effects = {
+            boredomRate = 2.5,
+            rageRate = 1.5,
+        }
+    },
+    --- 0.3x boredom rate, 0.5x rage rate
+    easilyamused = {
+        name = "easilyamused",
+        description = "[HE] is rarely bored or angered",
+        conflicts = { "bemused" },
+        traitor_only = false,
+        archetype = A.Stoic,
+        effects = {
+            boredomRate = 0.3,
+            rageRate = 0.5,
+        }
+    },
+    --- Never gets angry, bored, or feels pressure. Stoic.
+    verystoic = {
+        name = "verystoic",
+        description = "[HE] is very stoic",
+        conflicts = { "bemused", "easilyamused", "rager", "pacifist" },
+        traitor_only = false,
+        archetype = A.Stoic,
+        effects = {
+            boredomRate = 0.0,
+            rageRate = 0.0,
+            pressureRate = 0.0,
+        }
+    },
 }
