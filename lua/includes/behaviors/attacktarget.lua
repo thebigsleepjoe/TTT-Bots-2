@@ -184,7 +184,7 @@ function Attack:Engage(bot, targetPos)
     local loco = bot.components.locomotor
     loco.stopLookingAround = true
 
-    local preventAttackBecauseMelee = false
+    local preventAttackBecauseMelee = false --- Used to prevent attacking when we are using a melee weapon and are too far away
     if bot.wasPathing and not usingMelee then
         loco:Stop()
         bot.wasPathing = false
@@ -202,7 +202,9 @@ function Attack:Engage(bot, targetPos)
 
     if not preventAttackBecauseMelee then
         if (self:LookingCloseToTarget(bot, target)) then
-            loco:StartAttack()
+            if not self:WillShootingTeamkill(bot, target) then -- make sure we aren't about to teamkill by mistake!!
+                loco:StartAttack()
+            end
 
             lib.CallEveryNTicks(
                 bot,
@@ -258,6 +260,19 @@ function Attack:PredictMovement(target)
     end
 
     return predictionRelative
+end
+
+--- Returns true if shooting now would result in possibly shooting someone who isn't our target.
+function Attack:WillShootingTeamkill(bot, target)
+    -- Get the eye trace of our bot.
+    local eyeTrace = bot:GetEyeTrace()
+    local ent = eyeTrace.Entity
+    if not ent then return false end                             -- We are not looking at anything important, we can shoot
+    if ent == target then return false end                       -- We are looking at our target, we can shoot
+    if IsValid(ent) and not ent:IsPlayer() then return false end -- We are looking at something that is not a player, we can shoot
+    local sameTeam = lib.IsEvil(bot) == lib.IsEvil(ent)
+    if not sameTeam then return false end                        -- We are not looking at a teammate, we can shoot
+    return true                                                  -- We are looking at a teammate, we cannot shoot
 end
 
 function Attack:LookingCloseToTarget(bot, target)
