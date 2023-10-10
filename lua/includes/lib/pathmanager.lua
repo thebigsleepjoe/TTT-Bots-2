@@ -389,6 +389,18 @@ TTTBots.PathManager.queuedPaths = {}
 TTTBots.PathManager.impossiblePaths = {}
 TTTBots.PathManager.botPathCooldowns = {} -- table of bots on cooldowns, player obj as key, curtime as value
 
+function TTTBots.PathManager.IsUnreachable(startArea, destinationArea)
+    local ID = startArea:GetID() .. "to" .. destinationArea:GetID()
+    return TTTBots.PathManager.impossiblePaths[ID] ~= nil
+end
+
+function TTTBots.PathManager.IsUnreachableVec(startVec, destVec)
+    local startArea = navmesh.GetNearestNavArea(startVec)
+    local destArea = navmesh.GetNearestNavArea(destVec)
+    if not (startArea and destArea) then return true end
+    return TTTBots.PathManager.IsUnreachable(startArea, destArea)
+end
+
 --- Returns true if the bot is on cooldown, false otherwise
 function TTTBots.PathManager.BotIsOnCooldown(bot)
     local cooldown = TTTBots.PathManager.botPathCooldowns[bot]

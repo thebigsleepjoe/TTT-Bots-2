@@ -52,22 +52,15 @@ end
 
 --- Validate the behavior
 function InvestigateCorpse:Validate(bot)
-    -- lib.IsGood(bot) and (self:GetShouldNoticeCorpse(bot) and #self:GetVisibleUnidentified(bot) > 0)
-    local isGood = lib.IsGood(bot)
-    -- local shouldNotice = self:GetShouldNoticeCorpse(bot)
-    local visibleUnidentified = #self:GetVisibleUnidentified(bot) > 0
-    return isGood and visibleUnidentified
+    local visibleCorpses = self:GetVisibleUnidentified(bot)
+    if not (visibleCorpses and #visibleCorpses > 0) then return false end
+    local closestCorpse = lib.GetClosest(visibleCorpses, bot:GetPos())
+    bot.corpseTarget = closestCorpse
+    return lib.IsGood(bot) and closestCorpse ~= nil and #visibleCorpses > 0
 end
 
 --- Called when the behavior is started
 function InvestigateCorpse:OnStart(bot)
-    local visibleCorpses = self:GetVisibleUnidentified(bot)
-    if #visibleCorpses == 0 then return STATUS.FAILURE end
-
-    local closestCorpse = lib.GetClosest(visibleCorpses, bot:GetPos())
-    if closestCorpse == nil then return STATUS.FAILURE end
-
-    bot.corpseTarget = closestCorpse
     bot.components.chatter:On("InvestigateCorpse", { corpse = bot.corpseTarget })
     return STATUS.RUNNING
 end

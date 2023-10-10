@@ -670,6 +670,10 @@ function BotLocomotor:Unstuck()
         nil
     )
 
+    if math.random(1, 5) == 3 then
+        self:SetJumping(true)
+    end
+
     if not (trce1.Hit or trce2.Hit or trce3.Hit) then
         -- We are still stuck but we can't figure out why. Just strafe in a random direction based off of the current tick.
         local direction = (self.tick % 20 == 0) and "left" or "right"
@@ -1155,7 +1159,7 @@ function BotLocomotor:UpdateViewAngles(cmd)
 
     if self:IsOnLadder() then
         self.lookPosGoal = self.nextPos
-    elseif self.targetDoor then
+    elseif IsValid(self.targetDoor) then
         local doorCenter = self.targetDoor:WorldSpaceCenter()
         if dvlpr_door then print(self.bot:Nick() .. " is looking at blocking door " .. self.targetDoor:EntIndex()) end
         self.lookPosGoal = doorCenter

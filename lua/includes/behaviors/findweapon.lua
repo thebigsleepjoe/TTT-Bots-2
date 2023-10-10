@@ -25,7 +25,7 @@ function FindWeapon:GetWeaponsNear(bot, radius)
     radius = radius or 1000
     local weapons = {}
     for k, v in pairs(ents.FindInSphere(bot:GetPos(), radius)) do
-        if v.AllowDrop ~= nil then
+        if (v.AllowDrop ~= nil) then
             table.insert(weapons, v)
         end
     end
@@ -34,6 +34,11 @@ end
 
 function FindWeapon:WeaponIsPrimary(weapon)
     return weapon.Kind == 3
+end
+
+--- Leverage the pathmanager module to determine if a path has been attempted to this weapon yet it is still unreachable
+function FindWeapon:WeaponIsPathable(bot, weapon)
+    return not TTTBots.PathManager.IsUnreachableVec(bot:GetPos(), weapon:GetPos())
 end
 
 function FindWeapon:WeaponOnGround(weapon)
@@ -58,6 +63,7 @@ function FindWeapon:GetWeaponFor(bot)
         if self:WeaponIsPrimary(v)
             and self:WeaponOnGround(v)
             and self:CanReachWeapon(v)
+            and self:WeaponIsPathable(bot, v)
             and (closestDist == nil
                 or dist < closestDist)
         then
@@ -74,6 +80,7 @@ function FindWeapon:ValidateTarget(bot)
     if not IsValid(target) then return false end
     if not target:IsValid() then return false end
     if not self:WeaponOnGround(target) then return false end
+    if not self:WeaponIsPathable(bot, target) then return false end
 
     return true
 end
