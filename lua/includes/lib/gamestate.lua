@@ -26,6 +26,7 @@ Match.AliveTraitors = {}
 Match.AliveHumanTraitors = {}
 Match.AliveNonEvil = {}
 Match.AlivePolice = {}
+Match.DisguisedPlayers = {}
 Match.SecondsPassed = 0 --- Time since match began. This is important for traitor bots.
 
 function Match.Tick()
@@ -77,6 +78,7 @@ function Match.ResetStats(roundActive)
     Match.AliveNonEvil = {}
     Match.AlivePolice = {}
     Match.SecondsPassed = 0
+    Match.DisguisedPlayers = {}
 
     -- Just gonna put this here since it's related to resetting stats.
     for i, v in pairs(TTTBots.Bots) do
@@ -104,6 +106,7 @@ function Match.UpdateAlivePlayers()
     Match.AliveHumanTraitors = {}
     Match.AliveNonEvil = {}
     Match.AliveTraitors = {}
+    Match.DisguisedPlayers = {}
     for i, v in pairs(player.GetAll()) do
         if TTTBots.Lib.IsPlayerAlive(v) then
             table.insert(Match.AlivePlayers, v)
@@ -119,8 +122,19 @@ function Match.UpdateAlivePlayers()
             else
                 table.insert(Match.AliveNonEvil, v)
             end
+
+            -- Check if player is disguised, and if so, add them to the disguised tbl
+            local isDisguised = v:GetNWBool("disguised", false)
+            if isDisguised then
+                Match.DisguisedPlayers[v] = true
+                print("Player is disguised")
+            end
         end
     end
+end
+
+function Match.IsPlayerDisguised(ply)
+    return Match.DisguisedPlayers[ply] or false
 end
 
 timer.Create("TTTBots.Match.UpdateAlivePlayers", 0.5, 0, function()
