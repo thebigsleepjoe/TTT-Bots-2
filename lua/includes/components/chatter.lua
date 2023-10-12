@@ -37,17 +37,23 @@ function BotChatter:SayRaw(text, teamOnly)
     self.bot:Say(text, teamOnly)
 end
 
-function BotChatter:Say(text, teamOnly)
+--- Order the bot to say a string of text in chat. This function is rate limited and types messages out at a somewhat random speed.
+---@param text string The raw string of text to put in chat.
+---@param teamOnly boolean|nil (OPTIONAL, =FALSE) Should the bot place the message in the team chat?
+---@param ignoreDeath boolean|nil (OPTIONAL, =FALSE) Should the bot say the text despite being dead?
+---@return boolean chatting Returns true if we just ordered the bot to speak, otherwise returns false.
+function BotChatter:Say(text, teamOnly, ignoreDeath)
     if self.typing then return false end
     local cps = lib.GetConVarFloat("chatter_cps")
     local delay = (string.len(text) / cps) * (math.random(100, 200) / 100)
     self.typing = true
     timer.Simple(delay, function()
-        if self.bot and lib.IsPlayerAlive(self.bot) then
+        if self.bot and (ignoreDeath or lib.IsPlayerAlive(self.bot)) then
             self:SayRaw(text, teamOnly)
             self.typing = false
         end
     end)
+    return true
 end
 
 local RADIO = {
