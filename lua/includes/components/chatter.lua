@@ -40,10 +40,10 @@ end
 function BotChatter:Say(text, teamOnly)
     if self.typing then return false end
     local cps = lib.GetConVarFloat("chatter_cps")
-    local delay = (string.len(text) / cps) * (math.random(100, 300) / 100)
+    local delay = (string.len(text) / cps) * (math.random(100, 200) / 100)
     self.typing = true
     timer.Simple(delay, function()
-        if self.bot then
+        if self.bot and lib.IsPlayerAlive(self.bot) then
             self:SayRaw(text, teamOnly)
             self.typing = false
         end
@@ -74,7 +74,7 @@ function BotChatter:On(event_name, args, teamOnly)
     local chancesOf100 = {
         InvestigateNoise = 15,
         InvestigateCorpse = 15,
-        LifeCheck = 50,
+        LifeCheck = 80,
     }
 
     local personality = self.bot.components.personality --- @type CPersonality
