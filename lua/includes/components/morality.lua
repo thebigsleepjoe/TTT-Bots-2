@@ -423,3 +423,27 @@ timer.Create("TTTBots.Components.Morality.PlayerCorpseTimer", 1, 0, function()
         end
     end
 end)
+
+-- Disguised player detection + TODO: held weapon detection (detect if holding traitor weapon)
+timer.Create("TTTBots.Components.Morality.DisguisedPlayerDetection", 1, 0, function()
+    if not TTTBots.Match.RoundActive then return end
+    -- local disguised = TTTBots.Match.DisguisedPlayers -- it's more efficient go loop thru every player because we are going to detect traitor weps anyway
+    local alivePlayers = TTTBots.Match.AlivePlayers
+    for i, ply in pairs(alivePlayers) do
+        -- local isHoldingTraitorWeapon -- TODO: Implement this later
+        local isDisguised = TTTBots.Match.IsPlayerDisguised(ply)
+
+        if isDisguised then
+            local witnessBots = lib.GetAllWitnesses(ply:EyePos(), true)
+            for i, bot in pairs(witnessBots) do
+                if not IsValid(bot) then continue end
+                if lib.IsEvil(bot) then continue end
+                local chatter = lib.GetComp(bot, "chatter")
+                if not chatter then continue end
+                -- set attack target if we do not have one already
+                bot.attackTarget = bot.attackTarget or ply
+                bot.components.chatter:On("DisguisedPlayer")
+            end
+        end
+    end
+end)

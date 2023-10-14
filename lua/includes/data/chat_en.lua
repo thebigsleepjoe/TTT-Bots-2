@@ -129,6 +129,12 @@ local LoadLang = function()
     Line("DisconnectRage", "Waste of my skills. I'm gone.", A.Tryhard)
     Line("DisconnectRage", "This isn't worth my time. Bye losers.", A.Tryhard)
 
+    -----------------------------------------------------------
+    -- TARGET ASSIGNMENT / ATTACK
+    -----------------------------------------------------------
+
+    RegisterCategory("DisguisedPlayer", P.IMPORTANT)
+    Line("DisguisedPlayer", "I see a disguised dude!", A.Default)
 
     -----------------------------------------------------------
     -- TRAITORS SHARING PLANS

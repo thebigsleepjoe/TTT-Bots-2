@@ -532,14 +532,23 @@ function TTTBots.Lib.VoluntaryDisconnect(bot, reason)
         if not bot then return end
         if not IsValid(bot) then return end
         bot:Kick(
-        string.format(
-        "[BOT] Voluntary disconnect because of %s. Disable voluntary disconnects with ttt_bot_allow_leaving 0."), reason)
+            string.format(
+                "[BOT] Voluntary disconnect because of %s. Disable voluntary disconnects with ttt_bot_allow_leaving 0."),
+            reason)
     end)
 
     -- schedule another bot to re-join in anywhere between 8 and 33 seconds
     timer.Simple(math.random(8, 33), function()
         TTTBots.Lib.CreateBot()
     end)
+end
+
+--- return the component 'type' of the bot, or false if doesn't have one
+function TTTBots.Lib.GetComp(bot, type)
+    if bot and bot.components and bot.components[type] then
+        return bot.components[type]
+    end
+    return false
 end
 
 --- Functionally the same as navmesh.GetNavArea(pos), but includes ladder areas.
