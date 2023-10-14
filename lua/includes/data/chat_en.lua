@@ -70,12 +70,12 @@ local LoadLang = function()
     Line("DisconnectBoredom", "I shall depart.", A.Stoic)
     Line("DisconnectBoredom", "Farewell for now.", A.Stoic)
 
-    Line("DisconnectBoredom", "Gonna to play Valorant.", A.Tryhard)
+    Line("DisconnectBoredom", "Going to play Valorant.", A.Tryhard)
     Line("DisconnectBoredom", "Switching to a more competitive game. Bye.", A.Tryhard)
     Line("DisconnectBoredom", "Need more challenge. Later.", A.Tryhard)
     Line("DisconnectBoredom", "Off to practice. Ciao.", A.Tryhard)
-    Line("DisconnectBoredom", "Can't level up here. I'm out.", A.Tryhard)
-    Line("DisconnectBoredom", "Going to up my game elsewhere. Farewell.", A.Tryhard)
+    Line("DisconnectBoredom", "gonna play aimlabs cya", A.Tryhard)
+    Line("DisconnectBoredom", "Going to up my game elsewhere. Ta-ta.", A.Tryhard)
 
 
     RegisterCategory("DisconnectRage", P.CRITICAL)
