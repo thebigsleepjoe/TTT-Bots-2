@@ -148,7 +148,9 @@ local keywordEvents = {
 -- Helper function to handle the chat events
 local function handleEvent(eventName)
     for i, v in pairs(TTTBots.Bots) do
-        v.components.chatter:On(eventName, {}, false)
+        local chatter = lib.GetComp(v, "chatter")
+        if not chatter then continue end
+        chatter:On(eventName, {}, false)
     end
 end
 
