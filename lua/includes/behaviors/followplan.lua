@@ -168,7 +168,7 @@ local actRunnings = {
             if FollowPlan.Debug then print(string.format("%s's target is invalid or dead.", bot:Nick())) end
             return STATUS.FAILURE
         end
-        bot.attackTarget = target
+        bot:SetAttackTarget(target)
         return STATUS.RUNNING
     end,
     [ACTIONS.DEFEND] = function(bot, job)

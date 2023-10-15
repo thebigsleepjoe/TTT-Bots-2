@@ -162,7 +162,7 @@ function BotMorality:SetAttackIfTargetEvil(target)
     if self.bot.attackTarget ~= nil then return end
     local sus = self:GetSuspicion(target)
     if sus >= self.Thresholds.KOS then
-        self.bot.attackTarget = target
+        self.bot:SetAttackTarget(target)
         return true
     end
     return false
@@ -218,7 +218,7 @@ function BotMorality:TickIfTraitor()
     )
     if lib.CalculatePercentChance(chanceAttackPerSec) then
         local target = BotMorality:GetRandomVictimFrom(targets)
-        self.bot.attackTarget = target
+        self.bot:SetAttackTarget(target)
     end
 end
 
@@ -234,7 +234,7 @@ function BotMorality:TickIfLastAlive()
         end
     end
 
-    self.bot.attackTarget = otherPlayer
+    self.bot:SetAttackTarget(otherPlayer)
 end
 
 function BotMorality:Think()
@@ -256,7 +256,7 @@ function BotMorality:OnWitnessHurtTraitor(victim, attacker, healthRemaining, dam
 
     -- The victim is evil and so are we. We should defend them if we don't have a target.
     if self.bot.attackTarget == nil then
-        self.bot.attackTarget = attacker
+        self.bot:SetAttackTarget(attacker)
     end
 end
 
@@ -297,7 +297,7 @@ function BotMorality:OnWitnessHurt(victim, attacker, healthRemaining, damageTake
         return
     end -- We are evil, we usually don't care about this.
     if attacker == self.bot then return end
-    if self.bot == victim then self.bot.attackTarget = attacker end
+    if self.bot == victim then self.bot:SetAttackTarget(attacker) end
     -- TODO: Disguiser should be taken into account here.
     -- local bad_guy = TTTBots.Match.WhoShotFirst(victim, attacker) -- TODO: Implement this later?
 
@@ -441,7 +441,7 @@ timer.Create("TTTBots.Components.Morality.DisguisedPlayerDetection", 1, 0, funct
                 local chatter = lib.GetComp(bot, "chatter")
                 if not chatter then continue end
                 -- set attack target if we do not have one already
-                bot.attackTarget = bot.attackTarget or ply
+                bot:SetAttackTarget(bot.attackTarget or ply)
                 bot.components.chatter:On("DisguisedPlayer")
             end
         end

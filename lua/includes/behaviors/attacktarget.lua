@@ -375,7 +375,7 @@ end
 
 --- Called when the behavior ends
 function Attack:OnEnd(bot)
-    bot.attackTarget = nil
+    bot:SetAttackTarget(nil)
     bot.components.locomotor.stopLookingAround = false
     bot.components.locomotor:StopAttack()
 end

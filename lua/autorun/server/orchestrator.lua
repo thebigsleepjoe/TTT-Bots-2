@@ -68,7 +68,7 @@ local function initializeMod()
             if bot.attackTarget then continue end
             local newTarget = table.Random(alivePlayers)
             if newTarget == bot then continue end
-            bot.attackTarget = newTarget
+            bot:SetAttackTarget(newTarget)
 
             local f = string.format
             print(f("Bot %s is targeting %s", bot:Nick(), newTarget:Nick()))

@@ -70,7 +70,7 @@ Combat:
 2. ✅ Traitors should auto-buy radar (this is simulated)
 3. ✅ Bots should strafe properly while shooting
 4. 📃 Bots should feel pressure when aiming (less accuracy), and should be affected by rage (i.e., losing streaks)
-5. 📃 Bot camera should 'flick' when getting shot at, particularly if from behind
+5. ✅ Bot camera should 'flick' when getting shot at, particularly if from behind
 6. 📃 Traitor bots should use knives to assassinate innocents
 7. ✅ Bots using shotguns should walk towards their target while strafing
 8. 📃 Bots should hold fire if a teamkill might happen

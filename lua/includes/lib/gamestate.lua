@@ -82,7 +82,7 @@ function Match.ResetStats(roundActive)
 
     -- Just gonna put this here since it's related to resetting stats.
     for i, v in pairs(TTTBots.Bots) do
-        v.attackTarget = nil
+        v:SetAttackTarget(nil)
     end
 end
 

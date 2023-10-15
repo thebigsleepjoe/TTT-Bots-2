@@ -201,30 +201,52 @@ function BotLocomotor:GetEyeAngleDiffTo(pos)
     return yawDiff, pitchDiff
 end
 
+local LOOKSPEEDMULT_DECAYRATE = 0.96
+--- [CALCULATED PER-FRAME] Decays the lookSpeedMultiplier value by LOOKSPEEDMULT_DECAYRATE to the bot's decay goal (usually 1)
+function BotLocomotor:DecayLookSpeedMultiplier()
+    local current = (self.lookSpeedMultiplier or 1)
+    local decayGoal = 1
+    if current == decayGoal then return decayGoal end -- very minor optimization
+    self.lookSpeedMultiplier = math.max(current * LOOKSPEEDMULT_DECAYRATE, decayGoal)
+
+    return self.lookSpeedMultiplier
+end
+
+function BotLocomotor:OnNewTarget(target)
+    if not (target and IsValid(target)) then return end
+    -- local pitchDiff, yawDiff = self:GetEyeAngleDiffTo(target:GetPos())
+
+    -- if pitchDiff > 1 then
+    self.lookSpeedMultiplier = 30
+    -- end
+end
+
 function BotLocomotor:RotateEyeAnglesTo(targetPos)
+    local speedMult = self:DecayLookSpeedMultiplier()
     -- Settings for easier tweaking
-    local RPS = 360                 -- Max rotation speed per second (degrees)
-    local MIN_ROTATION_SPEED = 0.15 -- Minimum factor for the easing, ensures movement even when differences are small
-    local MAX_ROTATION_SPEED = 1    -- Maximum factor for the easing, prevents snapping
+    local RPS = 360 -- Max rotation speed per second (degrees)
+    local MIN_ROTATION_SPEED = 0.15
+    local MAX_ROTATION_SPEED = 1 * speedMult
 
     -- Calculate dependent variables
     local delta = FrameTime()
-    local rotationSpeed = RPS * delta
+    local rotationSpeedLimit = RPS * delta
 
     local currentAngles = self.bot:EyeAngles()
     local yawDiffDeg, pitchDiffDeg = self:GetEyeAngleDiffTo(targetPos)
 
+    -- The average difference of yaw and pitch to the target
     local avgDiffDeg = (math.abs(yawDiffDeg) + math.abs(pitchDiffDeg)) / 2
 
     -- Normalize the difference to range [0, 1]
     local factor = avgDiffDeg / 180 -- Since avgDiffDeg will be between 0 to 180 degrees
 
     -- Scale this by the min and max rotation speeds
-    local adjustedSpeed = MIN_ROTATION_SPEED + (MAX_ROTATION_SPEED - MIN_ROTATION_SPEED) * factor
+    local adjustedSpeed = (MIN_ROTATION_SPEED + (MAX_ROTATION_SPEED - MIN_ROTATION_SPEED) * factor)
 
     -- Determine how much we should change our pitch and yaw this frame
-    local pitchChange = math.Clamp(pitchDiffDeg * adjustedSpeed, -rotationSpeed, rotationSpeed)
-    local yawChange = math.Clamp(yawDiffDeg * adjustedSpeed, -rotationSpeed, rotationSpeed)
+    local pitchChange = math.Clamp(pitchDiffDeg * adjustedSpeed, -rotationSpeedLimit, rotationSpeedLimit)
+    local yawChange = math.Clamp(yawDiffDeg * adjustedSpeed, -rotationSpeedLimit, rotationSpeedLimit)
 
     self.bot:SetEyeAngles(Angle(currentAngles.p + pitchChange, currentAngles.y + yawChange, 0))
 end
@@ -1473,3 +1495,13 @@ timer.Create("TTTBots.Locomotor.lookPosOverride.ForgetOverride", 1.0 / TTTBots.T
         end
     end
 end)
+
+local plyMeta = FindMetaTable("Player")
+
+function plyMeta:SetAttackTarget(target)
+    if self.attackTarget == target then return end
+    self.attackTarget = target
+    local loco = lib.GetComp(self, "locomotor")
+    if not loco then return end
+    loco:OnNewTarget(target)
+end
