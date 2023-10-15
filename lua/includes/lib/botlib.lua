@@ -531,10 +531,9 @@ function TTTBots.Lib.VoluntaryDisconnect(bot, reason)
     timer.Simple(math.random(3, 5), function()
         if not bot then return end
         if not IsValid(bot) then return end
-        bot:Kick(
-            string.format(
-                "[BOT] Voluntary disconnect because of %s. Disable voluntary disconnects with ttt_bot_allow_leaving 0."),
-            reason or "UNDEFINED")
+        bot:Kick(string.format(
+        "[BOT] Voluntary disconnect because of %s. Disable voluntary disconnects with ttt_bot_allow_leaving 0.",
+            reason or "UNDEFINED"))
     end)
 
     -- schedule another bot to re-join in anywhere between 8 and 33 seconds

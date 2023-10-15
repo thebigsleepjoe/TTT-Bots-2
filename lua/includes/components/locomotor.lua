@@ -1142,7 +1142,7 @@ function BotLocomotor:UpdateViewAngles(cmd)
             end
         end
 
-        if self.randomLookOverride ~= nil then
+        if self.randomLookOverride ~= nil and IsValid(self.randomLookOverride) then
             self.randomLook = self.randomLookOverride:GetPos() + Vector(0, 0, 64)
             if not self.bot:Visible(self.randomLookOverride) then self.randomLookOverride = nil end
         end

@@ -134,7 +134,13 @@ local LoadLang = function()
     -----------------------------------------------------------
 
     RegisterCategory("DisguisedPlayer", P.IMPORTANT)
-    Line("DisguisedPlayer", "I see a disguised dude!", A.Default)
+    Line("DisguisedPlayer", "This guy is disguised!", A.Default)
+    Line("DisguisedPlayer", "disguised dude over here", A.Casual)
+    Line("DisguisedPlayer", "Why cant i see your name??", A.Bad)
+    Line("DisguisedPlayer", "who you", A.Dumb)
+    Line("DisguisedPlayer", "Little baby with the disguiser", A.Hothead)
+    Line("DisguisedPlayer", "my friend is disguised", A.Sus)
+    Line("DisguisedPlayer", "Disguising won't save you", A.Tryhard)
 
     -----------------------------------------------------------
     -- TRAITORS SHARING PLANS

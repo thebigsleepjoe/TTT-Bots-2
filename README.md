@@ -48,7 +48,7 @@ Morality:
 4. ✅ SUS: Players shooting randomly are suspicious
 5. ✅ SUS: Players shooting near a bot gain more suspicion than if they were shooting randomly
 6. 📃 SUS: Players holding a traitor weapon are KOS
-7. 🚧 SUS: Players disguised are always KOS
+7. ✅ SUS: Players disguised are always KOS
 8. 📃 SUS: KOS callouts should be made and listened to (from trusted players).
 9. 📃 SUS: Players killing traitors should be trusted immediately (instead of shooting first, questions later), just makes more sense.
 

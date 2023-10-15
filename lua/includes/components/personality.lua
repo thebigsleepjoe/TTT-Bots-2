@@ -376,7 +376,7 @@ hook.Add("PlayerDeath", "TTTBots.Personality.PlayerDeath", function(bot, inflict
         personality:AddBoredom(DEATH_BOREDOM_BASE)
     end
 
-    if attacker and IsValid(attacker) and attacker:IsBot() then
+    if attacker and IsValid(attacker) and attacker:IsPlayer() and attacker:IsBot() then
         local personality = attacker and attacker.components and attacker.components.personality
         if not personality then return end
         personality:AddRage(KILL_RAGE_BASE)

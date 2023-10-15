@@ -31,6 +31,22 @@ function BotChatter:Initialize(bot)
 
     self.tick = 0                                                      -- Tick counter
     self.bot = bot
+    self.rateLimitTbl = {}
+end
+
+--- Check the rate limit table for if we can say the line. If so, then return true and update the rate limit tbl.
+---@param event string
+---@return boolean
+function BotChatter:CanSayEvent(event)
+    local rateLimitTime = lib.GetConVarFloat("chatter_minrepeat")
+    local lastSpeak = self.rateLimitTbl[event] or -math.huge
+
+    if lastSpeak + rateLimitTime < CurTime() then
+        self.rateLimitTbl[event] = CurTime()
+        return true
+    end
+
+    return false
 end
 
 function BotChatter:SayRaw(text, teamOnly)
@@ -45,7 +61,7 @@ end
 function BotChatter:Say(text, teamOnly, ignoreDeath)
     if self.typing then return false end
     local cps = lib.GetConVarFloat("chatter_cps")
-    local delay = (string.len(text) / cps) * (math.random(100, 200) / 100)
+    local delay = (string.len(text) / cps) * (math.random(100, 110) / 100)
     self.typing = true
     timer.Simple(delay, function()
         if self.bot and (ignoreDeath or lib.IsPlayerAlive(self.bot)) then
@@ -75,6 +91,8 @@ function BotChatter:On(event_name, args, teamOnly)
     if dvlpr then
         print(string.format("Event %s called with %d args.", event_name, #args))
     end
+
+    if not self:CanSayEvent(event_name) then return false end
 
     --- Base chances to react to the events via chat
     local chancesOf100 = {
