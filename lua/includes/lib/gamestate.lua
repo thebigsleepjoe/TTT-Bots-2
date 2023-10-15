@@ -128,28 +128,26 @@ function Match.UpdateAlivePlayers()
     Match.AliveNonEvil = {}
     Match.AliveTraitors = {}
     Match.DisguisedPlayers = {}
-    for i, v in pairs(player.GetAll()) do
-        if TTTBots.Lib.IsPlayerAlive(v) then
-            table.insert(Match.AlivePlayers, v)
-            if TTTBots.Lib.IsEvil(v, true) then
-                if not v:IsBot() then
-                    table.insert(Match.AliveHumanTraitors, v)
-                else
-                    table.insert(Match.AliveTraitors, v)
-                end
-            elseif TTTBots.Lib.IsPolice(v) then
-                table.insert(Match.AliveNonEvil, v)
-                table.insert(Match.AlivePolice, v)
+    for bot, isAlive in pairs(TTTBots.Lib.GetPlayerLifeStates()) do
+        if not (bot and isAlive) then continue end
+        table.insert(Match.AlivePlayers, bot)
+        if TTTBots.Lib.IsEvil(bot, true) then
+            if not bot:IsBot() then
+                table.insert(Match.AliveHumanTraitors, bot)
             else
-                table.insert(Match.AliveNonEvil, v)
+                table.insert(Match.AliveTraitors, bot)
             end
+        elseif TTTBots.Lib.IsPolice(bot) then
+            table.insert(Match.AliveNonEvil, bot)
+            table.insert(Match.AlivePolice, bot)
+        else
+            table.insert(Match.AliveNonEvil, bot)
+        end
 
-            -- Check if player is disguised, and if so, add them to the disguised tbl
-            local isDisguised = v:GetNWBool("disguised", false)
-            if isDisguised then
-                Match.DisguisedPlayers[v] = true
-                print("Player is disguised")
-            end
+        -- Check if player is disguised, and if so, add them to the disguised tbl
+        local isDisguised = bot:GetNWBool("disguised", false)
+        if isDisguised then
+            Match.DisguisedPlayers[bot] = true
         end
     end
 end
@@ -158,7 +156,7 @@ function Match.IsPlayerDisguised(ply)
     return Match.DisguisedPlayers[ply] or false
 end
 
-timer.Create("TTTBots.Match.UpdateAlivePlayers", 0.5, 0, function()
+timer.Create("TTTBots.Match.UpdateAlivePlayers", 0.34, 0, function()
     Match.UpdateAlivePlayers()
 end)
 

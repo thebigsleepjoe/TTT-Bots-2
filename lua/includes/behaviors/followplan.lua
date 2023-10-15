@@ -141,11 +141,17 @@ local f = string.format
 function FollowPlan:OnStart(bot)
     if not bot.Job then return STATUS.FAILURE end
     if FollowPlan.Debug then
-        -- print(" === JOB ASSIGNED ===")
-        -- print(bot:Nick() .. "'s assigned job table: ")
-        -- PrintTable(bot.Job)
-        -- print(" === END JOB ===")
-        printf("JOB '%s' assigned to bot %s", bot.Job.Action, bot:Nick())
+        print(" === JOB ASSIGNED ===")
+        print(bot:Nick() .. "'s assigned job table: ")
+        local target = bot.Job and bot.Job.TargetObj
+        if target and target:IsPlayer() then
+            printf("Target: %s", target:Nick())
+            printf("Target HP: %f", target:Health())
+            printf("Target is alive: %s", tostring(lib.IsPlayerAlive(target)))
+        end
+        PrintTable(bot.Job)
+        print(" === END JOB ===")
+        -- printf("JOB '%s' assigned to bot %s", bot.Job.Action, bot:Nick())
     end
     return STATUS.RUNNING
 end

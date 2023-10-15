@@ -140,6 +140,7 @@ function PlanCoordinator.CalcNearestEnemy(caller)
 
     for i, v in pairs(TTTBots.Match.AlivePlayers) do
         if v == caller then continue end
+        if not TTTBots.Lib.IsPlayerAlive(v) then continue end
         local isevil = TTTBots.Lib.IsEvil(v)
         if isevil then continue end
         local dist = v:GetPos():Distance(caller:GetPos())

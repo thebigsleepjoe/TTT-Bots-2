@@ -24,11 +24,18 @@ local function updateAlivePlayers()
         alivePlayers[ply] = (IsValid(ply) and not (ply:IsSpec()) and ply:Alive() and ply:Health() > 0)
     end
 end
-timer.Create("TTTBots.Lib.AlivePlayersInterval", 1 / TTTBots.Tickrate, 0, updateAlivePlayers)
+timer.Create("TTTBots.Lib.AlivePlayersInterval", 1 / (TTTBots.Tickrate), 0, updateAlivePlayers)
+
 
 -- Check if not :IsSpec and :Alive
 function TTTBots.Lib.IsPlayerAlive(ply)
     return alivePlayers[ply]
+end
+
+--- returns the cached lib table of all players and whether or not they are living
+---@return table<Player, boolean>
+function TTTBots.Lib.GetPlayerLifeStates()
+    return alivePlayers
 end
 
 function TTTBots.Lib.GetAlivePlayers()
@@ -532,7 +539,7 @@ function TTTBots.Lib.VoluntaryDisconnect(bot, reason)
         if not bot then return end
         if not IsValid(bot) then return end
         bot:Kick(string.format(
-        "[BOT] Voluntary disconnect because of %s. Disable voluntary disconnects with ttt_bot_allow_leaving 0.",
+            "[BOT] Voluntary disconnect because of %s. Disable voluntary disconnects with ttt_bot_allow_leaving 0.",
             reason or "UNDEFINED"))
     end)
 
