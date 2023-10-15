@@ -86,6 +86,27 @@ function Match.ResetStats(roundActive)
     end
 end
 
+---Gets the difficulty scoring of the given bot. Returns -1 if the bot is not a TTTBot.
+---@param bot Player
+---@return number difficulty
+function Match.GetBotDifficulty(bot)
+    local personality = TTTBots.Lib.GetComp(bot, "personality") ---@type CPersonality
+    if not personality then return -1 end
+    local diff = personality:GetTraitAdditive("difficulty")
+    return diff
+end
+
+--- Returns a table of all bots in the game, indexed by bot object, with each key as the estimated difficulty score.
+---@return table<bot, number> botDifficulty
+function Match.GetBotsDifficulty()
+    local tbl = {}
+    for i, bot in pairs(TTTBots.Bots) do
+        local diff = Match.GetBotDifficulty(bot)
+        tbl[bot] = diff
+    end
+    return tbl
+end
+
 --- Comb thru the damage logs and find the player who shot the other first.
 function Match.WhoShotFirst(ply1, ply2)
     local hansolo = nil

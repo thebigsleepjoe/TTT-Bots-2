@@ -28,6 +28,7 @@ TTTBots.Traits = {
             aggression = 2,       -- More aggressive as traitor
             rageRate = 1.5,       -- Rage faster
             ignoreOrders = true,  -- Ignore evil coordinator orders
+            difficulty = 2,       -- how many points of difficulty this trait is worth
         }
     },
     --- When hearing shots, finds a safe spot to hide. NEVER seeks out gunshots.
@@ -41,6 +42,7 @@ TTTBots.Traits = {
             investigateNoise = 0, -- never seek out noise
             aggression = 0.8,     -- Less aggressive as traitor
             rageRate = 0.5,       -- Rage slower
+            difficulty = -1
         }
     },
     --- Places C4 a lot
@@ -72,7 +74,8 @@ TTTBots.Traits = {
         archetype = A.Bad,
         effects = {
             pressureRate = 2.5,
-            inaccuracy = 2
+            inaccuracy = 2,
+            difficulty = -2,
         }
     },
     --- The simplest trait: has better aim than the average player, regardless of pressure
@@ -84,6 +87,7 @@ TTTBots.Traits = {
         archetype = A.Tryhard,
         effects = {
             pressureRate = 0.1,
+            difficulty = 3,
         }
     },
     --- Not paying full attention; bad hearing, memory, and target acquisition.
@@ -99,6 +103,7 @@ TTTBots.Traits = {
             investigateNoise = 0.5, -- rarely seek out noise
             ignoreOrders = true,    -- Ignore evil coordinator orders
             boredomRate = 1.25,     -- Boredom builds up faster
+            difficulty = -2,
         }
     },
     --- Significantly brain damaged. Not good at hearing, memory, or target acquisition.
@@ -114,6 +119,7 @@ TTTBots.Traits = {
             investigateNoise = 0.2, -- very rarely seek out noise
             ignoreOrders = true,    -- Ignore evil coordinator orders
             boredomRate = 1.5,      -- Boredom builds up faster
+            difficulty = -4
         }
     },
     -- Good hearing, memory, and target acquisition than the average player.
@@ -126,6 +132,7 @@ TTTBots.Traits = {
         effects = {
             hearing = 1.25,
             investigateNoise = 1.5, -- more likely to seek out noise
+            difficulty = 2,
         }
     },
     --- Significantly better hearing, memory, and is more likely to attack the right person.
@@ -138,6 +145,7 @@ TTTBots.Traits = {
         effects = {
             hearing = 1.5,
             investigateNoise = 2, -- more likely to seek out noise
+            difficulty = 3,
         }
     },
     --- Tends to wander to the least popular nav areas, but can still wander elsewhere
@@ -152,6 +160,7 @@ TTTBots.Traits = {
             suspicion = 1.25,
             aggression = 0.8,
             ignoreOrders = true, -- Ignore evil coordinator orders
+            difficulty = 1,
         }
     },
     --- Tends to wander into popular nav areas, but can still wander elsewhere
@@ -163,6 +172,7 @@ TTTBots.Traits = {
         archetype = A.Teamer,
         effects = {
             hearing = 0.8,
+            difficulty = 1,
         }
     },
     --- As traitor, follows his traitors around to coordinate attacks with them better.
@@ -205,6 +215,7 @@ TTTBots.Traits = {
         effects = {
             victim = 3,
             rageRate = 1.25, -- Rage faster
+            difficulty = -1,
         }
     },
     --- Traitors are much less likely to target him randomly.
@@ -215,6 +226,7 @@ TTTBots.Traits = {
         traitor_only = false,
         effects = {
             victim = 0.3,
+            difficulty = 1,
         }
     },
     --- Prefers to use long range single-shot guns, wanders between open nav spots
@@ -281,7 +293,8 @@ TTTBots.Traits = {
         conflicts = { "silent" },
         traitor_only = false,
         effects = {
-            textchat = 2.0
+            textchat = 2.0,
+            difficulty = 1,
         }
     },
     --- Does not use any chat whatsoever
@@ -291,7 +304,8 @@ TTTBots.Traits = {
         conflicts = { "talkative" },
         traitor_only = false,
         effects = {
-            textchat = 0.0
+            textchat = 0.0,
+            difficulty = -1,
         }
     },
     --- Roams into high-stress areas and walks towards gunshots for fun.
@@ -305,6 +319,7 @@ TTTBots.Traits = {
             investigateNoise = 5, -- 5x more likely to investigate noises
             aggression = 1.5,
             ignoreOrders = true,  -- Ignore evil coordinator orders
+            difficulty = 2,
         }
     },
     --- 1.5x suspicion gain, is more observant
@@ -317,6 +332,7 @@ TTTBots.Traits = {
             hearing = 1.2,
             suspicion = 1.5,
             aggression = 0.8,
+            difficulty = 1,
         }
     },
     --- Suspicion gain is halved
@@ -327,7 +343,8 @@ TTTBots.Traits = {
         traitor_only = false,
         archetype = A.Dumb,
         effects = {
-            suspicion = 0.5
+            suspicion = 0.5,
+            difficulty = -3
         }
     },
     --- Doesn't pay attention to many noises, doesn't react quickly, much worse memory of events and people
@@ -346,6 +363,7 @@ TTTBots.Traits = {
             boredomRate = 2.0,   -- Boredom builds up faster
             rageRate = 0.4,      -- Rage slower
             pressureRate = 0.2,  -- Pressure builds up slower
+            difficulty = -6,
         }
     },
     --- Can use the disguiser
@@ -374,6 +392,7 @@ TTTBots.Traits = {
         effects = {
             hearing = 0,
             pressureRate = 0.75,
+            difficulty = -4
         }
     },
     --- Worse sound detection range
@@ -385,6 +404,7 @@ TTTBots.Traits = {
         archetype = A.Casual,
         effects = {
             hearing = 0.8,
+            difficulty = -2
         }
     },
     --- Better sound detection range
@@ -396,6 +416,7 @@ TTTBots.Traits = {
         archetype = A.Tryhard,
         effects = {
             hearing = 1.2,
+            difficulty = 2
         }
     },
     --- Double rage rate
@@ -428,6 +449,7 @@ TTTBots.Traits = {
         traitor_only = false,
         effects = {
             pressureRate = 0.1,
+            difficulty = 3
         }
     },
     --- Feels 3x pressure when aiming
@@ -438,6 +460,7 @@ TTTBots.Traits = {
         traitor_only = false,
         effects = {
             pressureRate = 3.0,
+            difficulty = -3
         }
     },
     --- 2.5x higher boredom rate, 1.5x higher rage rate
@@ -475,6 +498,7 @@ TTTBots.Traits = {
             boredomRate = 0.0,
             rageRate = 0.0,
             pressureRate = 0.0,
+            difficulty = 2
         }
     },
 }

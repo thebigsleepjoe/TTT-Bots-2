@@ -308,6 +308,10 @@ function BotPersonality:GetTraitMult(attribute)
     return self.bot:GetTraitMult(attribute)
 end
 
+function BotPersonality:GetTraitAdditive(attribute)
+    return self.bot:GetTraitAdditive(attribute)
+end
+
 local plyMeta = FindMetaTable("Player")
 
 function plyMeta:GetPersonalityTraits()
@@ -321,12 +325,22 @@ end
 ---@return number
 function plyMeta:GetTraitMult(attribute)
     local traits = self.components.personality:GetTraitData()
-    local avg = 1
-    if not traits then return avg end
+    local total = 1
+    if not traits then return total end
     for i, trait in pairs(traits) do
-        avg = avg * ((trait.effects and trait.effects[attribute]) or 1)
+        total = total * ((trait.effects and trait.effects[attribute]) or 1)
     end
-    return avg
+    return total
+end
+
+function plyMeta:GetTraitAdditive(attribute)
+    local traits = self.components.personality:GetTraitData()
+    local total = 0
+    if not traits then return total end
+    for i, trait in pairs(traits) do
+        total = total + ((trait.effects and trait.effects[attribute]) or 0)
+    end
+    return total
 end
 
 --- Check if the bot has a specific trait, by name.

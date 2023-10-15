@@ -155,3 +155,18 @@ concommand.Add("ttt_bot_print_rbp", function(ply, cmd, args)
     end
     print("--------------------------------")
 end)
+
+concommand.Add("ttt_bot_print_difficulty", function(ply, cmd, args)
+    if not ply or not (ply and ply:IsSuperAdmin()) then return end -- cmd only works as server or SA
+    local botDifficulty = TTTBots.Match.GetBotsDifficulty()
+    print("BOT DIFFICULTY REPORT:")
+    print("----------------------------")
+    local avgDifficulty = 0
+    for bot, diff in pairs(botDifficulty) do
+        avgDifficulty = avgDifficulty + diff
+        printf("[BOT %s] %.2f", bot:Nick(), diff)
+    end
+    avgDifficulty = avgDifficulty / #TTTBots.Bots
+    print("Average difficulty: " .. avgDifficulty)
+    print("----------------------------")
+end)
