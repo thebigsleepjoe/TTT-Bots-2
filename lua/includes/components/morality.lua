@@ -292,11 +292,11 @@ end)
 
 --- When we witness someone getting hurt.
 function BotMorality:OnWitnessHurt(victim, attacker, healthRemaining, damageTaken)
-    if lib.IsEvil(self.bot) then
+    if lib.IsEvil(self.bot) then -- We are evil, we usually don't care about this.
         self:OnWitnessHurtTraitor(victim, attacker, healthRemaining, damageTaken)
         return
-    end -- We are evil, we usually don't care about this.
-    if attacker == self.bot then
+    end
+    if attacker == self.bot then -- if we are the attacker, there is no sus to be thrown around.
         if victim == self.bot.attackTarget then
             local personality = lib.GetComp(self.bot, "personality")
             if not personality then return end
@@ -304,7 +304,7 @@ function BotMorality:OnWitnessHurt(victim, attacker, healthRemaining, damageTake
         end
         return
     end
-    if self.bot == victim then
+    if self.bot == victim then -- if we are the victim, just fight back instead of worrying about sus.
         self.bot:SetAttackTarget(attacker)
         local personality = lib.GetComp(self.bot, "personality")
         if personality then

@@ -239,8 +239,8 @@ function Attack:Engage(bot, targetPos)
 
     self:HandleAttackMovement(bot, weapon, loco)
 
-    --loco:AimAt(aimTarget + self:PredictMovement(target))
-    local inaccuracyTarget = aimTarget + self:CalculateInaccuracy(bot, aimTarget)
+    local predictedPoint = aimTarget + self:PredictMovement(target, 0.4)
+    local inaccuracyTarget = predictedPoint + self:CalculateInaccuracy(bot, aimTarget)
     loco:AimAt(inaccuracyTarget)
 end
 
@@ -265,11 +265,11 @@ end
 ---Predict the (relative) movement of the target player using basic linear prediction
 ---@param target Player
 ---@return Vector predictedMovement
-function Attack:PredictMovement(target)
+function Attack:PredictMovement(target, mult)
     local vel = target:GetVelocity()
     local predictionSecs = 1.0 / TTTBots.Tickrate
-    local predictionMultSalt = math.random(90, 110) / 100.0
-    local predictionMult = (1 + predictionMultSalt) * 0.7
+    local predictionMultSalt = math.random(95, 105) / 100.0
+    local predictionMult = (1 + predictionMultSalt) * (mult or 0.5)
     local predictionRelative = (vel * predictionSecs * predictionMult)
 
     local dvlpr = lib.GetDebugFor("attack")
