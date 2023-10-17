@@ -57,8 +57,9 @@ end
 ---@param text string The raw string of text to put in chat.
 ---@param teamOnly boolean|nil (OPTIONAL, =FALSE) Should the bot place the message in the team chat?
 ---@param ignoreDeath boolean|nil (OPTIONAL, =FALSE) Should the bot say the text despite being dead?
+---@param callback nil|function (OPTIONAL) A callback function to call when the bot is done speaking.
 ---@return boolean chatting Returns true if we just ordered the bot to speak, otherwise returns false.
-function BotChatter:Say(text, teamOnly, ignoreDeath)
+function BotChatter:Say(text, teamOnly, ignoreDeath, callback)
     if self.typing then return false end
     local cps = lib.GetConVarFloat("chatter_cps")
     local delay = (string.len(text) / cps) * (math.random(100, 110) / 100)
@@ -67,6 +68,7 @@ function BotChatter:Say(text, teamOnly, ignoreDeath)
         if self.bot and (ignoreDeath or lib.IsPlayerAlive(self.bot)) then
             self:SayRaw(text, teamOnly)
             self.typing = false
+            if callback then callback() end
         end
     end)
     return true
@@ -77,10 +79,21 @@ local RADIO = {
     quick_suspect = "%s acts suspicious."
 }
 function BotChatter:QuickRadio(msgName, msgTarget)
-    hook.Run("TTTPlayerRadioCommand", self.bot, msgName, msgTarget)
     local txt = RADIO[msgName]
     if not txt then ErrorNoHalt("Unknown message type " .. msgName) end
-    self:SayRaw(string.format(txt, msgTarget:Nick()))
+    self:Say(string.format(txt, msgTarget:Nick()), false, false, function()
+        hook.Run("TTTPlayerRadioCommand", self.bot, msgName, msgTarget) -- Call the hook for the radio command when we're done speaking
+    end)
+end
+
+--- Fancy wrapper for QuickRadio, preventing chat spam.
+local MIN_RADIO_INTERVAL = 15
+function BotChatter:DoRadio(msgName, msgTarget)
+    if not lib.IsPlayerAlive(self.bot) then return end
+    local lastRadio = self.lastRadio or -math.huge
+    if lastRadio + MIN_RADIO_INTERVAL > CurTime() then return end
+    self.lastRadio = CurTime()
+    self:QuickRadio(msgName, msgTarget)
 end
 
 --- A generic wrapper for when an event happens, to be implemented further in the future

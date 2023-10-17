@@ -141,20 +141,23 @@ end
 ---@param target Player
 function BotMorality:AnnounceIfThreshold(target)
     local sus = self:GetSuspicion(target)
+    local chatter = lib.GetComp(self.bot, "chatter") ---@type CChatter
+    if not chatter then return end
     local KOSThresh = self.Thresholds.KOS
     local SusThresh = self.Thresholds.Sus
     local TrustThresh = self.Thresholds.Trust
     local InnocentThresh = self.Thresholds.Innocent
 
-    -- if sus >= KOSThresh then
-    --     self.bot:Say("I think " .. target:Nick() .. " is evil!")
-    -- elseif sus >= SusThresh then
-    --     self.bot:Say("I think " .. target:Nick() .. " is suspicious!")
-    -- elseif sus <= InnocentThresh then
-    --     self.bot:Say("I think " .. target:Nick() .. " is innocent!")
-    -- elseif sus <= TrustThresh then
-    --     self.bot:Say("I think " .. target:Nick() .. " is trustworthy!")
-    -- end
+    if sus >= KOSThresh then
+        chatter:DoRadio("quick_traitor", target)
+        -- self.bot:Say("I think " .. target:Nick() .. " is evil!")
+    elseif sus >= SusThresh then
+        -- self.bot:Say("I think " .. target:Nick() .. " is suspicious!")
+    elseif sus <= InnocentThresh then
+        -- self.bot:Say("I think " .. target:Nick() .. " is innocent!")
+    elseif sus <= TrustThresh then
+        -- self.bot:Say("I think " .. target:Nick() .. " is trustworthy!")
+    end
 end
 
 --- Set the bot's attack target to the given player if they seem evil.
