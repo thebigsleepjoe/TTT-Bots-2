@@ -239,7 +239,27 @@ function Attack:Engage(bot, targetPos)
 
     self:HandleAttackMovement(bot, weapon, loco)
 
-    loco:AimAt(aimTarget + self:PredictMovement(target))
+    --loco:AimAt(aimTarget + self:PredictMovement(target))
+    local inaccuracyTarget = aimTarget + self:CalculateInaccuracy(bot, aimTarget)
+    loco:AimAt(inaccuracyTarget)
+end
+
+local INACCURACY_MULT = 1 --- The higher this is, the more inaccurate the bots will be.
+--- Calculate the inaccuracy of agent 'bot' according to a) its personality and b) diff setts
+---@param bot Player The bot that is shooting.
+---@param origin Vector The original aim point.
+function Attack:CalculateInaccuracy(bot, origin)
+    local personality = lib.GetComp(bot, "personality") ---@type CPersonality
+    local difficulty = lib.GetConVarInt("difficulty") -- int [0,5]
+    if not (difficulty or personality) then return Vector(0, 0, 0) end
+
+    local distFt = (bot:GetPos():Distance(origin) / 16) -- distance, in ft, to origin
+    local pressure = personality:GetPressure()          -- float [0,1]
+    local inaccuracy_mod = ((math.max(pressure, 0.1) / difficulty) * (distFt)) * INACCURACY_MULT
+
+    local rand = VectorRand() * inaccuracy_mod
+    TTTBots.DebugServer.DrawCross(origin + rand, 8, Color(0, 255, 0), 0.1, bot:Nick() .. ".attack.inaccuracy")
+    return rand
 end
 
 ---Predict the (relative) movement of the target player using basic linear prediction

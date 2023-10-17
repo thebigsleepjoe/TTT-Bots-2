@@ -23,6 +23,8 @@ bot_cvar("plans_mindelay", "8",
 bot_cvar("plans_maxdelay", "16",
     "The maximum duration when a round starts before traitor bots may follow automatic plans.")
 bot_cvar("can_flick", "1", "Can the bots flick around when they get shot from the rear? Effectively makes bots easier.")
+bot_cvar("difficulty", "3",
+    "A difficulty integer between 0-5; higher = harder. This affects trait selection and aim speed, among other things.")
 
 -- Naming cvars
 bot_cvar("names_allowcommunity", "1",
