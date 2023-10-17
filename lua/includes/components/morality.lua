@@ -149,7 +149,7 @@ function BotMorality:AnnounceIfThreshold(target)
     local InnocentThresh = self.Thresholds.Innocent
 
     if sus >= KOSThresh then
-        chatter:DoRadio("quick_traitor", target)
+        chatter:On("CallKOS", { player = target:Nick(), playerEnt = target })
         -- self.bot:Say("I think " .. target:Nick() .. " is evil!")
     elseif sus >= SusThresh then
         -- self.bot:Say("I think " .. target:Nick() .. " is suspicious!")

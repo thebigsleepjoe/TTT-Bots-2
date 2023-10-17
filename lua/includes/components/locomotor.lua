@@ -217,7 +217,7 @@ function BotLocomotor:OnNewTarget(target)
     -- local pitchDiff, yawDiff = self:GetEyeAngleDiffTo(target:GetPos())
 
     -- if pitchDiff > 1 then
-    self.lookSpeedMultiplier = 30
+    self.lookSpeedMultiplier = 5
     -- end
 end
 

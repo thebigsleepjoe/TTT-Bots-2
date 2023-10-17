@@ -31,7 +31,7 @@ end
 ---@return string line The formatted line
 function TTTBots.LocalizedStrings.FormatLine(line, params)
     if not line then return "" end
-    if not (params and #params > 0) then return line end
+    if not (params) then return line end
     for key, value in pairs(params) do
         line = line:gsub("{{" .. tostring(key) .. "}}", tostring(value))
     end

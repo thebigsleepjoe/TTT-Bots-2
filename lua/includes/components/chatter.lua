@@ -81,19 +81,7 @@ local RADIO = {
 function BotChatter:QuickRadio(msgName, msgTarget)
     local txt = RADIO[msgName]
     if not txt then ErrorNoHalt("Unknown message type " .. msgName) end
-    self:Say(string.format(txt, msgTarget:Nick()), false, false, function()
-        hook.Run("TTTPlayerRadioCommand", self.bot, msgName, msgTarget) -- Call the hook for the radio command when we're done speaking
-    end)
-end
-
---- Fancy wrapper for QuickRadio, preventing chat spam.
-local MIN_RADIO_INTERVAL = 15
-function BotChatter:DoRadio(msgName, msgTarget)
-    if not lib.IsPlayerAlive(self.bot) then return end
-    local lastRadio = self.lastRadio or -math.huge
-    if lastRadio + MIN_RADIO_INTERVAL > CurTime() then return end
-    self.lastRadio = CurTime()
-    self:QuickRadio(msgName, msgTarget)
+    hook.Run("TTTPlayerRadioCommand", self.bot, msgName, msgTarget)
 end
 
 --- A generic wrapper for when an event happens, to be implemented further in the future
@@ -112,6 +100,7 @@ function BotChatter:On(event_name, args, teamOnly)
         InvestigateNoise = 15,
         InvestigateCorpse = 15,
         LifeCheck = 80,
+        CallKOS = 80,
     }
 
     local personality = self.bot.components.personality --- @type CPersonality
@@ -122,7 +111,11 @@ function BotChatter:On(event_name, args, teamOnly)
 
     local localizedString = TTTBots.LocalizedStrings.GetLocalizedLine(event_name, self.bot, args)
     if localizedString then
-        self:Say(localizedString, teamOnly)
+        self:Say(localizedString, teamOnly, false, function()
+            if event_name == "CallKOS" then
+                self:QuickRadio("quick_traitor", args.playerEnt)
+            end
+        end)
         return true
     end
 

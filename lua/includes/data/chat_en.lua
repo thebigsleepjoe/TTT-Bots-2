@@ -142,6 +142,31 @@ local LoadLang = function()
     Line("DisguisedPlayer", "my friend is disguised", A.Sus)
     Line("DisguisedPlayer", "Disguising won't save you", A.Tryhard)
 
+
+    RegisterCategory("CallKOS", P.CRITICAL)
+    Line("CallKOS", "KOS on {{player}}!", A.Default)
+    Line("CallKOS", "{{player}} is KOS", A.Default)
+    Line("CallKOS", "KOS on {{player}}", A.Default)
+    Line("CallKOS", "KOS {{player}}", A.Default)
+    Line("CallKOS", "{{player}} is a traitor!", A.Default)
+    Line("CallKOS", "{{player}} is a traitor.", A.Default)
+    Line("CallKOS", "KOS on {{player}}!!", A.Default)
+    Line("CallKOS", "kos {{player}}", A.Casual)
+    Line("CallKOS", "{{player}} is a traitor", A.Casual)
+    Line("CallKOS", "kos on {{player}}", A.Casual)
+    Line("CallKOS", "KOS on {{player}}", A.Casual)
+    Line("CallKOS", "kill {{player}} i think", A.Bad)
+    Line("CallKOS", "kill {{player}}", A.Bad)
+    Line("CallKOS", "{{player}} is mean", A.Dumb)
+    Line("CallKOS", "kill {{player}}!!!!!11", A.Dumb)
+    Line("CallKOS", "{{player}} is a traitor ;)", A.Sus)
+    Line("CallKOS", "you should probably kos {{player}}", A.Sus)
+    Line("CallKOS", "KOS on {{player}}, I think...", A.Sus)
+    Line("CallKOS", "KOS {{player}}. For sure.", A.Tryhard)
+    Line("CallKOS", "KOS on {{player}}, no doubt.", A.Tryhard)
+    Line("CallKOS", "KOS {{player}}", A.Tryhard)
+    Line("CallKOS", "KOS {{player}} NOW!", A.Tryhard)
+
     -----------------------------------------------------------
     -- TRAITORS SHARING PLANS
     -----------------------------------------------------------
