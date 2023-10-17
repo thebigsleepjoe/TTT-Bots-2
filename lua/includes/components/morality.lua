@@ -80,10 +80,10 @@ BotMorality.SuspicionDescriptions = {
 }
 
 BotMorality.Thresholds = {
-    KOS = 8,
-    Sus = 4,
-    Trust = -4,
-    Innocent = -8,
+    KOS = 7,
+    Sus = 3,
+    Trust = -3,
+    Innocent = -5,
 }
 
 function BotMorality:New(bot)
@@ -296,9 +296,28 @@ function BotMorality:OnWitnessHurt(victim, attacker, healthRemaining, damageTake
         self:OnWitnessHurtTraitor(victim, attacker, healthRemaining, damageTaken)
         return
     end -- We are evil, we usually don't care about this.
-    if attacker == self.bot then return end
-    if self.bot == victim then self.bot:SetAttackTarget(attacker) end
-    -- TODO: Disguiser should be taken into account here.
+    if attacker == self.bot then
+        if victim == self.bot.attackTarget then
+            local personality = lib.GetComp(self.bot, "personality")
+            if not personality then return end
+            personality:OnPressureEvent("HurtEnemy")
+        end
+        return
+    end
+    if self.bot == victim then
+        self.bot:SetAttackTarget(attacker)
+        local personality = lib.GetComp(self.bot, "personality")
+        if personality then
+            personality:OnPressureEvent("Hurt")
+        end
+    end
+    -- If the target is disguised, we don't know who they are, so we can't build sus on them. Instead, ATTACK!
+    if TTTBots.Match.IsPlayerDisguised(attacker) then
+        if self.bot.attackTarget == nil then
+            self.bot:SetAttackTarget(attacker)
+        end
+        return
+    end
     -- local bad_guy = TTTBots.Match.WhoShotFirst(victim, attacker) -- TODO: Implement this later?
 
     local impact = (damageTaken / victim:GetMaxHealth()) * 3 --- Percent of max health lost * 3. 50% health lost =  6 sus
@@ -329,8 +348,13 @@ function BotMorality:OnWitnessFireBullets(attacker, data, angleDiff)
     if sus < 1 then sus = 0.1 end
 
     -- print(attacker, data, angleDiff, angleDiffPercent, sus)
-
-    self.bot.components.morality:ChangeSuspicion(attacker, "ShotAt", sus)
+    if sus > 3 then
+        local personality = lib.GetComp(self.bot, "personality")
+        if personality then
+            personality:OnPressureEvent("BulletClose")
+        end
+    end
+    self:ChangeSuspicion(attacker, "ShotAt", sus)
 end
 
 hook.Add("EntityFireBullets", "TTTBots.Components.Morality.FireBullets", function(entity, data)
@@ -341,7 +365,8 @@ hook.Add("EntityFireBullets", "TTTBots.Components.Morality.FireBullets", functio
 
     -- Combined loop for all witnesses
     for i, witness in pairs(witnesses) do
-        if witness.components.morality then
+        local morality = lib.GetComp(witness, "morality")
+        if morality then
             -- We calculate the angle difference between the entity and the witness
             local witnessAngle = witness:EyeAngles()
             local angleDiff = lookAngle.y - witnessAngle.y
@@ -351,7 +376,7 @@ hook.Add("EntityFireBullets", "TTTBots.Components.Morality.FireBullets", functio
             -- Absolute value to ensure angleDiff is non-negative
             angleDiff = math.abs(angleDiff)
 
-            witness.components.morality:OnWitnessFireBullets(entity, data, angleDiff)
+            morality:OnWitnessFireBullets(entity, data, angleDiff)
         end
     end
 end)

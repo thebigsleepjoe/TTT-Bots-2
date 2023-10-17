@@ -1502,6 +1502,8 @@ function plyMeta:SetAttackTarget(target)
     if self.attackTarget == target then return end
     self.attackTarget = target
     local loco = lib.GetComp(self, "locomotor")
-    if not loco then return end
+    local personality = lib.GetComp(self, "personality")
+    if not (loco and personality) then return end
     loco:OnNewTarget(target)
+    personality:OnPressureEvent("NewTarget")
 end

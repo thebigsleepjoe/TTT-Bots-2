@@ -160,6 +160,23 @@ function BotPersonality:AddPressure(x)
     return self.pressure
 end
 
+local pressureEvents = { --- The amount that is added to our pressure when an event (the keys) happens.
+    KillEnemy = -0.3,    --- When we kill an enemy
+    Hurt = 0.1,          --- When we are hurt
+    HurtEnemy = -0.1,    --- When we hurt an enemy
+    HearGunshot = 0.02,  --- Upon hearing gunshots
+    HearDeath = 0.1,     --- Upon hearing a death
+    HearExplosion = 0.2, --- Upon hearing an explosion
+    BulletClose = 0.05,  --- Player's bullet flies past our character
+    NewTarget = 0.15,    --- Target changes to a new opponent
+}
+function BotPersonality:OnPressureEvent(event_name)
+    local pressure = pressureEvents[event_name]
+    if pressure then
+        self:AddPressure(pressure)
+    end
+end
+
 --- Increment the given statistic and return the new value.
 ---@param x number
 ---@return number

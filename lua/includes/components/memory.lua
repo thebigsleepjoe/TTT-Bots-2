@@ -439,6 +439,19 @@ function Memory:HandleSound(info, soundData)
     -- end
     table.insert(self.recentSounds, tbl)
 
+    local pressureHash = {
+        ["Gunshot"] = "HearGunshot",
+        ["Death"] = "HearDeath",
+        ["Explosion"] = "HearExplosion",
+    }
+    local hashedName = pressureHash[info.SoundName]
+    if hashedName then
+        local personality = lib.GetComp(bot, "personality")
+        if personality then
+            personality:OnPressureEvent(hashedName, tbl)
+        end
+    end
+
     return true
 end
 
