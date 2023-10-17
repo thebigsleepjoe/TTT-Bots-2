@@ -8,7 +8,7 @@ FollowPlan.Name = "FollowPlan"
 FollowPlan.Description = "Follow the plan assigned to us by the game coordinator."
 FollowPlan.Interruptible = true
 -- When debugging the component and you want to print extra info, use this:
-FollowPlan.Debug = true
+FollowPlan.Debug = false
 
 local STATUS = {
     RUNNING = 1,
