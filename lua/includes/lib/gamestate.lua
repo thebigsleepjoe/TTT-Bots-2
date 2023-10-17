@@ -28,6 +28,7 @@ Match.AliveNonEvil = {}
 Match.AlivePolice = {}
 Match.DisguisedPlayers = {}
 Match.SecondsPassed = 0 --- Time since match began. This is important for traitor bots.
+Match.KOSCounter = {} ---@type table<Player, number>
 
 function Match.Tick()
     if not Match.RoundActive then return end
@@ -45,6 +46,23 @@ function Match.PlansCanStart()
     if time > maxTime then return true end
     local randi = math.random(minTime, maxTime)
     return time > randi
+end
+
+local MAX_KOS_PER_PLY = 1
+--- Check if the match should trust this individual's KOS. This is used to limit KOS calls to 1 per user per round;
+--- for bots it is used to prevent chat spam.
+---@param ply Player
+---@param dontIterate nil|boolean (OPTIONAL=false)
+---@return boolean is_trustworthy - if we can trust this player's KOS
+function Match.KOSIsApproved(ply, dontIterate)
+    local amt = Match.KOSCounter[ply] or 0
+
+    if amt < MAX_KOS_PER_PLY then
+        Match.KOSCounter[ply] = amt + (dontIterate and 0 or 1)
+        return true
+    end
+
+    return false -- do not trust; if bot, then prevent chatting
 end
 
 --- Returns the time in seconds since the match began.
@@ -79,6 +97,7 @@ function Match.ResetStats(roundActive)
     Match.AlivePolice = {}
     Match.SecondsPassed = 0
     Match.DisguisedPlayers = {}
+    Match.KOSCounter = {} ---@type table<Player, number>
 
     -- Just gonna put this here since it's related to resetting stats.
     for i, v in pairs(TTTBots.Bots) do
