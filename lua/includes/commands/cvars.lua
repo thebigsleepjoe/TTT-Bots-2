@@ -22,7 +22,8 @@ bot_cvar("plans_mindelay", "8",
     "The delay when a round starts before traitor bots may follow automatic plans.")
 bot_cvar("plans_maxdelay", "16",
     "The maximum duration when a round starts before traitor bots may follow automatic plans.")
-bot_cvar("can_flick", "1", "Can the bots flick around when they get shot from the rear? Effectively makes bots easier.")
+bot_cvar("can_flick", "1",
+    "Can the bots flick around when they get shot from the rear? Effectively makes bots harder and seem smarter.")
 bot_cvar("difficulty", "3",
     "A difficulty integer between 0-5; higher = harder. This affects trait selection and aim speed, among other things.")
 bot_cvar("kos_limit", "1", "The upper bound of KOS calls an individual, bot or player, can make per round.")
