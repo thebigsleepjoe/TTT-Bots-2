@@ -51,6 +51,7 @@ Morality:
 7. ✅ SUS: Players disguised are always KOS
 8. 📃 SUS: KOS callouts should be made and listened to (from trusted players).
 9. 📃 SUS: Players killing traitors should be trusted immediately (instead of shooting first, questions later), just makes more sense.
+10. ✅ SUS: Calling KOS should do something.
 
 Basic behavior tree (this is out of order):
 1. ✅ Wandering
@@ -69,14 +70,14 @@ Combat:
 1. ✅ Attack enemies without wallhacks; hunt players we haven't seen recently.
 2. ✅ Traitors should auto-buy radar (this is simulated)
 3. ✅ Bots should strafe properly while shooting
-4. 📃 Bots should feel pressure when aiming (less accuracy), and should be affected by rage (i.e., losing streaks)
+4. ✅ Bots should feel pressure when aiming (less accuracy), and should be affected by rage (i.e., losing streaks)
 5. ✅ Bot camera should 'flick' when getting shot at, particularly if from behind
 6. 📃 Traitor bots should use knives to assassinate innocents
 7. ✅ Bots using shotguns should walk towards their target while strafing
-8. 📃 Bots should hold fire if a teamkill might happen
+8. ✅ Bots should hold fire if a teamkill might happen
 
 User customization/administration:
-1. 📃 Difficulty settings; make bots more accurate, have better hearing, etc.
+1. ✅ Difficulty settings; make bots more accurate, have better hearing, etc.
 2. 📃 Enable RDMing for the true multiplayer experience
 3. ✅ Customization to disable text chatter based off of priority level
 4. 📃 Bot quotas: always have X bots, or fill to X total players
@@ -89,8 +90,8 @@ User customization/administration:
 Traitor bot coordination:
 1. ✅ Traitor bots should share their plans with other traitors
 2. ✅ Human traitors should be able to tell the nearest bot to follow them
-3. 📃 Traitor bots should follow each other around and coordinate attacks
-4. 📃 Traitors bots should plant bombs intelligently and avoid bomb areas
+3. 🚧 Traitor bots should follow each other around and coordinate attacks
+4. 🚧 Traitors bots should plant bombs intelligently and avoid bomb areas
 
 Misc. features and non-programming stuff:
 1. 📃 Ensure TTT/2 cross-compatibility

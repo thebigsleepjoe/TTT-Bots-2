@@ -24,12 +24,13 @@ BotMorality.SUSPICIONVALUES = {
     HurtByEvil = -2,   -- This player was hurt by a traitor
 
     -- KOS-related events
-    KOSTrusted = 10, -- KOS called on this player by trusted innocent
-    KOSTraitor = -5, -- KOS called on this player by known traitor
-    KOS = 5,         -- KOS called on this player
+    KOSByTrusted = 10, -- KOS called on this player by trusted innocent
+    KOSByTraitor = -5, -- KOS called on this player by known traitor
+    KOSByOther = 5,    -- KOS called on this player
+    AffirmingKOS = -3, -- KOS called on a player we think is a traitor (rare, but possible)
 
     -- Role-specific weapons
-    TraitorWeapon = 5, -- This player has a traitor weapon
+    TraitorWeapon = 10, -- This player has a traitor weapon
 
     -- Corpse-related events
     NearUnidentified = 2,    -- This player is near an unidentified body and hasn't identified it in more than 5 seconds
@@ -279,6 +280,30 @@ function BotMorality:OnWitnessKill(victim, attacker)
     end
 end
 
+function BotMorality:OnKOSCalled(caller, target)
+    if not lib.IsPlayerAlive(self.bot) then return end
+    if lib.IsEvil(self.bot) then return end -- traitors do not care about KOS calls in this way
+
+    local callerSus = self:GetSuspicion(caller)
+    local callerIsPolice = lib.IsPolice(caller)
+    local targetSus = self:GetSuspicion(target)
+
+    local TRAITOR = self.Thresholds.KOS
+    local TRUSTED = self.Thresholds.Trust
+
+    if targetSus > TRAITOR then
+        self:ChangeSuspicion(caller, "AffirmingKOS")
+    end
+
+    if callerIsPolice or callerSus < TRUSTED then -- if we trust the caller or they are a detective, then:
+        self:ChangeSuspicion(target, "KOSByTrusted")
+    elseif callerSus > TRAITOR then               -- if we think the caller is a traitor, then:
+        self:ChangeSuspicion(target, "KOSByTraitor")
+    else                                          -- if we don't know the caller, then:
+        self:ChangeSuspicion(target, "KOSByOther")
+    end
+end
+
 hook.Add("PlayerDeath", "TTTBots.Components.Morality.PlayerDeath", function(victim, weapon, attacker)
     if not (IsValid(victim) and victim:IsPlayer()) then return end
     if not (IsValid(attacker) and attacker:IsPlayer()) then return end
@@ -340,10 +365,6 @@ function BotMorality:OnWitnessHurt(victim, attacker, healthRemaining, damageTake
 
     -- self.bot:Say(string.format("I saw that! Attacker sus is %d; vic is %d", attackerSus, victimSus))
 end
-
-hook.Add("TTTPlayerRadioCommand", "TTTBots.Components.Morality.TTTRadioMessage", function(ply, msgName, msgTarget)
-    print(ply, msgName, msgTarget)
-end)
 
 function BotMorality:OnWitnessFireBullets(attacker, data, angleDiff)
     local angleDiffPercent = angleDiff / 30

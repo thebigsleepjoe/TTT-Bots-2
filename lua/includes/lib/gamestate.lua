@@ -29,6 +29,8 @@ Match.AlivePolice = {}
 Match.DisguisedPlayers = {}
 Match.SecondsPassed = 0 --- Time since match began. This is important for traitor bots.
 Match.KOSCounter = {} ---@type table<Player, number>
+--- List of active KOS calls. Indexed by person called out, with each value being a table of people who called them out.
+Match.KOSList = {} ---@type table<Player, table<Player>>
 
 function Match.Tick()
     if not Match.RoundActive then return end
@@ -48,13 +50,14 @@ function Match.PlansCanStart()
     return time > randi
 end
 
-local MAX_KOS_PER_PLY = 1
 --- Check if the match should trust this individual's KOS. This is used to limit KOS calls to 1 per user per round;
 --- for bots it is used to prevent chat spam.
 ---@param ply Player
 ---@param dontIterate nil|boolean (OPTIONAL=false)
 ---@return boolean is_trustworthy - if we can trust this player's KOS
 function Match.KOSIsApproved(ply, dontIterate)
+    if not Match.IsRoundActive() then return false end
+    local MAX_KOS_PER_PLY = TTTBots.Lib.GetConVarInt("kos_limit")
     local amt = Match.KOSCounter[ply] or 0
 
     if amt < MAX_KOS_PER_PLY then
@@ -63,6 +66,28 @@ function Match.KOSIsApproved(ply, dontIterate)
     end
 
     return false -- do not trust; if bot, then prevent chatting
+end
+
+--- Handles the heavy lifting for a KOS call. After verifying the caller hasn't hit the limit, this calls OnKOSCalled across each TTTBot in the match.
+---@param caller Player
+---@param target Player
+---@return boolean success
+function Match.CallKOS(caller, target)
+    if not Match.IsRoundActive() then return false end
+    if TTTBots.Lib.IsPolice(target) then return false end
+    local isApproved = Match.KOSIsApproved(caller)
+    if not isApproved then return false end
+
+    Match.KOSList[target] = Match.KOSList[target] or {}
+    Match.KOSList[target][caller] = caller
+
+    for i, bot in pairs(TTTBots.Bots) do
+        local morality = TTTBots.Lib.GetComp(bot, "morality")
+        if not morality then continue end
+        morality:OnKOSCalled(caller, target)
+    end
+
+    return true
 end
 
 --- Returns the time in seconds since the match began.
@@ -97,7 +122,8 @@ function Match.ResetStats(roundActive)
     Match.AlivePolice = {}
     Match.SecondsPassed = 0
     Match.DisguisedPlayers = {}
-    Match.KOSCounter = {} ---@type table<Player, number>
+    Match.KOSCounter = {}
+    Match.KOSList = {}
 
     -- Just gonna put this here since it's related to resetting stats.
     for i, v in pairs(TTTBots.Bots) do
@@ -179,7 +205,7 @@ timer.Create("TTTBots.Match.UpdateAlivePlayers", 0.34, 0, function()
     Match.UpdateAlivePlayers()
 end)
 
-hook.Add("TTTBeginRound", "Match.BeginRound", function()
+hook.Add("TTTBeginRound", "TTTBots.Match.BeginRound", function()
     Match.ResetStats(true)
     for _, ply in pairs(player.GetAll()) do
         if TTTBots.Lib.IsPlayerAlive(ply) then
@@ -189,20 +215,20 @@ hook.Add("TTTBeginRound", "Match.BeginRound", function()
     Match.UpdateAlivePlayers()
 end)
 
-hook.Add("TTTEndRound", "Match.EndRound", function()
+hook.Add("TTTEndRound", "TTTBots.Match.EndRound", function()
     Match.ResetStats(false)
 end)
 
-hook.Add("TTTPrepareRound", "Match.PrepareRound", function()
+hook.Add("TTTPrepareRound", "TTTBots.Match.PrepareRound", function()
     Match.ResetStats(false)
 end)
 
-hook.Add("TTTOnCorpseCreated", "Match.OnCorpseCreated", function(corpse)
+hook.Add("TTTOnCorpseCreated", "TTTBots.Match.OnCorpseCreated", function(corpse)
     if not Match.RoundActive then return end
     table.insert(Match.Corpses, corpse)
 end)
 
-hook.Add("TTTBodyFound", "Match.BodyFound", function(discoverer, deceased, ragdoll)
+hook.Add("TTTBodyFound", "TTTBots.Match.BodyFound", function(discoverer, deceased, ragdoll)
     if not Match.RoundActive then return end
     if not IsValid(deceased) then return end
     if not deceased:IsPlayer() then return end
@@ -210,7 +236,7 @@ hook.Add("TTTBodyFound", "Match.BodyFound", function(discoverer, deceased, ragdo
     Match.ConfirmedDead[deceased] = true
 end)
 
-hook.Add("PlayerHurt", "Match.PlayerHurt", function(victim, attacker, healthRemaining, damageTaken)
+hook.Add("PlayerHurt", "TTTBots.Match.PlayerHurt", function(victim, attacker, healthRemaining, damageTaken)
     if not Match.RoundActive then return end
     if not (IsValid(victim) and IsValid(attacker) and victim:IsPlayer() and attacker:IsPlayer()) then return end
     table.insert(Match.DamageLogs, {
@@ -220,4 +246,14 @@ hook.Add("PlayerHurt", "Match.PlayerHurt", function(victim, attacker, healthRema
         damageTaken = damageTaken,
         time = CurTime()
     })
+end)
+
+hook.Add("TTTPlayerRadioCommand", "TTTBots.Match.TTTRadioMessage", function(ply, msgName, msgTarget)
+    if msgName ~= "quick_traitor" then return end
+    if not (ply and msgTarget) then return end
+    if not (IsValid(ply) and IsValid(msgTarget)) then return end
+    local callerAlive = TTTBots.Lib.IsPlayerAlive(ply)
+    local targetAlive = TTTBots.Lib.IsPlayerAlive(msgTarget)
+    if not (callerAlive and targetAlive) then return end
+    Match.CallKOS(ply, msgTarget)
 end)

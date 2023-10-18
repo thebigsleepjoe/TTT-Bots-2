@@ -12,7 +12,7 @@ bot_cvar("language", "en",
 -- Chatter cvars
 bot_cvar("chatter_lvl", "3",
     "The level of chatter that bots will have. 0 = none (not even KOS), 1 = critical only (like KOS), 2 = >= callouts/important only, 3 = everything.")
-bot_cvar("chatter_cps", "15",
+bot_cvar("chatter_cps", "30",
     "Determines the typing speed of bots, in characters per second. Higher values = faster typing = more chatting.")
 bot_cvar("chatter_minrepeat", "15",
     "The minimum time between a bot can repeat the same chatter event in voice/text chat.")
@@ -25,6 +25,7 @@ bot_cvar("plans_maxdelay", "16",
 bot_cvar("can_flick", "1", "Can the bots flick around when they get shot from the rear? Effectively makes bots easier.")
 bot_cvar("difficulty", "3",
     "A difficulty integer between 0-5; higher = harder. This affects trait selection and aim speed, among other things.")
+bot_cvar("kos_limit", "1", "The upper bound of KOS calls an individual, bot or player, can make per round.")
 
 -- Naming cvars
 bot_cvar("names_allowcommunity", "1",
