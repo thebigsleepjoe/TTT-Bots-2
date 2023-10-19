@@ -775,6 +775,22 @@ function TTTBots.Lib.NthFilteredItem(N, tbl, filterFunc)
     return newTbl[N]
 end
 
+--- Return a list of nav areas visible to vec's nearest nav area, filtered by range.
+---@param vec Vector The position to check
+---@param range number The range to check
+---@return table<CNavArea> visible A table of nav areas that are visible to vec's nearest nav area.
+function TTTBots.Lib.VisibleNavsInRange(vec, range)
+    local nav = navmesh.GetNearestNavArea(vec)
+    if not nav then return {} end
+    local visible = nav:GetVisibleAreas()
+
+    local filtered = TTTBots.Lib.FilterTable(visible, function(nav2)
+        return nav:GetCenter():Distance(nav2:GetCenter()) <= range
+    end)
+
+    return filtered
+end
+
 TTTBots.Chat = TTTBots.Chat or {}
 --- Broadcasts a standard greeting in chat.
 ---

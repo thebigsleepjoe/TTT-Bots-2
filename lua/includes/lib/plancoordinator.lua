@@ -83,7 +83,9 @@ end
 
 --- A Target Hashtable function to calculate a target for a job.
 function PlanCoordinator.CalcPopularArea(caller)
-    local randArea = TTTBots.Lib.GetRandomPopularNav()
+    local randArea = TTTBots.Lib.GetTopNPopularNavs(1) -- get the most popular nav
+    if not (randArea and randArea[1]) then return PlanCoordinator.CalcRandFriendly(caller) end
+    randArea = randArea[1][1]
     local targetPos = navmesh.GetNavAreaByID(randArea):GetRandomPoint()
 
     return targetPos

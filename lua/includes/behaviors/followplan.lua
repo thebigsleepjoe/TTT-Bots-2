@@ -197,13 +197,23 @@ local actRunnings = {
         if not IsValid(target) then return STATUS.FAILURE end
         local targetPos = target:GetPos()
         bot.components.locomotor:SetGoalPos(targetPos)
+        printf("Following player %s", target:Nick())
         return STATUS.RUNNING
     end,
     [ACTIONS.GATHER] = function(bot, job)
-        -- set the patch to the TargetObj (which is a vec3) and stand there.
-        -- TODO: Expand on this behavior and make it more subtle.
-        local targetPos = job.TargetObj
-        bot.components.locomotor:SetGoalPos(targetPos)
+        -- set the patch to the TargetObj (which is a vec3) and wander around there.
+        local origin = job.TargetObj
+        bot.gatherWanderPos = bot.gatherWanderPos or origin
+
+        lib.CallEveryNTicks(bot, function()
+            -- bot.gatherWanderPos
+            local visible = lib.VisibleNavsInRange(origin, 1000)
+            if #visible > 0 then
+                local randNav = table.Random(visible)
+                local randPos = randNav:GetRandomPoint()
+            end
+        end, TTTBots.Tickrate * 4)
+        bot.components.locomotor:SetGoalPos(bot.gatherWanderPos)
         return STATUS.RUNNING
     end,
     [ACTIONS.IGNORE] = function(bot, job)
@@ -249,6 +259,7 @@ end
 --- Called when the behavior ends
 function FollowPlan:OnEnd(bot)
     bot.Job = nil
+    bot.gatherWanderPos = nil
 end
 
 -- Hook for PlayerSay to force give ourselves a follow job if a teammate traitor says in team chat to "follow"
