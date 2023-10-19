@@ -211,6 +211,7 @@ local actRunnings = {
             if #visible > 0 then
                 local randNav = table.Random(visible)
                 local randPos = randNav:GetRandomPoint()
+                bot.gatherWanderPos = randPos
             end
         end, TTTBots.Tickrate * 4)
         bot.components.locomotor:SetGoalPos(bot.gatherWanderPos)
