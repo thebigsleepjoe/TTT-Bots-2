@@ -255,7 +255,8 @@ function Attack:CalculateInaccuracy(bot, origin)
 
     local distFt = (bot:GetPos():Distance(origin) / 16) -- distance, in ft, to origin
     local pressure = personality:GetPressure()          -- float [0,1]
-    local inaccuracy_mod = ((math.max(pressure, 0.1) / difficulty) * (distFt)) * INACCURACY_MULT
+    local rage = (personality:GetRage() * 2) + 1        -- float [1,3]
+    local inaccuracy_mod = ((math.max(pressure, 0.1) / difficulty) * (distFt)) * INACCURACY_MULT * rage
 
     local rand = VectorRand() * inaccuracy_mod
     TTTBots.DebugServer.DrawCross(origin + rand, 8, Color(0, 255, 0), 0.1, bot:Nick() .. ".attack.inaccuracy")
