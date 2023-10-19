@@ -970,16 +970,17 @@ TTTBots.Lib.customNames = {}
 local Lib = TTTBots.Lib
 
 function Lib.LeetSpeak(txt)
+    -- commented out some letters to make less insane for long names especially
     local leet = {
-        ["a"] = "4",
-        ["b"] = "8",
+        -- ["a"] = "4",
+        -- ["b"] = "8",
         ["e"] = "3",
         ["g"] = "6",
         ["i"] = "1",
-        ["l"] = "1",
+        -- ["l"] = "1",
         ["o"] = "0",
-        ["s"] = "5",
-        ["t"] = "7",
+        -- ["s"] = "5",
+        -- ["t"] = "7",
         ["z"] = "2"
     }
 
@@ -1012,7 +1013,7 @@ function Lib.GenerateName()
     local generic_name_override = TTTBots.Lib.genericNames[math.random(1, #TTTBots.Lib.genericNames)]
 
     local number = math.random(1, 9999)
-    local leetify = GetCVB("names_canleetify") and math.random(1, 100) > 94
+    local leetify = GetCVB("names_canleetify") and math.random(1, 100) > 92
     local use_number = GetCVB("names_canusenumbers") and math.random(1, 100) > 80
     local use_adjective = math.random(1, 100) > 60
     local use_animal = math.random(1, 100) > 50 -- else use human name
