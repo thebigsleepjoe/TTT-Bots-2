@@ -3,6 +3,8 @@ local ACTIONS = PLANS.ACTIONS
 local TARGETS = PLANS.PLANTARGETS
 local PRESETS = {
     LowPlayerCount_Standard = {
+        Name = "LowPlayerCount_Standard",
+        Description = "Standard plan for low player counts (1-4 players)",
         Conditions = {
             PlyMin = 1,
             PlyMax = 4,
@@ -43,9 +45,56 @@ local PRESETS = {
             },
         }
     },
-    AveragePlayerCount_Standard = {
+    MediumPlayerCount_Standard = {
+        Name = "MediumPlayerCount_Standard",
+        Description = "Standard plan for medium player counts (5-9 players)",
         Conditions = {
             PlyMin = 5,
+            PlyMax = 9,
+            MinTraitors = nil,
+            MaxTraitors = nil,
+            Chance = 100,
+        },
+        Jobs = {
+            -- if there are only 2 or fewer traitors, just have one plant
+            {
+                Chance = 20,
+                Action = ACTIONS.PLANT,
+                Target = TARGETS.ANY_BOMBSPOT,
+                MaxAssigned = 1,
+                Conditions = {
+                    MaxTraitors = 2,
+                }
+            },
+            -- gather for 5-20 seconds if no human traitors
+            {
+                Chance = 100,
+                Action = ACTIONS.GATHER,
+                Target = TARGETS.RAND_POPULAR_AREA,
+                MaxAssigned = 99,
+                MinDuration = 10,
+                MaxDuration = 24,
+                Conditions = {
+                    MaxHumanTraitors = 0,
+                }
+            },
+            -- kill everyone
+            {
+                Chance = 100,
+                Action = ACTIONS.ATTACKANY,
+                Target = TARGETS.NEAREST_ENEMY,
+                MaxAssigned = 99,
+                Conditions = {
+                    MinTraitors = 2,
+                }
+            },
+        }
+    },
+    AveragePlayerCount_Standard = {
+        Name = "AveragePlayerCount_Standard",
+        Description = "Standard plan for average player counts (10-16 players)",
+        Conditions = {
+            PlyMin = 10,
             PlyMax = 16,
             MinTraitors = nil,
             MaxTraitors = nil,

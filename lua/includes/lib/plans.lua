@@ -71,22 +71,22 @@ TTTBots.Plans.Cleanup() -- Call when this script is first executed
 
 local conditionsHashedFuncs = {
     PlyMin = function(conditions, data)
-        return data.NumPlysA >= conditions.PlyMin
+        return data.NumPlysA >= (conditions.PlyMin or 0)
     end,
     PlyMax = function(conditions, data)
-        return data.NumPlysA <= conditions.PlyMax
+        return data.NumPlysA <= (conditions.PlyMax or math.huge)
     end,
     MinTraitors = function(conditions, data)
-        return data.NumTraitorsA >= conditions.MinTraitors
+        return data.NumTraitorsA >= (conditions.MinTraitors or 0)
     end,
     MaxTraitors = function(conditions, data)
-        return data.NumTraitorsA <= conditions.MaxTraitors
+        return data.NumTraitorsA <= (conditions.MaxTraitors or math.huge)
     end,
     MinHumanTraitors = function(conditions, data)
-        return data.NumHumanTraitorsA >= conditions.MinHumanTraitors
+        return data.NumHumanTraitorsA >= (conditions.MinHumanTraitors or 0)
     end,
     MaxHumanTraitors = function(conditions, data)
-        return data.NumHumanTraitorsA <= conditions.MaxHumanTraitors
+        return data.NumHumanTraitorsA <= (conditions.MaxHumanTraitors or math.huge)
     end,
     Chance = function(conditions, data)
         return math.random(1, 100) <= (conditions.Chance or 100)
@@ -99,14 +99,27 @@ function TTTBots.Plans.AreConditionsValid(conditions)
         NumHumanTraitorsA = #TTTBots.Match.AliveHumanTraitors,
     }
     for key, value in pairs(conditions) do
+        if key == nil or value == nil then continue end
         local func = conditionsHashedFuncs[key]
         if func then
             local result = func(conditions, Data)
             if not result then
-                return false
+                return false, key
             end
         end
     end
+
+    return true
+end
+
+function TTTBots.Plans.GetCurrentPlan()
+    return TTTBots.Plans.SelectedPlan
+end
+
+function TTTBots.Plans.GetName()
+    local plan = TTTBots.Plans.SelectedPlan
+    if not plan then return "Not selected" end
+    return plan.Name
 end
 
 --- Returns the first best preset in TTTBots.Plans.PRESETS, according to the conditions.
@@ -116,8 +129,10 @@ function TTTBots.Plans.GetFirstBestPreset()
 
     for i, preset in pairs(PRESETS) do
         local conditions = preset.Conditions
-        local valid = TTTBots.Plans.AreConditionsValid(conditions)
-
+        local valid, reason = TTTBots.Plans.AreConditionsValid(conditions)
+        -- if not valid then
+        --     print(string.format("Plan %s failed because of key: %s", preset.Name, reason))
+        -- end
         if valid then return preset end
     end
 

@@ -8,7 +8,7 @@ FollowPlan.Name = "FollowPlan"
 FollowPlan.Description = "Follow the plan assigned to us by the game coordinator."
 FollowPlan.Interruptible = true
 -- When debugging the component and you want to print extra info, use this:
-FollowPlan.Debug = false
+FollowPlan.Debug = true
 
 local STATUS = {
     RUNNING = 1,
@@ -39,7 +39,7 @@ end
 --- Grabs an available job from the PlanCoordinator and assigns it to the bot.
 ---@param bot Player the bot to assign a job to
 ---@return boolean|table false if no job was assigned, otherwise the job
-function FollowPlan:AutoSetBotJob(bot)
+function FollowPlan:AssignNextAvailableJob(bot)
     bot.Job = nil
     local job = TTTBots.PlanCoordinator.GetNextJob(true, bot)
     if not job then
@@ -98,7 +98,7 @@ function FollowPlan:ValidateJob(bot, job)
     return actValidations[act](job)
 end
 
---- Finds a new job if one isn't already set. Doesn't impact anything if the bot is doing a job already; otherwise, assigns a job using AutoSetBotJob
+--- Finds a new job if one isn't already set. Doesn't impact anything if the bot is doing a job already; otherwise, assigns a job using AssignNextAvailableJob
 ---@param bot Player the bot to assign a job to
 ---@return boolean|table false if no job was assigned, otherwise the job
 function FollowPlan:FindNewJobIfAvailable(bot)
@@ -106,7 +106,7 @@ function FollowPlan:FindNewJobIfAvailable(bot)
     local jobValid = self:ValidateJob(bot, job)
     if jobValid then return false end
 
-    return self:AutoSetBotJob(bot)
+    return self:AssignNextAvailableJob(bot)
 end
 
 --- Validate the behavior
@@ -141,17 +141,18 @@ local f = string.format
 function FollowPlan:OnStart(bot)
     if not bot.Job then return STATUS.FAILURE end
     if FollowPlan.Debug then
-        print(" === JOB ASSIGNED ===")
-        print(bot:Nick() .. "'s assigned job table: ")
-        local target = bot.Job and bot.Job.TargetObj
-        if target and target:IsPlayer() then
-            printf("Target: %s", target:Nick())
-            printf("Target HP: %f", target:Health())
-            printf("Target is alive: %s", tostring(lib.IsPlayerAlive(target)))
-        end
-        PrintTable(bot.Job)
-        print(" === END JOB ===")
-        -- printf("JOB '%s' assigned to bot %s", bot.Job.Action, bot:Nick())
+        -- print(" === JOB ASSIGNED ===")
+        -- print(bot:Nick() .. "'s assigned job table: ")
+        -- local target = bot.Job and bot.Job.TargetObj
+        -- if target and target:IsPlayer() then
+        --     printf("Target: %s", target:Nick())
+        --     printf("Target HP: %f", target:Health())
+        --     printf("Target is alive: %s", tostring(lib.IsPlayerAlive(target)))
+        -- end
+        -- PrintTable(bot.Job)
+        -- print(" === END JOB ===")
+        printf("FollowPlan: JOB '%s' assigned to bot %s (For plan %s)", bot.Job.Action, bot:Nick(),
+            TTTBots.Plans.GetName())
     end
     return STATUS.RUNNING
 end
