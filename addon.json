@@ -1,0 +1,11 @@
+{
+	"title"		:	"TTT Bots 2.0",
+	"type"		:	"ServerContent",
+	"tags"		:	[ "servercontent", "realism" ],
+	"ignore"	:
+	[
+		"*.psd",
+		"*.vcproj",
+		"*.svn*"
+	]
+}
