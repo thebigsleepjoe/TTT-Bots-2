@@ -124,7 +124,7 @@ Chat.Commands = {
         concommand.Run(ply, "ttt_bot_add", { tostring(nBots) })
 
         -- TTTBots.Chat.MessagePlayer(ply, "Restarted round and added " .. nBots .. " bots.")
-        TTTBots.Chat.BroadcastInChat(ply:Nick() .. " (superadmin) restarted the round and added " .. nBots .. " bots.")
+        TTTBots.Chat.BroadcastInChat(ply:Nick() .. " restarted the round and added " .. nBots .. " bots.")
     end,
     ["!restartround"] = function(ply, fulltxt)
         Chat.Commands['!roundrestart'](ply, fulltxt)
@@ -139,9 +139,9 @@ Chat.Commands = {
             return
         end
         concommand.Run(ply, "ttt_bot_kickall")
-        TTTBots.Chat.BroadcastInChat(ply:Nick() .. " (superadmin) kicked all bots from the server.")
+        TTTBots.Chat.BroadcastInChat(ply:Nick() .. " kicked all bots from the server.")
     end,
-    ["!help"] = function(ply, fulltxt)
+    ["!bothelp"] = function(ply, fulltxt)
         local mp = TTTBots.Chat.MessagePlayer
         local visibleHelp = {
             addbot = "Adds a bot to the server. Usage: !addbot X, where X is the number of bots to add.",
@@ -169,7 +169,7 @@ Chat.Commands = {
             end
         end
     end,
-    ["!debugmenu"] = function(ply, fulltxt)
+    ["!botdebug"] = function(ply, fulltxt)
         -- Run ttt_bot_debug_showui on the client's end if they're a superadmin
         if not ply:IsSuperAdmin() then
             TTTBots.Chat.MessagePlayer(ply,
@@ -178,9 +178,6 @@ Chat.Commands = {
         end
         ply:ConCommand("ttt_bot_debug_showui")
     end,
-    ["!devmenu"] = function(ply, fulltxt)
-        ply:Say("!debugmenu")
-    end
 }
 
 function TTTBots.Chat.MessagePlayer(ply, message)
