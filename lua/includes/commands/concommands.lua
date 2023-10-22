@@ -44,6 +44,11 @@ concommand.Add("ttt_bot_kick", function(ply, cmd, args)
     end
 end)
 
+concommand.Add("ttt_bot_reload", function(ply, cmd, args)
+    if not ply or not (ply and ply:IsSuperAdmin()) then return end -- cmd only works as server or SA
+    TTTBots.Reload()
+end)
+
 concommand.Add("ttt_bot_debug_locomotor", function(ply, cmd, args)
     if not ply or not (ply and ply:IsSuperAdmin()) then return end -- cmd only works as server or SA
     -- Execute ttt_bot_kickall, then ttt_bot_add, then ttt_roundrestart.

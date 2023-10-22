@@ -185,6 +185,9 @@ function TTTBots.Chat.MessagePlayer(ply, message)
 end
 
 hook.Add("PlayerSay", "TTTBots.PlayerSay", function(ply, text, team)
+    if not (IsValid(ply) and ply:IsBot()) then return end
+    local cvarTest = TTTBots.Lib.GetConVarBool("enable_chat_cmds")
+    if not cvarTest then return end
     local fulltxt = string.lower(text)
     local split = string.gmatch(fulltxt, "%S+") -- split by spaces
     local cmd = split()                         -- first word is the command

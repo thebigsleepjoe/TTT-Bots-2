@@ -7,7 +7,7 @@ end
 -- Misc cvars
 bot_cvar("language", "en",
     "Changes the language that the bots speak in text chat, and may modify some GUI strings. Example is 'en' or 'es'")
-
+bot_cvar("enable_chat_cmds", "1", "If you want to allow chat commands to be used for administration. This cvar exists for mod compatibility.")
 
 -- Chatter cvars
 bot_cvar("chatter_lvl", "3",

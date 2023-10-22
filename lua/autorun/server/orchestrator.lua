@@ -23,7 +23,8 @@ end
 
 local hasNavmesh = function() return navmesh.GetNavAreaCount() > 0 end
 
-local function initializeMod()
+---Load all of the mod's depdenencies and initialize the mod
+function TTTBots.Reload()
     include("includes/lib/botlib.lua")
     -- Initialize all of our other libraries
     include("includes/lib/pathmanager.lua")
@@ -57,23 +58,10 @@ local function initializeMod()
         print(f("On this map, there are:"))
         print(f("%d hiding/cover spots", #Lib.GetCoverSpots()))
         print(f("%d exposed spots", #Lib.GetExposedSpots()))
-        print(f("%d sniper spots", #Lib.GetGoodSnipeSpots()))
-        print(f("%d great sniper spots", #Lib.GetBestSnipeSpots()))
+        print(f("%d sniper spots", #Lib.GetGoodSnipeSpots())) -- TODO: This is category unused by gmod and always 0.
+        print(f("%d great sniper spots", #Lib.GetBestSnipeSpots())) -- TODO: This is category unused by gmod and always 0.
     end
 
-    local function _testBotAttack()
-        local alivePlayers = Lib.GetAlivePlayers()
-        -- Go over each alive bot using lib.GetAliveBots() and set target to a random lib.GetAlivePlayers() player
-        for i, bot in pairs(Lib.GetAliveBots()) do
-            if bot.attackTarget then continue end
-            local newTarget = table.Random(alivePlayers)
-            if newTarget == bot then continue end
-            bot:SetAttackTarget(newTarget)
-
-            local f = string.format
-            print(f("Bot %s is targeting %s", bot:Nick(), newTarget:Nick()))
-        end
-    end
     -- Bot behavior
     timer.Create("TTTBots_Tick", 1 / TTTBots.Tickrate, 0, function()
         local call, err = pcall(function()
@@ -160,7 +148,7 @@ local function initializeIfChecksPassed()
     end
 
     print("Initializing TTT Bots...")
-    initializeMod()
+    TTTBots.Reload()
 end
 
 initializeIfChecksPassed()
