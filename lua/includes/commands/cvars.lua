@@ -63,6 +63,7 @@ bot_cvar("debug_inventory", "0",
     "[May console spam. Development use only] Enables debug for inventory management.")
 bot_cvar("debug_strafe", "0",
     "[May console spam. Development use only] Enables debug drawing for strafing. Requires 'developer 1' first.")
+bot_cvar('debug_navpopularity', '0', '[May console spam. Development use only] Enables debug drawing for nav popularity. Requires "developer 1" first.')
 
 -- Personality cvars
 bot_cvar("boredom", "1",

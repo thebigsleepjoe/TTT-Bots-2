@@ -26,15 +26,31 @@ timer.Create("TTTBots.Lib.PopularNavsTimer", 1, 0, function()
 
     TTTBots.Lib.PopularNavsSorted = sorted
 
-    -- Debug draw logic
-    -- for i = 1, 5 do
-    --     if not sorted[i] then break end
-    --     -- TTTBots.DebugServer.DrawText(pos, text, lifetime, forceID)
-    --     local nav = navmesh.GetNavAreaByID(sorted[i][1])
-    --     local pos = nav:GetCenter()
-    --     local txt = "(" .. sorted[i][2] .. "s) Popularity Rank #" .. i
-    --     TTTBots.DebugServer.DrawText(pos, txt, 1, "popularnavs" .. i)
-    -- end
+    if lib.GetConVarBool("debug_navpopularity") then
+        -- Debug draw logic
+        -- for i = 1, 5 do
+        --     if not sorted[i] then break end
+        --     -- TTTBots.DebugServer.DrawText(pos, text, lifetime, forceID)
+        --     local nav = navmesh.GetNavAreaByID(sorted[i][1])
+        --     local pos = nav:GetCenter()
+        --     local txt = "(" .. sorted[i][2] .. "s) Popularity Rank #" .. i
+        --     TTTBots.DebugServer.DrawText(pos, txt, 1, "popularnavs" .. i)
+        -- end
+        for i,navTbl in pairs(TTTBots.Lib.GetTopNPopularNavs(3)) do
+            local nav = navmesh.GetNavAreaByID(navTbl[1])
+            local pos = nav:GetCenter()
+            local txt = "(" .. navTbl[2] .. "s) Popularity Rank #" .. i
+            TTTBots.DebugServer.DrawText(pos, txt, 1.2, "popularnavs" .. i)
+        end
+
+        for i,navTbl in pairs(TTTBots.Lib.GetTopNUnpopularNavs(3)) do
+            local nav = navmesh.GetNavAreaByID(navTbl[1])
+            local pos = nav:GetCenter()
+            local txt = "(" .. navTbl[2] .. "s) Unpopularity Rank #" .. i
+            TTTBots.DebugServer.DrawText(pos, txt, 1.2, "unpopularnavs" .. i)
+        end
+
+    end
 end)
 
 function TTTBots.Lib.GetPopularNavs()
