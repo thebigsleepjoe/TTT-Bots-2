@@ -403,7 +403,7 @@ function Attack:OnRunning(bot)
     local isNPC = target:IsNPC()
     local isPlayer = target:IsPlayer()
     if not isNPC and not isPlayer then
-        ErrorNoHalt("Wtf has bot.attackTarget been assigned to? Not NPC nor player... target: " ..
+        ErrorNoHaltWithStack("Wtf has bot.attackTarget been assigned to? Not NPC nor player... target: " ..
             tostring(bot.attackTarget))
     end -- Target is not a player or NPC
 
