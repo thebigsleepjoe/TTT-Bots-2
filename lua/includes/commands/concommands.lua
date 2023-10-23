@@ -47,6 +47,7 @@ end)
 concommand.Add("ttt_bot_reload", function(ply, cmd, args)
     if not ply or not (ply and ply:IsSuperAdmin()) then return end -- cmd only works as server or SA
     TTTBots.Reload()
+    RunConsoleCommand("ttt_roundrestart")
 end)
 
 concommand.Add("ttt_bot_debug_locomotor", function(ply, cmd, args)
@@ -131,7 +132,7 @@ end)
 concommand.Add("ttt_bot_print_ents", function(ply, cmd, args)
     if not ply or not (ply and ply:IsSuperAdmin()) then return end -- cmd only works as server or SA
     for i, v in pairs(ents.GetAll()) do
-        print(v:GetClass())
+        print(v:GetClass(), v:GetClass() == "prop_physics" and v:GetModel() or "")
     end
 end)
 

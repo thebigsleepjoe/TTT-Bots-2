@@ -30,7 +30,7 @@ local ATTACKMODE = {
 
 --- Validate the behavior
 function Attack:Validate(bot)
-    return self:ValidateTarget(bot)
+    return Attack:ValidateTarget(bot)
 end
 
 --- Called when the behavior is started
@@ -142,9 +142,25 @@ function Attack:ShouldApproachWith(bot, weapon)
     return weapon.is_shotgun or weapon.is_melee
 end
 
+--- Tests if the target is next to an explosive barrel, if so, returns the barrel.
+---@param bot Player
+---@param target Player
+---@return Entity|nil barrel
+function Attack:TargetNextToBarrel(bot, target)
+    local lastBarrelTime = target.lastBarrelCheck or 0
+    local targetBarrel = target.lastBarrel or nil
+    local TIME_BETWEEN_BARREL_CHECKS = 3 -- 3 seconds
+
+    if lastBarrelTime + TIME_BETWEEN_BARREL_CHECKS > CurTime() then return targetBarrel end
+
+    local barrel = lib.GetClosestBarrel(target)
+    target.lastBarrel = barrel
+    return barrel
+end
+
 function Attack:ApproachIfNecessary(bot, weapon, loco)
     if not (bot.attackTarget and bot.attackTarget.GetPos) then return false end
-    if not self:ShouldApproachWith(bot, weapon) then return false end
+    if not Attack:ShouldApproachWith(bot, weapon) then return false end
 
     local distToTarget = bot:GetPos():Distance(bot.attackTarget:GetPos())
     local shouldApproach = (
@@ -168,8 +184,8 @@ end
 ---@param weapon WeaponInfo
 ---@param loco CLocomotor
 function Attack:HandleAttackMovement(bot, weapon, loco)
-    self:StrafeIfNecessary(bot, weapon, loco)
-    self:ApproachIfNecessary(bot, weapon, loco)
+    Attack:StrafeIfNecessary(bot, weapon, loco)
+    Attack:ApproachIfNecessary(bot, weapon, loco)
 end
 
 function Attack:Engage(bot, targetPos)
@@ -201,8 +217,8 @@ function Attack:Engage(bot, targetPos)
     end
 
     if not preventAttackBecauseMelee then
-        if (self:LookingCloseToTarget(bot, target)) then
-            if not self:WillShootingTeamkill(bot, target) then -- make sure we aren't about to teamkill by mistake!!
+        if (Attack:LookingCloseToTarget(bot, target)) then
+            if not Attack:WillShootingTeamkill(bot, target) then -- make sure we aren't about to teamkill by mistake!!
                 loco:StartAttack()
             end
 
@@ -232,15 +248,23 @@ function Attack:Engage(bot, targetPos)
 
     local aimTarget
     if Attack:ShouldAimAtBody(bot, weapon) then
-        aimTarget = self:GetTargetBodyPos(target)
+        aimTarget = Attack:GetTargetBodyPos(target)
     else
-        aimTarget = self:GetTargetHeadPos(target)
+        aimTarget = Attack:GetTargetHeadPos(target)
     end
 
-    self:HandleAttackMovement(bot, weapon, loco)
+    local barrel = Attack:TargetNextToBarrel(bot, target)
+    if barrel
+        and target:VisibleVec(barrel:GetPos())
+        and bot:VisibleVec(barrel:GetPos())
+    then
+        aimTarget = barrel:GetPos() + barrel:OBBCenter()
+    end
 
-    local predictedPoint = aimTarget + self:PredictMovement(target, 0.4)
-    local inaccuracyTarget = predictedPoint + self:CalculateInaccuracy(bot, aimTarget)
+    Attack:HandleAttackMovement(bot, weapon, loco)
+
+    local predictedPoint = aimTarget + Attack:PredictMovement(target, 0.4)
+    local inaccuracyTarget = predictedPoint + Attack:CalculateInaccuracy(bot, aimTarget)
     loco:AimAt(inaccuracyTarget)
 end
 
@@ -327,10 +351,10 @@ function Attack:RunningAttackLogic(bot)
     if canShoot then mode = ATTACKMODE.Engaging end -- We can shoot them, we are engaging
 
     local switchcase = {
-        [ATTACKMODE.Seeking] = self.Seek,
-        [ATTACKMODE.Engaging] = self.Engage,
+        [ATTACKMODE.Seeking] = Attack.Seek,
+        [ATTACKMODE.Engaging] = Attack.Engage,
     }
-    switchcase[mode](self, bot, targetPos) -- Call the function
+    switchcase[mode](Attack, bot, targetPos) -- Call the function
     return mode
 end
 
@@ -373,8 +397,8 @@ end
 ---@return STATUS status
 function Attack:OnRunning(bot)
     local target = bot.attackTarget
-    -- We could probably do self:Validate but this is more explicit:
-    if not self:ValidateTarget(bot) then return STATUS.Failure end -- Target is not valid
+    -- We could probably do Attack:Validate but this is more explicit:
+    if not Attack:ValidateTarget(bot) then return STATUS.Failure end -- Target is not valid
 
     local isNPC = target:IsNPC()
     local isPlayer = target:IsPlayer()
@@ -383,7 +407,7 @@ function Attack:OnRunning(bot)
             tostring(bot.attackTarget))
     end -- Target is not a player or NPC
 
-    local attack = self:RunningAttackLogic(bot)
+    local attack = Attack:RunningAttackLogic(bot)
     bot.attackBehaviorMode = attack
 
     return STATUS.Running

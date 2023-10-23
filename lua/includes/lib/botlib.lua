@@ -38,6 +38,27 @@ function TTTBots.Lib.GetPlayerLifeStates()
     return alivePlayers
 end
 
+local EXPLOSIVE_BARREL_MODELS = {
+    ["models/props_c17/oildrum001_explosive.mdl"] = true,
+    ["models//props_c17/oildrum001_explosive.mdl"] = true,
+    ["props_c17/oildrum001_explosive.mdl"] = true
+}
+function TTTBots.Lib.GetClosestBarrel(target)
+    local SPHERE_SIZE = 256
+    local entities = ents.FindInSphere(target:GetPos(), SPHERE_SIZE)
+    local closest, closestDist = TTTBots.Lib.GetClosest(entities, target:GetPos(), function(e)
+        if e:GetClass() == "prop_physics" then
+            local model = e:GetModel()
+            if EXPLOSIVE_BARREL_MODELS[model] then
+                return true
+            end
+        end
+        return false
+    end)
+
+    return closest, closestDist
+end
+
 function TTTBots.Lib.GetAlivePlayers()
     local alive = {}
     for _, ply in ipairs(player.GetAll()) do
@@ -476,14 +497,17 @@ end
 --- Get the closest entity from a table of entities to a given position.
 ---@param entities table
 ---@param pos any Vector
+---@param extraCallback function|nil Optional, a function that takes an entity and returns true/false
 ---@return Entity|nil Entity the entity, else nill
 ---@return number ClosestDist
-function TTTBots.Lib.GetClosest(entities, pos)
+function TTTBots.Lib.GetClosest(entities, pos, extraCallback)
     if (#entities == 1) then return entities[1], 0 end
     local closest = nil
     local closestDist = 99999
     for i, v in pairs(entities) do
-        if not (IsValid(v) and v:IsPlayer() and TTTBots.Lib.IsPlayerAlive(v)) then continue end
+        if extraCallback then if not extraCallback(v) then continue end end
+        local vIsPlayer = IsValid(v) and v:IsPlayer()
+        if vIsPlayer and not lib.IsPlayerAlive(v) then continue end
         local dist = v:GetPos():Distance(pos)
         if dist < closestDist then
             closest = v
