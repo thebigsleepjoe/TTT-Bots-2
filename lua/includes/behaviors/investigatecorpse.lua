@@ -89,7 +89,6 @@ end
 function InvestigateCorpse:OnRunning(bot)
     local validation, result = self:CorpseValid(bot.corpseTarget)
     if not validation then
-        print("failed while running because corpse is " .. result)
         return STATUS.FAILURE
     end
     local loco = bot.components.locomotor
