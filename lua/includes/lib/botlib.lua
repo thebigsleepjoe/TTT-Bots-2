@@ -563,7 +563,7 @@ function TTTBots.Lib.VoluntaryDisconnect(bot, reason)
         if not bot then return end
         if not IsValid(bot) then return end
         bot:Kick(string.format(
-            "[BOT] Voluntary disconnect because of %s. Disable voluntary disconnects with ttt_bot_allow_leaving 0.",
+            "Disconnect by user",
             reason or "UNDEFINED"))
     end)
 
