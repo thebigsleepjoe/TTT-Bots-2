@@ -72,8 +72,11 @@ function InvestigateCorpse:Validate(bot)
     local closest = lib.GetClosest(options, bot:GetPos())
     if not self:CorpseValid(closest) then return false end
 
-    local unreachable = TTTBots.PathManager.IsUnreachableVec(bot:GetPos(), closest:GetPos())
-    if not unreachable then return false end
+    -- local unreachable = TTTBots.PathManager.IsUnreachableVec(bot:GetPos(), closest:GetPos())
+    -- if not unreachable then
+    --     print("Found corpse but it was unreachable")
+    --     return false
+    -- end
 
     bot.corpseTarget = closest
     return true

@@ -224,7 +224,7 @@ local targetHashTable = {
 function PlanCoordinator.CalculateTargetForJob(job, caller)
     local target = job.Target
     local targetFunc = targetHashTable[target]
-    if not targetFunc then ErrorNoHalt("TargetFunc is not a real Target: " .. tostring(target)) end
+    if not targetFunc then ErrorNoHaltWithStack("TargetFunc is not a real Target: " .. tostring(target)) end
 
     job.TargetObj = targetFunc(caller)
     return job, job.TargetObj

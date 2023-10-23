@@ -140,7 +140,7 @@ end)
 -- {"look", "target", "path", "all"}
 ---@deprecated
 function TTTBots.DebugServer.RenderDebugFor(bot, settings)
-    ErrorNoHalt("Unsupported draw call; drawing anyway.")
+    ErrorNoHaltWithStack("Unsupported draw call; drawing anyway.")
     -- Check if "developer" convar is set to 1, spare resources if not
     if not GetConVar("developer"):GetBool() then return end
 
@@ -153,7 +153,7 @@ end
 
 ---@deprecated
 function TTTBots.DebugServer.DrawBotLook(bot)
-    ErrorNoHalt("Unsupported draw call; drawing anyway.")
+    ErrorNoHaltWithStack("Unsupported draw call; drawing anyway.")
     if not GetConVar("ttt_bot_debug_look"):GetBool() then return end
 
     local start = bot:GetShootPos()
@@ -183,7 +183,7 @@ end
 
 ---@deprecated
 function TTTBots.DebugServer.DrawCurrentPathFor(bot)
-    ErrorNoHalt("Unsupported draw call; drawing anyway.")
+    ErrorNoHaltWithStack("Unsupported draw call; drawing anyway.")
     local pathinfo = bot.components.locomotor.pathinfo
     if not pathinfo or not pathinfo.path then return end
 

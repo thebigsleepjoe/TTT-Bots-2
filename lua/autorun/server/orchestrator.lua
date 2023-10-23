@@ -89,7 +89,7 @@ function TTTBots.Reload()
             print("ERROR:", err)
         end)
         if err then
-            ErrorNoHalt(err)
+            ErrorNoHaltWithStack(err)
         end
     end)
 

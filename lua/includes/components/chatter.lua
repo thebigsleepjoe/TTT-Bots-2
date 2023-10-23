@@ -80,7 +80,7 @@ local RADIO = {
 }
 function BotChatter:QuickRadio(msgName, msgTarget)
     local txt = RADIO[msgName]
-    if not txt then ErrorNoHalt("Unknown message type " .. msgName) end
+    if not txt then ErrorNoHaltWithStack("Unknown message type " .. msgName) end
     hook.Run("TTTPlayerRadioCommand", self.bot, msgName, msgTarget)
 end
 

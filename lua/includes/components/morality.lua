@@ -123,7 +123,7 @@ function BotMorality:ChangeSuspicion(target, reason, mult)
     if TTTBots.Match.RoundActive == false then return end -- Don't change suspicion if the round isn't active, duh
     if lib.IsEvil(self.bot) or lib.IsPolice(target) then return end
 
-    local susValue = self.SUSPICIONVALUES[reason] or ErrorNoHalt("Invalid suspicion reason: " .. reason)
+    local susValue = self.SUSPICIONVALUES[reason] or ErrorNoHaltWithStack("Invalid suspicion reason: " .. reason)
     local increase = math.ceil(susValue * mult)
     local sus = (self:GetSuspicion(target)) + (increase)
     self.suspicions[target] = math.floor(sus)
