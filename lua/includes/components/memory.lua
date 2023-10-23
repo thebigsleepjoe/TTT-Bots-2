@@ -172,7 +172,7 @@ end
 ---@param ply any
 ---@return Vector|nil Pos, boolean CanSee
 function Memory:GetCurrentPosOf(ply)
-    local canSee = lib.CanSee(self.bot, ply)
+    local canSee = self.bot:Visible(ply) -- lib.CanSee(self.bot, ply)
     if canSee then
         self:UpdateKnownPositionFor(ply, ply:GetPos())
         return ply:GetPos(), canSee
