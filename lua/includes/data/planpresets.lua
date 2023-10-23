@@ -19,19 +19,21 @@ local PRESETS = {
                 Action = ACTIONS.PLANT,
                 Target = TARGETS.ANY_BOMBSPOT,
                 MaxAssigned = 1,
-                Conditions = {}
+                Conditions = {},
+                Repeat = false,
             },
             -- everyone else will gather for 10-24 seconds
             {
                 Chance = 80,
                 Action = ACTIONS.GATHER,
-                Target = TARGETS.RAND_POPULAR_AREA,
+                Target = TARGETS.RAND_UNPOPULAR_AREA,
                 MaxAssigned = 99,
                 MinDuration = 10,
                 MaxDuration = 24,
                 Conditions = {
                     MinTraitors = 2,
-                }
+                },
+                Repeat = false,
             },
             -- after gathering, attack any player
             {
@@ -41,7 +43,8 @@ local PRESETS = {
                 MaxAssigned = 99,
                 Conditions = {
                     MinTraitors = 2,
-                }
+                },
+                Repeat = true,
             },
         }
     },
@@ -64,19 +67,21 @@ local PRESETS = {
                 MaxAssigned = 1,
                 Conditions = {
                     MaxTraitors = 2,
-                }
+                },
+                Repeat = false,
             },
             -- gather for 5-20 seconds if no human traitors
             {
                 Chance = 100,
                 Action = ACTIONS.GATHER,
-                Target = TARGETS.RAND_POPULAR_AREA,
+                Target = TARGETS.RAND_UNPOPULAR_AREA,
                 MaxAssigned = 99,
                 MinDuration = 10,
                 MaxDuration = 24,
                 Conditions = {
                     MaxHumanTraitors = 0,
-                }
+                },
+                Repeat = false,
             },
             -- kill everyone
             {
@@ -86,7 +91,8 @@ local PRESETS = {
                 MaxAssigned = 99,
                 Conditions = {
                     MinTraitors = 2,
-                }
+                },
+                Repeat = true,
             },
         }
     },
@@ -109,7 +115,8 @@ local PRESETS = {
                 MaxAssigned = 2,
                 Conditions = {
                     MinTraitors = 3,
-                }
+                },
+                Repeat = false,
             },
             -- if there are only 2 or fewer traitors, just have one plant
             {
@@ -119,7 +126,8 @@ local PRESETS = {
                 MaxAssigned = 1,
                 Conditions = {
                     MaxTraitors = 2,
-                }
+                },
+                Repeat = false,
             },
             -- have 1 traitor follow a police (defaults to inno if none)
             {
@@ -127,7 +135,8 @@ local PRESETS = {
                 Action = ACTIONS.FOLLOW,
                 Target = TARGETS.RAND_POLICE,
                 MaxAssigned = 1,
-                Conditions = {}
+                Conditions = {},
+                Repeat = false,
             },
             -- everyone idle should follow any human traitors for 20-40 seconds (fails if no human traitors)
             {
@@ -139,19 +148,21 @@ local PRESETS = {
                 MaxDuration = 40,
                 Conditions = {
                     MinHumanTraitors = 1,
-                }
+                },
+                Repeat = false,
             },
             -- gather for 5-20 seconds if no human traitors
             {
                 Chance = 100,
                 Action = ACTIONS.GATHER,
-                Target = TARGETS.RAND_POPULAR_AREA,
+                Target = TARGETS.RAND_UNPOPULAR_AREA,
                 MaxAssigned = 99,
                 MinDuration = 10,
                 MaxDuration = 24,
                 Conditions = {
                     MaxHumanTraitors = 0,
-                }
+                },
+                Repeat = false,
             },
             -- kill everyone
             {
@@ -161,7 +172,8 @@ local PRESETS = {
                 MaxAssigned = 99,
                 Conditions = {
                     MinTraitors = 2,
-                }
+                },
+                Repeat = true,
             },
         }
     }

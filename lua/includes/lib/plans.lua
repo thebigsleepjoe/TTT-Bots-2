@@ -27,6 +27,7 @@ TTTBots.Plans = {
     --- A list of all things/people that can be targeted by a bot. Mosly calculated at runtime
     PLANTARGETS = {
         RAND_POPULAR_AREA = "CalculatedPopularArea", --- The most popular area, calculated by the coordinator.
+        RAND_UNPOPULAR_AREA = "CalculatedUnpopularArea", --- The least popular area, calculated by the coordinator.
         ANY_BOMBSPOT = "CalculatedBombSpot",         --- The best calculated bomb spot, calculated by the coordinator.
         RAND_FRIENDLY = "RandomFriendly",            --- A friendly player, selected randomly
         RAND_FRIENDLY_HUMAN = "RandomFriendlyHuman", --- A friendly human player, selected randomly

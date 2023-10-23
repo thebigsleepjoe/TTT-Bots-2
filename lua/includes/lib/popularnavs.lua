@@ -51,6 +51,16 @@ function TTTBots.Lib.GetTopNPopularNavs(n)
     return topN
 end
 
+function TTTBots.Lib.GetTopNUnpopularNavs(n)
+    local sorted = TTTBots.Lib.GetPopularNavs()
+    local topN = {}
+    for i = #sorted, #sorted - n, -1 do
+        if not sorted[i] then break end
+        table.insert(topN, sorted[i])
+    end
+    return topN
+end
+
 --- Get a random popular nav area from the top 8 most popular nav areas (or fewer if there are less than 8)
 function TTTBots.Lib.GetRandomPopularNav()
     local topN = TTTBots.Lib.GetTopNPopularNavs(8)

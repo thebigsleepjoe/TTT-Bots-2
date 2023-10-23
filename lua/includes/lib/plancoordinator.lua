@@ -91,6 +91,16 @@ function PlanCoordinator.CalcPopularArea(caller)
     return targetPos
 end
 
+--- A Target Hashtable function to calculate a target for a job.
+function PlanCoordinator.CalcUnpopularArea(caller)
+    local randArea = TTTBots.Lib.GetTopNUnpopularNavs(1) -- get the least popular nav
+    if not (randArea and randArea[1]) then return PlanCoordinator.CalcRandFriendly(caller) end
+    randArea = randArea[1][1]
+    local targetPos = navmesh.GetNavAreaByID(randArea):GetRandomPoint()
+
+    return targetPos
+end
+
 local function getClosestVec(origin, vecs)
     local closestVec = nil
     local closestDist = 0
@@ -215,6 +225,7 @@ local targetHashTable = {
     [TARGETS.RAND_FRIENDLY_HUMAN] = P.CalcRandFriendlyHuman,
     [TARGETS.RAND_POLICE] = P.CalcRandPolice,
     [TARGETS.RAND_POPULAR_AREA] = P.CalcPopularArea,
+    [TARGETS.RAND_UNPOPULAR_AREA] = P.CalcUnpopularArea,
 }
 
 --- Calculates the target for a job, based upon the job's Target string.
