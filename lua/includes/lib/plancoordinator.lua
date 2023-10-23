@@ -16,7 +16,7 @@ local IsRoundActive = TTTBots.Match.IsRoundActive --- @type function
 -- hook.Add("TTTEndRound", "TTTBots.PlanCoordinator.OnRoundEnd", PlanCoordinator.OnRoundEnd)
 
 --- NOTE: due to how this function works, job chances are calculated PER assignment; it is possible to assign 1 bot when the max is 2 if the chance < 100%
-function PlanCoordinator.TestJob(job, shouldIncrement)
+function PlanCoordinator.TestJob(job, shouldModify, bot)
     local conditions = job.Conditions
     if job.Skip then return false end
     local jobValid = TTTBots.Plans.AreConditionsValid(job)
@@ -31,7 +31,16 @@ function PlanCoordinator.TestJob(job, shouldIncrement)
         return false
     end
 
-    if shouldIncrement then job.NumAssigned = nAssigned + 1 end
+    job.AssignedBots = job.AssignedBots or {}
+
+    if (not job.Repeat) and job.AssignedBots[bot] then -- Do not repeat a job that has already been assigned to this bot
+        return false
+    end
+
+    if shouldModify then
+        job.NumAssigned = nAssigned + 1
+        job.AssignedBots[bot] = true
+    end
 
     return true
 end
@@ -49,7 +58,7 @@ function PlanCoordinator.GetNextJob(isAssignment, caller)
         Target = TARGETS.NEAREST_ENEMY,
     }
     for i, job in pairs(jobs) do
-        local test = PlanCoordinator.TestJob(job, isAssignment)
+        local test = PlanCoordinator.TestJob(job, isAssignment, caller)
         if test then
             assignedJob = table.Copy(job) -- create a deep copy of the job
             break
