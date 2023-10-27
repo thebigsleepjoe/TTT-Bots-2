@@ -253,12 +253,14 @@ function Attack:Engage(bot, targetPos)
         aimTarget = Attack:GetTargetHeadPos(target)
     end
 
-    local barrel = Attack:TargetNextToBarrel(bot, target)
-    if barrel
-        and target:VisibleVec(barrel:GetPos())
-        and bot:VisibleVec(barrel:GetPos())
-    then
-        aimTarget = barrel:GetPos() + barrel:OBBCenter()
+    if not usingMelee then
+        local barrel = Attack:TargetNextToBarrel(bot, target)
+        if barrel
+            and target:VisibleVec(barrel:GetPos())
+            and bot:VisibleVec(barrel:GetPos())
+        then
+            aimTarget = barrel:GetPos() + barrel:OBBCenter()
+        end
     end
 
     Attack:HandleAttackMovement(bot, weapon, loco)
