@@ -270,7 +270,7 @@ function Attack:Engage(bot, targetPos)
     loco:AimAt(inaccuracyTarget)
 end
 
-local INACCURACY_MULT = 3 --- The higher this is, the more inaccurate the bots will be.
+local INACCURACY_MULT = 4 --- The higher this is, the more inaccurate the bots will be.
 --- Calculate the inaccuracy of agent 'bot' according to a) its personality and b) diff setts
 ---@param bot Player The bot that is shooting.
 ---@param origin Vector The original aim point.

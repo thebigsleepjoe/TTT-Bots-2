@@ -95,12 +95,15 @@ function BotChatter:On(event_name, args, teamOnly)
 
     if not self:CanSayEvent(event_name) then return false end
 
+    local difficulty = lib.GetConVarInt("difficulty")
+    local kosChanceMult = lib.GetConVarFloat("chatter_koschance")
+
     --- Base chances to react to the events via chat
     local chancesOf100 = {
         InvestigateNoise = 15,
         InvestigateCorpse = 15,
         LifeCheck = 80,
-        CallKOS = 80,
+        CallKOS = 15 * difficulty * kosChanceMult,
     }
 
     local personality = self.bot.components.personality --- @type CPersonality

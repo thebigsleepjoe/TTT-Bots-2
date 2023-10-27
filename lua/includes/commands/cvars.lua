@@ -16,6 +16,8 @@ bot_cvar("chatter_cps", "30",
     "Determines the typing speed of bots, in characters per second. Higher values = faster typing = more chatting.")
 bot_cvar("chatter_minrepeat", "15",
     "The minimum time between a bot can repeat the same chatter event in voice/text chat.")
+bot_cvar("chatter_koschance", "1",
+    "A multiplier value that affects a bots chance to call KOS. Higher values = more KOS calls. Only does anything if ttt_bot_chatter_lvl is 1 or higher. Set to 0 to disable KOS calls.")
 
 -- Gameplay-effecting cvars
 bot_cvar("plans_mindelay", "8",
