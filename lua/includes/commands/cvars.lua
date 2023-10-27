@@ -8,6 +8,9 @@ end
 bot_cvar("language", "en",
     "Changes the language that the bots speak in text chat, and may modify some GUI strings. Example is 'en' or 'es'")
 bot_cvar("enable_chat_cmds", "1", "If you want to allow chat commands to be used for administration. This cvar exists for mod compatibility.")
+bot_cvar("names_prefixes", "1", "Bot names are forced prefixed by '[BOT]'")
+bot_cvar("enable_pfps", "1", "Bots can have profile pictures in the scoreboard")
+bot_cvar("emulate_ping", "1", "Bots will emulate a humanlike ping (does not affect gameplay and is cosmetic.)")
 
 -- Chatter cvars
 bot_cvar("chatter_lvl", "3",
@@ -27,8 +30,8 @@ bot_cvar("plans_maxdelay", "16",
 bot_cvar("can_flick", "1",
     "Can the bots flick around when they get shot from the rear? Effectively makes bots harder and seem smarter.")
 bot_cvar("difficulty", "3",
-    "A difficulty integer between 0-5; higher = harder. This affects trait selection and aim speed, among other things.")
-bot_cvar("kos_limit", "1", "The upper bound of KOS calls an individual, bot or player, can make per round.")
+    "A difficulty integer between 1-5; higher = harder. This affects trait selection and aim speed, reaction speed, and KOS callout chances.")
+bot_cvar("kos_limit", "2", "The upper bound of KOS calls an individual, bot or player, can make per round. Before the bots ignore them, at least. Used to deter trolls.")
 
 -- Naming cvars
 bot_cvar("names_allowcommunity", "1",

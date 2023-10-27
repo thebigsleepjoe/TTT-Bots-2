@@ -1006,6 +1006,7 @@ end
 function Lib.GenerateName()
     local GetCVB = Lib.GetConVarBool
 
+    local prefix = GetCVB("names_prefixes") and "[BOT] " or ""
     local human_name = TTTBots.Lib.humanNames[math.random(1, #TTTBots.Lib.humanNames)]
     local animal_name = TTTBots.Lib.animalNames[math.random(1, #TTTBots.Lib.animalNames)]
     local adjective = TTTBots.Lib.adjectives[math.random(1, #TTTBots.Lib.adjectives)]
@@ -1072,5 +1073,5 @@ function Lib.GenerateName()
         end
     end
 
-    return name
+    return prefix .. name
 end
