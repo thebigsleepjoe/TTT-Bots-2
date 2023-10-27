@@ -26,6 +26,7 @@ local hasNavmesh = function() return navmesh.GetNavAreaCount() > 0 end
 ---Load all of the mod's depdenencies and initialize the mod
 function TTTBots.Reload()
     include("includes/lib/botlib.lua")
+    include("includes/lib/spots.lua")
     -- Initialize all of our other libraries
     include("includes/lib/pathmanager.lua")
     include("includes/lib/debugserver.lua")
@@ -49,18 +50,7 @@ function TTTBots.Reload()
     local Lib = TTTBots.Lib
     local PathManager = TTTBots.PathManager
 
-    Lib.CacheAllSpots() -- Cache all navmesh spots (cover, exposed, sniper spots, etc.)
-
-    local debugSpots = true
-
-    if debugSpots then
-        local f = string.format
-        print(f("On this map, there are:"))
-        print(f("%d hiding/cover spots", #Lib.GetCoverSpots()))
-        print(f("%d exposed spots", #Lib.GetExposedSpots()))
-        print(f("%d sniper spots", #Lib.GetGoodSnipeSpots())) -- TODO: This is category unused by gmod and always 0.
-        print(f("%d great sniper spots", #Lib.GetBestSnipeSpots())) -- TODO: This is category unused by gmod and always 0.
-    end
+    TTTBots.Spots.CacheAllSpots() -- Cache all navmesh spots (cover, exposed, sniper spots, etc.)
 
     -- Bot behavior
     timer.Create("TTTBots_Tick", 1 / TTTBots.Tickrate, 0, function()
