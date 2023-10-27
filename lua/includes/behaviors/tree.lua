@@ -12,8 +12,8 @@ include("includes/behaviors/followplan.lua")
 local b = TTTBots.Behaviors
 
 TTTBots.Behaviors.BehaviorTree = { -- Acts as one big priority node
-    b.AttackTarget,
     b.ClearBreakables,
+    b.AttackTarget,
     b.InvestigateCorpse,
     b.FindWeapon,
     b.FollowPlan,

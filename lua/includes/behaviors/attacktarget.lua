@@ -13,7 +13,7 @@ local lib = TTTBots.Lib
 local Attack = TTTBots.Behaviors.AttackTarget
 Attack.Name = "AttackTarget"
 Attack.Description = "Attacking target"
-Attack.Interruptible = false
+Attack.Interruptible = true
 
 ---@enum STATUS
 local STATUS = {
