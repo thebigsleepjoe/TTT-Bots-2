@@ -61,6 +61,12 @@ end
 
 --- Validate the behavior
 function InvestigateCorpse:Validate(bot)
+
+    -- First, let's prevent traitors from immediately self-reporting.
+    local lastKillTime = bot.lastKillTime or 0
+    local killedRecently = (CurTime() - lastKillTime) < 7 -- killed someone within X seconds
+    if killedRecently then return false end
+
     local curCorpse = bot.corpseTarget
     if self:CorpseValid(curCorpse) then
         return true
