@@ -307,6 +307,9 @@ end
 hook.Add("PlayerDeath", "TTTBots.Components.Morality.PlayerDeath", function(victim, weapon, attacker)
     if not (IsValid(victim) and victim:IsPlayer()) then return end
     if not (IsValid(attacker) and attacker:IsPlayer()) then return end
+    if attacker:IsBot() then
+        attacker.lastKillTime = CurTime()
+    end
     if not victim:Visible(attacker) then return end -- This must be an indirect attack, like C4 or fire.
     local witnesses = lib.GetAllWitnesses(attacker:EyePos(), true)
     table.insert(witnesses, victim)
@@ -492,6 +495,63 @@ timer.Create("TTTBots.Components.Morality.DisguisedPlayerDetection", 1, 0, funct
                 -- set attack target if we do not have one already
                 bot:SetAttackTarget(bot.attackTarget or ply)
                 bot.components.chatter:On("DisguisedPlayer")
+            end
+        end
+    end
+end)
+
+-- Common sense: know that another player is a traitor given some conditions. Like if there is only a detective and ourselves left (and we're inno), we know the other guy is a traitor.
+timer.Create("TTTBots.Components.Morality.CommonSense", 1, 0, function()
+    if not TTTBots.Match.IsRoundActive() then return end
+
+    -------------------------------------------
+    -- LAST LIVING INNO DETECTION
+    -------------------------------------------
+
+    local numAlive = 0
+    local numDetectives = 0
+    local numTraitors = 0
+    for i,bot in pairs(TTTBots.Bots) do
+        if not IsValid(bot) then continue end
+        if not lib.IsPlayerAlive(bot) then continue end
+        numAlive = numAlive + 1
+        if lib.IsPolice(bot) then
+            numDetectives = numDetectives + 1
+        elseif lib.IsEvil(bot) then
+            numTraitors = numTraitors + 1
+        end
+    end
+
+    if numDetectives > 0 and numTraitors <= 2 and (numAlive - (numDetectives + numTraitors) == 1) then -- only do when there is 1 inno, there is a detective, and there is at least one traitor
+        for i, bot in pairs(TTTBots.Bots) do
+            if not IsValid(bot) then continue end
+            if not lib.IsPlayerAlive(bot) then continue end
+
+            local isInno = lib.IsGood(bot) and not lib.IsPolice(bot)
+            if isInno then
+                bot:SetAttackTarget(TTTBots.Match.AliveTraitors[1])
+                break
+            end
+        end
+    end
+
+    -------------------------------------------
+    -- IF LAST LIVING TRAITOR, OR WE KILLED JUST RECENTLY, KEEP ATTACKING
+    -------------------------------------------
+
+    local timePassed = TTTBots.Match.Time()
+    local curtime = CurTime()
+    for i, bot in pairs(TTTBots.Bots) do
+        if not IsValid(bot) then continue end
+        if not lib.IsPlayerAlive(bot) then continue end
+        local lastKillTime = bot.lastKillTime or 0
+        if (numTraitors == 1 and timePassed > 45) or lastKillTime > (curtime - 6) then
+            local isTraitor = lib.IsEvil(bot)
+            if isTraitor and bot.attackTarget == nil then
+                local possibleTargets = lib.GetAllVisible(bot:GetPos(), true)
+                if #possibleTargets > 0 then
+                    bot:SetAttackTarget(table.Random(possibleTargets))
+                end
             end
         end
     end

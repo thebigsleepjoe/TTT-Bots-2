@@ -76,7 +76,7 @@ end
 
 --- A Target Hashtable function to calculate a target for a job.
 function PlanCoordinator.CalcBombSpot(caller)
-    local coverSpots = TTTBots.Spots.GetSpotsInCategory("hiding")()
+    local coverSpots = TTTBots.Spots.GetSpotsInCategory("hiding")
     local getWitnesses = TTTBots.Lib.GetAllWitnessesBasic
 
     for i, spot in pairs(coverSpots) do
@@ -86,7 +86,6 @@ function PlanCoordinator.CalcBombSpot(caller)
         end
     end
 
-    print("couldn't find any spots to plant a bomb...")
     return nil
 end
 
@@ -138,7 +137,7 @@ end
 
 --- A Target Hashtable function to calculate a target for a job.
 function PlanCoordinator.CalcFarthestHidingSpot(caller)
-    local spots = TTTBots.Spots.GetSpotsInCategory("hiding")()
+    local spots = TTTBots.Spots.GetSpotsInCategory("hiding")
     local callerPos = caller:GetPos()
     local farthestSpot, farthestDist = getFarthestVec(callerPos, spots)
 
@@ -176,7 +175,7 @@ end
 
 --- A Target Hashtable function to calculate a target for a job.
 function PlanCoordinator.CalcNearestHidingSpot(caller)
-    local spots = TTTBots.Spots.GetSpotsInCategory("hiding")()
+    local spots = TTTBots.Spots.GetSpotsInCategory("hiding")
     local callerPos = caller:GetPos()
     local closestSpot, closestDist = getClosestVec(callerPos, spots)
 
