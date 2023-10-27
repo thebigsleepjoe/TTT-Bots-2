@@ -632,6 +632,16 @@ function TTTBots.Lib.DeepCopy(orig)
     return copy
 end
 
+function TTTBots.Lib.HUToMeters(hammer_units)
+    local conversionMult = 0.01905
+    return hammer_units * conversionMult
+end
+
+function TTTBots.Lib.MetersToHU(meters)
+    local conversionDiv = 0.01905
+    return meters / conversionDiv
+end
+
 -- Wrapper for "ttt_bot_" + name convars
 -- Prepends "ttt_bot_" to the name of the convar, and returns the boolean value of the convar.
 function TTTBots.Lib.GetConVarBool(name)

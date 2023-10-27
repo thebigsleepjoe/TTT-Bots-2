@@ -50,6 +50,11 @@ concommand.Add("ttt_bot_reload", function(ply, cmd, args)
     RunConsoleCommand("ttt_roundrestart")
 end)
 
+concommand.Add('ttt_bot_recache_spots', function(ply, cmd, args)
+    if not ply or not (ply and ply:IsSuperAdmin()) then return end -- cmd only works as server or SA
+    TTTBots.Spots.CacheSpecialSpots()
+end)
+
 concommand.Add("ttt_bot_debug_locomotor", function(ply, cmd, args)
     if not ply or not (ply and ply:IsSuperAdmin()) then return end -- cmd only works as server or SA
     -- Execute ttt_bot_kickall, then ttt_bot_add, then ttt_roundrestart.
