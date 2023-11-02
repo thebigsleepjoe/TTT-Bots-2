@@ -526,6 +526,9 @@ end
 
 -- GM:EntityEmitSound(table data)
 hook.Add("EntityEmitSound", "TTTBots.EntityEmitSound", function(data)
+    local MODULE_ENABLED = lib.GetConVarBool("noise_enable")
+    if not MODULE_ENABLED then return end
+
     -- TTTBots.DebugServer.DrawCross(data.Pos, 5, Color(0, 0, 0), 1)
     local sn = data.SoundName
     local f = string.find

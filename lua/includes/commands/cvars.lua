@@ -36,6 +36,7 @@ bot_cvar("kos_limit", "2", "The upper bound of KOS calls an individual, bot or p
 -- Noise cvars
 bot_cvar("noise_investigate_chance", "50", "The % chance (therefore 0-100) that a bot will investigate a noise he hears.")
 bot_cvar("noise_investigate_mtb", "15", "The minimum time between, in seconds, that a bot will investigate a noise he hears.")
+bot_cvar("noise_enable", "1", "Enables bots to hear noises and investigate them.")
 
 -- Naming cvars
 bot_cvar("names_allowcommunity", "1",
