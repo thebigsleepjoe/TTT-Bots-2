@@ -33,6 +33,10 @@ bot_cvar("difficulty", "3",
     "A difficulty integer between 1-5; higher = harder. This affects trait selection and aim speed, reaction speed, and KOS callout chances.")
 bot_cvar("kos_limit", "2", "The upper bound of KOS calls an individual, bot or player, can make per round. Before the bots ignore them, at least. Used to deter trolls.")
 
+-- Noise cvars
+bot_cvar("noise_investigate_chance", "50", "The % chance (therefore 0-100) that a bot will investigate a noise he hears.")
+bot_cvar("noise_investigate_mtb", "15", "The minimum time between, in seconds, that a bot will investigate a noise he hears.")
+
 -- Naming cvars
 bot_cvar("names_allowcommunity", "1",
     "Enables community-suggested names, replacing many auto-generated names. WARNING: Potentially offensive, not family-friendly.")

@@ -80,8 +80,15 @@ end
 --- Return true/false based off of a random chance. This is meant to be called every tick (5x per sec as of writing), so the chance is low by default.
 ---@param bot Player
 function InvestigateNoise:ShouldInvestigateNoise(bot)
+    local MTB = lib.GetConVarInt("noise_investigate_mtb")
+    if bot.investigateNoiseTimer and bot.investigateNoiseTimer > CurTime() then
+        return false
+    else
+        bot.investigateNoiseTimer = CurTime() + MTB
+    end
     local mult = bot:GetTraitMult("investigateNoise")
-    local pct = 8 * mult
+    local baseChance = lib.GetConVarInt("noise_investigate_chance")
+    local pct = baseChance * mult
 
     local passed = lib.CalculatePercentChance(pct)
     return passed
