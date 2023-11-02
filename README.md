@@ -49,8 +49,8 @@ Morality:
 5. ✅ SUS: Players shooting near a bot gain more suspicion than if they were shooting randomly
 6. 📃 SUS: Players holding a traitor weapon are KOS
 7. ✅ SUS: Players disguised are always KOS
-8. 📃 SUS: KOS callouts should be made and listened to (from trusted players).
-9. 📃 SUS: Players killing traitors should be trusted immediately (instead of shooting first, questions later), just makes more sense.
+8. ✅ SUS: KOS callouts should be made and listened to (from trusted players).
+9. ✅ SUS: Players killing traitors should be trusted immediately (instead of shooting first, questions later), just makes more sense.
 10. ✅ SUS: Calling KOS should do something.
 
 Basic behavior tree (this is out of order):
@@ -85,13 +85,13 @@ User customization/administration:
 6. 📃 Have a full UI for bot customization
 7. ✅ Include basic bot chat commands, like !addbot
 8. 📃 Enable custom player models for bots. Will likely be done thru cvar.
-9. 📃 Enable/disable bots blending in on the scoreboard via fake ping, profile pictures, or "BOT" prefix. Some users may not like them blending in with real players.
+9. ✅ Enable/disable bots blending in on the scoreboard via fake ping, profile pictures, or "BOT" prefix. Some users may not like them blending in with real players.
 
 Traitor bot coordination:
 1. ✅ Traitor bots should share their plans with other traitors
 2. ✅ Human traitors should be able to tell the nearest bot to follow them
-3. 🚧 Traitor bots should follow each other around and coordinate attacks
-4. 🚧 Traitors bots should plant bombs intelligently and avoid bomb areas
+3. ✅ Traitor bots should follow each other around and coordinate attacks
+4. ✅ Traitors bots should plant bombs intelligently and avoid bomb areas
 
 Misc. features and non-programming stuff:
 1. 📃 Ensure TTT/2 cross-compatibility
