@@ -5,10 +5,41 @@ end
 
 if not CheckCompatibleGamemode() then return end
 
+--- A table of prime numbers, used to "randomize" pings
 local primeNumbers = {
-    2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109,
-    113, 127
+    [2] = true,
+    [3] = true,
+    [5] = true,
+    [7] = true,
+    [11] = true,
+    [13] = true,
+    [17] = true,
+    [19] = true,
+    [23] = true,
+    [29] = true,
+    [31] = true,
+    [37] = true,
+    [41] = true,
+    [43] = true,
+    [47] = true,
+    [53] = true,
+    [59] = true,
+    [61] = true,
+    [67] = true,
+    [71] = true,
+    [73] = true,
+    [79] = true,
+    [83] = true,
+    [89] = true,
+    [97] = true,
+    [101] = true,
+    [103] = true,
+    [107] = true,
+    [109] = true,
+    [113] = true,
+    [127] = true
 }
+
 
 local function getChildByName(panel, name)
     for i, v in pairs(panel:GetChildren()) do
@@ -43,7 +74,13 @@ local playerPings = {
 }
 
 local function GetPingForPlayer(nick, botnumber)
-    local isPrime = table.HasValue(primeNumbers, botnumber)
+    local shouldEmulatePing = GetConVar("ttt_bot_emulate_ping"):GetBool()
+    if not shouldEmulatePing then
+        return "BOT"
+    end
+
+
+    local isPrime = primeNumbers[botnumber] or false
     local baseline = GetAvgHumanPing(50) * (isPrime and 1.5 or 1)
     local ping = playerPings[nick]
     if not ping then
@@ -77,16 +114,27 @@ local function UpdatePings()
                 if not player:IsBot() then continue end
                 botnumber = botnumber + 1
 
+                if not pingLabel.overrideTTTBots then
+                    pingLabel.overrideTTTBots = true
+                    local st = pingLabel.SetText
+                    pingLabel.SetText = function(self, str, override)
+                        if override then
+                            st(self, str)
+                        end
+                    end
+                end
+
                 local ping = GetPingForPlayer(player:Nick(), botnumber)
 
-                pingLabel:SetText(ping)
+                pingLabel:SetText(ping, true)
+                -- pingLabel:SetText("TEST", true)
                 row:LayoutColumns()
             end
         end
     end
 end
 
-local function _sbfunc()
+local function TTTBots_sbfunc()
     local pnl = GAMEMODE:GetScoreboardPanel()
 
     if not IsValid(pnl) then return end
@@ -110,18 +158,19 @@ local function HijackScoreboard(tries)
         return
     end
 
-    local success = timer.Adjust("TTTScoreboardUpdater", 0.3, 0, function()
-        _sbfunc()
+    timer.Adjust("TTTScoreboardUpdater", 0.3, 0, function()
+        TTTBots_sbfunc()
     end)
 end
 
 --HijackScoreboard()
 -- Put the above function into GM:PostGamemodeLoaded()
 hook.Add("PostGamemodeLoaded", "TTTBots.Client.HijackScoreboard", HijackScoreboard)
+hook.Add("TTTScoreboardColumns", "TTTBots.Client.ScoreboardOpened", UpdatePings)
 
 -- we hijack the scoreboard AND do this manually because it likes to update
 -- the ping of the bots to 0 when it is closed
-timer.Create("TTTBots.Client.FakePing2", 0.01, 0, function()
+timer.Create("TTTBots.Client.FakePing2", 0.2, 0, function()
     local pnl = GAMEMODE:GetScoreboardPanel()
     if not (IsValid(pnl) and pnl:IsVisible()) then return end
     UpdatePings()
@@ -136,6 +185,9 @@ local function syncBotAvatars()
 end
 
 net.Receive("TTTBots_SyncAvatarNumbers", function(len, ply)
+    local ttt_bot_enable_pfps = GetConVar("ttt_bot_enable_pfps"):GetBool()
+    if not ttt_bot_enable_pfps then return end
+
     local avatars_nicks = net.ReadTable()
     local pnl = GAMEMODE:GetScoreboardPanel()
     if not IsValid(pnl) then return end
@@ -171,4 +223,4 @@ net.Receive("TTTBots_SyncAvatarNumbers", function(len, ply)
     end
 end)
 
-timer.Create("TTTBots.Client.SyncBotAvatars", 5, 0, syncBotAvatars)
+timer.Create("TTTBots.Client.SyncBotAvatars", 1, 0, syncBotAvatars)
