@@ -329,6 +329,10 @@ function BotPersonality:GetTraitAdditive(attribute)
     return self.bot:GetTraitAdditive(attribute)
 end
 
+function BotPersonality:GetTraitBool(attribute, falseHasPriority)
+    return self.bot:GetTraitBool(attribute, falseHasPriority)
+end
+
 local plyMeta = FindMetaTable("Player")
 
 function plyMeta:GetPersonalityTraits()
@@ -356,6 +360,24 @@ function plyMeta:GetTraitAdditive(attribute)
     if not traits then return total end
     for i, trait in pairs(traits) do
         total = total + ((trait.effects and trait.effects[attribute]) or 0)
+    end
+    return total
+end
+
+--- Return a boolean for the given attribute based on the bots traits. If false has priority, then any traits that are false will make the entire function return false.
+---@param attribute string
+---@param falseHasPriority boolean|nil
+function plyMeta:GetTraitBool(attribute, falseHasPriority)
+    local traits = self.components.personality:GetTraitData()
+    local total = false
+    if not traits then return total end
+    for i, trait in pairs(traits) do
+        local val = (trait.effects and trait.effects[attribute]) or false
+        if falseHasPriority and not val then
+            return false
+        else
+            total = total or val
+        end
     end
     return total
 end
