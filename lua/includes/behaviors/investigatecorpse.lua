@@ -15,6 +15,7 @@ local STATUS = {
     FAILURE = 3,
 }
 
+---@deprecated deprecated until distance check, technically works tho
 function InvestigateCorpse:GetVisibleCorpses(bot)
     local corpses = TTTBots.Match.Corpses
     local visibleCorpses = {}
@@ -27,6 +28,7 @@ function InvestigateCorpse:GetVisibleCorpses(bot)
     return visibleCorpses
 end
 
+local CORPSE_MAXDIST = 2000
 function InvestigateCorpse:GetVisibleUnidentified(bot)
     local corpses = TTTBots.Match.Corpses
     local results = {}
@@ -34,8 +36,9 @@ function InvestigateCorpse:GetVisibleUnidentified(bot)
         if not IsValid(corpse) then continue end
         local visible = bot:Visible(corpse)
         local found = CORPSE.GetFound(corpse, false)
+        local distTo = bot:GetPos():Distance(corpse:GetPos())
         -- TTTBots.DebugServer.DrawCross(corpse:GetPos(), 10, Color(255, 0, 0), 1, "body")
-        if not found and visible then
+        if not found and visible and distTo < CORPSE_MAXDIST then
             table.insert(results, corpse)
         end
     end
@@ -43,11 +46,15 @@ function InvestigateCorpse:GetVisibleUnidentified(bot)
 end
 
 --- Called every tick; basically just rolls a dice for if we should investigate any corpses this tick
-function InvestigateCorpse:GetShouldNoticeCorpse(bot)
-    local basePct = 100
-    -- TODO: Personality should affect this
-    local mult = 1
-    return lib.CalculatePercentChance(basePct * mult)
+function InvestigateCorpse:GetShouldInvestigateCorpses(bot)
+    local BASE_PCT = 75
+    local MIN_PCT = 5
+    local personality = lib.GetComp(bot, "personality") ---@type CPersonality
+    if not personality then return false end
+    local mult = personality:GetTraitMult("investigateCorpse")
+    return lib.CalculatePercentChance(
+        math.max(MIN_PCT, BASE_PCT * mult)
+    )
 end
 
 function InvestigateCorpse:CorpseValid(rag)
@@ -61,6 +68,7 @@ end
 
 --- Validate the behavior
 function InvestigateCorpse:Validate(bot)
+    if not self:GetShouldInvestigateCorpses(bot) then return false end
 
     -- First, let's prevent traitors from immediately self-reporting.
     local lastKillTime = bot.lastKillTime or 0
