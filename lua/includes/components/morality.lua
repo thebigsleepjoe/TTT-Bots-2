@@ -14,7 +14,7 @@ BotMorality.SUSPICIONVALUES = {
     -- Killing another player
     Kill = 9,         -- This player killed someone in front of us
     KillTrusted = 10, -- This player killed a Trusted in front of us
-    KillTraitor = -9, -- This player killed a traitor in front of us
+    KillTraitor = -10, -- This player killed a traitor in front of us
 
     -- Hurt a player
     Hurt = 4,          -- This player hurt someone in front of us
@@ -307,10 +307,15 @@ end
 hook.Add("PlayerDeath", "TTTBots.Components.Morality.PlayerDeath", function(victim, weapon, attacker)
     if not (IsValid(victim) and victim:IsPlayer()) then return end
     if not (IsValid(attacker) and attacker:IsPlayer()) then return end
+    local timestamp = CurTime()
     if attacker:IsBot() then
-        attacker.lastKillTime = CurTime()
+        attacker.lastKillTime = timestamp
     end
     if not victim:Visible(attacker) then return end -- This must be an indirect attack, like C4 or fire.
+    if lib.IsGood(victim) then -- This is technically a cheat, but it's a necessary one.
+        local ttt_bot_redhanded_time = lib.GetConVarInt("redhanded_time")
+        attacker.redHandedTime = timestamp + ttt_bot_redhanded_time -- Only assign red handed time if it was a direct attack
+    end
     local witnesses = lib.GetAllWitnesses(attacker:EyePos(), true)
     table.insert(witnesses, victim)
 
@@ -552,6 +557,18 @@ timer.Create("TTTBots.Components.Morality.CommonSense", 1, 0, function()
                 if #possibleTargets > 0 then
                     bot:SetAttackTarget(table.Random(possibleTargets))
                 end
+            end
+        end
+        -------------------------------------------
+        -- TEST IF WE SEE ANY RED HANDED PLAYERS
+        -------------------------------------------
+        if bot.attackTarget ~= nil or lib.IsEvil(bot) then continue end
+        local visibleToMe = lib.GetAllVisible(bot:GetPos(), false)
+        for i, other in pairs(visibleToMe) do
+            if lib.IsPolice(other) then continue end
+            local redHandedTime = other.redHandedTime or 0
+            if redHandedTime > curtime then
+                bot:SetAttackTarget(other)
             end
         end
     end
