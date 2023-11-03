@@ -41,7 +41,7 @@ end
 
 function Attack:Seek(bot, targetPos)
     local target = bot.attackTarget
-    local loco = bot.components.locomotor
+    local loco = bot.components.locomotor ---@type CLocomotor
     bot.components.locomotor.stopLookingAround = false
     loco:StopAttack()
     -- If we can't see them, we need to move to them
@@ -54,6 +54,7 @@ function Attack:Seek(bot, targetPos)
 
     if lastKnownPos then
         loco:SetGoalPos(lastKnownPos)
+        loco:SetLookPosGoal(lastKnownPos)
     else
         -- We have not heard nor seen the target in a while, so we will wander around.
         lib.CallEveryNTicks(
