@@ -364,15 +364,16 @@ function plyMeta:GetTraitAdditive(attribute)
     return total
 end
 
---- Return a boolean for the given attribute based on the bots traits. If false has priority, then any traits that are false will make the entire function return false.
----@param attribute string
----@param falseHasPriority boolean|nil
+--- Return a boolean for the given attribute based on the bots traits. If false has priority (defaults true), then any traits that are false will make the entire function return false.
+---@param attribute string The name of the attribute to check
+---@param falseHasPriority boolean|nil Defaults to true. Should we escape early if we have a trait that conflicts with this attribute (aka is false)?
 function plyMeta:GetTraitBool(attribute, falseHasPriority)
+    if falseHasPriority == nil then falseHasPriority = true end
     local traits = self.components.personality:GetTraitData()
     local total = false
     if not traits then return total end
     for i, trait in pairs(traits) do
-        local val = (trait.effects and trait.effects[attribute]) or false
+        local val = (trait.effects and trait.effects[attribute]) or nil -- IMPORTANT to default to nil, otherwise false will probably be returned when it shouldn't be
         if falseHasPriority and not val then
             return false
         else
