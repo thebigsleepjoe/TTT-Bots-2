@@ -27,12 +27,14 @@ bot_cvar("plans_mindelay", "8",
     "The delay when a round starts before traitor bots may follow automatic plans.")
 bot_cvar("plans_maxdelay", "16",
     "The maximum duration when a round starts before traitor bots may follow automatic plans.")
-bot_cvar("can_flick", "1",
+bot_cvar("enable_flicking", "1",
     "Can the bots flick around when they get shot from the rear? Effectively makes bots harder and seem smarter.")
 bot_cvar("difficulty", "3",
     "A difficulty integer between 1-5; higher = harder. This affects trait selection and aim speed, reaction speed, and KOS callout chances.")
 bot_cvar("kos_limit", "2", "The upper bound of KOS calls an individual, bot or player, can make per round. Before the bots ignore them, at least. Used to deter trolls.")
 bot_cvar("redhanded_time", "3", "This is the number of seconds that a player is silently marked KOS by bots after killing a non-evil class. This is technically a cheat, but makes the bots more engaging.")
+bot_cvar("reaction_speed", "0.4", "The base time, in seconds, a bot will take before attacking a newly assigned target. Higher means easier gameplay. THIS INVERSELY SCALES WITH DIFFICULTY AUTOMATICALLY.")
+bot_cvar("reaction_speed_traitors_lessened", "1", "If set to 1, traitor bots will have a superior reaction speed. This is technically a cheat, but makes the bots more engaging.")
 
 -- Noise cvars
 bot_cvar("noise_investigate_chance", "50", "The % chance (therefore 0-100) that a bot will investigate a noise he hears.")

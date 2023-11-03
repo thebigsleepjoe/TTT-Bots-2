@@ -44,7 +44,7 @@ local EXPLOSIVE_BARREL_MODELS = {
     ["props_c17/oildrum001_explosive.mdl"] = true
 }
 function TTTBots.Lib.GetClosestBarrel(target)
-    local SPHERE_SIZE = 256
+    local SPHERE_SIZE = 128
     local entities = ents.FindInSphere(target:GetPos(), SPHERE_SIZE)
     local closest, closestDist = TTTBots.Lib.GetClosest(entities, target:GetPos(), function(e)
         if e:GetClass() == "prop_physics" then

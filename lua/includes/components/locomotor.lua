@@ -214,11 +214,30 @@ end
 
 function BotLocomotor:OnNewTarget(target)
     if not (target and IsValid(target)) then return end
-    -- local pitchDiff, yawDiff = self:GetEyeAngleDiffTo(target:GetPos())
 
-    -- if pitchDiff > 1 then
-    self.lookSpeedMultiplier = 5
-    -- end
+    -- REACTION DELAY
+    local ttt_bot_reaction_speed = lib.GetConVarFloat("reaction_speed")
+    local ttt_bot_difficulty = lib.GetConVarInt("difficulty")
+    local DIFFICULTY_MULT_HASH = {
+        [1] = 3, -- e.g. 0.3 x 3 = 0.9s
+        [2] = 2, -- e.g. 0.3 x 2 = 0.6s
+        [3] = 1, -- e.g. 0.3 x 1 = 0.3s
+        [4] = 0.8, -- e.g. 0.3 x 0.8 = 0.24s
+        [5] = 0, -- e.g. 0.3 x 0 = 0s
+    }
+    local ttt_bot_reaction_speed_traitors_lessened = lib.GetConVarBool("reaction_speed_traitors_lessened")
+    if ttt_bot_reaction_speed_traitors_lessened and lib.IsEvil(self.bot) then
+        ttt_bot_reaction_speed = ttt_bot_reaction_speed * 0.5
+    end
+    local DIFFICULTY_MULT = DIFFICULTY_MULT_HASH[ttt_bot_difficulty] or 1
+    local reactionSpeed = ttt_bot_reaction_speed * DIFFICULTY_MULT
+    self.reactionDelay = CurTime() + reactionSpeed
+
+    -- Simulate a 'flick'
+    local ttt_bot_enable_flicking = lib.GetConVarBool("enable_flicking")
+    if ttt_bot_enable_flicking then
+        self.lookSpeedMultiplier = 5
+    end
 end
 
 function BotLocomotor:RotateEyeAnglesTo(targetPos)
@@ -1243,6 +1262,8 @@ function BotLocomotor:StartCommand(cmd)
     local hasPath = self:HasPath()
     local dvlpr = lib.GetDebugFor("pathfinding")
 
+    local TIMESTAMP = CurTime()
+
 
     -- SetButtons to IN_DUCK if crouch is true 🦆
     cmd:SetButtons(
@@ -1251,14 +1272,14 @@ function BotLocomotor:StartCommand(cmd)
 
     -- Set buttons for jumping if :GetJumping() is true 🦘
     -- The way jumping works is a little quirky, as it cannot be held down. We must release it occasionally
-    if self:GetJumping() and (self.jumpReleaseTime < CurTime()) or self.jumpReleaseTime == nil then
+    if self:GetJumping() and (self.jumpReleaseTime < TIMESTAMP) or self.jumpReleaseTime == nil then
         local onGround = self.bot:OnGround()
         if not onGround then
             cmd:SetButtons(IN_JUMP + IN_DUCK)
         else
             cmd:SetButtons(IN_JUMP)
         end
-        self.jumpReleaseTime = CurTime() + 0.1
+        self.jumpReleaseTime = TIMESTAMP + 0.1
 
         if dvlpr then
             TTTBots.DebugServer.DrawText(self.bot:GetPos(), "Crouch Jumping", Color(255, 255, 255))
@@ -1350,12 +1371,14 @@ function BotLocomotor:StartCommand(cmd)
     end
 
     --- MANAGE ATTACKING OF THE BOT 🔫
-    if (self.attack and not self.attackReleaseTime) or                                       -- if we are attacking and we don't have an attack release time
-        (self.attack and self.attackReleaseTime and self.attackReleaseTime > CurTime()) then -- or if we are attacking and we have an attack release time and it's not yet time to release:
-        -- stop attack from interrupting reload
-        local currentWep = self.bot.components.inventorymgr:GetHeldWeaponInfo()
-        if (currentWep and (not currentWep.needs_reload)) or not currentWep then
-            cmd:SetButtons(cmd:GetButtons() + IN_ATTACK)
+    if ((self.reactionDelay or 0) < TIMESTAMP) then
+        if (self.attack and not self.attackReleaseTime) or                                       -- if we are attacking and we don't have an attack release time
+            (self.attack and self.attackReleaseTime and self.attackReleaseTime > TIMESTAMP) then -- or if we are attacking and we have an attack release time and it's not yet time to release:
+            -- stop attack from interrupting reload
+            local currentWep = self.bot.components.inventorymgr:GetHeldWeaponInfo()
+            if (currentWep and (not currentWep.needs_reload)) or not currentWep then
+                cmd:SetButtons(cmd:GetButtons() + IN_ATTACK)
+            end
         end
     end
 
