@@ -63,6 +63,7 @@ TTTBots.Traits = {
         effects = {
             suspicion = 1.5,
             suspicionMe = 1.5, -- make others build suspicion on us faster
+            investigateCorpse = 0,
         }
     },
     --- Aim tends to be terrible, especially when under pressure.
@@ -104,6 +105,7 @@ TTTBots.Traits = {
             ignoreOrders = true,    -- Ignore evil coordinator orders
             boredomRate = 1.25,     -- Boredom builds up faster
             difficulty = -2,
+            investigateCorpse = 0.5,
         }
     },
     --- Significantly brain damaged. Not good at hearing, memory, or target acquisition.
@@ -119,7 +121,8 @@ TTTBots.Traits = {
             investigateNoise = 0.2, -- very rarely seek out noise
             ignoreOrders = true,    -- Ignore evil coordinator orders
             boredomRate = 1.5,      -- Boredom builds up faster
-            difficulty = -4
+            difficulty = -4,
+            investigateCorpse = 0.2,
         }
     },
     -- Good hearing, memory, and target acquisition than the average player.
@@ -133,6 +136,7 @@ TTTBots.Traits = {
             hearing = 1.25,
             investigateNoise = 1.5, -- more likely to seek out noise
             difficulty = 2,
+            investigateCorpse = 1.5,
         }
     },
     --- Significantly better hearing, memory, and is more likely to attack the right person.
@@ -146,6 +150,7 @@ TTTBots.Traits = {
             hearing = 1.5,
             investigateNoise = 2, -- more likely to seek out noise
             difficulty = 3,
+            investigateCorpse = 2,
         }
     },
     --- Tends to wander to the least popular nav areas, but can still wander elsewhere
@@ -216,6 +221,7 @@ TTTBots.Traits = {
             victim = 3,
             rageRate = 1.25, -- Rage faster
             difficulty = -1,
+            investigateCorpse = 0.8,
         }
     },
     --- Traitors are much less likely to target him randomly.
@@ -236,7 +242,8 @@ TTTBots.Traits = {
         conflicts = { "meleer" },
         traitor_only = false,
         effects = {
-            ignoreOrders = true
+            ignoreOrders = true,
+            investigateCorpse = 0.4, -- less likely to investigate corpses, we're too busy sniping
         }
     },
     --- Pulls out crowbar and kills people the old fashioned way. Modifies attack behavior
@@ -257,7 +264,8 @@ TTTBots.Traits = {
         conflicts = {},
         traitor_only = false,
         effects = {
-            ignoreOrders = true
+            ignoreOrders = true,
+            useKnives = true,
         }
     },
     --- Uses the flare gun to burn corpses he leaves
@@ -266,7 +274,9 @@ TTTBots.Traits = {
         description = "Burning bodies is one of [HIS] tactics",
         conflicts = {},
         traitor_only = false,
-        effects = {}
+        effects = {
+            bodyBurner = true,
+        }
     },
     --- Prefers wander around a randomly selected player, typically a detective.
     bodyguard = {
@@ -284,7 +294,10 @@ TTTBots.Traits = {
         description = "As an innocent, [HE] chooses an area to hunker down in",
         conflicts = { "risktaker" },
         traitor_only = false,
-        effects = {}
+        effects = {
+            hider = true,
+            difficulty = -1,
+        }
     },
     --- Uses chat more frequently, especially when traitor
     talkative = {
@@ -305,7 +318,7 @@ TTTBots.Traits = {
         traitor_only = false,
         effects = {
             textchat = 0.0,
-            difficulty = -1,
+            difficulty = -2,
         }
     },
     --- Roams into high-stress areas and walks towards gunshots for fun.
@@ -320,6 +333,7 @@ TTTBots.Traits = {
             aggression = 1.5,
             ignoreOrders = true,  -- Ignore evil coordinator orders
             difficulty = 2,
+            investigateCorpse = 0.65, -- too busy gaming to investigate corpses
         }
     },
     --- 1.5x suspicion gain, is more observant
@@ -333,6 +347,7 @@ TTTBots.Traits = {
             suspicion = 1.5,
             aggression = 0.8,
             difficulty = 1,
+            investigateCorpse = 2,
         }
     },
     --- Suspicion gain is halved
@@ -344,7 +359,8 @@ TTTBots.Traits = {
         archetype = A.Dumb,
         effects = {
             suspicion = 0.5,
-            difficulty = -3
+            difficulty = -3,
+            investigateCorpse = 0.5,
         }
     },
     --- Doesn't pay attention to many noises, doesn't react quickly, much worse memory of events and people
@@ -364,6 +380,7 @@ TTTBots.Traits = {
             rageRate = 0.4,      -- Rage slower
             pressureRate = 0.2,  -- Pressure builds up slower
             difficulty = -6,
+            investigateCorpse = 0,
         }
     },
     --- Can use the disguiser
@@ -373,7 +390,9 @@ TTTBots.Traits = {
         conflicts = {},
         archetype = A.Tryhard,
         traitor_only = true,
-        effects = {}
+        effects = {
+            disguiser = true,
+        }
     },
     --- Can play sounds on radio
     radiohead = {
@@ -381,7 +400,9 @@ TTTBots.Traits = {
         description = "As a traitor, [HE] loves [HIS] radio",
         conflicts = { "deaf" },
         traitor_only = true,
-        effects = {}
+        effects = {
+            radio = true,
+        }
     },
     --- Cannot hear sounds
     deaf = {
@@ -415,7 +436,7 @@ TTTBots.Traits = {
         traitor_only = false,
         archetype = A.Tryhard,
         effects = {
-            hearing = 1.2,
+            hearing = 1.25,
             difficulty = 2
         }
     },
@@ -439,6 +460,7 @@ TTTBots.Traits = {
         archetype = A.Stoic,
         effects = {
             rageRate = 0.5,
+            investigateCorpse = 0.8,
         }
     },
     --- Doesn't feel pressure when aiming
