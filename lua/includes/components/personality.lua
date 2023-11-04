@@ -1,7 +1,7 @@
 include("includes/data/traits.lua")
 
 ---@class CPersonality
-TTTBots.Components.Personality = TTTBots.Components.Personality or {}
+TTTBots.Components.Personality = {}
 
 local lib = TTTBots.Lib
 ---@class CPersonality
@@ -198,7 +198,8 @@ function BotPersonality:DecayStats()
     for _, stat in ipairs(stats) do
         if not stat.enabled then continue end
         if stat.decay ~= 0 then
-            stat.addfunc(self, (-stat.decay / TTTBots.Tickrate) / (self:GetStatRateFor(stat.name))) -- stats are not affected by personality traits
+            local amt = (-stat.decay / TTTBots.Tickrate) * (self:GetStatRateFor(stat.name))
+            stat.addfunc(self, amt) -- stats are not affected by personality traits
         end
     end
 end
