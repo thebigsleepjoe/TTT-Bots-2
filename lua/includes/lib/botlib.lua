@@ -298,7 +298,7 @@ end
 function TTTBots.Lib.TracePercent(start, finish)
     local trace = TTTBots.Lib.TraceBasic(start, finish)
     local dist = start:Distance(finish) or 1
-    local percent = (dist - trace.Fraction * dist) / dist * 100
+    local percent = (1 - ((dist - trace.Fraction * dist) / dist)) * 100
     return percent
 end
 
@@ -322,7 +322,7 @@ end
 function TTTBots.Lib.MeasureSpotVisibility(vec)
     local total = 0
     local count = 0
-    local radius = 64
+    local radius = 256
     local offset = Vector(0, 0, 32)
     local angles = TTTBots.Lib.GetAngleTable(16)
     for i, angle in pairs(angles) do

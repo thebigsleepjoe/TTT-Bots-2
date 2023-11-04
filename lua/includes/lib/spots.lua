@@ -1,11 +1,11 @@
 TTTBots.Spots = {}
-TTTBots.Spots.CachedSpots = {
-    ["all"] = {},
-}
 
 --- Go to through all of the spots on the navmesh and categorize them ourselves.
 ---@return table<Vector>
 function TTTBots.Spots.CacheAllSpots()
+    TTTBots.Spots.CachedSpots = {
+        ["all"] = {},
+    }
     local allNavs = navmesh.GetAllNavAreas()
     for i,v in pairs(allNavs) do
         local exposedSpots = v:GetExposedSpots()
@@ -24,6 +24,24 @@ end
 
 function TTTBots.Spots.GetAllSpots()
     return TTTBots.Spots.CachedSpots["all"]
+end
+
+--- Return the nearest spot of a given category to pos. Also returns the distance to that spot.
+---@param pos Vector
+---@param category string
+---@return Vector|nil, number
+function TTTBots.Spots.GetNearestSpotOfCategory(pos, category)
+    local spots = TTTBots.Spots.GetSpotsInCategory(category)
+    local nearestSpot = nil
+    local nearestDist = math.huge
+    for i, spot in pairs(spots) do
+        local dist = spot:Distance(pos)
+        if dist < nearestDist then
+            nearestDist = dist
+            nearestSpot = spot
+        end
+    end
+    return nearestSpot, nearestDist
 end
 
 function TTTBots.Spots.RegisterSpotCategory(title, spotValidCallback)
@@ -59,7 +77,7 @@ function TTTBots.Spots.CacheSpecialSpots()
         return visibleNavs >= SNIPER_MIN_TO_BE_CONSIDERED
     end
 
-    local HIDING_MAX_VIS_PCT = 33
+    local HIDING_MAX_VIS_PCT = 41
     local HidingFunc = function(spot)
         local visibAvg = TTTBots.Lib.MeasureSpotVisibility(spot)
         -- print(string.format("Spot %s has %d%% visibility.", tostring(spot), visibAvg))
