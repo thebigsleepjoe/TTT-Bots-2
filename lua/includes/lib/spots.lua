@@ -59,26 +59,14 @@ function TTTBots.Spots.CacheSpecialSpots()
         return visibleNavs >= SNIPER_MIN_TO_BE_CONSIDERED
     end
 
-    local HIDING_MAX_AREA_METERS = 500 -- 500 square meters
-    local visibleAreaAverage = 0
-    local visibleAreaCount = 0
+    local HIDING_MAX_VIS_PCT = 33
     local HidingFunc = function(spot)
-        local myNav = navmesh.GetNearestNavArea(spot)
-        local visibleAreas = myNav:GetVisibleAreas()
-        local totalVisArea = 0
-        for i,nav in pairs(visibleAreas) do
-            local area = nav:GetSizeX() * nav:GetSizeY()
-            totalVisArea = totalVisArea + area
-        end
+        local visibAvg = TTTBots.Lib.MeasureSpotVisibility(spot)
+        -- print(string.format("Spot %s has %d%% visibility.", tostring(spot), visibAvg))
 
-        visibleAreaAverage = visibleAreaAverage + totalVisArea
-        visibleAreaCount = visibleAreaCount + 1
-
-        return totalVisArea <= TTTBots.Lib.MetersToHU(HIDING_MAX_AREA_METERS)
+        return visibAvg <= HIDING_MAX_VIS_PCT
     end
 
     TTTBots.Spots.RegisterSpotCategory("sniper", SniperExclusionaryFunc)
     TTTBots.Spots.RegisterSpotCategory("hiding", HidingFunc)
-    
-    print(string.format("Average visible area: %dm^2", TTTBots.Lib.HUToMeters(visibleAreaAverage / visibleAreaCount) ))
 end

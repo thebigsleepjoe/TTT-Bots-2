@@ -284,6 +284,57 @@ function TTTBots.Lib.GetAllVisibleWithinDist(nav, maxdist)
     return filteredDist
 end
 
+--- Performs a basic line trace from start to finish
+function TTTBots.Lib.TraceBasic(start, finish)
+    local trace = util.TraceLine({
+        start = start,
+        endpos = finish,
+        mask = MASK_SOLID_BRUSHONLY
+    })
+    return trace
+end
+
+--- Performs a basic trace and returns the percentage (0-100) of the trace that was clear.
+function TTTBots.Lib.TracePercent(start, finish)
+    local trace = TTTBots.Lib.TraceBasic(start, finish)
+    local dist = start:Distance(finish) or 1
+    local percent = (dist - trace.Fraction * dist) / dist * 100
+    return percent
+end
+
+local _cachedAngleTable = {}
+--- Return a table of calculated angles for a given number of angles.
+--- For instance, if n = 4, then the angles will be {0, 90, 180, 270}.
+function TTTBots.Lib.GetAngleTable(n)
+    if _cachedAngleTable[n] then return _cachedAngleTable[n] end
+    local angles = {}
+    local angle = 0
+    local angleStep = 360 / n
+    for i = 1, n do
+        table.insert(angles, angle)
+        angle = angle + angleStep
+    end
+    _cachedAngleTable[n] = angles
+    return angles
+end
+
+--- Measure the visibility around the spot by tracing some lines in a circle around it, and return the average percentage of visibility.
+function TTTBots.Lib.MeasureSpotVisibility(vec)
+    local total = 0
+    local count = 0
+    local radius = 64
+    local offset = Vector(0, 0, 32)
+    local angles = TTTBots.Lib.GetAngleTable(16)
+    for i, angle in pairs(angles) do
+        local x = math.cos(math.rad(angle)) * radius
+        local y = math.sin(math.rad(angle)) * radius
+        local trace = TTTBots.Lib.TracePercent(vec + offset, vec + Vector(x, y, 0) + offset)
+        total = total + trace
+        count = count + 1
+    end
+    return total / count
+end
+
 --- Returns a weighted random result from the table.
 --- This function accepts an array of WeightedTable objects, calculates the total weight,
 --- selects a random number in the range of total weight, then iterates through the array

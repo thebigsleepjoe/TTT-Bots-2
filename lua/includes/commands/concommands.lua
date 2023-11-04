@@ -52,7 +52,7 @@ end)
 
 concommand.Add('ttt_bot_recache_spots', function(ply, cmd, args)
     if not ply or not (ply and ply:IsSuperAdmin()) then return end -- cmd only works as server or SA
-    TTTBots.Spots.CacheSpecialSpots()
+    TTTBots.Spots.CacheAllSpots()
 end)
 
 concommand.Add("ttt_bot_debug_locomotor", function(ply, cmd, args)
