@@ -51,6 +51,7 @@ function TTTBots.Reload()
     local PathManager = TTTBots.PathManager
 
     TTTBots.Spots.CacheAllSpots() -- Cache all navmesh spots (cover, exposed, sniper spots, etc.)
+    TTTBots.Lib.GetNavRegions() -- Caches all nav regions
 
     -- Bot behavior
     timer.Create("TTTBots_Tick", 1 / TTTBots.Tickrate, 0, function()

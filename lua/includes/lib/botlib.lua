@@ -335,6 +335,51 @@ function TTTBots.Lib.MeasureSpotVisibility(vec)
     return total / count
 end
 
+local _cachedRegions = {
+    hasCached = false, --- Has the table been cached yet?
+    regions = {}, --- Table off regions containing navs
+    alreadyCached = {}, --- Table of navs that have been claimed by a region
+}
+
+--- Recursively add adjacent nav areas to a region table. Avoids affecting already 
+function TTTBots.Lib.AddAdjacentsToRegion(nav, regionTbl)
+    if _cachedRegions.alreadyCached[nav] then return end
+    if not regionTbl then regionTbl = {} end
+    _cachedRegions.alreadyCached[nav] = true
+    regionTbl[nav] = true
+    for i,adj in pairs(nav:GetAdjacents()) do
+        if not (_cachedRegions.alreadyCached[adj]) then
+            regionTbl[adj] = true
+            _cachedRegions.alreadyCached[adj] = true
+            TTTBots.Lib.AddAdjacentsToRegion(adj, regionTbl)
+        end
+    end
+
+    return regionTbl
+end
+
+function TTTBots.Lib.GetNavRegions(forceRecache)
+    if not forceRecache and _cachedRegions.hasCached then return _cachedRegions.regions end
+
+    _cachedRegions = {
+        hasCached = false, --- Has the table been cached yet?
+        regions = {}, --- Table off regions containing navs
+        alreadyCached = {}, --- Table of navs that have been claimed by a region
+    }
+
+    print("[TTT Bots] Caching nav regions...")
+    local regions = {}
+    local navs = navmesh.GetAllNavAreas()
+    for i, nav in pairs(navs) do
+        table.insert(regions, TTTBots.Lib.AddAdjacentsToRegion(nav))
+    end
+
+    _cachedRegions.hasCached = true
+    _cachedRegions.regions = regions
+    print("[TTT Bots] Cached nav regions; there are " .. #regions .. " regions.")
+    return regions
+end
+
 --- Returns a weighted random result from the table.
 --- This function accepts an array of WeightedTable objects, calculates the total weight,
 --- selects a random number in the range of total weight, then iterates through the array
