@@ -347,7 +347,7 @@ function TTTBots.Lib.AddAdjacentsToRegion(nav, regionTbl)
     if not regionTbl then regionTbl = {} end
     _cachedRegions.alreadyCached[nav] = true
     regionTbl[nav] = true
-    for i,adj in pairs(nav:GetAdjacents()) do
+    for i,adj in pairs(nav:GetAdjacentAreas()) do
         if not (_cachedRegions.alreadyCached[adj]) then
             regionTbl[adj] = true
             _cachedRegions.alreadyCached[adj] = true
@@ -371,7 +371,9 @@ function TTTBots.Lib.GetNavRegions(forceRecache)
     local regions = {}
     local navs = navmesh.GetAllNavAreas()
     for i, nav in pairs(navs) do
-        table.insert(regions, TTTBots.Lib.AddAdjacentsToRegion(nav))
+        local adjs = TTTBots.Lib.AddAdjacentsToRegion(nav)
+        if adjs == nil then continue end
+        table.insert(regions, adjs)
     end
 
     _cachedRegions.hasCached = true
