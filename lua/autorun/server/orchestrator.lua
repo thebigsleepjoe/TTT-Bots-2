@@ -11,6 +11,8 @@ TTTBots = {
 }
 
 include("includes/commands/concommands.lua")
+include("includes/commands/cvars.lua")
+include("includes/lib/languages.lua")
 
 -- Pre-check before initializing
 
@@ -34,10 +36,7 @@ function TTTBots.Reload()
     include("includes/lib/popularnavs.lua")
     include("includes/lib/gamestate.lua")
     include("includes/lib/PlanCoordinator.lua")
-
-    -- Initialize command libraries
     include("includes/commands/chatcommands.lua")
-    include("includes/commands/cvars.lua")
 
     -- Initialize behaviors
     include("includes/behaviors/tree.lua")

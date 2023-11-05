@@ -63,6 +63,23 @@ function TTTBots.Spots.GetSpotsInCategory(title)
     return TTTBots.Spots.CachedSpots[title].Spots
 end
 
+--- Measure the visibility around the spot by tracing some lines in a circle around it, and return the average percentage of visibility.
+function TTTBots.Spots.MeasureSpotVisibility(vec, radius)
+    local total = 0
+    local count = 0
+    local offset = Vector(0, 0, 32)
+    local angles = TTTBots.Lib.GetAngleTable(16)
+    for i, angle in pairs(angles) do
+        local x = math.cos(math.rad(angle)) * radius
+        local y = math.sin(math.rad(angle)) * radius
+        local trace = TTTBots.Lib.TracePercent(vec + offset, vec + Vector(x, y, 0) + offset)
+        total = total + trace
+        count = count + 1
+    end
+    return total / count
+end
+
+
 function TTTBots.Spots.CacheSpecialSpots()
     local SNIPER_MIN_TO_BE_CONSIDERED = 5
     local SniperExclusionaryFunc = function(spot)
@@ -79,12 +96,21 @@ function TTTBots.Spots.CacheSpecialSpots()
 
     local HIDING_MAX_VIS_PCT = 41
     local HidingFunc = function(spot)
-        local visibAvg = TTTBots.Lib.MeasureSpotVisibility(spot)
+        local visibAvg = TTTBots.Spots.MeasureSpotVisibility(spot, 256)
         -- print(string.format("Spot %s has %d%% visibility.", tostring(spot), visibAvg))
 
         return visibAvg <= HIDING_MAX_VIS_PCT
     end
 
-    TTTBots.Spots.RegisterSpotCategory("sniper", SniperExclusionaryFunc)
+    local SNIPER_MIN_VIS_PCT = 60
+    local SniperFunc = function(spot)
+        local visibAvg = TTTBots.Spots.MeasureSpotVisibility(spot, 512)
+        print(string.format("Spot %s has %d%% visibility.", tostring(spot), visibAvg))
+
+        return visibAvg >= SNIPER_MIN_VIS_PCT
+    end
+
+    TTTBots.Spots.RegisterSpotCategory("sniperExclusionary", SniperExclusionaryFunc)
     TTTBots.Spots.RegisterSpotCategory("hiding", HidingFunc)
+    TTTBots.Spots.RegisterSpotCategory("sniper", SniperFunc)
 end

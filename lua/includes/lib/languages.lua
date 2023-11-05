@@ -20,7 +20,7 @@ end
 ---@param lang string|nil The language to select; if nil, selects the currently set language thru ttt_bot_language
 ---@return string|nil string returns string if line exists, nil if it doesn't
 function TTTBots.Locale.GetLocalizedString(name, lang)
-    local lang = lang or TTTBots.Lib.GetConVarString("language")
+    local lang = lang or GetConVar("ttt_bot_language"):GetString()
     return TTTBots.Locale[lang] and TTTBots.Locale[lang][name] or ("ERR: no lang '" .. lang .. "'")
 end
 

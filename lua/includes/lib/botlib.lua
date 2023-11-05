@@ -1,7 +1,6 @@
 TTTBots.Lib = TTTBots.Lib or {}
 
 include("includes/data/usernames.lua")
-include("includes/lib/languages.lua")
 
 -- Import components for bot creation
 TTTBots.Components = {}
@@ -317,23 +316,6 @@ function TTTBots.Lib.GetAngleTable(n)
     end
     _cachedAngleTable[n] = angles
     return angles
-end
-
---- Measure the visibility around the spot by tracing some lines in a circle around it, and return the average percentage of visibility.
-function TTTBots.Lib.MeasureSpotVisibility(vec)
-    local total = 0
-    local count = 0
-    local radius = 256
-    local offset = Vector(0, 0, 32)
-    local angles = TTTBots.Lib.GetAngleTable(16)
-    for i, angle in pairs(angles) do
-        local x = math.cos(math.rad(angle)) * radius
-        local y = math.sin(math.rad(angle)) * radius
-        local trace = TTTBots.Lib.TracePercent(vec + offset, vec + Vector(x, y, 0) + offset)
-        total = total + trace
-        count = count + 1
-    end
-    return total / count
 end
 
 local _cachedRegions = {
