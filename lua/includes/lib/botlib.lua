@@ -332,8 +332,8 @@ function TTTBots.Lib.AddAdjacentsToRegion(nav, regionTbl, alreadyCached)
     if not regionTbl then regionTbl = {} end
     if not alreadyCached then alreadyCached = {} end
 
-    alreadyCached[nav] = true
-    regionTbl[nav] = true
+    alreadyCached[nav] = nav
+    regionTbl[nav] = nav
 
     for _, adj in pairs(nav:GetAdjacentAreas()) do
         if not alreadyCached[adj] then

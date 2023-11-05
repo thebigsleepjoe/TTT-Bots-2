@@ -375,7 +375,7 @@ function plyMeta:GetTraitBool(attribute, falseHasPriority)
     if not traits then return total end
     for i, trait in pairs(traits) do
         local val = (trait.effects and trait.effects[attribute]) or nil -- IMPORTANT to default to nil, otherwise false will probably be returned when it shouldn't be
-        if falseHasPriority and not val then
+        if falseHasPriority and (val == false) then -- check if val is explicitly false
             return false
         else
             total = total or val

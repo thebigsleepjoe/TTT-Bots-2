@@ -60,7 +60,7 @@ function Attack:Seek(bot, targetPos)
         lib.CallEveryNTicks(
             bot,
             function()
-                local wanderArea = TTTBots.Behaviors.Wander:GetWanderableArea(bot)
+                local wanderArea = TTTBots.Behaviors.Wander:GetAnyRandomNav(bot)
                 if not wanderArea then return end
                 loco:SetGoalPos(wanderArea:GetCenter())
             end,

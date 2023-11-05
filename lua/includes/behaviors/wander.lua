@@ -7,7 +7,7 @@ local Wander = TTTBots.Behaviors.Wander
 Wander.Name = "Wander"
 Wander.Description = "Wanders around the map"
 Wander.Interruptible = true
-Wander.Debug = true
+Wander.Debug = false
 
 local STATUS = {
     RUNNING = 1,
@@ -80,6 +80,12 @@ function Wander:GetRandomNav()
     return table.Random(navmesh.GetAllNavAreas())
 end
 
+--- Returns a random nav with preference to the current area
+function Wander:GetAnyRandomNav(bot)
+    return (math.random(1,5) <= 4 and Wander:GetRandomNavInRegion(bot))
+        or Wander:GetRandomNav() -- 80% chance of getting a random nav in the nearest region, 20% chance of getting a random nav from the entire navmesh
+end
+
 function Wander:UpdateWanderGoal(bot)
     local targetArea
     local targetPos
@@ -138,7 +144,7 @@ function Wander:UpdateWanderGoal(bot)
     end
 
     if not targetArea then
-        targetArea = (math.random(1,5) <= 4 and Wander:GetRandomNavInRegion(bot)) or Wander:GetRandomNav() -- 80% chance of getting a random nav in the nearest region, 20% chance of getting a random nav from the entire navmesh
+        targetArea = Wander:GetAnyRandomNav(bot)
     end
 
     if targetArea and not targetPos then
