@@ -615,7 +615,7 @@ function TTTBots.Lib.GetClosest(entities, pos, extraCallback)
     for i, v in pairs(entities) do
         if extraCallback then if not extraCallback(v) then continue end end
         local vIsPlayer = IsValid(v) and v:IsPlayer()
-        if vIsPlayer and not lib.IsPlayerAlive(v) then continue end
+        if vIsPlayer and not TTTBots.Lib.IsPlayerAlive(v) then continue end
         local dist = v:GetPos():Distance(pos)
         if dist < closestDist then
             closest = v
