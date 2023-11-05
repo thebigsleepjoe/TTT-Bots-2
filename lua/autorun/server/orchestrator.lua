@@ -107,14 +107,14 @@ addInitCheck({
     name = "gamemodeCompatible",
     callback = gamemodeCompatible,
     adminsOnly = true,
-    msg = "This gamemode is not compatible with TTT Bots! Shutting up to prevent console spam."
+    msg = TTTBots.Locale.GetLocalizedString("gamemode.not.compatible")
 })
 
 addInitCheck({
     name = "hasNavmesh",
     callback = hasNavmesh,
     adminsOnly = true,
-    msg = "This map does not have a navmesh! You cannot use bots without one!"
+    msg = TTTBots.Locale.GetLocalizedString("no.navmesh")
 })
 
 local function chatCheck(check)

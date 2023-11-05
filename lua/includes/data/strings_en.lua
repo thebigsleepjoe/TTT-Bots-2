@@ -7,6 +7,7 @@ end
 
 localize("no.navmesh", "[ERROR] This map does not have a navigation mesh! You cannot use bots without one!")
 localize("not.server", "[ERROR] You must be playing on a server to use TTT Bots. Sorry! It can be a p2p server or dedicated.")
+localize("gamemode.not.compatible", "[ERROR] This gamemode is not compatible with TTT Bots! Shutting up to prevent console spam.")
 localize("too.many.regions", "[WARNING] There are %d regions present on this map. It is recommended to keep this number as low as possible. This may cause issues if unresolved.")
 localize("not.enough.slots", "[WARNING] There are not enough player slots to add another bot.")
 localize("bot.added", "[NOTICE] '%s' added a bot.")
