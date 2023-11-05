@@ -7,10 +7,10 @@ local P = {
 local LoadLang = function()
     local A = TTTBots.Archetypes
     local Line = function(event, line, archetype)
-        return TTTBots.LocalizedStrings.AddLine(event, line, "en", archetype)
+        return TTTBots.Locale.AddLine(event, line, "en", archetype)
     end
     local RegisterCategory = function(event, priority)
-        return TTTBots.LocalizedStrings.RegisterCategory(event, "en", priority)
+        return TTTBots.Locale.RegisterCategory(event, "en", priority)
     end
     local f = string.format
     local ACTS = TTTBots.Plans.ACTIONS

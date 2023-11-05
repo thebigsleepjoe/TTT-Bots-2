@@ -1,5 +1,3 @@
-include("includes/lib/chattertxt.lua")
-
 ---@class CChatter
 TTTBots.Components.Chatter = TTTBots.Components.Chatter or {}
 
@@ -112,7 +110,7 @@ function BotChatter:On(event_name, args, teamOnly)
         if math.random(0, 100) > (chance * personality:GetTraitMult("textchat")) then return false end
     end
 
-    local localizedString = TTTBots.LocalizedStrings.GetLocalizedLine(event_name, self.bot, args)
+    local localizedString = TTTBots.Locale.GetLocalizedLine(event_name, self.bot, args)
     if localizedString then
         self:Say(localizedString, teamOnly, false, function()
             if event_name == "CallKOS" then
