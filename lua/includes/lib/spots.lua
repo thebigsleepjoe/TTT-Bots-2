@@ -105,7 +105,7 @@ function TTTBots.Spots.CacheSpecialSpots()
     local SNIPER_MIN_VIS_PCT = 60
     local SniperFunc = function(spot)
         local visibAvg = TTTBots.Spots.MeasureSpotVisibility(spot, 512)
-        print(string.format("Spot %s has %d%% visibility.", tostring(spot), visibAvg))
+        -- print(string.format("Spot %s has %d%% visibility.", tostring(spot), visibAvg))
 
         return visibAvg >= SNIPER_MIN_VIS_PCT
     end
