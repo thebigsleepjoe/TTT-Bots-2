@@ -200,7 +200,7 @@ local actRunnings = {
         if not IsValid(target) then return STATUS.FAILURE end
         local targetPos = target:GetPos()
         bot.components.locomotor:SetGoalPos(targetPos)
-        printf("Following player %s", target:Nick())
+        printf("Bot %s following player %s", bot:Nick(), target:Nick())
         return STATUS.RUNNING
     end,
     [ACTIONS.GATHER] = function(bot, job)
