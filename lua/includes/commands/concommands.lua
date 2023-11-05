@@ -58,7 +58,7 @@ end)
 concommand.Add("ttt_bot_recache_regions", function(ply, cmd, args)
     if not ply or not (ply and ply:IsSuperAdmin()) then return end -- cmd only works as server or SA
 
-    TTTBots.Lib.GetNavRegions(true)
+    PrintTable(TTTBots.Lib.GetNavRegions(true))
 end)
 
 
