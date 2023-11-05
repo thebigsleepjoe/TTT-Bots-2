@@ -371,6 +371,26 @@ function TTTBots.Lib.GetNavRegions(forceRecache)
     return _cachedRegions.regions
 end
 
+--- Return the closest region table to position "pos"
+function TTTBots.Lib.GetNearestRegion(pos)
+    local regions = TTTBots.Lib.GetNavRegions()
+    local closestNav = navmesh.GetNearestNavArea(pos)
+    if not closestNav then return end
+    for _, region in pairs(regions) do
+        if region[closestNav] then return region end
+    end
+end
+
+function TTTBots.Lib.GetRandomNavInRegion(region)
+    return table.Random(region)
+end
+
+function TTTBots.Lib.GetRandomNavInNearestRegion(pos)
+    local region = TTTBots.Lib.GetNearestRegion(pos)
+    if not region then return end
+    return TTTBots.Lib.GetRandomNavInRegion(region)
+end
+
 
 --- Returns a weighted random result from the table.
 --- This function accepts an array of WeightedTable objects, calculates the total weight,
