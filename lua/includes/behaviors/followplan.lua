@@ -276,8 +276,9 @@ hook.Add("PlayerSay", "TTTBots_FollowPlan_PlayerSay", function(sender, text, tea
     if not string.find(string.lower(text), "follow", 1, true) then return end
 
     local bot = TTTBots.Lib.GetClosest(TTTBots.Lib.GetAliveEvilBots(), sender:GetPos())
-    
-    if not (bot and TTTBots.Lib.GetComp(bot, "chatter")) then return end
+    if not (bot) then return end
+    local chatter = lib.GetComp(bot, "chatter") ---@type CChatter
+    if not (chatter) then return end
 
     local newJob = {
         Action = ACTIONS.FOLLOW,
