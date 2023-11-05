@@ -31,7 +31,7 @@ TTTBots.Traits = {
             difficulty = 2,       -- how many points of difficulty this trait is worth
         }
     },
-    --- When hearing shots, finds a safe spot to hide. NEVER seeks out gunshots.
+    --- Prefers to avoid fights and run away instead
     passive = {
         name = "passive",
         description = "When not a traitor, [HE] avoids fights and runs away instead",
@@ -42,7 +42,8 @@ TTTBots.Traits = {
             investigateNoise = 0, -- never seek out noise
             aggression = 0.8,     -- Less aggressive as traitor
             rageRate = 0.5,       -- Rage slower
-            difficulty = -1
+            difficulty = -1,
+            hider = true
         }
     },
     --- Places C4 a lot
@@ -123,6 +124,7 @@ TTTBots.Traits = {
             boredomRate = 1.5,      -- Boredom builds up faster
             difficulty = -4,
             investigateCorpse = 0.2,
+            hider = true
         }
     },
     -- Good hearing, memory, and target acquisition than the average player.
@@ -151,6 +153,7 @@ TTTBots.Traits = {
             investigateNoise = 2, -- more likely to seek out noise
             difficulty = 3,
             investigateCorpse = 2,
+            sniper = true,
         }
     },
     --- Tends to wander to the least popular nav areas, but can still wander elsewhere
@@ -244,6 +247,7 @@ TTTBots.Traits = {
         effects = {
             ignoreOrders = true,
             investigateCorpse = 0.4, -- less likely to investigate corpses, we're too busy sniping
+            sniper = true,
         }
     },
     --- Pulls out crowbar and kills people the old fashioned way. Modifies attack behavior
@@ -297,6 +301,7 @@ TTTBots.Traits = {
         effects = {
             hider = true,
             difficulty = -1,
+            sniper = true,
         }
     },
     --- Uses chat more frequently, especially when traitor
