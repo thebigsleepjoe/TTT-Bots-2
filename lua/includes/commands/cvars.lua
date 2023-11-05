@@ -105,5 +105,5 @@ bot_cvar("enable_rdm", "0", -- TODO: Implement RDM
 -- Behavior cvars
 bot_cvar("radar_chance", "100",
     "Chance that a traitor bot will simulate having radar as a traitor (internally they must be an 'evil' role).")
-bot_cvar("disable_coordinator", "0",
-    "Disables the Evil Coordinator module. Evil bots will not coordinate with each other.")
+bot_cvar("enable_coordinator", "1",
+    "Enables the Evil Coordinator module. Evil bots will not coordinate with other traitors with this set to 0. WARNING: This will make traitor bots far less effective & responsive.")

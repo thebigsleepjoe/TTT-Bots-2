@@ -111,6 +111,9 @@ end
 
 --- Validate the behavior
 function FollowPlan:Validate(bot)
+    local isCoordinatorEnabled = lib.GetConVarBool("enable_coordinator")
+    if not isCoordinatorEnabled then return false end
+
     local validate_debug = false
     if not TTTBots.Match.PlansCanStart() then
         if validate_debug then print(string.format("%s ignored plans due to round not being able to start", bot:Nick())) end
