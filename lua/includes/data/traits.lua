@@ -169,6 +169,7 @@ TTTBots.Traits = {
             aggression = 0.8,
             ignoreOrders = true, -- Ignore evil coordinator orders
             difficulty = 1,
+            loner = true, -- prefer unpopular nav areas
         }
     },
     --- Tends to wander into popular nav areas, but can still wander elsewhere
@@ -181,6 +182,7 @@ TTTBots.Traits = {
         effects = {
             hearing = 0.8,
             difficulty = 1,
+            lovesCrowds = true, -- prefer popular nav areas
         }
     },
     --- As traitor, follows his traitors around to coordinate attacks with them better.

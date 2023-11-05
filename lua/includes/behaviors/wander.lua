@@ -7,12 +7,17 @@ local Wander = TTTBots.Behaviors.Wander
 Wander.Name = "Wander"
 Wander.Description = "Wanders around the map"
 Wander.Interruptible = true
+Wander.Debug = true
 
 local STATUS = {
     RUNNING = 1,
     SUCCESS = 2,
     FAILURE = 3,
 }
+
+local function printf(...)
+    print(string.format(...))
+end
 
 --- Validate the behavior
 function Wander:Validate(bot)
@@ -21,28 +26,18 @@ end
 
 --- Called when the behavior is started
 function Wander:OnStart(bot)
-    bot.wander = {
-        tick = 0,
-        destArea = self:GetWanderableArea(bot),
-        wanderTime = 200, -- Maximum time before re-generating a destination
-    }
+    Wander:UpdateWanderGoal(bot) -- sets bot.wander
     return STATUS.Running
 end
 
 --- Called when the behavior's last state is running
 function Wander:OnRunning(bot)
-    if not bot.wander.destArea then bot.wander.destArea = self:GetWanderableArea(bot) end
+    if not bot.wander then return Wander:OnStart() end -- force reboot :P
 
-    local dest = bot.wander.destArea:GetCenter()
-    local withinRange = self:DestinationWithinRange(bot, 100)
-    bot.wander.tick = bot.wander.tick + 1
-    if bot.wander.tick > bot.wander.wanderTime or withinRange then
-        bot.wander.tick = 0
-        bot.wander.destArea = self:GetWanderableArea(bot)
-        return STATUS.Success
-    end
+    local hasExpired = self:HasExpired(bot)
+    if hasExpired then return STATUS.SUCCESS end
 
-    local wanderPos = dest
+    local wanderPos = bot.wander.targetPos
     bot.components.locomotor:SetGoalPos(wanderPos)
 
     return STATUS.Running
@@ -58,44 +53,110 @@ end
 
 --- Called when the behavior ends
 function Wander:OnEnd(bot)
-    bot.wander = {}
+    bot.wander = nil
 end
 
-function Wander:DestinationWithinRange(bot, range)
-    local dest = bot.wander.destArea:GetCenter()
+function Wander:DestinationCloseEnough(bot)
+    if not bot.wander then return true end
+    local dest = bot.wander.targetPos
     local pos = bot:GetPos()
     local dist = pos:Distance(dest)
-    return dist < range
+    return dist < 100
 end
 
-function Wander:GetWanderableArea(bot)
+function Wander:HasExpired(bot)
+    local wander = bot.wander
+    if not wander then return true end
+    return wander.timeEnd < CurTime()
+end
+
+--- Returns a random nav area in the nearest region to the bot
+function Wander:GetRandomNavInRegion(bot)
+    return lib.GetRandomNavInNearestRegion(bot:GetPos())
+end
+
+--- Gets a random nav area from the entire navmesh
+function Wander:GetRandomNav()
+    return table.Random(navmesh.GetAllNavAreas())
+end
+
+function Wander:UpdateWanderGoal(bot)
+    local targetArea
+    local targetPos
+    local personality = lib.GetComp(bot, "personality") ---@type CPersonality
+    if not personality then return end
+
+    ---------------------------------------------
     -- relevant personality traits: loner, lovescrowds
-    local isLoner = bot:HasTrait("loner")
-    local lovesCrowds = bot:HasTrait("lovescrowds")
-
+    ---------------------------------------------
+    local isLoner = personality:GetTraitBool("loner")
+    local lovesCrowds = personality:GetTraitBool("lovesCrowds")
     local popularNavs = TTTBots.Lib.PopularNavsSorted
-    local adhereToPersonality = (isLoner and not lovesCrowds) and math.random(1, 5) <= 4
-
-    local area = table.Random(navmesh.GetAllNavAreas())
+    local adhereToPersonality = (isLoner or lovesCrowds) and math.random(1, 5) <= 4
     if adhereToPersonality and #popularNavs > 10 then
-        local top10Navs = {}
-        local bottom10Navs = {}
+        local topNNavs = {}
+        local bottomNNavs = {}
+        local N = 4
 
-        for i = 1, 10 do
+        for i = 1, N do
             if not popularNavs[i] then break end
-            table.insert(top10Navs, popularNavs[i])
+            table.insert(topNNavs, popularNavs[i])
         end
-        for i = #popularNavs - 10, #popularNavs do
+        for i = #popularNavs - N, #popularNavs do
             if not popularNavs[i] then break end
-            table.insert(bottom10Navs, popularNavs[i])
+            table.insert(bottomNNavs, popularNavs[i])
         end
 
         if lovesCrowds then
-            area = navmesh.GetNavAreaByID(table.Random(top10Navs)[1])
+            targetArea = navmesh.GetNavAreaByID(table.Random(topNNavs)[1])
+            if Wander.Debug then
+                printf("Bot %s wandering to a popular area", bot:Nick())
+            end
         else
-            area = navmesh.GetNavAreaByID(table.Random(bottom10Navs)[1])
+            targetArea = navmesh.GetNavAreaByID(table.Random(bottomNNavs)[1])
+            if Wander.Debug then
+                printf("Bot %s wandering to an unpopular area", bot:Nick())
+            end
         end
     end
 
-    return area
+    ---------------------------------------------
+    -- relevant personality traits: hider, sniper
+    ---------------------------------------------
+    local isHider = personality:GetTraitBool("hider")
+    local isSniper = personality:GetTraitBool("sniper")
+
+    if (isHider or isSniper) and math.random(1, 5) <= 4 then
+        local kindStr = (isHider and "hiding") or "sniper"
+        local spot = TTTBots.Spots.GetNearestSpotOfCategory(bot:GetPos(), kindStr)
+        if spot then
+            targetPos = spot
+            if Wander.Debug then
+                printf("Bot %s wandering to a %s spot", bot:Nick(), kindStr)
+            end
+        end
+    end
+
+    if not targetArea then
+        targetArea = (math.random(1,5) <= 4 and Wander:GetRandomNavInRegion(bot)) or Wander:GetRandomNav() -- 80% chance of getting a random nav in the nearest region, 20% chance of getting a random nav from the entire navmesh
+    end
+
+    if targetArea and not targetPos then
+        targetPos = targetArea:GetRandomPoint()
+    elseif targetPos and not targetArea then
+        targetArea = navmesh.GetNearestNavArea(targetPos)
+    end
+
+    local time = CurTime()
+
+    local wanderTbl = {
+        targetArea = targetArea,
+        targetPos = targetPos,
+        timeStart = time,
+        timeEnd = time + math.random(6, 24),
+    }
+
+    bot.wander = wanderTbl
+
+    return wanderTbl
 end
