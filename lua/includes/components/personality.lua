@@ -516,8 +516,9 @@ timer.Create("TTTBots.Personality.RDM", 2.5, 0, function()
 
         if chanceTest and isRdmer or (boredom > RDM_BOREDOM_MIN) or (rage > RDM_RAGE_MIN) then
             local targets = lib.GetAllWitnessesBasic(bot:GetPos(), TTTBots.Match.AlivePlayers, bot)
+            local grudge = (IsValid(bot.grudge) and lib.IsPlayerAlive(bot.grudge) and bot.grudge)
+            local randomTarget = grudge or table.Random(targets)
             if targets and #targets > 0 then
-                local randomTarget = table.Random(targets)
                 bot:SetAttackTarget(randomTarget)
             end
         end
