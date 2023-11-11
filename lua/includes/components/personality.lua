@@ -374,7 +374,8 @@ function plyMeta:GetTraitBool(attribute, falseHasPriority)
     local total = false
     if not traits then return total end
     for i, trait in pairs(traits) do
-        local val = (trait.effects and trait.effects[attribute]) or nil -- IMPORTANT to default to nil, otherwise false will probably be returned when it shouldn't be
+        local val = (trait.effects and trait.effects[attribute]) or
+            nil                                     -- IMPORTANT to default to nil, otherwise false will probably be returned when it shouldn't be
         if falseHasPriority and (val == false) then -- check if val is explicitly false
             return false
         else
@@ -492,5 +493,33 @@ hook.Add("TTTEndRound", "TTTBots.Personality.EndRound", function(result)
         updateBotAttributes(false)
     else
         updateBotAttributes(true)
+    end
+end)
+
+local RDM_RAGE_MIN = 0.7
+local RDM_BOREDOM_MIN = 0.7
+local RDM_PCT_CHANCE = 20 -- 10% chance to rdm every 2.5 seconds if criteria are met
+timer.Create("TTTBots.Personality.RDM", 2.5, 0, function()
+    if not TTTBots.Match.IsRoundActive() then return end
+    if not lib.GetConVarBool("enable_rdm") then return end
+    for i, bot in pairs(TTTBots.Bots) do
+        if not lib.IsPlayerAlive(bot) then continue end -- skip if bot not loaded
+        local personality = lib.GetComp(bot, "personality") ---@type CPersonality
+        if not personality then continue end            -- skip if bot not loaded
+        if lib.IsEvil(bot) then continue end            -- no rdm for traitors
+        if bot.attackTarget ~= nil then continue end    -- no rdm if we're already attacking someone
+
+        local boredom = personality:GetBoredom()
+        local rage = personality:GetRage()
+        local isRdmer = personality:GetTraitBool("rdmer")
+        local chanceTest = math.random(1, 100) <= RDM_PCT_CHANCE
+
+        if chanceTest and isRdmer or (boredom > RDM_BOREDOM_MIN) or (rage > RDM_RAGE_MIN) then
+            local targets = lib.GetAllWitnessesBasic(bot:GetPos(), TTTBots.Match.AlivePlayers, bot)
+            if targets and #targets > 0 then
+                local randomTarget = table.Random(targets)
+                bot:SetAttackTarget(randomTarget)
+            end
+        end
     end
 end)
