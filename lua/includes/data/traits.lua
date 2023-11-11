@@ -169,7 +169,7 @@ TTTBots.Traits = {
             aggression = 0.8,
             ignoreOrders = true, -- Ignore evil coordinator orders
             difficulty = 1,
-            loner = true, -- prefer unpopular nav areas
+            loner = true,        -- prefer unpopular nav areas
         }
     },
     --- Tends to wander into popular nav areas, but can still wander elsewhere
@@ -214,6 +214,7 @@ TTTBots.Traits = {
         archetype = A.Hothead,
         effects = {
             boredomRate = 2.0, -- Boredom builds up faster
+            rdmer = true
         }
     },
     --- Makes traitors 3x as likely to attack him at random
@@ -336,9 +337,9 @@ TTTBots.Traits = {
         traitor_only = false,
         archetype = A.Hothead,
         effects = {
-            investigateNoise = 5, -- 5x more likely to investigate noises
+            investigateNoise = 5,     -- 5x more likely to investigate noises
             aggression = 1.5,
-            ignoreOrders = true,  -- Ignore evil coordinator orders
+            ignoreOrders = true,      -- Ignore evil coordinator orders
             difficulty = 2,
             investigateCorpse = 0.65, -- too busy gaming to investigate corpses
         }
