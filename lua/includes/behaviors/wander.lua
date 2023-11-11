@@ -67,7 +67,10 @@ end
 function Wander:HasExpired(bot)
     local wander = bot.wander
     if not wander then return true end
-    return wander.timeEnd < CurTime()
+    local ctime = CurTime()
+    local DIST_CLOSE_THRESH = 100
+    local closeEnough = (ctime > wander.timeEndClose) and (bot:GetPos():Distance(wander.targetPos))
+    return closeEnough or (wander.timeEndFar < ctime)
 end
 
 --- Returns a random nav area in the nearest region to the bot
@@ -84,12 +87,13 @@ end
 function Wander:GetAnyRandomNav(bot)
     return (math.random(1, 5) <= 4 and Wander:GetRandomNavInRegion(bot))
         or
-        Wander:GetRandomNav()    -- 80% chance of getting a random nav in the nearest region, 20% chance of getting a random nav from the entire navmesh
+        Wander:GetRandomNav() -- 80% chance of getting a random nav in the nearest region, 20% chance of getting a random nav from the entire navmesh
 end
 
 function Wander:UpdateWanderGoal(bot)
     local targetArea
     local targetPos
+    local isSpot = false
     local personality = lib.GetComp(bot, "personality") ---@type CPersonality
     if not personality then return end
 
@@ -140,6 +144,7 @@ function Wander:UpdateWanderGoal(bot)
     local shouldSpot = math.random(1, 5) <= 4
 
     if (canHide or canSnipe) and shouldSpot then
+        isSpot = true
         local kindStr = (canHide and "hiding") or "sniper"
         local spot = TTTBots.Spots.GetNearestSpotOfCategory(bot:GetPos(), kindStr)
         if spot then
@@ -166,7 +171,8 @@ function Wander:UpdateWanderGoal(bot)
         targetArea = targetArea,
         targetPos = targetPos,
         timeStart = time,
-        timeEnd = time + math.random(6, 24),
+        timeEndFar = time + math.random(6, 24) * (isSpot and 1.5 or 1),
+        timeEndClose = time + math.random(3, 12) * (isSpot and 1.5 or 1),
     }
 
     bot.wander = wanderTbl
