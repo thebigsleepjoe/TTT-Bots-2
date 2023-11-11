@@ -1007,6 +1007,13 @@ local COMMUNITY_NAME_CHANCE = 20
 --- Percent chance of a generic name being selected if enabled. Assuming that a community name is not selected.
 local GENERIC_NAME_CHANCE = 50
 
+function Lib.CheckNameInUse(name)
+    for i, v in pairs(player.GetAll()) do
+        if string.lower(v:Nick()) == string.lower(name) then return true end
+    end
+    return false
+end
+
 -- regex to select all text:
 function Lib.GenerateName()
     local GetCVB = Lib.GetConVarBool
@@ -1078,5 +1085,11 @@ function Lib.GenerateName()
         end
     end
 
-    return prefix .. name
+    local result = prefix .. name
+
+    if Lib.CheckNameInUse(result) then
+        return Lib.GenerateName()
+    end
+
+    return result
 end
