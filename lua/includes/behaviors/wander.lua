@@ -82,8 +82,9 @@ end
 
 --- Returns a random nav with preference to the current area
 function Wander:GetAnyRandomNav(bot)
-    return (math.random(1,5) <= 4 and Wander:GetRandomNavInRegion(bot))
-        or Wander:GetRandomNav() -- 80% chance of getting a random nav in the nearest region, 20% chance of getting a random nav from the entire navmesh
+    return (math.random(1, 5) <= 4 and Wander:GetRandomNavInRegion(bot))
+        or
+        Wander:GetRandomNav()    -- 80% chance of getting a random nav in the nearest region, 20% chance of getting a random nav from the entire navmesh
 end
 
 function Wander:UpdateWanderGoal(bot)
@@ -128,12 +129,18 @@ function Wander:UpdateWanderGoal(bot)
 
     ---------------------------------------------
     -- relevant personality traits: hider, sniper
+    -- everyone can hide or go to a sniper spot, but the above traits do it more
     ---------------------------------------------
-    local isHider = personality:GetTraitBool("hider")
-    local isSniper = personality:GetTraitBool("sniper")
+    local canHide =
+        personality:GetTraitBool("hider")
+        or math.random(1, 6) == 1
+    local canSnipe =
+        personality:GetTraitBool("sniper")
+        or math.random(1, 6) == 1
+    local shouldSpot = math.random(1, 5) <= 4
 
-    if (isHider or isSniper) and math.random(1, 5) <= 4 then
-        local kindStr = (isHider and "hiding") or "sniper"
+    if (canHide or canSnipe) and shouldSpot then
+        local kindStr = (canHide and "hiding") or "sniper"
         local spot = TTTBots.Spots.GetNearestSpotOfCategory(bot:GetPos(), kindStr)
         if spot then
             targetPos = spot
