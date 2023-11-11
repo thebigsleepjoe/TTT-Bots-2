@@ -8,7 +8,7 @@ FollowPlan.Name = "FollowPlan"
 FollowPlan.Description = "Follow the plan assigned to us by the game coordinator."
 FollowPlan.Interruptible = true
 -- When debugging the component and you want to print extra info, use this:
-FollowPlan.Debug = true
+FollowPlan.Debug = false
 
 local STATUS = {
     RUNNING = 1,
@@ -144,18 +144,8 @@ local f = string.format
 function FollowPlan:OnStart(bot)
     if not bot.Job then return STATUS.FAILURE end
     if FollowPlan.Debug then
-        -- print(" === JOB ASSIGNED ===")
-        -- print(bot:Nick() .. "'s assigned job table: ")
-        -- local target = bot.Job and bot.Job.TargetObj
-        -- if target and target:IsPlayer() then
-        --     printf("Target: %s", target:Nick())
-        --     printf("Target HP: %f", target:Health())
-        --     printf("Target is alive: %s", tostring(lib.IsPlayerAlive(target)))
-        -- end
-        -- PrintTable(bot.Job)
-        -- print(" === END JOB ===")
-        printf("FollowPlan: JOB '%s' assigned to bot %s (For plan %s)", bot.Job.Action, bot:Nick(),
-            TTTBots.Plans.GetName())
+        printf("FollowPlan: JOB '%s' assigned to bot %s (For plan %s)",
+            bot.Job.Action, bot:Nick(), TTTBots.Plans.GetName())
     end
     return STATUS.RUNNING
 end
@@ -199,6 +189,7 @@ local actRunnings = {
         local target = job.TargetObj
         if not IsValid(target) then return STATUS.FAILURE end
         local targetPos = target:GetPos()
+        if bot == target then return STATUS.FAILURE end
         bot.components.locomotor:SetGoalPos(targetPos)
         printf("Bot %s following player %s", bot:Nick(), target:Nick())
         return STATUS.RUNNING
