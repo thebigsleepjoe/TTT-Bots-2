@@ -110,7 +110,7 @@ function BotChatter:On(event_name, args, teamOnly)
     local chancesOf100 = {
         InvestigateNoise = 15,
         InvestigateCorpse = 15,
-        LifeCheck = 80,
+        LifeCheck = 65,
         CallKOS = 15 * difficulty * kosChanceMult,
     }
 
