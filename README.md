@@ -78,7 +78,7 @@ Combat:
 
 User customization/administration:
 1. ✅ Difficulty settings; make bots more accurate, have better hearing, etc.
-2. 📃 Enable RDMing for the true multiplayer experience
+2. ✅ Enable RDMing for the true multiplayer experience
 3. ✅ Customization to disable text chatter based off of priority level
 4. 📃 Bot quotas: always have X bots, or fill to X total players
 5. 📃 Ban certain traits from being selected, have a UI to explain assigned traits
