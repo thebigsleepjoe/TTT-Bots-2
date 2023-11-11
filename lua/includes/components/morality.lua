@@ -12,8 +12,8 @@ local BotMorality = TTTBots.Components.Morality
 --- A scale of suspicious events to apply to a player's suspicion value. Scale is normally -10 to 10.
 BotMorality.SUSPICIONVALUES = {
     -- Killing another player
-    Kill = 9,         -- This player killed someone in front of us
-    KillTrusted = 10, -- This player killed a Trusted in front of us
+    Kill = 9,          -- This player killed someone in front of us
+    KillTrusted = 10,  -- This player killed a Trusted in front of us
     KillTraitor = -10, -- This player killed a traitor in front of us
 
     -- Hurt a player
@@ -264,6 +264,14 @@ function BotMorality:OnWitnessHurtTraitor(victim, attacker, healthRemaining, dam
     end
 end
 
+function BotMorality:OnKilled(attacker)
+    if not (attacker and IsValid(attacker) and attacker:IsPlayer()) then
+        self.bot.grudge = nil
+        return
+    end
+    self.bot.grudge = attacker -- Set grudge to the attacker
+end
+
 function BotMorality:OnWitnessKill(victim, attacker)
     -- For this function, we will allow the bots to technically cheat and know what role the victim was. They will not know what role the attacker is.
     -- This allows us to save time and resources in optimization and let players have a more fun experience, despite technically being a cheat.
@@ -311,10 +319,14 @@ hook.Add("PlayerDeath", "TTTBots.Components.Morality.PlayerDeath", function(vict
     if attacker:IsBot() then
         attacker.lastKillTime = timestamp
     end
+    if victim:IsBot() then
+        victim.components.morality:OnKilled(attacker)
+    end
     if not victim:Visible(attacker) then return end -- This must be an indirect attack, like C4 or fire.
-    if lib.IsGood(victim) then -- This is technically a cheat, but it's a necessary one.
+    if lib.IsGood(victim) then                      -- This is technically a cheat, but it's a necessary one.
         local ttt_bot_redhanded_time = lib.GetConVarInt("redhanded_time")
-        attacker.redHandedTime = timestamp + ttt_bot_redhanded_time -- Only assign red handed time if it was a direct attack
+        attacker.redHandedTime = timestamp +
+            ttt_bot_redhanded_time -- Only assign red handed time if it was a direct attack
     end
     local witnesses = lib.GetAllWitnesses(attacker:EyePos(), true)
     table.insert(witnesses, victim)
@@ -516,7 +528,7 @@ timer.Create("TTTBots.Components.Morality.CommonSense", 1, 0, function()
     local numAlive = 0
     local numDetectives = 0
     local numTraitors = 0
-    for i,bot in pairs(TTTBots.Bots) do
+    for i, bot in pairs(TTTBots.Bots) do
         if not IsValid(bot) then continue end
         if not lib.IsPlayerAlive(bot) then continue end
         numAlive = numAlive + 1
