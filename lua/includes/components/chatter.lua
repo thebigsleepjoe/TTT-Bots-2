@@ -62,6 +62,8 @@ function BotChatter:Say(text, teamOnly, ignoreDeath, callback)
     local cps = lib.GetConVarFloat("chatter_cps")
     local delay = (string.len(text) / cps) * (math.random(100, 110) / 100)
     self.typing = true
+    -- remove "[BOT] " occurences from the text
+    text = string.gsub(text, "%[BOT%] ", "")
     timer.Simple(delay, function()
         if self.bot and (ignoreDeath or lib.IsPlayerAlive(self.bot)) then
             self:SayRaw(text, teamOnly)
@@ -92,6 +94,14 @@ function BotChatter:On(event_name, args, teamOnly)
     end
 
     if not self:CanSayEvent(event_name) then return false end
+
+    if event_name == "CallKOS" then
+        local target = args.playerEnt
+        if IsValid(target) then
+            if (target.lastKOSTime or 0) + 5 > CurTime() then return false end
+            target.lastKOSTime = CurTime()
+        end
+    end
 
     local difficulty = lib.GetConVarInt("difficulty")
     local kosChanceMult = lib.GetConVarFloat("chatter_koschance")
