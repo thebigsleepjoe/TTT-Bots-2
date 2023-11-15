@@ -531,6 +531,12 @@ timer.Create("TTTBots.Components.Morality.CommonSense", 1, 0, function()
     for i, bot in pairs(TTTBots.Bots) do
         if not IsValid(bot) then continue end
         if not lib.IsPlayerAlive(bot) then continue end
+        -- Firstly just reset each bot's target if they are dead:
+        if bot.attackTarget and not lib.IsPlayerAlive(bot.attackTarget) then
+            bot.attackTarget = nil
+        end
+
+        -- Count number of alive player and their roles
         numAlive = numAlive + 1
         if lib.IsPolice(bot) then
             numDetectives = numDetectives + 1
@@ -539,19 +545,17 @@ timer.Create("TTTBots.Components.Morality.CommonSense", 1, 0, function()
         end
     end
 
-    if numDetectives > 0 and numTraitors <= 2 and (numAlive - (numDetectives + numTraitors) == 1) then -- only do when there is 1 inno, there is a detective, and there is at least one traitor
-        for i, bot in pairs(TTTBots.Bots) do
-            if not IsValid(bot) then continue end
-            if not lib.IsPlayerAlive(bot) then continue end
-
-            local isInno = lib.IsGood(bot) and not lib.IsPolice(bot)
-            if isInno then
+    if (numAlive >= 2) then
+        if (numTraitors == 1 and numAlive - (numTraitors + numDetectives) == 0) then -- If there are only detectives and 1 traitor alive, the detectives obviously should know who is evil.
+            for i, bot in pairs(TTTBots.Match.AlivePolice) do
                 bot:SetAttackTarget(TTTBots.Match.AliveTraitors[1])
-                break
+            end
+        elseif (numTraitors == 1 and numAlive == 3 and numDetectives == 1) then -- common case where 3 are left alive. the inno should know who the traitor is.
+            for i, bot in pairs(TTTBots.Match.AliveNonEvil) do
+                bot:SetAttackTarget(TTTBots.Match.AliveTraitors[1])
             end
         end
     end
-
     -------------------------------------------
     -- IF LAST LIVING TRAITOR, OR WE KILLED JUST RECENTLY, KEEP ATTACKING
     -------------------------------------------
