@@ -188,3 +188,21 @@ concommand.Add("ttt_bot_print_difficulty", function(ply, cmd, args)
     print("Average difficulty: " .. avgDifficulty)
     print("----------------------------")
 end)
+
+concommand.Add("ttt_bot_print_heldweapons", function(ply, cmd, args)
+    if not ply or not (ply and ply:IsSuperAdmin()) then return end -- cmd only works as server or SA
+    print("PRINTING HELD WEAPONS")
+    print("---------------------")
+    for i, ply in pairs(player.GetAll()) do
+        if not Lib.IsPlayerAlive(ply) then continue end
+        local wep = ply:GetActiveWeapon()
+        if wep then
+            local canBuy = wep.CanBuy
+            local canSpawn = wep.AutoSpawnable
+            local isTraitorWep = wep.CanBuy[ROLE_TRAITOR] and true or false
+            printf("Player %s is holding a %s. CanBuy=%s, AutoSpawnable=%s, IsTraitorWep=%s", ply:Nick(), wep:GetClass(),
+                tostring(canBuy), tostring(canSpawn), tostring(isTraitorWep))
+        end
+    end
+    print("---------------------")
+end)
