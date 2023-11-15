@@ -166,18 +166,25 @@ function navMeta:IsSmall()
     return (areaOfArea < AREA_SMALL_THRESHOLD)
 end
 
+local navAreaPortalsCache = {}
 --- Get the list of portals connected to us. Always returns a table
 --- @return table table table of portals
 function navMeta:GetPortals()
+    if navAreaPortalsCache[self] then
+        return navAreaPortalsCache[self]
+    end
+
     local portals = TTTBots.PathManager.GetPortals()
 
     for i, v in pairs(portals) do
         if v.portal_cnavarea == self then
-            return { v.destination_cnavarea }
+            navAreaPortalsCache[self] = { v.destination_cnavarea }
+            return navAreaPortalsCache[self]
         end
     end
 
-    return {}
+    navAreaPortalsCache[self] = {}
+    return navAreaPortalsCache[self]
 end
 
 -- Infer the type of connection between two navareas
