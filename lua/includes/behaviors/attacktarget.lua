@@ -61,7 +61,7 @@ function Attack:Seek(bot, targetPos)
             bot,
             function()
                 local wanderArea = TTTBots.Behaviors.Wander:GetAnyRandomNav(bot)
-                if not wanderArea then return end
+                if not IsValid(wanderArea) then return end
                 loco:SetGoalPos(wanderArea:GetCenter())
             end,
             math.ceil(TTTBots.Tickrate * 5)
