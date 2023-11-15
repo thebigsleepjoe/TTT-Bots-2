@@ -729,10 +729,14 @@ function TTTBots.Lib.VoluntaryDisconnect(bot, reason)
             reason or "UNDEFINED"))
     end)
 
-    -- schedule another bot to re-join in anywhere between 8 and 33 seconds
-    timer.Simple(math.random(8, 33), function()
-        TTTBots.Lib.CreateBot()
-    end)
+    -- The auto rejoin should only happen if there isn't a quota. If there is, then this will cause issues.
+    local quota = TTTBots.Lib.GetConVarInt("quota")
+    if quota <= 0 then
+        -- schedule another bot to re-join in anywhere between 8 and 33 seconds
+        timer.Simple(math.random(8, 33), function()
+            TTTBots.Lib.CreateBot()
+        end)
+    end
 end
 
 --- return the component 'type' of the bot, or false if doesn't have one
