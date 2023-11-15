@@ -47,7 +47,7 @@ Morality:
 3. ✅ Bots trust trusted players and detectives more, and this affects suspicion on others
 4. ✅ SUS: Players shooting randomly are suspicious
 5. ✅ SUS: Players shooting near a bot gain more suspicion than if they were shooting randomly
-6. 📃 SUS: Players holding a traitor weapon are KOS
+6. ✅ SUS: Players holding a traitor weapon are KOS
 7. ✅ SUS: Players disguised are always KOS
 8. ✅ SUS: KOS callouts should be made and listened to (from trusted players).
 9. ✅ SUS: Players killing traitors should be trusted immediately (instead of shooting first, questions later), just makes more sense.
@@ -64,7 +64,7 @@ Basic behavior tree (this is out of order):
 8. ✅ Investigate noises
 9. 📃 Use DNA scanner to locate traitors
 10. 📃 Avoid areas spotted with bombs close by, and communicate when spotting a bomb.
-11. 📃 Sniper bots should sit in good sniping areas
+11. ✅ Sniper bots should sit in good sniping areas
 
 Combat:
 1. ✅ Attack enemies without wallhacks; hunt players we haven't seen recently.
@@ -89,9 +89,9 @@ User customization/administration:
 
 Traitor bot coordination:
 1. ✅ Traitor bots should share their plans with other traitors
-2. ✅ Human traitors should be able to tell the nearest bot to follow them
+2. 🚧 Human traitors should be able to tell the nearest bot to follow them
 3. ✅ Traitor bots should follow each other around and coordinate attacks
-4. ✅ Traitors bots should plant bombs intelligently and avoid bomb areas
+4. 🚧 Traitors bots should plant bombs intelligently and avoid bomb areas
 
 Misc. features and non-programming stuff:
 1. 📃 Ensure TTT/2 cross-compatibility
