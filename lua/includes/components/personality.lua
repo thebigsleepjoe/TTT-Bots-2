@@ -145,6 +145,7 @@ function BotPersonality:GetBoredom() return BOREDOM_ENABLED and self.boredom or 
 ---@return number
 function BotPersonality:AddRage(x)
     local modifier = self:GetStatRateFor("rage") * (lib.GetConVarFloat("rage_rate") / 100)
+    modifier = math.max(0.05, modifier)
     self.rage = clamp(self.rage + (x * modifier), 0, 1)
 
     return self.rage
@@ -182,6 +183,7 @@ end
 ---@return number
 function BotPersonality:AddBoredom(x)
     local modifier = self:GetStatRateFor("boredom") * (lib.GetConVarFloat("boredom_rate") / 100)
+    modifier = math.max(0.05, modifier)
     self.boredom = clamp(self.boredom + (x * modifier), 0, 1)
 
     return self.boredom
