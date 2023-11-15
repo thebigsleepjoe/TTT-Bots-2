@@ -721,7 +721,7 @@ function TTTBots.Lib.VoluntaryDisconnect(bot, reason)
     if not chatter then return true end
 
     chatter:On("Disconnect" .. reason, { bot = bot, name = bot:Nick() })
-    timer.Simple(math.random(3, 5), function()
+    timer.Simple(math.random(1, 3), function()
         if not bot then return end
         if not IsValid(bot) then return end
         bot:Kick(string.format(
