@@ -246,6 +246,15 @@ function TTTBots.Lib.GetAllWitnesses(pos, botsOnly)
     return witnesses
 end
 
+--- Grabs the convar ttt_bot_playermodel and sets each bots model to that string. Does not do anything if is blank.
+function TTTBots.Lib.UpdateBotModels()
+    local model = TTTBots.Lib.GetConVarString("playermodel")
+    if model == "" then return end
+    for i, bot in pairs(TTTBots.Bots) do
+        bot:SetModel(model)
+    end
+end
+
 function TTTBots.Lib.GetRandomAdjacent(nav)
     local adjacent = nav:GetAdjacentAreas()
     local random = math.random(1, #adjacent)
@@ -319,8 +328,8 @@ function TTTBots.Lib.GetAngleTable(n)
 end
 
 local _cachedRegions = {
-    hasCached = false, -- Has the table been cached yet?
-    regions = {}, -- Table of regions containing navs
+    hasCached = false,  -- Has the table been cached yet?
+    regions = {},       -- Table of regions containing navs
     alreadyCached = {}, -- Table of navs that have been claimed by a region
 }
 
@@ -343,8 +352,8 @@ function TTTBots.Lib.AddAdjacentsToRegion(nav, regionTbl, alreadyCached)
 end
 
 function TTTBots.Lib.GetNavRegions(forceRecache)
-    if not forceRecache and _cachedRegions.hasCached then 
-        return _cachedRegions.regions 
+    if not forceRecache and _cachedRegions.hasCached then
+        return _cachedRegions.regions
     end
 
     -- Re-initialize the _cachedRegions to clear old data if forceRecache is true.
@@ -390,7 +399,6 @@ function TTTBots.Lib.GetRandomNavInNearestRegion(pos)
     if not region then return end
     return TTTBots.Lib.GetRandomNavInRegion(region)
 end
-
 
 --- Returns a weighted random result from the table.
 --- This function accepts an array of WeightedTable objects, calculates the total weight,

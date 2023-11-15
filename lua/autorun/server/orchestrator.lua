@@ -50,7 +50,7 @@ function TTTBots.Reload()
     local PathManager = TTTBots.PathManager
 
     TTTBots.Spots.CacheAllSpots() -- Cache all navmesh spots (cover, exposed, sniper spots, etc.)
-    TTTBots.Lib.GetNavRegions() -- Caches all nav regions
+    TTTBots.Lib.GetNavRegions()   -- Caches all nav regions
 
     -- Bot behavior
     timer.Create("TTTBots_Tick", 1 / TTTBots.Tickrate, 0, function()
@@ -75,6 +75,7 @@ function TTTBots.Reload()
                 bot.tick = bot.components.locomotor.tick
                 bot.timeInGame = (bot.timeInGame or 0) + (1 / TTTBots.Tickrate)
             end
+            TTTBots.Lib.UpdateBotModels()
         end, function(err)
             print("ERROR:", err)
         end)

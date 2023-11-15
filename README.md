@@ -84,7 +84,7 @@ User customization/administration:
 5. 📃 Ban certain traits from being selected, have a UI to explain assigned traits
 6. 📃 Have a full UI for bot customization
 7. ✅ Include basic bot chat commands, like !addbot
-8. 📃 Enable custom player models for bots. Will likely be done thru cvar.
+8. ✅ Enable servers setting custom player models for bots via cvar
 9. ✅ Enable/disable bots blending in on the scoreboard via fake ping, profile pictures, or "BOT" prefix. Some users may not like them blending in with real players.
 
 Traitor bot coordination:
