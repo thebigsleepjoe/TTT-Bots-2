@@ -520,7 +520,7 @@ end)
 -- Common sense: know that another player is a traitor given some conditions. Like if there is only a detective and ourselves left (and we're inno), we know the other guy is a traitor.
 timer.Create("TTTBots.Components.Morality.CommonSense", 1, 0, function()
     if not TTTBots.Match.IsRoundActive() then return end
-
+    local difficulty = lib.GetConVarInt("difficulty") -- [1,5]
     -------------------------------------------
     -- LAST LIVING INNO DETECTION
     -------------------------------------------
@@ -571,16 +571,32 @@ timer.Create("TTTBots.Components.Morality.CommonSense", 1, 0, function()
                 end
             end
         end
-        -------------------------------------------
-        -- TEST IF WE SEE ANY RED HANDED PLAYERS
-        -------------------------------------------
+
+        -- The code below this point does not execute across traitors, or those with a target.
         if bot.attackTarget ~= nil or lib.IsEvil(bot) then continue end
         local visibleToMe = lib.GetAllVisible(bot:GetPos(), false)
         for i, other in pairs(visibleToMe) do
+            -------------------------------------------
+            -- TEST IF WE SEE ANY RED HANDED PLAYERS
+            -------------------------------------------
             if lib.IsPolice(other) then continue end
             local redHandedTime = other.redHandedTime or 0
             if redHandedTime > curtime then
                 bot:SetAttackTarget(other)
+            end
+            -------------------------------------------
+            -- TEST IF WE SEE ANY PLAYERS HOLDING TRAITOR WEPS
+            -------------------------------------------
+            if lib.IsHoldingTraitorWep(other) then
+                -- 1/2 per second chance on hard, 1/6 chance on easy
+                local chanceToSee = math.random(1, 7 - difficulty) == 1
+                local canSeeWithinFOV = chanceToSee and lib.CanSeeArc(bot, other:GetPos(), 80)
+                if canSeeWithinFOV then
+                    bot:SetAttackTarget(other)
+                    local chatter = lib.GetComp(bot, "chatter")
+                    if not chatter then continue end
+                    chatter:On("HoldingTraitorWeapon", { player = other:Nick() })
+                end
             end
         end
     end

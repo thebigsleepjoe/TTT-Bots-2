@@ -362,6 +362,16 @@ local LoadLang = function()
 
 
     -----------------------------------------------------------
+    -- SPOTTING A PLAYER WITH A TRAITOR WEAPON
+    -----------------------------------------------------------
+
+    RegisterCategory("HoldingTraitorWeapon", P.IMPORTANT)
+    Line("HoldingTraitorWeapon", "{{player}} is holding a traitor weapon!", A.Default)
+    Line("HoldingTraitorWeapon", "traitor weapon on {{player}}", A.Casual)
+    Line("HoldingTraitorWeapon", "hey he's holding a traitor weapon", A.Casual)
+
+
+    -----------------------------------------------------------
     -- LIFE CHECKS
     -----------------------------------------------------------
 

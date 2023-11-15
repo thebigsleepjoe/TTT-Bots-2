@@ -89,6 +89,19 @@ function TTTBots.Lib.GetAliveEvilBots()
     return alive
 end
 
+---Looks at the active weapon ply is holding and returns true if it is a traitor-specific weapon. DOES NOT ACCOUNT FOR CUSTOM ROLES.
+---@param ply Player
+---@return boolean isTraitorWep
+function TTTBots.Lib.IsHoldingTraitorWep(ply)
+    local wep = ply:GetActiveWeapon()
+    if not IsValid(wep) then return false end
+
+    local traitorsCanBuy = wep.CanBuy and wep.CanBuy[ROLE_TRAITOR] and true or false
+    local canSpawnNaturally = wep.AutoSpawnable and true or false
+
+    return traitorsCanBuy and not canSpawnNaturally
+end
+
 -- Generate lowercase alphanumeric string of length 6
 function TTTBots.Lib.GenerateID()
     local id = ""
