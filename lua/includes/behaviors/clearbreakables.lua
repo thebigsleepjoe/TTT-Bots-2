@@ -29,7 +29,7 @@ function Breaker:Validate(bot)
 
     return traceResult.Hit and IsValid(traceResult.Entity) and
         table.HasValue(TTTBots.Components.ObstacleTracker.Breakables, traceResult.Entity) and
-        traceResult.Entity:Health() > 0
+        (traceResult.Entity:Health() > 0 and traceResult.Entity:Health() < 500)
 end
 
 --- Called when the behavior is started
