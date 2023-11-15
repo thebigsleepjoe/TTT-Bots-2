@@ -246,6 +246,36 @@ function TTTBots.Lib.GetAllWitnesses(pos, botsOnly)
     return witnesses
 end
 
+--- Function responsible for managing bots to be added and removed by the quota system.
+function TTTBots.Lib.UpdateQuota()
+    local quotaN = TTTBots.Lib.GetConVarInt("quota")
+    if quotaN == 0 then return end
+    local quotaMode = TTTBots.Lib.GetConVarString("quota_mode")
+    local nPlayers = #player.GetAll() -- All players in the match, including bots.
+    local nBots = #TTTBots.Bots
+    local slotsLeft = game.MaxPlayers() - nPlayers
+
+    if quotaMode == "fill" then
+        if nPlayers < quotaN then
+            TTTBots.Lib.CreateBot() -- Add bots one at a time
+        elseif nPlayers > quotaN then
+            TTTBots.Lib.RemoveBot() -- Remove bots one at a time
+        end
+        return
+    end
+
+    if quotaMode == "exact" then
+        if nBots < quotaN then
+            TTTBots.Lib.CreateBot()
+        elseif nBots > quotaN then
+            TTTBots.Lib.RemoveBot()
+        end
+    end
+end
+
+local QUOTA_INTERVAL = 2.5 --- The period between adding/removing bots automatically. Used to prevent lag spikes, mostly.
+timer.Create("TTTBots.Lib.UpdateQuota", QUOTA_INTERVAL, 0, TTTBots.Lib.UpdateQuota)
+
 --- Grabs the convar ttt_bot_playermodel and sets each bots model to that string. Does not do anything if is blank.
 function TTTBots.Lib.UpdateBotModels()
     local model = TTTBots.Lib.GetConVarString("playermodel")
@@ -588,6 +618,22 @@ function TTTBots.Lib.CreateBot(name)
     end
 
     return bot
+end
+
+--- Removes the first bot in the match that is dead (or if we are outside of a match). Will avoid kicking living bots during a match.
+---@param reason string|nil Optional, defaults to "Removed by server"
+function TTTBots.Lib.RemoveBot(reason)
+    local bots = TTTBots.Bots
+    if #bots == 0 then return end
+
+    for i, bot in pairs(bots) do
+        if not TTTBots.Lib.IsPlayerAlive(bot) or not TTTBots.Match.IsRoundActive() then
+            bot:Kick(reason or "Removed by server")
+            return true
+        end
+    end
+
+    return false
 end
 
 --- Trace line from eyes (if fromEyes, else feet) to the given position. Returns the trace result.

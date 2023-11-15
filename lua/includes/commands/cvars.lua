@@ -14,6 +14,11 @@ bot_cvar("enable_pfps", "1", "Bots can have profile pictures in the scoreboard")
 bot_cvar("emulate_ping", "1", "Bots will emulate a humanlike ping (does not affect gameplay and is cosmetic.)")
 bot_cvar("playermodel", "", "The path to the playermodel the bots should use. Leave blank to disable this feature.")
 
+bot_cvar("quota", "0",
+    "The number of bots to ensure are in the level at all times. Set to 0 to disable this feature. This cvar is affected by ..._mode")
+bot_cvar("quota_mode", "fill",
+    "The mode of the quota system. Options = 'fill', 'exact'. Fill will basically set the player count to X (filling in for players as they leave), and exact will always have X bots in the match.")
+
 -- Chatter cvars
 bot_cvar("chatter_lvl", "3",
     "The level of chatter that bots will have. 0 = none (not even KOS), 1 = critical only (like KOS), 2 = >= callouts/important only, 3 = everything.")
