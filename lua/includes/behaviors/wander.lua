@@ -137,10 +137,10 @@ function Wander:UpdateWanderGoal(bot)
     ---------------------------------------------
     local canHide =
         personality:GetTraitBool("hider")
-        or math.random(1, 6) == 1
+        or math.random(1, 10) == 1
     local canSnipe =
         personality:GetTraitBool("sniper")
-        or math.random(1, 6) == 1
+        or math.random(1, 10) == 1
     local shouldSpot = math.random(1, 5) <= 4
 
     if (canHide or canSnipe) and shouldSpot then
