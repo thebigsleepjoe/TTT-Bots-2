@@ -30,19 +30,21 @@ local function fuzzySearchFirstPly(name)
     return plys[1]
 end
 
+local gls = TTTBots.Locale.GetLocalizedString
+
 Chat.Commands = {
     ["!botmenu"] = function(ply, fulltxt)
         if not ply:IsSuperAdmin() then
             TTTBots.Chat.MessagePlayer(ply,
-                "You do not have permission to execute this command. You must be a superadmin.")
+                gls("not.superadmin"))
             return
         end
-        TTTBots.Chat.MessagePlayer(ply, "Not implemented yet. Please use the console commands instead.")
+        TTTBots.Chat.MessagePlayer(ply, gls("not.implemented"))
     end,
-    ["!describe"] = function(ply, fulltxt)
+    ["!botdescribe"] = function(ply, fulltxt)
         if not ply:IsSuperAdmin() then
             TTTBots.Chat.MessagePlayer(ply,
-                "You do not have permission to execute this command. You must be a superadmin.")
+                gls("not.superadmin"))
             return
         end
 
@@ -51,19 +53,19 @@ Chat.Commands = {
         local target = split()                      -- second word is the bot name
 
         if target == nil then
-            TTTBots.Chat.MessagePlayer(ply, "Please specify a bot name.")
+            TTTBots.Chat.MessagePlayer(ply, gls("specify.bot.name"))
             return
         end
 
         local bot = fuzzySearchFirstPly(target)
         if bot == nil or not bot:IsBot() then
-            TTTBots.Chat.MessagePlayer(ply, "Bot named '" .. target .. "' not found.")
+            TTTBots.Chat.MessagePlayer(ply, gls('bot.not.found', target))
             return
         end
 
         local personality = bot.components.personality
         local traits = personality:GetTraits()
-        local str = "Bot " .. bot:Nick() .. " has the following personality traits: "
+        local str = "Bot " .. bot:Nick() .. gls("following.traits")
         for i, trait in pairs(traits) do
             str = str .. trait .. ", "
         end
@@ -73,7 +75,7 @@ Chat.Commands = {
     ["!addbot"] = function(ply, fulltxt)
         if not ply:IsSuperAdmin() then
             TTTBots.Chat.MessagePlayer(ply,
-                "You do not have permission to execute this command. You must be a superadmin.")
+                gls("not.superadmin"))
             return
         end
         local split = string.gmatch(fulltxt, "%S+") -- split by spaces
@@ -84,7 +86,7 @@ Chat.Commands = {
         if amt ~= nil and amt ~= "" then
             amt = tonumber(amt)
             if amt == nil then
-                TTTBots.Chat.MessagePlayer(ply, "Please specify a valid number of bots to add.")
+                TTTBots.Chat.MessagePlayer(ply, gls("invalid.bot.number"))
                 return
             end
         else
@@ -94,16 +96,14 @@ Chat.Commands = {
         -- check there are enough player slots
         local isSingle = game.SinglePlayer()
         if isSingle then
-            TTTBots.Chat.MessagePlayer(ply,
-                "Cannot add bots in singleplayer. Please check the workshop page for a how-to guide.")
-            TTTBots.Chat.MessagePlayer(ply, "You must be in a server to use this mod. Don't worry, it's super easy!!")
+            TTTBots.Chat.MessagePlayer(ply, gls("not.server"))
+            TTTBots.Chat.MessagePlayer(ply, gls("not.server.guide"))
             return
         end
         local slots = game.MaxPlayers() - #player.GetAll()
         if amt > slots then
-            TTTBots.Chat.MessagePlayer(ply, "Not enough player slots to add " .. amt .. " bots.")
-            TTTBots.Chat.MessagePlayer(ply,
-                "Please consider re-hosting with more player slots, or kick some existing bots.")
+            TTTBots.Chat.MessagePlayer(ply, gls("not.enough.slots.n", tostring(amt)))
+            TTTBots.Chat.MessagePlayer(ply, gls("consider.kicking"))
             return
         end
 
@@ -112,10 +112,13 @@ Chat.Commands = {
             TTTBots.Lib.CreateBot()
         end
     end,
-    ["!roundrestart"] = function(ply, fulltxt)
+    ["!botadd"] = function(ply, fulltxt)
+        Chat.Commands['!roundrestart'](ply, fulltxt)
+    end,
+    ["!botrr"] = function(ply, fulltxt)
         if not ply:IsSuperAdmin() then
             TTTBots.Chat.MessagePlayer(ply,
-                "You do not have permission to execute this command. You must be a superadmin.")
+                gls("not.superadmin"))
             return
         end
         local nBots = #TTTBots.Bots
@@ -123,33 +126,69 @@ Chat.Commands = {
         concommand.Run(ply, "ttt_roundrestart")
         concommand.Run(ply, "ttt_bot_add", { tostring(nBots) })
 
-        -- TTTBots.Chat.MessagePlayer(ply, "Restarted round and added " .. nBots .. " bots.")
-        TTTBots.Chat.BroadcastInChat(ply:Nick() .. " restarted the round and added " .. nBots .. " bots.")
+        TTTBots.Chat.BroadcastInChat(gls("bot.rr", ply:Nick(), tostring(nBots)))
     end,
-    ["!restartround"] = function(ply, fulltxt)
-        Chat.Commands['!roundrestart'](ply, fulltxt)
-    end,
-    ["!rr"] = function(ply, fulltxt)
-        Chat.Commands['!roundrestart'](ply, fulltxt)
-    end,
-    ["!kickbots"] = function(ply, fulltxt)
+    ["!botkickall"] = function(ply, fulltxt)
         if not ply:IsSuperAdmin() then
             TTTBots.Chat.MessagePlayer(ply,
-                "You do not have permission to execute this command. You must be a superadmin.")
+                gls("not.superadmin"))
             return
         end
         concommand.Run(ply, "ttt_bot_kickall")
-        TTTBots.Chat.BroadcastInChat(ply:Nick() .. " kicked all bots from the server.")
+        TTTBots.Chat.BroadcastInChat(gls("bot.kicked.all", ply:Nick()))
+    end,
+    ["!botdifficulty"] = function(ply, fulltxt)
+        if not ply:IsSuperAdmin() then
+            TTTBots.Chat.MessagePlayer(ply,
+                gls("not.superadmin"))
+            return
+        end
+
+        local split = string.gmatch(fulltxt, "%S+") -- split by spaces
+        local cmd = split()                         -- first word is the command
+        local difficulty = split()                  -- second arg is the difficulty, if any
+
+        if not difficulty then
+            local curDifficulty = TTTBots.Lib.GetConVarInt("difficulty")
+            local index = "difficulty." .. curDifficulty
+            local difficultyName = gls(index)
+            TTTBots.Chat.MessagePlayer(ply, gls("difficulty.current", difficultyName))
+            return
+        end
+
+        local possibleDiffs = {
+            ['1'] = true,
+            ['2'] = true,
+            ['3'] = true,
+            ['4'] = true,
+            ['5'] = true,
+        }
+
+        if possibleDiffs[difficulty] then
+            local curDifficulty = TTTBots.Lib.GetConVarInt("difficulty")
+            local index = "difficulty." .. curDifficulty
+            local difficultyName = gls(index)
+            TTTBots.Chat.MessagePlayer(ply, gls("difficulty.changed", gls("difficulty." .. difficulty), difficultyName))
+            ply:ConCommand("ttt_bot_difficulty " .. tostring(difficulty))
+            if tonumber(difficulty) < curDifficulty then
+                TTTBots.Chat.MessagePlayer(ply, gls("difficulty.changed.kickgood"))
+            elseif tonumber(difficulty) > curDifficulty then
+                TTTBots.Chat.MessagePlayer(ply, gls("difficulty.changed.kickbad"))
+            end
+        else
+            TTTBots.Chat.MessagePlayer(ply, gls("difficulty.invalid"))
+        end
     end,
     ["!bothelp"] = function(ply, fulltxt)
         local mp = TTTBots.Chat.MessagePlayer
         local visibleHelp = {
-            addbot = "Adds a bot to the server. Usage: !addbot X, where X is the number of bots to add.",
-            kickbots = "Kicks all bots from the server.",
-            roundrestart = "Restarts the round and adds the same number of bots as before.",
-            describe = "Describes the personality of a bot. Usage: !describe X, where X is the name of the bot.",
-            botmenu = "Opens the bot menu. (Not implemented yet)",
-            help = "Shows this help message."
+            botmenu = gls("help.botmenu"),
+            botadd = gls("help.botadd"),
+            botrr = gls("help.botrr"),
+            botkickall = gls("help.botkickall"),
+            botdifficulty = gls("help.botdifficulty"),
+            botdescribe = gls("help.botdescribe"),
+            bothelp = gls("help.bothelp"),
         }
 
         local split = string.gmatch(fulltxt, "%S+") -- split by spaces
@@ -173,7 +212,7 @@ Chat.Commands = {
         -- Run ttt_bot_debug_showui on the client's end if they're a superadmin
         if not ply:IsSuperAdmin() then
             TTTBots.Chat.MessagePlayer(ply,
-                "You do not have permission to execute this command. You must be a superadmin.")
+                gls("not.superadmin"))
             return
         end
         ply:ConCommand("ttt_bot_debug_showui")

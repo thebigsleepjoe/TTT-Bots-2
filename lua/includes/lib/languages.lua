@@ -17,11 +17,19 @@ end
 
 --- Gets a localized string name from the given language.
 ---@param name string
----@param lang string|nil The language to select; if nil, selects the currently set language thru ttt_bot_language
+---@param ... any|nil Any varargs to pass to string.format
 ---@return string|nil string returns string if line exists, nil if it doesn't
-function TTTBots.Locale.GetLocalizedString(name, lang)
-    local lang = lang or GetConVar("ttt_bot_language"):GetString()
-    return TTTBots.Locale[lang] and TTTBots.Locale[lang][name] or ("ERR: no lang '" .. lang .. "'")
+function TTTBots.Locale.GetLocalizedString(name, ...)
+    local lang = GetConVar("ttt_bot_language"):GetString()
+    local str = TTTBots.Locale[lang] and TTTBots.Locale[lang][name] or ("ERR: no lang '" .. lang .. "'")
+
+    -- check if we have any varargs before formatting
+    if ... then
+        str = string.format(str, ...)
+        return str
+    end
+
+    return str
 end
 
 --- warning: do not move this include to the top of the file, it will cause an error. leave it below GetLocalizedString

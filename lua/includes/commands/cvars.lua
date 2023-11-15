@@ -10,8 +10,9 @@ bot_cvar("language", "en",
 bot_cvar("enable_chat_cmds", "1",
     "If you want to allow chat commands to be used for administration. This cvar exists for mod compatibility.")
 bot_cvar("names_prefixes", "1", "Bot names are forced prefixed by '[BOT]'")
-bot_cvar("enable_pfps", "1", "Bots can have profile pictures in the scoreboard")
-bot_cvar("emulate_ping", "1", "Bots will emulate a humanlike ping (does not affect gameplay and is cosmetic.)")
+bot_cvar("enable_pfps", "1", "Bots can have AI-related profile pictures in the scoreboard")
+bot_cvar("emulate_ping", "0",
+    "Bots will emulate a humanlike ping (does not affect gameplay and is cosmetic.) This is to be used in servers of players that consent to playing with bots. It's a flavor feature for friends.")
 bot_cvar("playermodel", "", "The path to the playermodel the bots should use. Leave blank to disable this feature.")
 
 bot_cvar("quota", "0",
