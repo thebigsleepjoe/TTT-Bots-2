@@ -215,8 +215,8 @@ net.Receive("TTTBots_SyncAvatarNumbers", function(len, ply)
                 avatar.IsFakeAvatar = true
                 row.hasFakeAvatar = true
 
-
-                avatar:SetImage(string.format("materials/avatars/BotAvatar (%d).jpg", avatarNumber))
+                local path = string.format("materials/avatars/%d.png", avatarNumber)
+                avatar:SetImage(path)
                 --avatar:SetAvatar("BotAvatar (" .. avatarNumber .. ").jpg")
             end
         end
