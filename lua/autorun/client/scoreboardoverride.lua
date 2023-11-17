@@ -176,19 +176,9 @@ timer.Create("TTTBots.Client.FakePing2", 0.2, 0, function()
     UpdatePings()
 end)
 
-local function syncBotAvatars()
-    local pnl = GAMEMODE:GetScoreboardPanel()
-    if not IsValid(pnl) then return end
+local avatarCache = {} -- A cache of avatars <string nick, number avatarNumber>
 
-    net.Start("TTTBots_SyncAvatarNumbers")
-    net.SendToServer()
-end
-
-net.Receive("TTTBots_SyncAvatarNumbers", function(len, ply)
-    local ttt_bot_enable_pfps = GetConVar("ttt_bot_enable_pfps"):GetBool()
-    if not ttt_bot_enable_pfps then return end
-
-    local avatars_nicks = net.ReadTable()
+local function updateScoreboardPfps()
     local pnl = GAMEMODE:GetScoreboardPanel()
     if not IsValid(pnl) then return end
 
@@ -202,7 +192,7 @@ net.Receive("TTTBots_SyncAvatarNumbers", function(len, ply)
                 --local avatar = getChildByName(row, "Avatar")
                 local avatar = row.avatar
                 if not avatar then continue end
-                local avatarNumber = avatars_nicks[player:Nick()]
+                local avatarNumber = avatarCache[player:Nick()]
                 if not avatarNumber then continue end
                 if avatar.IsFakeAvatar or row.hasFakeAvatar then continue end
                 print("Created avatar for bot " .. player:Nick() .. " (" .. avatarNumber .. ")")
@@ -221,6 +211,23 @@ net.Receive("TTTBots_SyncAvatarNumbers", function(len, ply)
             end
         end
     end
+end
+
+local function cacheBotAvatars()
+    local ttt_bot_enable_pfps = GetConVar("ttt_bot_enable_pfps"):GetBool()
+    if not ttt_bot_enable_pfps then return end
+    local pnl = GAMEMODE:GetScoreboardPanel()
+    if not IsValid(pnl) then return end
+
+    net.Start("TTTBots_SyncAvatarNumbers")
+    net.SendToServer()
+end
+
+net.Receive("TTTBots_SyncAvatarNumbers", function(len, ply)
+    avatarCache = net.ReadTable()
+    cacheBotAvatars()
+    updateScoreboardPfps()
 end)
 
-timer.Create("TTTBots.Client.SyncBotAvatars", 1, 0, syncBotAvatars)
+timer.Create("TTTBots.Client.CacheBotAvatars", 2, 0, cacheBotAvatars)
+timer.Create("TTTBots.Client.SyncBotAvatars", 0.25, 0, updateScoreboardPfps)
