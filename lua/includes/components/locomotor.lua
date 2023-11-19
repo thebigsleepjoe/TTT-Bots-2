@@ -1524,6 +1524,9 @@ local plyMeta = FindMetaTable("Player")
 
 function plyMeta:SetAttackTarget(target)
     if self.attackTarget == target then return end
+    local plyIsEvil = lib.IsEvil(self)
+    local targIsEvil = lib.IsEvil(target)
+    if (plyIsEvil and targIsEvil) then return end -- don't attack traitors!
     self.attackTarget = target
     local loco = lib.GetComp(self, "locomotor")
     local personality = lib.GetComp(self, "personality")
