@@ -7,11 +7,11 @@ end
 -- Misc cvars
 bot_cvar("language", "en",
     "Changes the language that the bots speak in text chat, and may modify some GUI strings. Example is 'en' or 'es'")
-bot_cvar("enable_chat_cmds", "1",
+bot_cvar("chat_cmds", "1",
     "If you want to allow chat commands to be used for administration. This cvar exists for mod compatibility.")
 bot_cvar("names_prefixes", "1", "Bot names are forced prefixed by '[BOT]'")
-bot_cvar("enable_pfps", "1", "Bots can have AI-related profile pictures in the scoreboard")
-bot_cvar("enable_pfps_humanlike", "0", "Bots can have AI-related profile pictures in the scoreboard")
+bot_cvar("pfps", "1", "Bots can have AI-related profile pictures in the scoreboard")
+bot_cvar("pfps_humanlike", "0", "Bots can have AI-related profile pictures in the scoreboard")
 bot_cvar("emulate_ping", "0",
     "Bots will emulate a humanlike ping (does not affect gameplay and is cosmetic.) This is to be used in servers of players that consent to playing with bots. It's a flavor feature for friends.")
 bot_cvar("playermodel", "", "The path to the playermodel the bots should use. Leave blank to disable this feature.")
@@ -36,7 +36,7 @@ bot_cvar("plans_mindelay", "8",
     "The delay when a round starts before traitor bots may follow automatic plans.")
 bot_cvar("plans_maxdelay", "16",
     "The maximum duration when a round starts before traitor bots may follow automatic plans.")
-bot_cvar("enable_flicking", "1",
+bot_cvar("flicking", "1",
     "Can the bots flick around when they get shot from the rear? Effectively makes bots harder and seem smarter.")
 bot_cvar("difficulty", "3",
     "A difficulty integer between 1-5; higher = harder. This affects trait selection and aim speed, reaction speed, and KOS callout chances.")
@@ -114,11 +114,11 @@ bot_cvar("pathfinding_cpf", "50",
     "Don't change this unless you know what you are doing. How many pathfinding calculations to do per frame. Higher values = more CPU usage, but faster pathfinding.")
 bot_cvar("pathfinding_cpf_scaling", "0",
     "Don't change this unless you know what you are doing. Should we dynamically multiply the pathfinding calculations per frame by the number of bots? (e.g. 50 cpf * 2 bots = 100 cpf)")
-bot_cvar("enable_rdm", "0", -- TODO: Implement RDM
+bot_cvar("rdm", "0", -- TODO: Implement RDM
     "Enables RDM (random deathmatch). This isn't advised for most situations, but can offer some extra variety should you want it.")
 
 -- Behavior cvars
 bot_cvar("radar_chance", "100",
     "Chance that a traitor bot will simulate having radar as a traitor (internally they must be an 'evil' role).")
-bot_cvar("enable_coordinator", "1",
+bot_cvar("coordinator", "1",
     "Enables the Evil Coordinator module. Evil bots will not coordinate with other traitors with this set to 0. WARNING: This will make traitor bots far less effective & responsive.")

@@ -219,11 +219,11 @@ function BotLocomotor:OnNewTarget(target)
     local ttt_bot_reaction_speed = lib.GetConVarFloat("reaction_speed")
     local ttt_bot_difficulty = lib.GetConVarInt("difficulty")
     local DIFFICULTY_MULT_HASH = {
-        [1] = 3, -- e.g. 0.3 x 3 = 0.9s
-        [2] = 2, -- e.g. 0.3 x 2 = 0.6s
-        [3] = 1, -- e.g. 0.3 x 1 = 0.3s
+        [1] = 3,   -- e.g. 0.3 x 3 = 0.9s
+        [2] = 2,   -- e.g. 0.3 x 2 = 0.6s
+        [3] = 1,   -- e.g. 0.3 x 1 = 0.3s
         [4] = 0.8, -- e.g. 0.3 x 0.8 = 0.24s
-        [5] = 0, -- e.g. 0.3 x 0 = 0s
+        [5] = 0,   -- e.g. 0.3 x 0 = 0s
     }
     local ttt_bot_reaction_speed_traitors_lessened = lib.GetConVarBool("reaction_speed_traitors_lessened")
     if ttt_bot_reaction_speed_traitors_lessened and lib.IsEvil(self.bot) then
@@ -234,8 +234,8 @@ function BotLocomotor:OnNewTarget(target)
     self.reactionDelay = CurTime() + reactionSpeed
 
     -- Simulate a 'flick'
-    local ttt_bot_enable_flicking = lib.GetConVarBool("enable_flicking")
-    if ttt_bot_enable_flicking then
+    local ttt_bot_flicking = lib.GetConVarBool("flicking")
+    if ttt_bot_flicking then
         self.lookSpeedMultiplier = 5
     end
 end

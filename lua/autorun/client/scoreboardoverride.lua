@@ -180,7 +180,7 @@ local avatarCache = {} -- A cache of avatars <string nick, number avatarNumber>
 
 local function updateScoreboardPfps()
     local pnl = GAMEMODE:GetScoreboardPanel()
-    local enable_pfps_humanlike = GetConVar("ttt_bot_enable_pfps_humanlike"):GetBool()
+    local pfps_humanlike = GetConVar("ttt_bot_pfps_humanlike"):GetBool()
     if not IsValid(pnl) then return end
 
     for _, group in pairs(pnl.ply_groups) do
@@ -207,7 +207,7 @@ local function updateScoreboardPfps()
                 row.hasFakeAvatar = true
 
                 local path = string.format("materials/avatars/%d.png", avatarNumber)
-                if enable_pfps_humanlike then
+                if pfps_humanlike then
                     path = string.format("materials/avatars/humanlike/%d.jpg", avatarNumber)
                 end
                 avatar:SetImage(path)
@@ -218,8 +218,8 @@ local function updateScoreboardPfps()
 end
 
 local function cacheBotAvatars()
-    local ttt_bot_enable_pfps = GetConVar("ttt_bot_enable_pfps"):GetBool()
-    if not ttt_bot_enable_pfps then return end
+    local ttt_bot_pfps = GetConVar("ttt_bot_pfps"):GetBool()
+    if not ttt_bot_pfps then return end
     local pnl = GAMEMODE:GetScoreboardPanel()
     if not IsValid(pnl) then return end
 

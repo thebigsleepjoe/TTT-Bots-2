@@ -225,7 +225,7 @@ end
 
 hook.Add("PlayerSay", "TTTBots.PlayerSay", function(ply, text, team)
     if ply:IsBot() then return end
-    local cvarTest = TTTBots.Lib.GetConVarBool("enable_chat_cmds")
+    local cvarTest = TTTBots.Lib.GetConVarBool("chat_cmds")
     if not cvarTest then return end
     local fulltxt = string.lower(text)
     local split = string.gmatch(fulltxt, "%S+") -- split by spaces

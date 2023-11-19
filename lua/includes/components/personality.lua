@@ -503,7 +503,7 @@ local RDM_BOREDOM_MIN = 0.7
 local RDM_PCT_CHANCE = 20 -- 10% chance to rdm every 2.5 seconds if criteria are met
 timer.Create("TTTBots.Personality.RDM", 2.5, 0, function()
     if not TTTBots.Match.IsRoundActive() then return end
-    if not lib.GetConVarBool("enable_rdm") then return end
+    if not lib.GetConVarBool("rdm") then return end
     for i, bot in pairs(TTTBots.Bots) do
         if not lib.IsPlayerAlive(bot) then continue end -- skip if bot not loaded
         local personality = lib.GetComp(bot, "personality") ---@type CPersonality

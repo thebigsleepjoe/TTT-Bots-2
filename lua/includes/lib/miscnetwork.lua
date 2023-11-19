@@ -23,10 +23,10 @@ local function assignBotAvatar(bot)
         return
     end
 
-    local enable_pfps_humanlike = TTTBots.Lib.GetConVarBool("enable_pfps_humanlike")
+    local pfps_humanlike = TTTBots.Lib.GetConVarBool("pfps_humanlike")
     local assignedImage
 
-    if not enable_pfps_humanlike then
+    if not pfps_humanlike then
         local difficulty = personality:GetTraitAdditive("difficulty")
 
         if difficulty <= -4 then

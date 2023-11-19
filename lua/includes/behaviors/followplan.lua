@@ -111,7 +111,7 @@ end
 
 --- Validate the behavior
 function FollowPlan:Validate(bot)
-    local isCoordinatorEnabled = lib.GetConVarBool("enable_coordinator")
+    local isCoordinatorEnabled = lib.GetConVarBool("coordinator")
     if not isCoordinatorEnabled then return false end
 
     local validate_debug = false
