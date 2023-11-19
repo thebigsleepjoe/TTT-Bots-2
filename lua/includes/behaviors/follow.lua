@@ -5,7 +5,7 @@ local lib = TTTBots.Lib
 
 local Follow = TTTBots.Behaviors.Follow
 Follow.Name = "Follow"
-Follow.Description = "Follow a player discretely."
+Follow.Description = "Follow a player non-descreetly."
 Follow.Interruptible = true
 
 local STATUS = {
@@ -32,18 +32,28 @@ local FOLLOWING_TRAITS = {
 ---@param bot Player
 ---@return boolean
 function Follow:IsFollower(bot)
-    return lib.IsEvil(bot) or bot:HasTraitIn(FOLLOWING_TRAITS)
+    local personality = lib.GetComp(bot, "personality") ---@type CPersonality
+    if not personality then return false end
+
+    local hasTrait = personality:GetTraitBool("follower") or personality:GetTraitBool("followerAlways")
+    local isEvil = lib.IsEvil(bot)
+
+    return isEvil or hasTrait
 end
 
 --- Similar to IsFollower, but returns mathematical chance of deciding to follow a new person this tick.
 function Follow:GetFollowChance(bot)
-    local BASE_CHANCE = 2 -- X % chance per tick
+    local BASE_CHANCE = 5 -- X % chance per tick
     local debugging = false
     local chance = BASE_CHANCE * (self:IsFollower(bot) and 1 or 0) * (lib.IsEvil(bot) and 2 or 1)
 
+    local personality = lib.GetComp(bot, "personality") ---@type CPersonality
+    if not personality then return chance end
+    local alwaysFollows = personality:GetTraitBool("followerAlways")
+
     return (
-        (debugging and 100) or -- if debugging return 100% always.
-        chance                 -- otherwise return the actual chance.
+        ((debugging or alwaysFollows) and 100) or -- if debugging return 100% always.
+        chance                                    -- otherwise return the actual chance.
     )
 end
 
@@ -137,18 +147,7 @@ function Follow:OnStart(bot)
 end
 
 function Follow:GetFollowPoint(target)
-    local nearestNav = navmesh.GetNearestNavArea(target:GetPos())
-    local maxDist = 1000
-
-    if not nearestNav then return end
-
-    local isDiscreet = true
-
-    local possibleAreas = TTTBots.Lib.GetAllVisibleWithinDist(nearestNav, maxDist)
-    if possibleAreas == nil or #possibleAreas == 0 then isDiscreet = false end
-    local randomPoint = (isDiscreet and self:GetRandomPointInList(possibleAreas)) or nearestNav:GetRandomPoint()
-
-    return randomPoint
+    return target:GetPos()
 end
 
 --- Called when the behavior's last state is running
@@ -159,16 +158,16 @@ function Follow:OnRunning(bot)
         return STATUS.FAILURE
     end
 
-    if bot.randFollowPoint ~= nil and bot:GetPos():Distance(bot.randFollowPoint) < 100 then
+    if bot.botFollowPoint ~= nil and bot:GetPos():Distance(bot.botFollowPoint) < 100 then
         return STATUS.SUCCESS
     end
 
     local loco = bot.components.locomotor
-    bot.randFollowPoint = self:GetFollowPoint(target)
+    bot.botFollowPoint = self:GetFollowPoint(target)
 
-    if bot.randFollowPoint == false then return STATUS.FAILURE end
+    if bot.botFollowPoint == false then return STATUS.FAILURE end
 
-    loco:SetGoalPos(bot.randFollowPoint)
+    loco:SetGoalPos(bot.botFollowPoint)
 end
 
 --- Called when the behavior returns a success state
@@ -183,6 +182,6 @@ end
 function Follow:OnEnd(bot)
     timer.Remove("TTTBots.Follow." .. bot:Nick())
     bot.followTarget = nil
-    bot.randFollowPoint = nil
+    bot.botFollowPoint = nil
     bot.components.locomotor:Stop()
 end

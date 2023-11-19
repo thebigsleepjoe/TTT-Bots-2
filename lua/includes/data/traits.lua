@@ -29,6 +29,7 @@ TTTBots.Traits = {
             rageRate = 1.5,       -- Rage faster
             ignoreOrders = true,  -- Ignore evil coordinator orders
             difficulty = 2,       -- how many points of difficulty this trait is worth
+            follower = true,      -- likes to follow players
         }
     },
     --- Prefers to avoid fights and run away instead
@@ -65,6 +66,7 @@ TTTBots.Traits = {
             suspicion = 1.5,
             suspicionMe = 1.5, -- make others build suspicion on us faster
             investigateCorpse = 0,
+            follower = true,   -- likes to follow players
         }
     },
     --- Aim tends to be terrible, especially when under pressure.
@@ -124,7 +126,8 @@ TTTBots.Traits = {
             boredomRate = 1.5,      -- Boredom builds up faster
             difficulty = -4,
             investigateCorpse = 0.2,
-            hider = true
+            hider = true,
+            follower = true, -- likes to follow players
         }
     },
     -- Good hearing, memory, and target acquisition than the average player.
@@ -214,7 +217,8 @@ TTTBots.Traits = {
         archetype = A.Hothead,
         effects = {
             boredomRate = 2.0, -- Boredom builds up faster
-            rdmer = true
+            rdmer = true,
+            follower = true,   -- likes to follow players
         }
     },
     --- Makes traitors 3x as likely to attack him at random
@@ -293,6 +297,8 @@ TTTBots.Traits = {
         traitor_only = false,
         effects = {
             hearing = 1.1,
+            followerAlways = true, -- always wants to follow someone
+            follower = true,       -- likes to follow players
         }
     },
     --- Instead of wandering randomly, hunkers in a random hidden spot (ONLY WHEN NOT EVIL)
@@ -389,6 +395,7 @@ TTTBots.Traits = {
             pressureRate = 0.2,  -- Pressure builds up slower
             difficulty = -6,
             investigateCorpse = 0,
+            follower = true, -- likes to follow players
         }
     },
     --- Can use the disguiser
