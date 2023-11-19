@@ -23,19 +23,25 @@ local function assignBotAvatar(bot)
         return
     end
 
-    local difficulty = personality:GetTraitAdditive("difficulty")
+    local enable_pfps_humanlike = TTTBots.Lib.GetConVarBool("enable_pfps_humanlike")
     local assignedImage
 
-    if difficulty < -3 then
-        assignedImage = 1 -- Bronze
-    elseif difficulty < -1 then
-        assignedImage = 2 -- Silver
-    elseif difficulty < 2 then
-        assignedImage = 3 -- Gold
-    elseif difficulty < 4 then
-        assignedImage = 4 -- Platinum
+    if not enable_pfps_humanlike then
+        local difficulty = personality:GetTraitAdditive("difficulty")
+
+        if difficulty <= -4 then
+            assignedImage = 1
+        elseif difficulty <= -2 then
+            assignedImage = 2
+        elseif difficulty <= 2 then
+            assignedImage = 3
+        elseif difficulty <= 4 then
+            assignedImage = 4
+        else
+            assignedImage = 5
+        end
     else
-        assignedImage = 5 -- Ruby
+        assignedImage = math.random(0, 87)
     end
 
     -- print("Bot assigned image " .. assignedImage .. " for difficulty " .. difficulty)
