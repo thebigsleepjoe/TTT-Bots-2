@@ -225,7 +225,6 @@ end
 
 net.Receive("TTTBots_SyncAvatarNumbers", function(len, ply)
     avatarCache = net.ReadTable()
-    cacheBotAvatars()
     updateScoreboardPfps()
 end)
 
