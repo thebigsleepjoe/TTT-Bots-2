@@ -1,6 +1,7 @@
 -- avatars are stored in "materials/avatars/" with the name "X.png", with a range of [1,5] for X.
 -- so each ply object is assigned to an avatar number
 local avatars = {}
+local f = string.format
 
 local function validateAvatarCache()
     for k, v in pairs(avatars) do
@@ -8,6 +9,33 @@ local function validateAvatarCache()
             avatars[k] = nil
         end
     end
+end
+
+--- Tries to select an avatar with a not-yet-selected avatar number
+local function selectRandomHumanlike(bot)
+    local RANGE_MIN = 0
+    local RANGE_MAX = 87
+
+    local selected = {} -- A hash map of selected numbers
+    for i, other in pairs(TTTBots.Bots) do
+        if other ~= bot and other.avatarN then
+            selected[other.avatarN] = true
+        end
+    end
+
+    local MAX_TRIES = 10
+    local tries = 0
+    local selectedNumber
+
+    while (tries < MAX_TRIES) do
+        selectedNumber = math.random(RANGE_MIN, RANGE_MAX)
+        if not selected[selectedNumber] then
+            break
+        end
+        tries = tries + 1
+    end
+
+    return selectedNumber
 end
 
 local function assignBotAvatar(bot)
@@ -41,12 +69,11 @@ local function assignBotAvatar(bot)
             assignedImage = 5
         end
     else
-        assignedImage = math.random(0, 87)
+        assignedImage = selectRandomHumanlike(bot)
     end
 
-    -- print("Bot assigned image " .. assignedImage .. " for difficulty " .. difficulty)
-
     avatars[bot] = assignedImage
+    bot.avatarN = assignedImage
 end
 
 hook.Add("PlayerInitialSpawn", "TTTBots_PlayerInitialSpawn", function(ply)
