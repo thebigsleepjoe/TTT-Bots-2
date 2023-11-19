@@ -1,3 +1,8 @@
+--[[
+    This file defines a list of chats that bots will say upon a certain kind of event. It is designed for one-off chatter events, instead of back-and-forth conversation.
+    For that, we will have a separate file, and likely use the Localized String system.
+]]
+
 local P = {
     CRITICAL = 1,  --- KOS, user interaction, etc.
     IMPORTANT = 2, --- Important, but not necessarily critical
