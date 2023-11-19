@@ -133,7 +133,7 @@ local LoadLang = function()
     -- TARGET ASSIGNMENT / ATTACK
     -----------------------------------------------------------
 
-    RegisterCategory("DisguisedPlayer", P.IMPORTANT)
+    RegisterCategory("DisguisedPlayer", P.IMPORTANT) -- When a bot spots someone with a disguise
     Line("DisguisedPlayer", "This guy is disguised!", A.Default)
     Line("DisguisedPlayer", "disguised dude over here", A.Casual)
     Line("DisguisedPlayer", "Why cant i see your name??", A.Bad)
@@ -143,7 +143,7 @@ local LoadLang = function()
     Line("DisguisedPlayer", "Disguising won't save you", A.Tryhard)
 
 
-    RegisterCategory("CallKOS", P.CRITICAL)
+    RegisterCategory("CallKOS", P.CRITICAL) -- When a bot is going to call KOS on another player.
     Line("CallKOS", "KOS on {{player}}!", A.Default)
     Line("CallKOS", "{{player}} is KOS", A.Default)
     Line("CallKOS", "KOS on {{player}}", A.Default)
@@ -172,7 +172,7 @@ local LoadLang = function()
     -----------------------------------------------------------
 
 
-    RegisterCategory(f("Plan.%s", ACTS["ATTACKANY"]), P.CRITICAL)
+    RegisterCategory(f("Plan.%s", ACTS["ATTACKANY"]), P.CRITICAL) -- When a traitor bot is going to attack a player/bot.
     Line(f("Plan.%s", ACTS["ATTACKANY"]), "I'm going to attack {{player}}.", A.Default)
     Line(f("Plan.%s", ACTS["ATTACKANY"]), "I've got {{player}}.", A.Default)
     Line(f("Plan.%s", ACTS["ATTACKANY"]), "I'll take {{player}}.", A.Default)
@@ -198,7 +198,7 @@ local LoadLang = function()
     Line(f("Plan.%s", ACTS["ATTACKANY"]), "Dibs on {{player}}. Don't take my ace", A.Tryhard)
 
 
-    RegisterCategory(f("Plan.%s", ACTS["ATTACK"]), P.CRITICAL)
+    RegisterCategory(f("Plan.%s", ACTS["ATTACK"]), P.CRITICAL) -- When a traitor bot is going to attack a player/bot.
     Line(f("Plan.%s", ACTS["ATTACKANY"]), "I'm going to attack {{player}}.", A.Default)
     Line(f("Plan.%s", ACTS["ATTACKANY"]), "I've got {{player}}.", A.Default)
     Line(f("Plan.%s", ACTS["ATTACKANY"]), "I'll take {{player}}.", A.Default)
@@ -224,22 +224,22 @@ local LoadLang = function()
     Line(f("Plan.%s", ACTS["ATTACKANY"]), "Dibs on {{player}}. Don't take my ace", A.Tryhard)
 
 
-    RegisterCategory(f("Plan.%s", ACTS["PLANT"]), P.CRITICAL)
+    RegisterCategory(f("Plan.%s", ACTS["PLANT"]), P.CRITICAL) -- When a traitor bot is going to plant a bomb.
     Line(f("Plan.%s", ACTS["PLANT"]), "I'm going to plant a bomb.", A.Default)
     Line(f("Plan.%s", ACTS["PLANT"]), "I'm planting a bomb.", A.Default)
     Line(f("Plan.%s", ACTS["PLANT"]), "Placing a bomb!", A.Default)
     Line(f("Plan.%s", ACTS["PLANT"]), "Gonna rig this place to blow.", A.Default)
 
 
-    RegisterCategory(f("Plan.%s", ACTS["DEFUSE"]), P.CRITICAL)
+    RegisterCategory(f("Plan.%s", ACTS["DEFUSE"]), P.CRITICAL) -- When a traitor bot is going to defuse a bomb.
     Line(f("Plan.%s", ACTS["DEFUSE"]), "I'm going to defuse a bomb.", A.Default)
 
 
-    RegisterCategory(f("Plan.%s", ACTS["FOLLOW"]), P.CRITICAL)
+    RegisterCategory(f("Plan.%s", ACTS["FOLLOW"]), P.CRITICAL) -- When a traitor bot is going to follow a player/bot.
     Line(f("Plan.%s", ACTS["FOLLOW"]), "I'm going to follow {{player}}", A.Default)
 
 
-    RegisterCategory(f("Plan.%s", ACTS["GATHER"]), P.CRITICAL)
+    RegisterCategory(f("Plan.%s", ACTS["GATHER"]), P.CRITICAL) -- When a traitor bot is going to gather with other bots.
     Line(f("Plan.%s", ACTS["GATHER"]), "Let's all gather over there.", A.Default)
     Line(f("Plan.%s", ACTS["GATHER"]), "Gather over here.", A.Default)
     Line(f("Plan.%s", ACTS["GATHER"]), "come hither lads", A.Casual)
@@ -260,22 +260,22 @@ local LoadLang = function()
     Line(f("Plan.%s", ACTS["GATHER"]), "Let's all gather up, I need some friends for this one.", A.Nice)
 
 
-    RegisterCategory(f("Plan.%s", ACTS["DEFEND"]), P.CRITICAL)
+    RegisterCategory(f("Plan.%s", ACTS["DEFEND"]), P.CRITICAL) -- When a traitor bot is going to defend an area.
     Line(f("Plan.%s", ACTS["DEFEND"]), "I'm going to defend this area.", A.Default)
 
 
-    RegisterCategory(f("Plan.%s", ACTS["ROAM"]), P.CRITICAL)
+    RegisterCategory(f("Plan.%s", ACTS["ROAM"]), P.CRITICAL) -- When a traitor bot is going to roam.
     Line(f("Plan.%s", ACTS["ROAM"]), "I'm going to roam around for a bit.", A.Default)
 
 
-    RegisterCategory(f("Plan.%s", ACTS["IGNORE"]), P.CRITICAL)
+    RegisterCategory(f("Plan.%s", ACTS["IGNORE"]), P.CRITICAL) -- When a traitor bot wants to ignore the plans.
     Line(f("Plan.%s", ACTS["IGNORE"]), "I feel like doing my own thing this time around.", A.Default)
 
     -----------------------------------------------------------
-    -- FOLLOW REQUESTS
+    -- FOLLOWING
     -----------------------------------------------------------
 
-    RegisterCategory("FollowRequest", P.CRITICAL)
+    RegisterCategory("FollowRequest", P.CRITICAL) -- When a traitor bot is responding to a request to follow from teammie
     Line("FollowRequest", "Sure, I'll follow you.", A.Default)
     Line("FollowRequest", "Okay, I'll follow you.", A.Default)
     Line("FollowRequest", "Alright, I'll follow you.", A.Default)
@@ -325,12 +325,53 @@ local LoadLang = function()
     Line("FollowRequest", "sure, bud", A.Casual)
 
 
+    RegisterCategory("FollowStarted", P.NORMAL) -- When a inno/other bot begins following someone random
+    Line("FollowStarted", "I'm gonna follow you for a bit, {{player}}.", A.Default)
+    Line("FollowStarted", "I'll follow you for a bit, {{player}}.", A.Default)
+    Line("FollowStarted", "Mind if I tag along?", A.Default)
+    Line("FollowStarted", "I'll follow you.", A.Default)
+    Line("FollowStarted", "You look rather follow-able today.", A.Default)
+    Line("FollowStarted", "I'll watch your back {{player}}.", A.Default)
+    Line("FollowStarted", "What's up, {{player}}? Imma tag along.", A.Default)
+
+    Line("FollowStarted", "hi {{player}}", A.Casual)
+    Line("FollowStarted", "wsg {{player}}?", A.Casual)
+    Line("FollowStarted", "what's up {{player}}", A.Casual)
+    Line("FollowStarted", "what's good {{player}}? im following you", A.Casual)
+    Line("FollowStarted", "hey imma follow you for a bit", A.Casual)
+    Line("FollowStarted", "dont worry bud i got your back", A.Casual)
+    Line("FollowStarted", "imma follow you", A.Casual)
+    Line("FollowStarted", "imma follow you for a bit", A.Casual)
+    Line("FollowStarted", "imma follow you for a bit, {{player}}", A.Casual)
+    Line("FollowStarted", "im gonna come with", A.Casual)
+    Line("FollowStarted", "mind if little old me comes along?", A.Casual)
+
+    Line("FollowStarted", "Let's stick together, {{player}}!", A.Teamer)
+    Line("FollowStarted", "I'll follow you, {{player}}!", A.Teamer)
+    Line("FollowStarted", "I'll watch your six!", A.Teamer)
+    Line("FollowStarted", "Let's keep each other safe, {{player}}!", A.Teamer)
+    Line("FollowStarted", "I'm going to follow you, {{player}}!", A.Teamer)
+    Line("FollowStarted", "Imma follow {{player}}, keep me safe, ok?", A.Teamer)
+
+    Line("FollowStarted", "haha", A.Dumb)
+    Line("FollowStarted", "haha im following you", A.Dumb)
+    Line("FollowStarted", "im following you for a bit", A.Dumb)
+    Line("FollowStarted", "{{player}}", A.Dumb)
+    Line("FollowStarted", "hi", A.Dumb)
+    Line("FollowStarted", "im glued to you bud", A.Dumb)
+
+    Line("FollowStarted", "I hope you're good enough.", A.Hothead)
+    Line("FollowStarted", "I guess you'll do, {{player}}", A.Hothead)
+    Line("FollowStarted", "Good enough, I'm following you now.", A.Hothead)
+    Line("FollowStarted", "I'm gonna follow this kid.", A.Hothead)
+    Line("FollowStarted", "You'd better have room for 2, {{player}}", A.Hothead)
+
     -----------------------------------------------------------
     -- INVESTIGATIONS
     -----------------------------------------------------------
 
 
-    RegisterCategory("InvestigateCorpse", P.IMPORTANT)
+    RegisterCategory("InvestigateCorpse", P.IMPORTANT) -- When a bot begins the InvestigateCorpse behavior (sees a corpse)
     Line("InvestigateCorpse", "I found a body!")
     Line("InvestigateCorpse", "I found a dead body!")
     Line("InvestigateCorpse", "Found a body.")
@@ -344,7 +385,7 @@ local LoadLang = function()
     Line("InvestigateCorpse", "body here", A.Casual)
 
 
-    RegisterCategory("InvestigateNoise", P.NORMAL)
+    RegisterCategory("InvestigateNoise", P.NORMAL) -- When a bot hears a noise and it wants to investigate it.
     Line("InvestigateNoise", "I heard something.")
     Line("InvestigateNoise", "What was that?")
     Line("InvestigateNoise", "What was that noise?")
@@ -365,7 +406,7 @@ local LoadLang = function()
     -- SPOTTING A PLAYER WITH A TRAITOR WEAPON
     -----------------------------------------------------------
 
-    RegisterCategory("HoldingTraitorWeapon", P.IMPORTANT)
+    RegisterCategory("HoldingTraitorWeapon", P.IMPORTANT) -- When a bot sees a player with a traitor-exclusive weapon.
     Line("HoldingTraitorWeapon", "{{player}} is holding a traitor weapon!", A.Default)
     Line("HoldingTraitorWeapon", "traitor weapon on {{player}}", A.Casual)
     Line("HoldingTraitorWeapon", "hey he's holding a traitor weapon", A.Casual)
@@ -376,7 +417,7 @@ local LoadLang = function()
     -----------------------------------------------------------
 
 
-    RegisterCategory("LifeCheck", P.IMPORTANT)
+    RegisterCategory("LifeCheck", P.IMPORTANT) -- Response to "life check" or "lc" in chat.
     Line("LifeCheck", "I'm alive", A.Default)
     Line("LifeCheck", "Reporting in!", A.Default)
     Line("LifeCheck", "Functioning as expected.", A.Default)

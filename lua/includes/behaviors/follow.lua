@@ -143,6 +143,9 @@ function Follow:OnStart(bot)
     self:CreateTargetRemovalTimer(bot)
     bot.followTarget = table.Random(self:GetFollowTargets(bot))
 
+    local chatter = lib.GetComp(bot, "chatter") ---@type CChatter
+    chatter:On("FollowStarted", { player = bot.followTarget:Nick() })
+
     return STATUS.RUNNING
 end
 

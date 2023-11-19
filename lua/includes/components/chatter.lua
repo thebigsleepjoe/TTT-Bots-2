@@ -112,6 +112,7 @@ function BotChatter:On(event_name, args, teamOnly)
         InvestigateCorpse = 15,
         LifeCheck = 65,
         CallKOS = 15 * difficulty * kosChanceMult,
+        FollowStarted = 10,
     }
 
     local personality = self.bot.components.personality --- @type CPersonality
