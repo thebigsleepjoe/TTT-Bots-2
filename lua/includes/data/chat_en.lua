@@ -190,120 +190,123 @@ local LoadLang = function()
     -- TRAITORS SHARING PLANS
     -----------------------------------------------------------
 
+    local ATTACKANY = ACTS.ATTACKANY
+    RegisterCategory(f("Plan.%s", ATTACKANY), P.CRITICAL) -- When a traitor bot is going to attack a player/bot.
+    Line(f("Plan.%s", ATTACKANY), "I'm going to attack {{player}}.", A.Default)
+    Line(f("Plan.%s", ATTACKANY), "I've got {{player}}.", A.Default)
+    Line(f("Plan.%s", ATTACKANY), "I'll take {{player}}.", A.Default)
+    Line(f("Plan.%s", ATTACKANY), "I call {{player}}.", A.Default)
+    Line(f("Plan.%s", ATTACKANY), "I will go after {{player}}.", A.Default)
+    Line(f("Plan.%s", ATTACKANY), "I'm going to attack {{player}}.", A.Default)
+    Line(f("Plan.%s", ATTACKANY), "I've got {{player}}", A.Default)
+    Line(f("Plan.%s", ATTACKANY), "I'll take {{player}}", A.Default)
+    Line(f("Plan.%s", ATTACKANY), "I call {{player}}", A.Default)
+    Line(f("Plan.%s", ATTACKANY), "I will deal with {{player}}", A.Default)
+    Line(f("Plan.%s", ATTACKANY), "dibs on {{player}}.", A.Casual)
+    Line(f("Plan.%s", ATTACKANY), "gonna kill {{player}}.", A.Casual)
+    Line(f("Plan.%s", ATTACKANY), "I'll try to get {{player}}", A.Bad)
+    Line(f("Plan.%s", ATTACKANY), "I'll try to kill {{player}}", A.Bad)
+    Line(f("Plan.%s", ATTACKANY), "ion gonna kill {{player}}", A.Dumb)
+    Line(f("Plan.%s", ATTACKANY), "{{player}} is my kill target", A.Dumb)
+    Line(f("Plan.%s", ATTACKANY), "{{player}} is mine, idiots.", A.Hothead)
+    Line(f("Plan.%s", ATTACKANY), "{{player}} is mine.", A.Hothead)
+    Line(f("Plan.%s", ATTACKANY), "Gonna wreck {{player}}.", A.Hothead)
+    Line(f("Plan.%s", ATTACKANY), "Let me get {{player}}!", A.Teamer)
+    Line(f("Plan.%s", ATTACKANY), "Let's take on {{player}}!!", A.Teamer)
+    Line(f("Plan.%s", ATTACKANY), "I'll take {{player}} on alone. Easy-peasy", A.Tryhard)
+    Line(f("Plan.%s", ATTACKANY), "Dibs on {{player}}. Don't take my ace", A.Tryhard)
 
-    RegisterCategory(f("Plan.%s", ACTS["ATTACKANY"]), P.CRITICAL) -- When a traitor bot is going to attack a player/bot.
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "I'm going to attack {{player}}.", A.Default)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "I've got {{player}}.", A.Default)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "I'll take {{player}}.", A.Default)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "I call {{player}}.", A.Default)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "I will go after {{player}}.", A.Default)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "I'm going to attack {{player}}.", A.Default)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "I've got {{player}}", A.Default)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "I'll take {{player}}", A.Default)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "I call {{player}}", A.Default)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "I will deal with {{player}}", A.Default)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "dibs on {{player}}.", A.Casual)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "gonna kill {{player}}.", A.Casual)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "I'll try to get {{player}}", A.Bad)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "I'll try to kill {{player}}", A.Bad)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "ion gonna kill {{player}}", A.Dumb)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "{{player}} is my kill target", A.Dumb)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "{{player}} is mine, idiots.", A.Hothead)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "{{player}} is mine.", A.Hothead)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "Gonna wreck {{player}}.", A.Hothead)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "Let me get {{player}}!", A.Teamer)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "Let's take on {{player}}!!", A.Teamer)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "I'll take {{player}} on alone. Easy-peasy", A.Tryhard)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "Dibs on {{player}}. Don't take my ace", A.Tryhard)
+    local ATTACK = ACTS.ATTACK
+    RegisterCategory(f("Plan.%s", ATTACK), P.CRITICAL) -- When a traitor bot is going to attack a player/bot.
+    Line(f("Plan.%s", ATTACK), "I'm going to attack {{player}}.", A.Default)
+    Line(f("Plan.%s", ATTACK), "I've got {{player}}.", A.Default)
+    Line(f("Plan.%s", ATTACK), "I'll take {{player}}.", A.Default)
+    Line(f("Plan.%s", ATTACK), "I call {{player}}.", A.Default)
+    Line(f("Plan.%s", ATTACK), "I will go after {{player}}.", A.Default)
+    Line(f("Plan.%s", ATTACK), "I'm going to attack {{player}}.", A.Default)
+    Line(f("Plan.%s", ATTACK), "I've got {{player}}", A.Default)
+    Line(f("Plan.%s", ATTACK), "I'll take {{player}}", A.Default)
+    Line(f("Plan.%s", ATTACK), "I call {{player}}", A.Default)
+    Line(f("Plan.%s", ATTACK), "I will deal with {{player}}", A.Default)
+    Line(f("Plan.%s", ATTACK), "dibs on {{player}}.", A.Casual)
+    Line(f("Plan.%s", ATTACK), "gonna kill {{player}}.", A.Casual)
+    Line(f("Plan.%s", ATTACK), "I'll try to get {{player}}", A.Bad)
+    Line(f("Plan.%s", ATTACK), "I'll try to kill {{player}}", A.Bad)
+    Line(f("Plan.%s", ATTACK), "ion gonna kill {{player}}", A.Dumb)
+    Line(f("Plan.%s", ATTACK), "{{player}} is my kill target", A.Dumb)
+    Line(f("Plan.%s", ATTACK), "{{player}} is mine, idiots.", A.Hothead)
+    Line(f("Plan.%s", ATTACK), "{{player}} is mine.", A.Hothead)
+    Line(f("Plan.%s", ATTACK), "Gonna wreck {{player}}.", A.Hothead)
+    Line(f("Plan.%s", ATTACK), "Let me get {{player}}!", A.Teamer)
+    Line(f("Plan.%s", ATTACK), "Let's take on {{player}}!!", A.Teamer)
+    Line(f("Plan.%s", ATTACK), "I'll take {{player}} on alone. Easy-peasy", A.Tryhard)
+    Line(f("Plan.%s", ATTACK), "Dibs on {{player}}. Don't take my ace", A.Tryhard)
 
+    local PLANT = ACTS.PLANT
+    RegisterCategory(f("Plan.%s", PLANT), P.CRITICAL) -- When a traitor bot is going to plant a bomb.
+    Line(f("Plan.%s", PLANT), "I'm going to plant a bomb.", A.Default)
+    Line(f("Plan.%s", PLANT), "I'm planting a bomb.", A.Default)
+    Line(f("Plan.%s", PLANT), "Placing a bomb!", A.Default)
+    Line(f("Plan.%s", PLANT), "Gonna rig this place to blow.", A.Default)
 
-    RegisterCategory(f("Plan.%s", ACTS["ATTACK"]), P.CRITICAL) -- When a traitor bot is going to attack a player/bot.
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "I'm going to attack {{player}}.", A.Default)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "I've got {{player}}.", A.Default)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "I'll take {{player}}.", A.Default)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "I call {{player}}.", A.Default)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "I will go after {{player}}.", A.Default)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "I'm going to attack {{player}}.", A.Default)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "I've got {{player}}", A.Default)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "I'll take {{player}}", A.Default)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "I call {{player}}", A.Default)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "I will deal with {{player}}", A.Default)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "dibs on {{player}}.", A.Casual)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "gonna kill {{player}}.", A.Casual)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "I'll try to get {{player}}", A.Bad)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "I'll try to kill {{player}}", A.Bad)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "ion gonna kill {{player}}", A.Dumb)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "{{player}} is my kill target", A.Dumb)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "{{player}} is mine, idiots.", A.Hothead)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "{{player}} is mine.", A.Hothead)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "Gonna wreck {{player}}.", A.Hothead)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "Let me get {{player}}!", A.Teamer)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "Let's take on {{player}}!!", A.Teamer)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "I'll take {{player}} on alone. Easy-peasy", A.Tryhard)
-    Line(f("Plan.%s", ACTS["ATTACKANY"]), "Dibs on {{player}}. Don't take my ace", A.Tryhard)
+    local DEFUSE = ACTS.DEFUSE
+    RegisterCategory(f("Plan.%s", DEFUSE), P.CRITICAL) -- When a traitor bot is going to defuse a bomb.
+    Line(f("Plan.%s", DEFUSE), "I'm going to defuse a bomb.", A.Default)
 
-
-    RegisterCategory(f("Plan.%s", ACTS["PLANT"]), P.CRITICAL) -- When a traitor bot is going to plant a bomb.
-    Line(f("Plan.%s", ACTS["PLANT"]), "I'm going to plant a bomb.", A.Default)
-    Line(f("Plan.%s", ACTS["PLANT"]), "I'm planting a bomb.", A.Default)
-    Line(f("Plan.%s", ACTS["PLANT"]), "Placing a bomb!", A.Default)
-    Line(f("Plan.%s", ACTS["PLANT"]), "Gonna rig this place to blow.", A.Default)
-
-
-    RegisterCategory(f("Plan.%s", ACTS["DEFUSE"]), P.CRITICAL) -- When a traitor bot is going to defuse a bomb.
-    Line(f("Plan.%s", ACTS["DEFUSE"]), "I'm going to defuse a bomb.", A.Default)
-
-
-    RegisterCategory(f("Plan.%s", ACTS["FOLLOW"]), P.CRITICAL) -- When a traitor bot is going to follow a player/bot.
-    Line(f("Plan.%s", ACTS["FOLLOW"]), "I'm going to follow {{player}}", A.Default)
-
-
-    RegisterCategory(f("Plan.%s", ACTS["GATHER"]), P.CRITICAL) -- When a traitor bot is going to gather with other bots.
-    Line(f("Plan.%s", ACTS["GATHER"]), "Let's all gather over there.", A.Default)
-    Line(f("Plan.%s", ACTS["GATHER"]), "Gather over here.", A.Default)
-    Line(f("Plan.%s", ACTS["GATHER"]), "come hither lads", A.Casual)
-    Line(f("Plan.%s", ACTS["GATHER"]), "come here", A.Casual)
-    Line(f("Plan.%s", ACTS["GATHER"]), "gather", A.Casual)
-    Line(f("Plan.%s", ACTS["GATHER"]), "gather here", A.Casual)
-    Line(f("Plan.%s", ACTS["GATHER"]), "Come on, you idiots, over here.", A.Hothead)
-    Line(f("Plan.%s", ACTS["GATHER"]), "Gather up, you idiots.", A.Hothead)
-    Line(f("Plan.%s", ACTS["GATHER"]), "Teamwork makes the dream work", A.Teamer)
-    Line(f("Plan.%s", ACTS["GATHER"]), "We are not a house divided", A.Teamer)
-    Line(f("Plan.%s", ACTS["GATHER"]), "Come bunch up so I can use you guys as bullet sponges.", A.Tryhard)
-    Line(f("Plan.%s", ACTS["GATHER"]), "Gather up, I need you guys to be my meat shields.", A.Tryhard)
-    Line(f("Plan.%s", ACTS["GATHER"]), "uhhh... let's assemble, lol", A.Dumb)
-    Line(f("Plan.%s", ACTS["GATHER"]), "let's gather n lather", A.Dumb)
-    Line(f("Plan.%s", ACTS["GATHER"]), "Come on now, huddle up. Where's my hug at?", A.Stoic)
-    Line(f("Plan.%s", ACTS["GATHER"]), "Let's gather up, I need a hug.", A.Stoic)
-    Line(f("Plan.%s", ACTS["GATHER"]), "Where all my friends at? Let's all work together.", A.Nice)
-    Line(f("Plan.%s", ACTS["GATHER"]), "Let's all gather up, I need some friends for this one.", A.Nice)
+    local FOLLOW = ACTS.FOLLOW
+    RegisterCategory(f("Plan.%s", FOLLOW), P.CRITICAL) -- When a traitor bot is going to follow a player/bot.
+    Line(f("Plan.%s", FOLLOW), "I'm going to follow {{player}}", A.Default)
 
 
-    RegisterCategory(f("Plan.%s", ACTS["DEFEND"]), P.CRITICAL) -- When a traitor bot is going to defend an area.
-    Line(f("Plan.%s", ACTS["DEFEND"]), "I'm going to defend this area.", A.Default)
+    local GATHER = ACTS.GATHER
+    RegisterCategory(f("Plan.%s", GATHER), P.CRITICAL) -- When a traitor bot is going to gather with other bots.
+    Line(f("Plan.%s", GATHER), "Let's all gather over there.", A.Default)
+    Line(f("Plan.%s", GATHER), "Gather over here.", A.Default)
+    Line(f("Plan.%s", GATHER), "come hither lads", A.Casual)
+    Line(f("Plan.%s", GATHER), "come here", A.Casual)
+    Line(f("Plan.%s", GATHER), "gather", A.Casual)
+    Line(f("Plan.%s", GATHER), "gather here", A.Casual)
+    Line(f("Plan.%s", GATHER), "Come on, you idiots, over here.", A.Hothead)
+    Line(f("Plan.%s", GATHER), "Gather up, you idiots.", A.Hothead)
+    Line(f("Plan.%s", GATHER), "Teamwork makes the dream work", A.Teamer)
+    Line(f("Plan.%s", GATHER), "We are not a house divided", A.Teamer)
+    Line(f("Plan.%s", GATHER), "Come bunch up so I can use you guys as bullet sponges.", A.Tryhard)
+    Line(f("Plan.%s", GATHER), "Gather up, I need you guys to be my meat shields.", A.Tryhard)
+    Line(f("Plan.%s", GATHER), "uhhh... let's assemble, lol", A.Dumb)
+    Line(f("Plan.%s", GATHER), "let's gather n lather", A.Dumb)
+    Line(f("Plan.%s", GATHER), "Come on now, huddle up. Where's my hug at?", A.Stoic)
+    Line(f("Plan.%s", GATHER), "Let's gather up, I need a hug.", A.Stoic)
+    Line(f("Plan.%s", GATHER), "Where all my friends at? Let's all work together.", A.Nice)
+    Line(f("Plan.%s", GATHER), "Let's all gather up, I need some friends for this one.", A.Nice)
 
 
-    RegisterCategory(f("Plan.%s", ACTS["ROAM"]), P.CRITICAL) -- When a traitor bot is going to roam.
-    Line(f("Plan.%s", ACTS["ROAM"]), "I'm going to roam around for a bit.", A.Default)
+    local DEFEND = ACTS.DEFEND
+    RegisterCategory(f("Plan.%s", DEFEND), P.CRITICAL) -- When a traitor bot is going to defend an area.
+    Line(f("Plan.%s", DEFEND), "I'm going to defend this area.", A.Default)
 
 
-    RegisterCategory(f("Plan.%s", ACTS["IGNORE"]), P.CRITICAL) -- When a traitor bot wants to ignore the plans.
-    Line(f("Plan.%s", ACTS["IGNORE"]), "I feel like doing my own thing this time around.", A.Default)
-    Line(f("Plan.%s", ACTS["IGNORE"]), "I feel like doing my own thing this time around.", A.Default)
-    Line(f("Plan.%s", ACTS["IGNORE"]), "Going rogue sounds fun right now.", A.Default)
-    Line(f("Plan.%s", ACTS["IGNORE"]), "Let's mix things up, I'm not following the plan.", A.Default)
-    Line(f("Plan.%s", ACTS["IGNORE"]), "Eh, plans are overrated anyway.", A.Casual)
-    Line(f("Plan.%s", ACTS["IGNORE"]), "I'm just gonna wing it this time.", A.Casual)
-    Line(f("Plan.%s", ACTS["IGNORE"]), "Who cares about plans? I'll do what I want.", A.Bad)
-    Line(f("Plan.%s", ACTS["IGNORE"]), "Forget the plan, I have my own ideas.", A.Bad)
-    Line(f("Plan.%s", ACTS["IGNORE"]), "Plans are hard. I'll just do something.", A.Dumb)
-    Line(f("Plan.%s", ACTS["IGNORE"]), "What was the plan again? Eh, nevermind.", A.Dumb)
-    Line(f("Plan.%s", ACTS["IGNORE"]), "Plans are for losers. I'm doing this my way!", A.Hothead)
-    Line(f("Plan.%s", ACTS["IGNORE"]), "I don't follow plans, I make my own!", A.Hothead)
-    Line(f("Plan.%s", ACTS["IGNORE"]), "Ignoring the plan. Seems more fun to surprise you all.", A.Sus)
-    Line(f("Plan.%s", ACTS["IGNORE"]), "Who needs a plan? Not me, that's for sure.", A.Sus)
-    Line(f("Plan.%s", ACTS["IGNORE"]), "Plans are for the weak. Time for a bold move.", A.Tryhard)
-    Line(f("Plan.%s", ACTS["IGNORE"]), "Strategy? Nah, improvisation is the key to victory.", A.Tryhard)
+    local ROAM = ACTS.ROAM
+    RegisterCategory(f("Plan.%s", ROAM), P.CRITICAL) -- When a traitor bot is going to roam.
+    Line(f("Plan.%s", ROAM), "I'm going to roam around for a bit.", A.Default)
+
+    local IGNORE = ACTS.IGNORE
+    RegisterCategory(f("Plan.%s", IGNORE), P.CRITICAL) -- When a traitor bot wants to ignore the plans.
+    Line(f("Plan.%s", IGNORE), "I feel like doing my own thing this time around.", A.Default)
+    Line(f("Plan.%s", IGNORE), "I feel like doing my own thing this time around.", A.Default)
+    Line(f("Plan.%s", IGNORE), "Going rogue sounds fun right now.", A.Default)
+    Line(f("Plan.%s", IGNORE), "Let's mix things up, I'm not following the plan.", A.Default)
+    Line(f("Plan.%s", IGNORE), "Eh, plans are overrated anyway.", A.Casual)
+    Line(f("Plan.%s", IGNORE), "I'm just gonna wing it this time.", A.Casual)
+    Line(f("Plan.%s", IGNORE), "Who cares about plans? I'll do what I want.", A.Bad)
+    Line(f("Plan.%s", IGNORE), "Forget the plan, I have my own ideas.", A.Bad)
+    Line(f("Plan.%s", IGNORE), "Plans are hard. I'll just do something.", A.Dumb)
+    Line(f("Plan.%s", IGNORE), "What was the plan again? Eh, nevermind.", A.Dumb)
+    Line(f("Plan.%s", IGNORE), "Plans are for losers. I'm doing this my way!", A.Hothead)
+    Line(f("Plan.%s", IGNORE), "I don't follow plans, I make my own!", A.Hothead)
+    Line(f("Plan.%s", IGNORE), "Ignoring the plan. Seems more fun to surprise you all.", A.Sus)
+    Line(f("Plan.%s", IGNORE), "Who needs a plan? Not me, that's for sure.", A.Sus)
+    Line(f("Plan.%s", IGNORE), "Plans are for the weak. Time for a bold move.", A.Tryhard)
+    Line(f("Plan.%s", IGNORE), "Strategy? Nah, improvisation is the key to victory.", A.Tryhard)
 
     -----------------------------------------------------------
     -- FOLLOWING
