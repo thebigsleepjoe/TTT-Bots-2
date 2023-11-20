@@ -140,12 +140,26 @@ local LoadLang = function()
 
     RegisterCategory("DisguisedPlayer", P.IMPORTANT) -- When a bot spots someone with a disguise
     Line("DisguisedPlayer", "This guy is disguised!", A.Default)
+    Line("DisguisedPlayer", "Seems like someone's playing hide and seek!", A.Default)
+    Line("DisguisedPlayer", "A mystery guest among us, huh?", A.Default)
     Line("DisguisedPlayer", "disguised dude over here", A.Casual)
+    Line("DisguisedPlayer", "nice mask, buddy", A.Casual)
+    Line("DisguisedPlayer", "playing incognito huh?", A.Casual)
     Line("DisguisedPlayer", "Why cant i see your name??", A.Bad)
+    Line("DisguisedPlayer", "What are you hiding, sneaky?", A.Bad)
+    Line("DisguisedPlayer", "Not fooling anyone, you know", A.Bad)
     Line("DisguisedPlayer", "who you", A.Dumb)
+    Line("DisguisedPlayer", "Uhh, where did you go?", A.Dumb)
+    Line("DisguisedPlayer", "Hey, why can't I see your face?", A.Dumb)
     Line("DisguisedPlayer", "Little baby with the disguiser", A.Hothead)
+    Line("DisguisedPlayer", "Take off that silly disguise!", A.Hothead)
+    Line("DisguisedPlayer", "Stop hiding, coward!", A.Hothead)
     Line("DisguisedPlayer", "my friend is disguised", A.Sus)
+    Line("DisguisedPlayer", "That disguise is super sus", A.Sus)
+    Line("DisguisedPlayer", "erm what the flip", A.Sus)
     Line("DisguisedPlayer", "Disguising won't save you", A.Tryhard)
+    Line("DisguisedPlayer", "Disguise or not, I'll find you", A.Tryhard)
+    Line("DisguisedPlayer", "You're not escaping my sight", A.Tryhard)
 
 
     RegisterCategory("CallKOS", P.CRITICAL) -- When a bot is going to call KOS on another player.
@@ -275,6 +289,21 @@ local LoadLang = function()
 
     RegisterCategory(f("Plan.%s", ACTS["IGNORE"]), P.CRITICAL) -- When a traitor bot wants to ignore the plans.
     Line(f("Plan.%s", ACTS["IGNORE"]), "I feel like doing my own thing this time around.", A.Default)
+    Line(f("Plan.%s", ACTS["IGNORE"]), "I feel like doing my own thing this time around.", A.Default)
+    Line(f("Plan.%s", ACTS["IGNORE"]), "Going rogue sounds fun right now.", A.Default)
+    Line(f("Plan.%s", ACTS["IGNORE"]), "Let's mix things up, I'm not following the plan.", A.Default)
+    Line(f("Plan.%s", ACTS["IGNORE"]), "Eh, plans are overrated anyway.", A.Casual)
+    Line(f("Plan.%s", ACTS["IGNORE"]), "I'm just gonna wing it this time.", A.Casual)
+    Line(f("Plan.%s", ACTS["IGNORE"]), "Who cares about plans? I'll do what I want.", A.Bad)
+    Line(f("Plan.%s", ACTS["IGNORE"]), "Forget the plan, I have my own ideas.", A.Bad)
+    Line(f("Plan.%s", ACTS["IGNORE"]), "Plans are hard. I'll just do something.", A.Dumb)
+    Line(f("Plan.%s", ACTS["IGNORE"]), "What was the plan again? Eh, nevermind.", A.Dumb)
+    Line(f("Plan.%s", ACTS["IGNORE"]), "Plans are for losers. I'm doing this my way!", A.Hothead)
+    Line(f("Plan.%s", ACTS["IGNORE"]), "I don't follow plans, I make my own!", A.Hothead)
+    Line(f("Plan.%s", ACTS["IGNORE"]), "Ignoring the plan. Seems more fun to surprise you all.", A.Sus)
+    Line(f("Plan.%s", ACTS["IGNORE"]), "Who needs a plan? Not me, that's for sure.", A.Sus)
+    Line(f("Plan.%s", ACTS["IGNORE"]), "Plans are for the weak. Time for a bold move.", A.Tryhard)
+    Line(f("Plan.%s", ACTS["IGNORE"]), "Strategy? Nah, improvisation is the key to victory.", A.Tryhard)
 
     -----------------------------------------------------------
     -- FOLLOWING
