@@ -17,8 +17,6 @@ local STATUS = {
 }
 local Plans = TTTBots.Plans
 local ACTIONS = Plans.ACTIONS
-local PLANSTATES = Plans.PLANSTATES
-local TARGETS = Plans.PLANTARGETS
 
 --- Ignore plans if we aren't evil or have a conflicting personality trait.
 function FollowPlan:ShouldIgnorePlans(bot)

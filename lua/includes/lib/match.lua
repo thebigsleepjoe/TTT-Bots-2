@@ -31,6 +31,8 @@ Match.SecondsPassed = 0 --- Time since match began. This is important for traito
 Match.KOSCounter = {} ---@type table<Player, number>
 --- List of active KOS calls. Indexed by person called out, with each value being a table of people who called them out.
 Match.KOSList = {} ---@type table<Player, table<Player>>
+Match.SpottedC4s = {} ---@type table<Entity, boolean> Armed C4 that has been spotted by the innocent bots at least once.
+Match.AllArmedC4s = {} ---@type table<Entity, Player>
 
 function Match.Tick()
     if not Match.RoundActive then return end
@@ -124,6 +126,9 @@ function Match.ResetStats(roundActive)
     Match.DisguisedPlayers = {}
     Match.KOSCounter = {}
     Match.KOSList = {}
+    Match.SpottedC4s = {} ---@type table<Entity, boolean> Armed C4 that has been spotted by the innocent bots at least once.
+    Match.AllArmedC4s = {} ---@type table<Entity, Player>
+    Match.RoundID = TTTBots.Lib.GenerateID()
 
     -- Just gonna put this here since it's related to resetting stats.
     for i, v in pairs(TTTBots.Bots) do
@@ -201,6 +206,28 @@ function Match.IsPlayerDisguised(ply)
     return Match.DisguisedPlayers[ply] or false
 end
 
+function Match.BotsTrySpotC4()
+    for i, bot in pairs(TTTBots.Bots) do
+        if not TTTBots.Lib.IsPlayerAlive(bot) then continue end
+        if TTTBots.Lib.IsEvil(bot) then continue end
+
+        for c4, planter in pairs(Match.AllArmedC4s) do
+            if not IsValid(c4) then continue end
+            if not c4:GetArmed() then
+                Match.AllArmedC4s[c4] = nil
+                continue
+            end
+
+            if not Match.SpottedC4s[c4] then
+                local dist = bot:GetPos():Distance(c4:GetPos())
+                if dist < 1000 then
+                    Match.SpottedC4s[c4] = true
+                end
+            end
+        end
+    end
+end
+
 timer.Create("TTTBots.Match.UpdateAlivePlayers", 0.34, 0, function()
     Match.UpdateAlivePlayers()
 end)
@@ -256,4 +283,28 @@ hook.Add("TTTPlayerRadioCommand", "TTTBots.Match.TTTRadioMessage", function(ply,
     local targetAlive = TTTBots.Lib.IsPlayerAlive(msgTarget)
     if not (callerAlive and targetAlive) then return end
     Match.CallKOS(ply, msgTarget)
+end)
+
+hook.Add("TTTC4Arm", "TTTBots.Match.TTTC4Arm", function(c4, ply)
+    if not Match.RoundActive then return end
+    if not (IsValid(c4) and IsValid(ply)) then return end
+    Match.AllArmedC4s[c4] = ply
+end)
+
+hook.Add("TTTC4Disarm", "TTTBots.Match.TTTC4Disarm", function(c4, result, ply)
+    if not Match.RoundActive then return end
+    if not (IsValid(c4) and IsValid(ply)) then return end
+    Match.AllArmedC4s[c4] = nil
+    Match.SpottedC4s[c4] = nil
+end)
+
+hook.Add("TTTC4Destroyed", "TTTBots.Match.TTTC4Destroyed", function(c4, ply)
+    if not Match.RoundActive then return end
+    if not (IsValid(c4) and IsValid(ply)) then return end
+    Match.AllArmedC4s[c4] = nil
+    Match.SpottedC4s[c4] = nil
+end)
+
+timer.Create("TTTBots.Match.C4Spotting", 1.5, 0, function()
+    Match.BotsTrySpotC4()
 end)
