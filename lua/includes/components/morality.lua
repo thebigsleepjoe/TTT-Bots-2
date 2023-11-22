@@ -206,7 +206,7 @@ function BotMorality:TickIfTraitor()
     if self.bot.attackTarget ~= nil then return end
 
     local aggression = (self.bot:GetTraitMult("aggression")) * (self.bot.rage or 1)
-    local time_modifier = TTTBots.Match.SecondsPassed / 45 -- Increase chance to attack over time.
+    local time_modifier = TTTBots.Match.SecondsPassed / 35 -- Increase chance to attack over time.
 
     local maxTargets = math.max(2, math.ceil(aggression * 2 * time_modifier))
     local targets = lib.GetAllVisible(self.bot:EyePos(), true)
