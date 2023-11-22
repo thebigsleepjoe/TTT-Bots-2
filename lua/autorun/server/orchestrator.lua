@@ -34,7 +34,7 @@ function TTTBots.Reload()
     include("includes/lib/debugserver.lua")
     include("includes/lib/miscnetwork.lua")
     include("includes/lib/popularnavs.lua")
-    include("includes/lib/gamestate.lua")
+    include("includes/lib/match.lua")
     include("includes/lib/PlanCoordinator.lua")
     include("includes/commands/chatcommands.lua")
 
