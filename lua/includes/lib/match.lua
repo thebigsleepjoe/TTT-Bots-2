@@ -206,6 +206,17 @@ function Match.IsPlayerDisguised(ply)
     return Match.DisguisedPlayers[ply] or false
 end
 
+---Event called when an innocent bot spots a C4.
+---@param bot Player
+---@param c4 Entity
+function Match.OnBotSpotC4(bot, c4)
+    local chatter = TTTBots.Lib.GetComp(bot, "chatter") ---@type CChatter
+    local locomotor = TTTBots.Lib.GetComp(bot, "locomotor") ---@type CLocomotor
+    if not chatter then return end
+    chatter:On("SpottedC4", {}, false)
+    locomotor:AimAt(c4:GetPos())
+end
+
 function Match.BotsTrySpotC4()
     for i, bot in pairs(TTTBots.Bots) do
         if not TTTBots.Lib.IsPlayerAlive(bot) then continue end
@@ -219,9 +230,10 @@ function Match.BotsTrySpotC4()
             end
 
             if not Match.SpottedC4s[c4] then
-                local dist = bot:GetPos():Distance(c4:GetPos())
-                if dist < 1000 then
+                local canSee = TTTBots.Lib.CanSeeArc(bot, c4:GetPos(), 120)
+                if canSee and (bot:GetPos():Distance(c4:GetPos()) < 2000) then
                     Match.SpottedC4s[c4] = true
+                    Match.OnBotSpotC4(bot, c4)
                 end
             end
         end

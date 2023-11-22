@@ -372,7 +372,7 @@ local LoadLang = function()
     Line("FollowStarted", "What's up, {{player}}? Imma tag along.", A.Default)
 
     Line("FollowStarted", "hi {{player}}", A.Casual)
-    Line("FollowStarted", "wsg {{player}}?", A.Casual)
+    Line("FollowStarted", "wsg {{player}}? im on your back", A.Casual)
     Line("FollowStarted", "what's up {{player}}", A.Casual)
     Line("FollowStarted", "what's good {{player}}? im following you", A.Casual)
     Line("FollowStarted", "hey imma follow you for a bit", A.Casual)
@@ -385,7 +385,7 @@ local LoadLang = function()
 
     Line("FollowStarted", "Let's stick together, {{player}}!", A.Teamer)
     Line("FollowStarted", "I'll follow you, {{player}}!", A.Teamer)
-    Line("FollowStarted", "I'll watch your six!", A.Teamer)
+    Line("FollowStarted", "I'll watch your behind, {{player}}!", A.Teamer)
     Line("FollowStarted", "Let's keep each other safe, {{player}}!", A.Teamer)
     Line("FollowStarted", "I'm going to follow you, {{player}}!", A.Teamer)
     Line("FollowStarted", "Imma follow {{player}}, keep me safe, ok?", A.Teamer)
@@ -440,13 +440,19 @@ local LoadLang = function()
 
 
     -----------------------------------------------------------
-    -- SPOTTING A PLAYER WITH A TRAITOR WEAPON
+    -- SPOTTING A PLAYER OR ENTITY
     -----------------------------------------------------------
 
     RegisterCategory("HoldingTraitorWeapon", P.IMPORTANT) -- When a bot sees a player with a traitor-exclusive weapon.
     Line("HoldingTraitorWeapon", "{{player}} is holding a traitor weapon!", A.Default)
     Line("HoldingTraitorWeapon", "traitor weapon on {{player}}", A.Casual)
     Line("HoldingTraitorWeapon", "hey he's holding a traitor weapon", A.Casual)
+
+    RegisterCategory("SpottedC4", P.CRITICAL) -- When an innocent bot sees a C4.
+    Line("SpottedC4", "I found a bomb!", A.Default)
+
+    RegisterCategory("DefusingC4", P.IMPORTANT) -- When an innocent bot is defusing a C4.
+    Line("DefusingC4", "I'm defusing a bomb!", A.Default)
 
 
     -----------------------------------------------------------
