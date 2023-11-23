@@ -773,7 +773,7 @@ function TTTBots.PathManager.PathPostProcess(path)
             -- Handle first navigation area in the path.
             if isFirst then
                 local closestPoint = navArea:GetClosestPaddedPoint(nextNavArea)
-                addPointToPoints(points, navArea:GetCenter(), navArea, nextNavArea, nil)
+                -- addPointToPoints(points, navArea:GetCenter(), navArea, nextNavArea, nil)
                 addPointToPoints(points, closestPoint, navArea, nextNavArea, nil)
             elseif not isLast then
                 -- Handle intermediate navigation areas.
