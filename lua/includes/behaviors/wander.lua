@@ -75,6 +75,10 @@ end
 
 --- Returns a random nav area in the nearest region to the bot
 function Wander.GetRandomNavInRegion(bot)
+    if not (bot and bot.GetPos) then
+        error("Unknown bot ent: " .. tostring(bot), 5)
+        return nil
+    end
     return lib.GetRandomNavInNearestRegion(bot:GetPos())
 end
 
