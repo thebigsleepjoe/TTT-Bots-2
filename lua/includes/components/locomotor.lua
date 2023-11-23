@@ -225,8 +225,8 @@ function BotLocomotor:OnNewTarget(target)
         [4] = 0.8, -- e.g. 0.3 x 0.8 = 0.24s
         [5] = 0,   -- e.g. 0.3 x 0 = 0s
     }
-    local ttt_bot_reaction_speed_traitors_lessened = lib.GetConVarBool("reaction_speed_traitors_lessened")
-    if ttt_bot_reaction_speed_traitors_lessened and lib.IsEvil(self.bot) then
+    local ttt_bot_cheat_traitor_reactionspd = lib.GetConVarBool("cheat_traitor_reactionspd")
+    if ttt_bot_cheat_traitor_reactionspd and lib.IsEvil(self.bot) then
         ttt_bot_reaction_speed = ttt_bot_reaction_speed * 0.5
     end
     local DIFFICULTY_MULT = DIFFICULTY_MULT_HASH[ttt_bot_difficulty] or 1

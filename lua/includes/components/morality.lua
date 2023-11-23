@@ -325,9 +325,9 @@ hook.Add("PlayerDeath", "TTTBots.Components.Morality.PlayerDeath", function(vict
     end
     if not victim:Visible(attacker) then return end -- This must be an indirect attack, like C4 or fire.
     if lib.IsGood(victim) then                      -- This is technically a cheat, but it's a necessary one.
-        local ttt_bot_redhanded_time = lib.GetConVarInt("redhanded_time")
+        local ttt_bot_cheat_redhanded_time = lib.GetConVarInt("cheat_redhanded_time")
         attacker.redHandedTime = timestamp +
-            ttt_bot_redhanded_time -- Only assign red handed time if it was a direct attack
+            ttt_bot_cheat_redhanded_time -- Only assign red handed time if it was a direct attack
     end
     local witnesses = lib.GetAllWitnesses(attacker:EyePos(), true)
     table.insert(witnesses, victim)
@@ -367,7 +367,20 @@ function BotMorality:OnWitnessHurt(victim, attacker, healthRemaining, damageTake
         end
         return
     end
-    -- local bad_guy = TTTBots.Match.WhoShotFirst(victim, attacker) -- TODO: Implement this later?
+
+    local attackerSusMod = 1.0
+    local victimSusMod = 1.0
+    local can_cheat = lib.GetConVarBool("cheat_know_shooter")
+    if can_cheat then
+        local bad_guy = TTTBots.Match.WhoShotFirst(victim, attacker)
+        if bad_guy == victim then
+            victimSusMod = 2.0
+            attackerSusMod = 0.5
+        elseif bad_guy == attacker then
+            victimSusMod = 0.5
+            attackerSusMod = 2.0
+        end
+    end
 
     local impact = (damageTaken / victim:GetMaxHealth()) * 3 --- Percent of max health lost * 3. 50% health lost =  6 sus
     local victimIsPolice = lib.IsPolice(victim)
@@ -375,13 +388,13 @@ function BotMorality:OnWitnessHurt(victim, attacker, healthRemaining, damageTake
     local attackerSus = self:GetSuspicion(attacker)
     local victimSus = self:GetSuspicion(victim)
     if victimIsPolice or victimSus < BotMorality.Thresholds.Trust then
-        self:ChangeSuspicion(attacker, "HurtTrusted", impact) -- Increase sus on the attacker because we trusted their victim
+        self:ChangeSuspicion(attacker, "HurtTrusted", impact * attackerSusMod) -- Increase sus on the attacker because we trusted their victim
     elseif attackerIsPolice or attackerSus < BotMorality.Thresholds.Trust then
-        self:ChangeSuspicion(victim, "HurtByTrusted", impact) -- Increase sus on the victim because we trusted their attacker
+        self:ChangeSuspicion(victim, "HurtByTrusted", impact * victimSusMod)   -- Increase sus on the victim because we trusted their attacker
     elseif attackerSus > BotMorality.Thresholds.KOS then
-        self:ChangeSuspicion(victim, "HurtByEvil", impact)    -- Decrease the sus on the victim because we know their attacker is evil
+        self:ChangeSuspicion(victim, "HurtByEvil", impact * victimSusMod)      -- Decrease the sus on the victim because we know their attacker is evil
     else
-        self:ChangeSuspicion(attacker, "Hurt", impact)        -- Increase sus on attacker because we don't trust anyone involved
+        self:ChangeSuspicion(attacker, "Hurt", impact * attackerSusMod)        -- Increase sus on attacker because we don't trust anyone involved
     end
 
     -- self.bot:Say(string.format("I saw that! Attacker sus is %d; vic is %d", attackerSus, victimSus))

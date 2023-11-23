@@ -21,6 +21,14 @@ bot_cvar("quota", "0",
 bot_cvar("quota_mode", "fill",
     "The mode of the quota system. Options = 'fill', 'exact'. Fill will basically set the player count to X (filling in for players as they leave), and exact will always have X bots in the match.")
 
+-- "Cheat" cvars
+bot_cvar("cheat_know_shooter", "1",
+    "If set to 1, bots will automatically know who in a firefight shot first, and will use that to determine who to shoot. While technically a cheat, the bots feel much dumber when this is off.")
+bot_cvar("cheat_redhanded_time", "3",
+    "This is the number of seconds that a player is silently marked KOS by bots after killing a non-evil class. Set to 0 to disable. This is technically a cheat, but makes the bots more engaging.")
+bot_cvar("cheat_traitor_reactionspd", "1",
+    "If set to 1, traitor bots will have a superior reaction speed. This is technically a cheat, but makes the bots more engaging.")
+
 -- Chatter cvars
 bot_cvar("chatter_lvl", "3",
     "The level of chatter that bots will have. 0 = none (not even KOS), 1 = critical only (like KOS), 2 = >= callouts/important only, 3 = everything.")
@@ -42,12 +50,8 @@ bot_cvar("difficulty", "3",
     "A difficulty integer between 1-5; higher = harder. This affects trait selection and aim speed, reaction speed, and KOS callout chances.")
 bot_cvar("kos_limit", "2",
     "The upper bound of KOS calls an individual, bot or player, can make per round. Before the bots ignore them, at least. Used to deter trolls.")
-bot_cvar("redhanded_time", "3",
-    "This is the number of seconds that a player is silently marked KOS by bots after killing a non-evil class. This is technically a cheat, but makes the bots more engaging.")
 bot_cvar("reaction_speed", "0.5",
     "The base time, in seconds, a bot will take before attacking a newly assigned target. Higher means easier gameplay. THIS INVERSELY SCALES WITH DIFFICULTY AUTOMATICALLY.")
-bot_cvar("reaction_speed_traitors_lessened", "1",
-    "If set to 1, traitor bots will have a superior reaction speed. This is technically a cheat, but makes the bots more engaging.")
 
 -- Noise cvars
 bot_cvar("noise_investigate_chance", "50", "The % chance (therefore 0-100) that a bot will investigate a noise he hears.")
@@ -114,7 +118,7 @@ bot_cvar("pathfinding_cpf", "50",
     "Don't change this unless you know what you are doing. How many pathfinding calculations to do per frame. Higher values = more CPU usage, but faster pathfinding.")
 bot_cvar("pathfinding_cpf_scaling", "0",
     "Don't change this unless you know what you are doing. Should we dynamically multiply the pathfinding calculations per frame by the number of bots? (e.g. 50 cpf * 2 bots = 100 cpf)")
-bot_cvar("rdm", "0", -- TODO: Implement RDM
+bot_cvar("rdm", "0",
     "Enables RDM (random deathmatch). This isn't advised for most situations, but can offer some extra variety should you want it.")
 
 -- Behavior cvars
