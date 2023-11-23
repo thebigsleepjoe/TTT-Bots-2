@@ -219,6 +219,7 @@ function BotMorality:TickIfTraitor()
         * aggression
         * (maxTargets / #targets)
         * time_modifier
+        * (#targets == 1 and 5 or 1)
     )
     if lib.CalculatePercentChance(chanceAttackPerSec) then
         local target = BotMorality:GetRandomVictimFrom(targets)
