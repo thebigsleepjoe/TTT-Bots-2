@@ -43,7 +43,7 @@ end
 
 --- Similar to IsFollower, but returns mathematical chance of deciding to follow a new person this tick.
 function Follow.GetFollowChance(bot)
-    local BASE_CHANCE = 5 -- X % chance per tick
+    local BASE_CHANCE = 4 -- X % chance per tick
     local debugging = false
     local chance = BASE_CHANCE * (Follow.IsFollower(bot) and 1 or 0) * (lib.IsEvil(bot) and 2 or 1)
 
@@ -121,27 +121,11 @@ function Follow.Validate(bot)
     return shouldFollow and #Follow.GetFollowTargets(bot) > 0
 end
 
-function Follow.CreateTargetRemovalTimer(bot)
-    timer.Create("TTTBots.Follow." .. bot:Nick(), math.random(20, 45), 1, function()
-        if not IsValid(bot) then return end
-        local target = bot.followTarget
-        if not (TTTBots.Match.RoundActive and IsValid(target) and bot:Visible(target)) then
-            Follow.CreateTargetRemovalTimer(bot)
-            return
-        end
-        bot.followTarget = nil
-    end)
-end
-
 --- Called when the behavior is started
 function Follow.OnStart(bot)
-    -- timer.Simple(math.random(15, 45), function()
-    --     if not IsValid(bot) then return end
-    --     bot.followTarget = nil
-    -- end)
-    -- let's use timer.Create instead to be fancy
-    Follow.CreateTargetRemovalTimer(bot)
     bot.followTarget = table.Random(Follow.GetFollowTargets(bot))
+    if not bot.followTarget then return STATUS.FAILURE end -- IDK how this happens but it just does.
+    bot.followEndTime = CurTime() + math.random(15, 30)
 
     local chatter = lib.GetComp(bot, "chatter") ---@type CChatter
     chatter:On("FollowStarted", { player = bot.followTarget:Nick() })
@@ -158,6 +142,10 @@ function Follow.OnRunning(bot)
     local target = bot.followTarget
 
     if not IsValid(target) or not lib.IsPlayerAlive(target) then
+        return STATUS.FAILURE
+    end
+
+    if CurTime() > (bot.followEndTime or 0) then
         return STATUS.FAILURE
     end
 
@@ -186,5 +174,6 @@ function Follow.OnEnd(bot)
     timer.Remove("TTTBots.Follow." .. bot:Nick())
     bot.followTarget = nil
     bot.botFollowPoint = nil
+    bot.followEndTime = nil
     bot.components.locomotor:Stop()
 end
