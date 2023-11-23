@@ -1030,11 +1030,11 @@ function BotLocomotor:DetermineNextPos()
     end
     if not nextUncompleted then return nil end -- no more nodes to go to
     -- If we can't see neither the next node nor the last completed node, then we're stuck, mark the last completed as uncompleted
-    if lastCompleted and not self:VisionTestWorldMask(botEyePos, lastCompleted.pos + Vector(0, 0, 16)) and not self:VisionTestWorldMask(botEyePos, nextUncompleted.pos + Vector(0, 0, 16)) then
-        lastCompleted.completed = false
-        if dvlpr then print("Bot " .. self.bot:Nick() .. " is stuck, marking last completed node as uncompleted") end
-        return nil, lastCompleted -- return nil because if we return DetermineNextPos we will soft lock
-    end
+    -- if lastCompleted and not self:VisionTestWorldMask(botEyePos, lastCompleted.pos + Vector(0, 0, 16)) and not self:VisionTestWorldMask(botEyePos, nextUncompleted.pos + Vector(0, 0, 16)) then
+    --     lastCompleted.completed = false
+    --     if dvlpr then print("Bot " .. self.bot:Nick() .. " is stuck, marking last completed node as uncompleted") end
+    --     return nil, lastCompleted -- return nil because if we return DetermineNextPos we will soft lock
+    -- end
 
     local nextPos = nextUncompleted.pos
 
