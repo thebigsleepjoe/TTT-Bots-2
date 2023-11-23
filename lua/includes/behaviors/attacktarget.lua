@@ -272,7 +272,7 @@ function Attack.Engage(bot, targetPos)
     loco:AimAt(inaccuracyTarget)
 end
 
-local INACCURACY_MULT = 4 --- The higher this is, the more inaccurate the bots will be.
+local INACCURACY_BASE = 7 --- The higher this is, the more inaccurate the bots will be.
 --- Calculate the inaccuracy of agent 'bot' according to a) its personality and b) diff setts
 ---@param bot Player The bot that is shooting.
 ---@param origin Vector The original aim point.
@@ -286,10 +286,10 @@ function Attack.CalculateInaccuracy(bot, origin)
     local rage = (personality:GetRage() * 2) + 1        -- float [1,3]
 
     local inaccuracy_mod = (pressure / difficulty)      -- The more pressure we have, the more inaccurate we are; decreased by difficulty
-    inaccuracy_mod = inaccuracy_mod * distFt            -- The further away we are, the more inaccurate we are
-    inaccuracy_mod = inaccuracy_mod * INACCURACY_MULT   -- Obviously, multiply by a constant to make it more inaccurate
-    inaccuracy_mod = inaccuracy_mod * rage              -- The more rage we have, the more inaccurate we are
-    inaccuracy_mod = math.min(math.max(inaccuracy_mod, 0.1), 3)
+        * distFt                                        -- The further away we are, the more inaccurate we are
+        * INACCURACY_BASE                               -- Obviously, multiply by a constant to make it more inaccurate
+        * rage                                          -- The more rage we have, the more inaccurate we are
+    inaccuracy_mod = math.min(math.max(inaccuracy_mod, 0.1), 6)
 
     local rand = VectorRand() * inaccuracy_mod
     -- TTTBots.DebugServer.DrawCross(origin + rand, 8, Color(0, 255, 0), 0.1, bot:Nick() .. ".attack.inaccuracy")
