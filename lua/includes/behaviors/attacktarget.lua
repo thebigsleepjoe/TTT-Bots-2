@@ -224,13 +224,13 @@ function Attack.Engage(bot, targetPos)
                 loco:StartAttack()
             end
 
-            lib.CallEveryNTicks(
-                bot,
-                function()
-                    loco:SetRandomStrafe()
-                end,
-                math.ceil(TTTBots.Tickrate * 1)
-            )
+            -- lib.CallEveryNTicks(
+            --     bot,
+            --     function()
+            --         loco:SetRandomStrafe()
+            --     end,
+            --     math.ceil(TTTBots.Tickrate * 1)
+            -- )
         end
     else
         loco:StopAttack()

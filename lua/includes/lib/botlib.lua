@@ -134,28 +134,7 @@ end
 ---@param ply2 Player
 ---@return boolean
 function TTTBots.Lib.CanShoot(ply1, ply2)
-    -- This is a very expensive operation. Too bad!
-    if not IsValid(ply1) or not IsValid(ply2) then return false end
-    local start = ply1:EyePos()
-    local obstacles = TTTBots.Components.ObstacleTracker.Breakables
-    local filter = table.Add({ ply1 }, obstacles)
-
-    -- Start at the eyes
-    local targetEyes = ply2:EyePos()
-    local traceEyes = util.TraceLine({ start = start, endpos = targetEyes, filter = filter })
-    if traceEyes.Entity == ply2 then return true end
-
-    -- Then the feet
-    local targetFeet = ply2:GetPos()
-    local traceFeet = util.TraceLine({ start = start, endpos = targetFeet, filter = filter })
-    if traceFeet.Entity == ply2 then return true end
-
-    -- Then the center
-    local targetCenter = ply2:GetPos() + Vector(0, 0, 32)
-    local traceCenter = util.TraceLine({ start = start, endpos = targetCenter, filter = filter })
-    if traceCenter.Entity == ply2 then return true end
-
-    return false
+    return ply1:Visible(ply2)
 end
 
 local cached_navs_by_size = {}
