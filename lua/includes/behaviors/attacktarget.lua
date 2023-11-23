@@ -29,19 +29,20 @@ local ATTACKMODE = {
 }
 
 --- Validate the behavior
-function Attack:Validate(bot)
-    return Attack:ValidateTarget(bot)
+function Attack.Validate(bot)
+    return Attack.ValidateTarget(bot)
 end
 
 --- Called when the behavior is started
-function Attack:OnStart(bot)
+function Attack.OnStart(bot)
     bot.wasPathing = true -- set this to true here for the first tick, despite the nam being misleading
     return STATUS.Running
 end
 
-function Attack:Seek(bot, targetPos)
+function Attack.Seek(bot, targetPos)
     local target = bot.attackTarget
-    local loco = bot.components.locomotor ---@type CLocomotor
+    local loco = lib.GetComp(bot, "locomotor")
+    if not loco then return end
     bot.components.locomotor.stopLookingAround = false
     loco:StopAttack()
     -- If we can't see them, we need to move to them
@@ -71,7 +72,7 @@ function Attack:Seek(bot, targetPos)
     bot.wasPathing = true --- Used to one-time stop loco when we start engaging
 end
 
-function Attack:GetTargetHeadPos(targetPly)
+function Attack.GetTargetHeadPos(targetPly)
     local fallback = targetPly:EyePos()
 
     local head_bone_index = targetPly:LookupBone("ValveBiped.Bip01_Head1")
@@ -90,7 +91,7 @@ function Attack:GetTargetHeadPos(targetPly)
     end
 end
 
-function Attack:GetTargetBodyPos(targetPly)
+function Attack.GetTargetBodyPos(targetPly)
     local fallback = targetPly:GetPos() + Vector(0, 0, 30)
 
     local spine_bone_index = targetPly:LookupBone("ValveBiped.Bip01_Spine2")
@@ -109,14 +110,14 @@ function Attack:GetTargetBodyPos(targetPly)
     end
 end
 
-function Attack:ShouldAimAtBody(bot, weapon)
+function Attack.ShouldAimAtBody(bot, weapon)
     return weapon.is_shotgun or weapon.is_melee
 end
 
 --- Tells loco to strafe
 ---@param weapon WeaponInfo
 ---@param loco CLocomotor
-function Attack:StrafeIfNecessary(bot, weapon, loco)
+function Attack.StrafeIfNecessary(bot, weapon, loco)
     if not (bot.attackTarget and bot.attackTarget.GetPos) then return false end
 
     -- Do not strafe if we are on a cliff. We will fall off.
@@ -139,7 +140,7 @@ end
 
 local IDEAL_APPROACH_DIST = 200
 
-function Attack:ShouldApproachWith(bot, weapon)
+function Attack.ShouldApproachWith(bot, weapon)
     return weapon.is_shotgun or weapon.is_melee
 end
 
@@ -147,7 +148,7 @@ end
 ---@param bot Player
 ---@param target Player
 ---@return Entity|nil barrel
-function Attack:TargetNextToBarrel(bot, target)
+function Attack.TargetNextToBarrel(bot, target)
     local lastBarrelTime = target.lastBarrelCheck or 0
     local targetBarrel = target.lastBarrel or nil
     local TIME_BETWEEN_BARREL_CHECKS = 3 -- 3 seconds
@@ -159,9 +160,9 @@ function Attack:TargetNextToBarrel(bot, target)
     return barrel
 end
 
-function Attack:ApproachIfNecessary(bot, weapon, loco)
+function Attack.ApproachIfNecessary(bot, weapon, loco)
     if not (bot.attackTarget and bot.attackTarget.GetPos) then return false end
-    if not Attack:ShouldApproachWith(bot, weapon) then return false end
+    if not Attack.ShouldApproachWith(bot, weapon) then return false end
 
     local distToTarget = bot:GetPos():Distance(bot.attackTarget:GetPos())
     local shouldApproach = (
@@ -184,12 +185,12 @@ end
 --- Handles strafing, moving towards/away from our target, etc.
 ---@param weapon WeaponInfo
 ---@param loco CLocomotor
-function Attack:HandleAttackMovement(bot, weapon, loco)
-    Attack:StrafeIfNecessary(bot, weapon, loco)
-    Attack:ApproachIfNecessary(bot, weapon, loco)
+function Attack.HandleAttackMovement(bot, weapon, loco)
+    Attack.StrafeIfNecessary(bot, weapon, loco)
+    Attack.ApproachIfNecessary(bot, weapon, loco)
 end
 
-function Attack:Engage(bot, targetPos)
+function Attack.Engage(bot, targetPos)
     local target = bot.attackTarget
     ---@class CInventory
     local inv = bot.components.inventorymgr
@@ -218,8 +219,8 @@ function Attack:Engage(bot, targetPos)
     end
 
     if not preventAttackBecauseMelee then
-        if (Attack:LookingCloseToTarget(bot, target)) then
-            if not Attack:WillShootingTeamkill(bot, target) then -- make sure we aren't about to teamkill by mistake!!
+        if (Attack.LookingCloseToTarget(bot, target)) then
+            if not Attack.WillShootingTeamkill(bot, target) then -- make sure we aren't about to teamkill by mistake!!
                 loco:StartAttack()
             end
 
@@ -248,14 +249,14 @@ function Attack:Engage(bot, targetPos)
     end
 
     local aimTarget
-    if Attack:ShouldAimAtBody(bot, weapon) then
-        aimTarget = Attack:GetTargetBodyPos(target)
+    if Attack.ShouldAimAtBody(bot, weapon) then
+        aimTarget = Attack.GetTargetBodyPos(target)
     else
-        aimTarget = Attack:GetTargetHeadPos(target)
+        aimTarget = Attack.GetTargetHeadPos(target)
     end
 
     if not usingMelee then
-        local barrel = Attack:TargetNextToBarrel(bot, target)
+        local barrel = Attack.TargetNextToBarrel(bot, target)
         if barrel
             and target:VisibleVec(barrel:GetPos())
             and bot:VisibleVec(barrel:GetPos())
@@ -264,10 +265,10 @@ function Attack:Engage(bot, targetPos)
         end
     end
 
-    Attack:HandleAttackMovement(bot, weapon, loco)
+    Attack.HandleAttackMovement(bot, weapon, loco)
 
-    local predictedPoint = aimTarget + Attack:PredictMovement(target, 0.4)
-    local inaccuracyTarget = predictedPoint + Attack:CalculateInaccuracy(bot, aimTarget)
+    local predictedPoint = aimTarget + Attack.PredictMovement(target, 0.4)
+    local inaccuracyTarget = predictedPoint + Attack.CalculateInaccuracy(bot, aimTarget)
     loco:AimAt(inaccuracyTarget)
 end
 
@@ -275,7 +276,7 @@ local INACCURACY_MULT = 4 --- The higher this is, the more inaccurate the bots w
 --- Calculate the inaccuracy of agent 'bot' according to a) its personality and b) diff setts
 ---@param bot Player The bot that is shooting.
 ---@param origin Vector The original aim point.
-function Attack:CalculateInaccuracy(bot, origin)
+function Attack.CalculateInaccuracy(bot, origin)
     local personality = lib.GetComp(bot, "personality") ---@type CPersonality
     local difficulty = lib.GetConVarInt("difficulty") -- int [0,5]
     if not (difficulty or personality) then return Vector(0, 0, 0) end
@@ -298,7 +299,7 @@ end
 ---Predict the (relative) movement of the target player using basic linear prediction
 ---@param target Player
 ---@return Vector predictedMovement
-function Attack:PredictMovement(target, mult)
+function Attack.PredictMovement(target, mult)
     local vel = target:GetVelocity()
     local predictionSecs = 1.0 / TTTBots.Tickrate
     local predictionMultSalt = math.random(95, 105) / 100.0
@@ -316,7 +317,7 @@ function Attack:PredictMovement(target, mult)
 end
 
 --- Returns true if shooting now would result in possibly shooting someone who isn't our target.
-function Attack:WillShootingTeamkill(bot, target)
+function Attack.WillShootingTeamkill(bot, target)
     -- Get the eye trace of our bot.
     local eyeTrace = bot:GetEyeTrace()
     local ent = eyeTrace.Entity
@@ -328,7 +329,7 @@ function Attack:WillShootingTeamkill(bot, target)
     return true                                                  -- We are looking at a teammate, we cannot shoot
 end
 
-function Attack:LookingCloseToTarget(bot, target)
+function Attack.LookingCloseToTarget(bot, target)
     local targetPos = target:GetPos()
     ---@type CLocomotor
     local locomotor = bot.components.locomotor
@@ -343,7 +344,7 @@ end
 --- Determine what mode of attack (attackMode) we are in.
 ---@param bot Player
 ---@return ATTACKMODE mode
-function Attack:RunningAttackLogic(bot)
+function Attack.RunningAttackLogic(bot)
     ---@type CMemory
     local memory = bot.components.memory
     local target = bot.attackTarget
@@ -357,14 +358,14 @@ function Attack:RunningAttackLogic(bot)
         [ATTACKMODE.Seeking] = Attack.Seek,
         [ATTACKMODE.Engaging] = Attack.Engage,
     }
-    switchcase[mode](Attack, bot, targetPos) -- Call the function
+    switchcase[mode](bot, targetPos) -- Call the function
     return mode
 end
 
 --- Validates if the target is extant and alive. True if valid.
 ---@param bot Player
 ---@return boolean isValid
-function Attack:ValidateTarget(bot)
+function Attack.ValidateTarget(bot)
     local target = bot.attackTarget
 
     local hasTarget = target and true or false
@@ -398,10 +399,10 @@ end
 --- Called when the behavior's last state is running
 ---@param bot Player
 ---@return STATUS status
-function Attack:OnRunning(bot)
+function Attack.OnRunning(bot)
     local target = bot.attackTarget
-    -- We could probably do Attack:Validate but this is more explicit:
-    if not Attack:ValidateTarget(bot) then return STATUS.Failure end -- Target is not valid
+    -- We could probably do Attack.Validate but this is more explicit:
+    if not Attack.ValidateTarget(bot) then return STATUS.Failure end -- Target is not valid
 
     local isNPC = target:IsNPC()
     local isPlayer = target:IsPlayer()
@@ -410,24 +411,24 @@ function Attack:OnRunning(bot)
             tostring(bot.attackTarget))
     end -- Target is not a player or NPC
 
-    local attack = Attack:RunningAttackLogic(bot)
+    local attack = Attack.RunningAttackLogic(bot)
     bot.attackBehaviorMode = attack
 
     return STATUS.Running
 end
 
 --- Called when the behavior returns a success state
-function Attack:OnSuccess(bot)
+function Attack.OnSuccess(bot)
     bot:Say("Killed that fool!")
 end
 
 --- Called when the behavior returns a failure state
-function Attack:OnFailure(bot)
+function Attack.OnFailure(bot)
     bot:Say("Lost that fool!")
 end
 
 --- Called when the behavior ends
-function Attack:OnEnd(bot)
+function Attack.OnEnd(bot)
     bot:SetAttackTarget(nil)
     bot.components.locomotor.stopLookingAround = false
     bot.components.locomotor:StopAttack()

@@ -41,16 +41,16 @@ function TTTBots.Behaviors.Tree()
         local interruptible = currentBehavior and currentBehavior.Interruptible or true
         local newState = STATUS.FAILURE
 
-        if currentBehavior and currentBehavior:Validate(bot) then
-            newState = currentBehavior:OnRunning(bot)
+        if currentBehavior and currentBehavior.Validate(bot) then
+            newState = currentBehavior.OnRunning(bot)
         end
 
         if interruptible then
             for _, behavior in ipairs(tree) do
-                if behavior:Validate(bot) then
+                if behavior.Validate(bot) then
                     if currentBehavior ~= behavior then
                         if currentBehavior then
-                            currentBehavior:OnEnd(bot)
+                            currentBehavior.OnEnd(bot)
                         end
                         currentBehavior = behavior
                         bot.currentBehavior = behavior
@@ -62,21 +62,21 @@ function TTTBots.Behaviors.Tree()
         end
 
         if behaviorChanged then
-            newState = currentBehavior:OnStart(bot)
+            newState = currentBehavior.OnStart(bot)
         end
 
         if newState == STATUS.SUCCESS or newState == STATUS.FAILURE then
-            currentBehavior:OnEnd(bot)
+            currentBehavior.OnEnd(bot)
             bot.currentBehavior = nil
         end
 
         if newState == STATUS.SUCCESS then
-            currentBehavior:OnSuccess(bot)
+            currentBehavior.OnSuccess(bot)
         elseif newState == STATUS.FAILURE then
-            currentBehavior:OnFailure(bot)
+            currentBehavior.OnFailure(bot)
         end
 
-        -- if not currentBehavior or not currentBehavior:Validate(bot) then
+        -- if not currentBehavior or not currentBehavior.Validate(bot) then
         --     print(string.format("Couldn't get any behaviors to tick on bot %s", bot:Nick()))
         -- else
         --     print(string.format("[BT] Bot %s is running behavior %s", bot:Nick(), currentBehavior.Name))

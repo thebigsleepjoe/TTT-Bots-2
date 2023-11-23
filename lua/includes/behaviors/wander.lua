@@ -20,21 +20,21 @@ local function printf(...)
 end
 
 --- Validate the behavior
-function Wander:Validate(bot)
+function Wander.Validate(bot)
     return true
 end
 
 --- Called when the behavior is started
-function Wander:OnStart(bot)
-    Wander:UpdateWanderGoal(bot) -- sets bot.wander
+function Wander.OnStart(bot)
+    Wander.UpdateWanderGoal(bot) -- sets bot.wander
     return STATUS.Running
 end
 
 --- Called when the behavior's last state is running
-function Wander:OnRunning(bot)
-    if not bot.wander then return Wander:OnStart() end -- force reboot :P
+function Wander.OnRunning(bot)
+    if not bot.wander then return Wander.OnStart() end -- force reboot :P
 
-    local hasExpired = self:HasExpired(bot)
+    local hasExpired = Wander.HasExpired(bot)
     if hasExpired then return STATUS.SUCCESS end
 
     local wanderPos = bot.wander.targetPos
@@ -44,19 +44,19 @@ function Wander:OnRunning(bot)
 end
 
 --- Called when the behavior returns a success state
-function Wander:OnSuccess(bot)
+function Wander.OnSuccess(bot)
 end
 
 --- Called when the behavior returns a failure state
-function Wander:OnFailure(bot)
+function Wander.OnFailure(bot)
 end
 
 --- Called when the behavior ends
-function Wander:OnEnd(bot)
+function Wander.OnEnd(bot)
     bot.wander = nil
 end
 
-function Wander:DestinationCloseEnough(bot)
+function Wander.DestinationCloseEnough(bot)
     if not bot.wander then return true end
     local dest = bot.wander.targetPos
     local pos = bot:GetPos()
@@ -64,7 +64,7 @@ function Wander:DestinationCloseEnough(bot)
     return dist < 100
 end
 
-function Wander:HasExpired(bot)
+function Wander.HasExpired(bot)
     local wander = bot.wander
     if not wander then return true end
     local ctime = CurTime()
@@ -74,23 +74,23 @@ function Wander:HasExpired(bot)
 end
 
 --- Returns a random nav area in the nearest region to the bot
-function Wander:GetRandomNavInRegion(bot)
+function Wander.GetRandomNavInRegion(bot)
     return lib.GetRandomNavInNearestRegion(bot:GetPos())
 end
 
 --- Gets a random nav area from the entire navmesh
-function Wander:GetRandomNav()
+function Wander.GetRandomNav()
     return table.Random(navmesh.GetAllNavAreas())
 end
 
 --- Returns a random nav with preference to the current area
-function Wander:GetAnyRandomNav(bot)
-    return (math.random(1, 5) <= 4 and Wander:GetRandomNavInRegion(bot))
+function Wander.GetAnyRandomNav(bot)
+    return (math.random(1, 5) <= 4 and Wander.GetRandomNavInRegion(bot))
         or
-        Wander:GetRandomNav() -- 80% chance of getting a random nav in the nearest region, 20% chance of getting a random nav from the entire navmesh
+        Wander.GetRandomNav() -- 80% chance of getting a random nav in the nearest region, 20% chance of getting a random nav from the entire navmesh
 end
 
-function Wander:UpdateWanderGoal(bot)
+function Wander.UpdateWanderGoal(bot)
     local targetArea
     local targetPos
     local isSpot = false
@@ -156,7 +156,7 @@ function Wander:UpdateWanderGoal(bot)
     end
 
     if not targetArea then
-        targetArea = Wander:GetAnyRandomNav(bot)
+        targetArea = Wander.GetAnyRandomNav(bot)
     end
 
     if targetArea and not targetPos then

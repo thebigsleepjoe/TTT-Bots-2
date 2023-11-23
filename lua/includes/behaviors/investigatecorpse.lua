@@ -16,7 +16,7 @@ local STATUS = {
 }
 
 ---@deprecated deprecated until distance check, technically works tho
-function InvestigateCorpse:GetVisibleCorpses(bot)
+function InvestigateCorpse.GetVisibleCorpses(bot)
     local corpses = TTTBots.Match.Corpses
     local visibleCorpses = {}
     for i, corpse in pairs(corpses) do
@@ -29,7 +29,7 @@ function InvestigateCorpse:GetVisibleCorpses(bot)
 end
 
 local CORPSE_MAXDIST = 2000
-function InvestigateCorpse:GetVisibleUnidentified(bot)
+function InvestigateCorpse.GetVisibleUnidentified(bot)
     local corpses = TTTBots.Match.Corpses
     local results = {}
     for i, corpse in pairs(corpses) do
@@ -46,7 +46,7 @@ function InvestigateCorpse:GetVisibleUnidentified(bot)
 end
 
 --- Called every tick; basically just rolls a dice for if we should investigate any corpses this tick
-function InvestigateCorpse:GetShouldInvestigateCorpses(bot)
+function InvestigateCorpse.GetShouldInvestigateCorpses(bot)
     local BASE_PCT = 75
     local MIN_PCT = 5
     local personality = lib.GetComp(bot, "personality") ---@type CPersonality
@@ -57,7 +57,7 @@ function InvestigateCorpse:GetShouldInvestigateCorpses(bot)
     )
 end
 
-function InvestigateCorpse:CorpseValid(rag)
+function InvestigateCorpse.CorpseValid(rag)
     if rag == nil then return false, "nil" end                          -- The corpse is nil.
     if not IsValid(rag) then return false, "invalid" end                -- The corpse is invalid.
     if not CORPSE.IsValidBody(rag) then return false, "invalidbody" end -- The corpse is not a valid body.
@@ -67,8 +67,8 @@ function InvestigateCorpse:CorpseValid(rag)
 end
 
 --- Validate the behavior
-function InvestigateCorpse:Validate(bot)
-    if not self:GetShouldInvestigateCorpses(bot) then return false end
+function InvestigateCorpse.Validate(bot)
+    if not InvestigateCorpse.GetShouldInvestigateCorpses(bot) then return false end
 
     -- First, let's prevent traitors from immediately self-reporting.
     local lastKillTime = bot.lastKillTime or 0
@@ -76,15 +76,15 @@ function InvestigateCorpse:Validate(bot)
     if killedRecently then return false end
 
     local curCorpse = bot.corpseTarget
-    if self:CorpseValid(curCorpse) then
+    if InvestigateCorpse.CorpseValid(curCorpse) then
         return true
     end
 
-    local options = self:GetVisibleUnidentified(bot)
+    local options = InvestigateCorpse.GetVisibleUnidentified(bot)
     if options and #options == 0 then return false end
 
     local closest = lib.GetClosest(options, bot:GetPos())
-    if not self:CorpseValid(closest) then return false end
+    if not InvestigateCorpse.CorpseValid(closest) then return false end
 
     -- local unreachable = TTTBots.PathManager.IsUnreachableVec(bot:GetPos(), closest:GetPos())
     -- if not unreachable then
@@ -97,14 +97,14 @@ function InvestigateCorpse:Validate(bot)
 end
 
 --- Called when the behavior is started
-function InvestigateCorpse:OnStart(bot)
+function InvestigateCorpse.OnStart(bot)
     bot.components.chatter:On("InvestigateCorpse", { corpse = bot.corpseTarget })
     return STATUS.RUNNING
 end
 
 --- Called when the behavior's last state is running
-function InvestigateCorpse:OnRunning(bot)
-    local validation, result = self:CorpseValid(bot.corpseTarget)
+function InvestigateCorpse.OnRunning(bot)
+    local validation, result = InvestigateCorpse.CorpseValid(bot.corpseTarget)
     if not validation then
         return STATUS.FAILURE
     end
@@ -123,14 +123,14 @@ function InvestigateCorpse:OnRunning(bot)
 end
 
 --- Called when the behavior returns a success state
-function InvestigateCorpse:OnSuccess(bot)
+function InvestigateCorpse.OnSuccess(bot)
 end
 
 --- Called when the behavior returns a failure state
-function InvestigateCorpse:OnFailure(bot)
+function InvestigateCorpse.OnFailure(bot)
 end
 
 --- Called when the behavior ends
-function InvestigateCorpse:OnEnd(bot)
+function InvestigateCorpse.OnEnd(bot)
     bot.corpseTarget = nil
 end

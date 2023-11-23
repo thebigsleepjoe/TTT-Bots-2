@@ -19,7 +19,7 @@ local STATUS = {
     FAILURE = 3,
 }
 
-function InvestigateNoise:GetInterestingSounds(bot)
+function InvestigateNoise.GetInterestingSounds(bot)
     ---@type CMemory
     local memory = bot.components.memory
     local sounds = memory:GetRecentSounds()
@@ -33,9 +33,9 @@ function InvestigateNoise:GetInterestingSounds(bot)
     return interesting
 end
 
-function InvestigateNoise:FindClosestSound(bot, mustBeVisible)
+function InvestigateNoise.FindClosestSound(bot, mustBeVisible)
     mustBeVisible = mustBeVisible or false
-    local sounds = self:GetInterestingSounds(bot)
+    local sounds = InvestigateNoise.GetInterestingSounds(bot)
     local closestSound = nil
     local closestDist
     for i, v in pairs(sounds) do
@@ -49,25 +49,25 @@ function InvestigateNoise:FindClosestSound(bot, mustBeVisible)
     return closestSound
 end
 
-function InvestigateNoise:OnStart(bot)
+function InvestigateNoise.OnStart(bot)
     bot.components.chatter:On("InvestigateNoise", {})
     return STATUS.Running
 end
 
-function InvestigateNoise:OnRunning(bot)
+function InvestigateNoise.OnRunning(bot)
     local loco = bot.components.locomotor
-    local closestVisible = self:FindClosestSound(bot, true)
+    local closestVisible = InvestigateNoise.FindClosestSound(bot, true)
     if closestVisible then
         loco:AimAt(closestVisible.pos + Vector(0, 0, 72))
         return STATUS.Running
     end
 
     -- Skip investigating if we don't want to.
-    if not self:ShouldInvestigateNoise(bot) then
+    if not InvestigateNoise.ShouldInvestigateNoise(bot) then
         return STATUS.Failure
     end
 
-    local closestHidden = self:FindClosestSound(bot, false)
+    local closestHidden = InvestigateNoise.FindClosestSound(bot, false)
     if closestHidden then
         loco:AimAt(closestHidden.pos + Vector(0, 0, 72))
         loco:SetGoalPos(closestHidden.pos)
@@ -79,7 +79,7 @@ end
 
 --- Return true/false based off of a random chance. This is meant to be called every tick (5x per sec as of writing), so the chance is low by default.
 ---@param bot Player
-function InvestigateNoise:ShouldInvestigateNoise(bot)
+function InvestigateNoise.ShouldInvestigateNoise(bot)
     local MTB = lib.GetConVarInt("noise_investigate_mtb")
     if bot.investigateNoiseTimer and bot.investigateNoiseTimer > CurTime() then
         return false
@@ -94,12 +94,12 @@ function InvestigateNoise:ShouldInvestigateNoise(bot)
     return passed
 end
 
-function InvestigateNoise:Validate(bot)
-    return #self:GetInterestingSounds(bot) > 0
+function InvestigateNoise.Validate(bot)
+    return #InvestigateNoise.GetInterestingSounds(bot) > 0
 end
 
-function InvestigateNoise:OnFailure(bot) end
+function InvestigateNoise.OnFailure(bot) end
 
-function InvestigateNoise:OnSuccess(bot) end
+function InvestigateNoise.OnSuccess(bot) end
 
-function InvestigateNoise:OnEnd(bot) end
+function InvestigateNoise.OnEnd(bot) end

@@ -19,7 +19,7 @@ local Plans = TTTBots.Plans
 local ACTIONS = Plans.ACTIONS
 
 --- Ignore plans if we aren't evil or have a conflicting personality trait.
-function FollowPlan:ShouldIgnorePlans(bot)
+function FollowPlan.ShouldIgnorePlans(bot)
     local isEvil = TTTBots.Lib.IsEvil(bot)
     if not isEvil then return true end                                                             -- ignore plans if we aren't evil
     if not FollowPlan.Debug and bot.components.personality:GetIgnoresOrders() then return true end -- ignore plans if we have a conflicting personality trait
@@ -27,17 +27,17 @@ function FollowPlan:ShouldIgnorePlans(bot)
     return false
 end
 
-function FollowPlan:GetBotJob(bot) return bot.Job end
+function FollowPlan.GetBotJob(bot) return bot.Job end
 
-function FollowPlan:GetJobState(bot)
-    local job = self:GetBotJob(bot)
+function FollowPlan.GetJobState(bot)
+    local job = FollowPlan.GetBotJob(bot)
     return (job and job.State) or TTTBots.Plans.BOTSTATES.IDLE
 end
 
 --- Grabs an available job from the PlanCoordinator and assigns it to the bot.
 ---@param bot Player the bot to assign a job to
 ---@return boolean|table false if no job was assigned, otherwise the job
-function FollowPlan:AssignNextAvailableJob(bot)
+function FollowPlan.AssignNextAvailableJob(bot)
     bot.Job = nil
     local job = TTTBots.PlanCoordinator.GetNextJob(true, bot)
     if not job then
@@ -86,7 +86,7 @@ local actValidations = {
     end,
 }
 
-function FollowPlan:ValidateJob(bot, job)
+function FollowPlan.ValidateJob(bot, job)
     if not job then return false end
     local act = job.Action
     if not actValidations[act] then
@@ -99,16 +99,16 @@ end
 --- Finds a new job if one isn't already set. Doesn't impact anything if the bot is doing a job already; otherwise, assigns a job using AssignNextAvailableJob
 ---@param bot Player the bot to assign a job to
 ---@return boolean|table false if no job was assigned, otherwise the job
-function FollowPlan:FindNewJobIfAvailable(bot)
-    local job = self:GetBotJob(bot)
-    local jobValid = self:ValidateJob(bot, job)
+function FollowPlan.FindNewJobIfAvailable(bot)
+    local job = FollowPlan.GetBotJob(bot)
+    local jobValid = FollowPlan.ValidateJob(bot, job)
     if jobValid then return false end
 
-    return self:AssignNextAvailableJob(bot)
+    return FollowPlan.AssignNextAvailableJob(bot)
 end
 
 --- Validate the behavior
-function FollowPlan:Validate(bot)
+function FollowPlan.Validate(bot)
     local isCoordinatorEnabled = lib.GetConVarBool("coordinator")
     if not isCoordinatorEnabled then return false end
 
@@ -122,7 +122,7 @@ function FollowPlan:Validate(bot)
         if validate_debug then print(string.format("%s cleared job due to round not being active", bot:Nick())) end
     end
     if bot.Job then return true end
-    if self:ShouldIgnorePlans(bot) then
+    if FollowPlan.ShouldIgnorePlans(bot) then
         if validate_debug then print(string.format("%s ignored plans", bot:Nick())) end
         return false
     end
@@ -130,7 +130,7 @@ function FollowPlan:Validate(bot)
         if validate_debug then print(string.format("%s no selected plan", bot:Nick())) end
         return false
     end
-    local jobAvailable = self:FindNewJobIfAvailable(bot)
+    local jobAvailable = FollowPlan.FindNewJobIfAvailable(bot)
     if not jobAvailable then return false end
     return true
 end
@@ -139,10 +139,10 @@ local printf = function(str, ...) print(string.format(str, ...)) end
 local f = string.format
 
 --- Called when the behavior is started
-function FollowPlan:OnStart(bot)
+function FollowPlan.OnStart(bot)
     if not bot.Job then return STATUS.FAILURE end
     if FollowPlan.Debug then
-        printf("FollowPlan: JOB '%s' assigned to bot %s (For plan %s)",
+        printf("FollowPlan. JOB '%s' assigned to bot %s (For plan %s)",
             bot.Job.Action, bot:Nick(), TTTBots.Plans.GetName())
     end
     return STATUS.RUNNING
@@ -228,7 +228,7 @@ local actRunnings = {
 }
 actRunnings[ACTIONS.ATTACK] = actRunnings[ACTIONS.ATTACKANY]
 --- Called when the behavior's last state is running
-function FollowPlan:OnRunning(bot)
+function FollowPlan.OnRunning(bot)
     if TTTBots.Match.RoundActive == false then return STATUS.FAILURE end
     if bot.Job == nil then return STATUS.FAILURE end
     local status = actRunnings[bot.Job.Action](bot, bot.Job)
@@ -240,17 +240,17 @@ function FollowPlan:OnRunning(bot)
 end
 
 --- Called when the behavior returns a success state
-function FollowPlan:OnSuccess(bot)
+function FollowPlan.OnSuccess(bot)
     print(string.format("%s completed job: %s", bot:Nick(), bot.Job))
 end
 
 --- Called when the behavior returns a failure state
-function FollowPlan:OnFailure(bot)
+function FollowPlan.OnFailure(bot)
     print(string.format("%s failed job: %s", bot:Nick(), bot.Job))
 end
 
 --- Called when the behavior ends
-function FollowPlan:OnEnd(bot)
+function FollowPlan.OnEnd(bot)
     bot.Job = nil
     bot.gatherWanderPos = nil
 end
