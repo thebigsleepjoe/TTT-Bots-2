@@ -70,7 +70,7 @@ local ACT_VALIDATION_HASH = {
     end,
     [ACTIONS.FOLLOW] = function(job)
         local target = job.TargetObj
-        return IsValid(target) and TTTBots.Lib.IsPlayerAlive(target)
+        return IsValid(target) and TTTBots.Lib.IsPlayerAlive(target) and validateJobTime(job)
     end,
     [ACTIONS.GATHER] = function(job)
         return validateJobTime(job)
@@ -186,7 +186,9 @@ local ACT_RUNNING_HASH = {
         local target = job.TargetObj
         if not IsValid(target) then return STATUS.FAILURE end
         local targetPos = target:GetPos()
-        if bot == target then return STATUS.FAILURE end
+        if bot == target then
+            return STATUS.FAILURE
+        end
         bot.components.locomotor:SetGoalPos(targetPos)
         return STATUS.RUNNING
     end,
@@ -276,5 +278,8 @@ hook.Add("PlayerSay", "TTTBots_FollowPlan_PlayerSay", function(sender, text, tea
     }
     bot.components.chatter:On("FollowRequest", { player = sender:Nick() }, true)
 
+    bot.followTarget = sender
+    bot.followEndTime = CurTime() + math.random(25, 60)
     bot.Job = newJob
+    printf("Follow job assigned for %s -> %s", bot:Nick(), sender:Nick())
 end)
