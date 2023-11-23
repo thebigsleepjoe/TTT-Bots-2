@@ -108,6 +108,7 @@ function Defuse.DefuseC4(bot, c4, isSuccess)
             local chatter = lib.GetComp(bot, "chatter") ---@type CChatter
             if not chatter then return end
             chatter:On("DefuseSuccessful")
+            Defuse.DestroyC4(c4)
         else
             c4:FailedDisarm(bot)
             -- No need to chat. We are dead.
@@ -130,6 +131,11 @@ function Defuse.TryDefuse(bot, c4)
     Defuse.DefuseC4(bot, c4, isSuccessful)
 
     return isSuccessful
+end
+
+function Defuse.DestroyC4(c4)
+    util.EquipmentDestroyed(c4:GetPos())
+    c4:Remove()
 end
 
 function Defuse.ShouldAbandon(c4)
