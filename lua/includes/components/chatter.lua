@@ -48,6 +48,7 @@ function BotChatter:CanSayEvent(event)
 end
 
 function BotChatter:SayRaw(text, teamOnly)
+    if not IsValid(self.bot) then return end
     self.bot:Say(text, teamOnly)
 end
 
