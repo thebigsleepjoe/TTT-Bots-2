@@ -498,4 +498,14 @@ TTTBots.Traits = {
             difficulty = 2
         }
     },
+    defuser = {
+        name = "defuser",
+        description = "Will always defuse a bomb if non-traitor.",
+        conflicts = {},
+        traitor_only = false,
+        archetype = A.Teamer,
+        effects = {
+            defuser = true,
+        }
+    }
 }
