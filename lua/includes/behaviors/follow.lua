@@ -161,9 +161,9 @@ function Follow.OnRunning(bot)
         return STATUS.FAILURE
     end
 
-    if bot.botFollowPoint ~= nil and bot:GetPos():Distance(bot.botFollowPoint) < 100 then
-        return STATUS.SUCCESS
-    end
+    -- if bot.botFollowPoint ~= nil and bot:GetPos():Distance(bot.botFollowPoint) < 100 then
+    --     return STATUS.SUCCESS
+    -- end
 
     local loco = bot.components.locomotor
     bot.botFollowPoint = Follow.GetFollowPoint(target)
