@@ -287,8 +287,7 @@ end
 
 --- Aims at a given pos for "time" seconds (optional). If no time, then one-time set.
 ---@param pos Vector
----@param time number
----@param mult number look speed multiplier
+---@param time number|nil
 function BotLocomotor:AimAt(pos, time)
     if not time then time = 1 end
     self.lookPosOverride = pos

@@ -8,12 +8,14 @@ include("includes/behaviors/investigatenoise.lua")
 include("includes/behaviors/investigatecorpse.lua")
 include("includes/behaviors/follow.lua")
 include("includes/behaviors/followplan.lua")
+include("includes/behaviors/defuse.lua")
 
 local b = TTTBots.Behaviors
 
 TTTBots.Behaviors.BehaviorTree = { -- Acts as one big priority node
     b.ClearBreakables,
     b.AttackTarget,
+    b.Defuse,
     b.InvestigateCorpse,
     b.FindWeapon,
     b.FollowPlan,

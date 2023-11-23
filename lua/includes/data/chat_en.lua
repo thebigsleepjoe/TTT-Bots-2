@@ -454,6 +454,9 @@ local LoadLang = function()
     RegisterCategory("DefusingC4", P.IMPORTANT) -- When an innocent bot is defusing a C4.
     Line("DefusingC4", "I'm defusing a bomb!", A.Default)
 
+    RegisterCategory("DefusingSuccessful", P.IMPORTANT) -- When an innocent bot is defusing a C4.
+    Line("DefusingC4", "I got it!!!!!", A.Default)
+
 
     -----------------------------------------------------------
     -- LIFE CHECKS
