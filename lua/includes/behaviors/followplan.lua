@@ -53,7 +53,7 @@ local function validateJobTime(job)
     return CurTime() < job.ExpiryTime
 end
 
-local actValidations = {
+local ACT_VALIDATION_HASH = {
     [ACTIONS.ATTACKANY] = function(job)
         local target = job.TargetObj
         return IsValid(target) and TTTBots.Lib.IsPlayerAlive(target)
@@ -66,8 +66,7 @@ local actValidations = {
         return validateJobTime(job)
     end,
     [ACTIONS.DEFUSE] = function(job)
-        local targetC4 = job.TargetObj
-        -- TODO: check if targetC4 is a C4, and check if it has been defused or not
+        return false -- Unimplemented
     end,
     [ACTIONS.FOLLOW] = function(job)
         local target = job.TargetObj
@@ -89,11 +88,11 @@ local actValidations = {
 function FollowPlan.ValidateJob(bot, job)
     if not job then return false end
     local act = job.Action
-    if not actValidations[act] then
+    if not ACT_VALIDATION_HASH[act] then
         print("Attempt to do invalid job act! Type: '" .. tostring(job.Action) .. "'")
         return false
     end
-    return actValidations[act](job)
+    return ACT_VALIDATION_HASH[act](job)
 end
 
 --- Finds a new job if one isn't already set. Doesn't impact anything if the bot is doing a job already; otherwise, assigns a job using AssignNextAvailableJob
@@ -159,7 +158,7 @@ local function botChatterWhenJobStart(bot, job)
     return true
 end
 
-local actRunnings = {
+local ACT_RUNNING_HASH = {
     [ACTIONS.ATTACKANY] = function(bot, job)
         local target = job.TargetObj
         if not (IsValid(target) and lib.IsPlayerAlive(target)) then
@@ -189,7 +188,6 @@ local actRunnings = {
         local targetPos = target:GetPos()
         if bot == target then return STATUS.FAILURE end
         bot.components.locomotor:SetGoalPos(targetPos)
-        printf("Bot %s following player %s", bot:Nick(), target:Nick())
         return STATUS.RUNNING
     end,
     [ACTIONS.GATHER] = function(bot, job)
@@ -226,12 +224,12 @@ local actRunnings = {
         return STATUS.RUNNING
     end
 }
-actRunnings[ACTIONS.ATTACK] = actRunnings[ACTIONS.ATTACKANY]
+ACT_RUNNING_HASH[ACTIONS.ATTACK] = ACT_RUNNING_HASH[ACTIONS.ATTACKANY]
 --- Called when the behavior's last state is running
 function FollowPlan.OnRunning(bot)
     if TTTBots.Match.RoundActive == false then return STATUS.FAILURE end
     if bot.Job == nil then return STATUS.FAILURE end
-    local status = actRunnings[bot.Job.Action](bot, bot.Job)
+    local status = ACT_RUNNING_HASH[bot.Job.Action](bot, bot.Job)
     if status == STATUS.RUNNING then
         botChatterWhenJobStart(bot, bot.Job)
     end
@@ -273,7 +271,7 @@ hook.Add("PlayerSay", "TTTBots_FollowPlan_PlayerSay", function(sender, text, tea
         Action = ACTIONS.FOLLOW,
         TargetObj = sender,
         State = TTTBots.Plans.BOTSTATES.IDLE,
-        MinDuration = 20,
+        MinDuration = 25,
         MaxDuration = 60
     }
     bot.components.chatter:On("FollowRequest", { player = sender:Nick() }, true)
