@@ -11,7 +11,7 @@ Defuse.Interruptible = true
 Defuse.DEFUSE_RANGE = 80       --- The maximum range that a defuse attempt can be made
 Defuse.ABANDON_TIME = 5        --- Seconds until explosion to abandon defuse attempt
 Defuse.DEFUSE_WIN_CHANCE = 3   --- 1 in X chance of a successful defuse
-Defuse.DEFUSE_TRY_CHANCE = 10  --- 1 in X chance of attempting to defuse (per tick) if other conditions not met
+Defuse.DEFUSE_TRY_CHANCE = 40  --- 1 in X chance of attempting to defuse (per tick) if other conditions not met
 Defuse.DEFUSE_TIME_DELAY = 1.5 --- Seconds to wait before defusing (when within range!)
 
 local STATUS = {
@@ -129,8 +129,6 @@ function Defuse.TryDefuse(bot, c4)
     local isSuccessful = math.random(1, Defuse.DEFUSE_WIN_CHANCE) == 1
     Defuse.DefuseC4(bot, c4, isSuccessful)
 
-    print("Trying defuse; isSuccessful: " .. tostring(isSuccessful))
-
     return isSuccessful
 end
 
@@ -161,8 +159,6 @@ function Defuse.OnRunning(bot)
     local bombPos = bomb:GetPos()
     locomotor:SetGoalPos(bombPos)
     locomotor:AimAt(bombPos)
-
-    TTTBots.DebugServer.DrawLineBetween(bot:GetPos(), bombPos, Color(255, 0, 0), 0.1)
 
     return STATUS.RUNNING
 end
