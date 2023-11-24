@@ -145,6 +145,8 @@ function PlantBomb.ArmNearbyBomb(bot)
 
     if closestBomb and closestDist < PlantBomb.PLANT_RANGE then
         closestBomb:Arm(bot, 45)
+        local chatter = lib.GetComp(bot, "chatter") ---@type CChatter
+        chatter:On("BombArmed", {}, true)
         return true
     end
 

@@ -452,11 +452,18 @@ local LoadLang = function()
     Line("SpottedC4", "I found a bomb!", A.Default)
 
     RegisterCategory("DefusingC4", P.IMPORTANT) -- When an innocent bot is defusing a C4.
-    Line("DefusingC4", "I'm defusing a bomb!", A.Default)
+    Line("DefusingC4", "I'm defusing that bomb.", A.Default)
 
     RegisterCategory("DefusingSuccessful", P.IMPORTANT) -- When an innocent bot is defusing a C4.
-    Line("DefusingC4", "I got it!!!!!", A.Default)
+    Line("DefusingC4", "I defused it!", A.Default)
 
+
+    -----------------------------------------------------------
+    -- TRAITOROUS ACTIONS
+    -----------------------------------------------------------
+
+    RegisterCategory("BombArmed", P.CRITICAL)
+    Line("BombArmed", "I armed some C4.", A.Default)
 
     -----------------------------------------------------------
     -- LIFE CHECKS
