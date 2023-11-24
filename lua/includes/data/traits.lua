@@ -284,6 +284,7 @@ TTTBots.Traits = {
         traitor_only = false,
         effects = {
             hider = true,
+            planter = true,
             difficulty = -2,
             sniper = true,
         }
