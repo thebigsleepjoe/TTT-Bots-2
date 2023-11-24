@@ -742,8 +742,6 @@ TTTBots.Lib.communityNames = {
     "TTT Enjoyer",
     "Big_chungus",
     "im gay",
-    "spermless",
-    "spermlist",
     "bomb_planted",
     "traitor_lot?",
     "NoobDestroyer",
