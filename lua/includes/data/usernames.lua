@@ -1041,8 +1041,8 @@ function Lib.GenerateName()
     local use_animal = math.random(1, 100) > 50 -- else use human name
 
     local use_community_name = GetCVB("names_allowcommunity") and
-        (GetCVB("names_communityonly") or math.random(1, 100) > COMMUNITY_NAME_CHANCE)
-    local use_generic_override = GetCVB("names_allowgeneric") and math.random(1, 100) > GENERIC_NAME_CHANCE
+        (GetCVB("names_communityonly") or math.random(1, 100) <= COMMUNITY_NAME_CHANCE)
+    local use_generic_override = GetCVB("names_allowgeneric") and math.random(1, 100) <= GENERIC_NAME_CHANCE
 
     local noSpaces = not GetCVB("names_canusespaces")
 
