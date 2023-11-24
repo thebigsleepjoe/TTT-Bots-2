@@ -167,7 +167,8 @@ hook.Add("TTTBeginRound", "TTTBots.Behaviors.PlantBomb.GiveBombToPersonality", f
     for _, bot in pairs(bots) do
         if not (IsValid(bot) and TTTBots.Lib.IsPlayerAlive(bot) and lib.IsEvil(bot)) then continue end
         local personality = lib.GetComp(bot, "personality") ---@type CPersonality
-        if personality:GetTraitBool("planter") then
+        local bombChance = math.random(1, 15) == 1
+        if personality:GetTraitBool("planter") or bombChance then
             bot:Give("weapon_ttt_c4")
         end
     end
