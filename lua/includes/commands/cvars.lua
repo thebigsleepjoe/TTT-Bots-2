@@ -40,10 +40,10 @@ bot_cvar("chatter_koschance", "1",
     "A multiplier value that affects a bots chance to call KOS. Higher values = more KOS calls. Only does anything if ttt_bot_chatter_lvl is 1 or higher. Set to 0 to disable KOS calls.")
 
 -- Gameplay-effecting cvars
-bot_cvar("plans_mindelay", "8",
-    "The delay when a round starts before traitor bots may follow automatic plans.")
-bot_cvar("plans_maxdelay", "16",
-    "The maximum duration when a round starts before traitor bots may follow automatic plans.")
+bot_cvar("plans_mindelay", "12",
+    "The delay when a round starts before traitor bots may follow coordinated plans.")
+bot_cvar("plans_maxdelay", "35",
+    "The maximum duration when a round starts before traitor bots may follow coordinated plans.")
 bot_cvar("flicking", "1",
     "Can the bots flick around when they get shot from the rear? Effectively makes bots harder and seem smarter.")
 bot_cvar("difficulty", "3",
