@@ -466,6 +466,10 @@ end
 ---@param innocentOnly boolean Only return innocent (not lib.IsEvil) players
 ---@return table<Player> witnesses A table of players that can see the position.
 function TTTBots.Lib.GetAllVisible(pos, innocentOnly)
+    if (type(pos) ~= "Vector") then
+        ErrorNoHaltWithStack("Invalid vec type to GetAllVisible: " .. type(pos))
+        return {}
+    end
     local witnesses = {}
     for _, ply in ipairs(player.GetAll()) do
         if TTTBots.Lib.IsPlayerAlive(ply) and (not innocentOnly or not TTTBots.Lib.IsEvil(ply)) then
@@ -731,12 +735,15 @@ function TTTBots.Lib.VoluntaryDisconnect(bot, reason)
     end
 end
 
---- return the component 'type' of the bot, or false if doesn't have one
+--- return the component 'type' of the bot, or nil if doesn't have one
+---@param bot Player
+---@param type string
+---@return any Component
 function TTTBots.Lib.GetComp(bot, type)
     if bot and bot.components and bot.components[type] then
         return bot.components[type]
     end
-    return false
+    return nil
 end
 
 --- Functionally the same as navmesh.GetNavArea(pos), but includes ladder areas.

@@ -7,13 +7,13 @@ function TTTBots.Spots.CacheAllSpots()
         ["all"] = {},
     }
     local allNavs = navmesh.GetAllNavAreas()
-    for i,v in pairs(allNavs) do
+    for i, v in pairs(allNavs) do
         local exposedSpots = v:GetExposedSpots()
         local hidingSpots = v:GetHidingSpots()
-        for i,v in pairs(exposedSpots) do
+        for i, v in pairs(exposedSpots) do
             table.insert(TTTBots.Spots.CachedSpots["all"], v)
         end
-        for i,v in pairs(hidingSpots) do
+        for i, v in pairs(hidingSpots) do
             table.insert(TTTBots.Spots.CachedSpots["all"], v)
         end
     end
@@ -79,14 +79,13 @@ function TTTBots.Spots.MeasureSpotVisibility(vec, radius)
     return total / count
 end
 
-
 function TTTBots.Spots.CacheSpecialSpots()
     local SNIPER_MIN_TO_BE_CONSIDERED = 5
     local SniperExclusionaryFunc = function(spot)
         local visibleNavs = 0
         local myNav = navmesh.GetNearestNavArea(spot)
         local navsICanSee = myNav:GetVisibleAreas()
-        for i,nav in pairs(navsICanSee) do
+        for i, nav in pairs(navsICanSee) do
             if not nav:IsPartiallyVisible(spot) then -- If we can see them, but they can't see us (this is for exclusionary)
                 visibleNavs = visibleNavs + 1
             end
@@ -97,7 +96,6 @@ function TTTBots.Spots.CacheSpecialSpots()
     local HIDING_MAX_VIS_PCT = 41
     local HidingFunc = function(spot)
         local visibAvg = TTTBots.Spots.MeasureSpotVisibility(spot, 256)
-        -- print(string.format("Spot %s has %d%% visibility.", tostring(spot), visibAvg))
 
         return visibAvg <= HIDING_MAX_VIS_PCT
     end
@@ -105,12 +103,19 @@ function TTTBots.Spots.CacheSpecialSpots()
     local SNIPER_MIN_VIS_PCT = 60
     local SniperFunc = function(spot)
         local visibAvg = TTTBots.Spots.MeasureSpotVisibility(spot, 512)
-        -- print(string.format("Spot %s has %d%% visibility.", tostring(spot), visibAvg))
 
         return visibAvg >= SNIPER_MIN_VIS_PCT
+    end
+
+    local BOMB_MAX_VIS_PCT = 41
+    local BombFunc = function(spot)
+        local visibAvg = TTTBots.Spots.MeasureSpotVisibility(spot, 256)
+
+        return visibAvg <= BOMB_MAX_VIS_PCT
     end
 
     TTTBots.Spots.RegisterSpotCategory("sniperExclusionary", SniperExclusionaryFunc)
     TTTBots.Spots.RegisterSpotCategory("hiding", HidingFunc)
     TTTBots.Spots.RegisterSpotCategory("sniper", SniperFunc)
+    TTTBots.Spots.RegisterSpotCategory("bomb", BombFunc)
 end
