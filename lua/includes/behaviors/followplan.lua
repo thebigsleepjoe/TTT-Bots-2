@@ -77,8 +77,7 @@ local ACT_VALIDATION_HASH = {
     end,
     [ACTIONS.IGNORE] = function(job) return true end,
     [ACTIONS.PLANT] = function(job)
-        local targetPos = job.TargetObj
-        -- TODO: check if we have planted the bomb at the location (bascially if there is a c4 ent nearby it)
+        return true
     end,
     [ACTIONS.ROAM] = function(job)
         return validateJobTime(job)
@@ -214,9 +213,8 @@ local ACT_RUNNING_HASH = {
         return STATUS.FAILURE
     end,
     [ACTIONS.PLANT] = function(bot, job)
-        -- TODO: Implement bomb planting as a feature for traitors.
-        printf("Bot %s attempting to perform unimplemented action PLANT", bot:Nick())
-        return STATUS.FAILURE
+        bot:Give("weapon_ttt_c4")
+        return STATUS.SUCCESS
     end,
     [ACTIONS.ROAM] = function(bot, job)
         -- walk directly to the TargetObj (vec3).
