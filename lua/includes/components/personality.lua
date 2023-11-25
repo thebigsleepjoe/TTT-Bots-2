@@ -270,28 +270,46 @@ function BotPersonality:GetNoConflictTraits(num)
     local selectedTraits = {}
     local traitorTraits = 0
 
-    while #selectedTraits < num do
-        local tryCount = 0
-        local trait = self:GetRandomTrait()
+    local DIFFICULTY_RANGES = TTTBots.Lib.DIFFICULTY_RANGES
+    local GAME_DIFFICULTY = TTTBots.Lib.GetConVarInt("difficulty")
+    local EXPECTED_DIFF = DIFFICULTY_RANGES[GAME_DIFFICULTY]
+    local TOLERANCE = TTTBots.Lib.DIFFICULTY_TOLERANCE
 
-        while (self:TraitHasConflict(trait, selectedTraits) or table.HasValue(selectedTraits, trait)) and tryCount < 10 do
+    local DIFF_MIN = EXPECTED_DIFF - TOLERANCE
+    local DIFF_MAX = EXPECTED_DIFF + TOLERANCE
+
+    local difficultySoFar = 0
+
+    while #selectedTraits < num do
+        local trait = self:GetRandomTrait()
+        local tryCount = 0
+
+        while (self:TraitHasConflict(trait, selectedTraits) or table.HasValue(selectedTraits, trait) or difficultySoFar + (self.Traits[trait].effects.difficulty or 0) > DIFF_MAX) and tryCount < 10 do
             trait = self:GetRandomTrait()
             tryCount = tryCount + 1
         end
 
         if tryCount < 10 then
-            if self.Traits[trait].traitor_only then
-                if traitorTraits < 1 then
+            local traitDiff = (self.Traits[trait].effects.difficulty or 0)
+            -- Check if adding this trait keeps the total difficulty within the range
+            if difficultySoFar + traitDiff >= DIFF_MIN and difficultySoFar + traitDiff <= DIFF_MAX then
+                if self.Traits[trait].traitor_only then
+                    if traitorTraits < 1 then
+                        table.insert(selectedTraits, trait)
+                        traitorTraits = traitorTraits + 1
+                        difficultySoFar = difficultySoFar + traitDiff
+                    end
+                else
                     table.insert(selectedTraits, trait)
-                    traitorTraits = traitorTraits + 1
+                    difficultySoFar = difficultySoFar + traitDiff
                 end
-            else
-                table.insert(selectedTraits, trait)
             end
         else
             break
         end
     end
+
+    print("Added bot with difficulty: ", difficultySoFar)
 
     return selectedTraits
 end
@@ -330,6 +348,10 @@ end
 
 function BotPersonality:GetTraitAdditive(attribute)
     return self.bot:GetTraitAdditive(attribute)
+end
+
+function BotPersonality:GetDifficulty()
+    return self.bot:GetDifficulty()
 end
 
 function BotPersonality:GetTraitBool(attribute, falseHasPriority)
@@ -413,6 +435,13 @@ function plyMeta:HasTraitIn(hashtable)
         end
     end
     return false
+end
+
+function plyMeta:GetDifficulty()
+    if self.calcDifficulty ~= nil then return self.calcDifficulty end
+    local diff = self.components.personality:GetTraitAdditive("difficulty")
+    self.calcDifficulty = diff
+    return diff
 end
 
 -- ON DYING

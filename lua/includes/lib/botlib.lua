@@ -238,6 +238,15 @@ function TTTBots.Lib.GetAllWitnesses(pos, botsOnly)
     return witnesses
 end
 
+TTTBots.Lib.DIFFICULTY_RANGES = {    --- The expected :GetDifficulty() ranges per difficulty setting
+    [1] = -7,                        -- Very easy
+    [2] = -3,                        -- Easy
+    [3] = 0,                         -- Normal
+    [4] = 3,                         -- Hard
+    [5] = 7                          -- Very hard
+}
+TTTBots.Lib.DIFFICULTY_TOLERANCE = 4 --- The variability in difficulty that is allowed for a bot to be considered for removal.
+
 --- Function responsible for managing bots to be added and removed by the quota system.
 function TTTBots.Lib.UpdateQuota()
     local quotaN = TTTBots.Lib.GetConVarInt("quota")
@@ -261,6 +270,26 @@ function TTTBots.Lib.UpdateQuota()
             TTTBots.Lib.CreateBot()
         elseif nBots > quotaN then
             TTTBots.Lib.RemoveBot()
+        end
+    end
+
+    local shouldCull = TTTBots.Lib.GetConVarBool("quota_cull_difficulty")
+    if not shouldCull then return end
+
+    -- Now search for any under- or over-difficulty bots for the current setting.
+    local EXPECTED_DIFFICULTY = TTTBots.Lib.DIFFICULTY_RANGES[TTTBots.Lib.GetConVarInt("difficulty")]
+    local DIFF_MIN = EXPECTED_DIFFICULTY - TTTBots.Lib.DIFFICULTY_TOLERANCE
+    local DIFF_MAX = EXPECTED_DIFFICULTY + TTTBots.Lib.DIFFICULTY_TOLERANCE
+
+    -- Iterate through each bot
+    for i, bot in ipairs(TTTBots.Bots) do
+        if (TTTBots.Lib.IsPlayerAlive(bot) and TTTBots.Match.IsRoundActive()) then continue end -- Do not kick bots that are alive during a round
+        local botDifficulty = bot:GetDifficulty()
+        -- If the bot's difficulty is too high or too low compared to the expected difficulty
+        if botDifficulty < DIFF_MIN or botDifficulty > DIFF_MAX then
+            print("Removing bot of difficulty", botDifficulty, DIFF_MIN, DIFF_MAX)
+            bot:Kick()
+            break -- Only do one at a time :)
         end
     end
 end

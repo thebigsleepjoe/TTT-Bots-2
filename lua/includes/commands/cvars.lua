@@ -20,6 +20,8 @@ bot_cvar("quota", "0",
     "The number of bots to ensure are in the level at all times. Set to 0 to disable this feature. This cvar is affected by ..._mode")
 bot_cvar("quota_mode", "fill",
     "The mode of the quota system. Options = 'fill', 'exact'. Fill will basically set the player count to X (filling in for players as they leave), and exact will always have X bots in the match.")
+bot_cvar("quota_cull_difficulty", "1",
+    "Whether or not the quota system should cull bots that are too beyond or below the ttt_bot_difficulty setting.")
 
 -- "Cheat" cvars
 bot_cvar("cheat_know_shooter", "1",
