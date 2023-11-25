@@ -44,6 +44,8 @@ bot_cvar("plans_mindelay", "12",
     "The delay when a round starts before traitor bots may follow coordinated plans.")
 bot_cvar("plans_maxdelay", "35",
     "The maximum duration when a round starts before traitor bots may follow coordinated plans.")
+bot_cvar("attack_delay", "15",
+    "The minimum number of seconds until a traitor bot will consider shooting someone around them.")
 bot_cvar("flicking", "1",
     "Can the bots flick around when they get shot from the rear? Effectively makes bots harder and seem smarter.")
 bot_cvar("difficulty", "3",

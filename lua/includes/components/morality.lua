@@ -198,12 +198,15 @@ function BotMorality:GetRandomVictimFrom(playerlist)
     return lib.RandomWeighted(tbl)
 end
 
-function BotMorality:TickIfTraitor()
+--- Makes it so that traitor bots will attack random players nearby.
+function BotMorality:TraitorTargetTick()
     if not (self.tick % TTTBots.Tickrate == 0) then return end -- Run only once every second
     local roundStarted = TTTBots.Match.RoundActive
     local isEvil = lib.IsEvil(self.bot)
     if not (roundStarted and isEvil) then return end
     if self.bot.attackTarget ~= nil then return end
+    local delay = lib.GetConVarFloat("attack_delay")
+    if TTTBots.Match.Time() <= delay then return end -- Don't attack randomly until the initial delay is over
 
     local aggression = (self.bot:GetTraitMult("aggression")) * (self.bot.rage or 1)
     local time_modifier = TTTBots.Match.SecondsPassed / 35 -- Increase chance to attack over time.
@@ -246,7 +249,7 @@ function BotMorality:Think()
     self.tick = (self.bot.tick or 0)
     if not lib.IsPlayerAlive(self.bot) then return end
     self:TickSuspicions()
-    self:TickIfTraitor()
+    self:TraitorTargetTick()
     self:TickIfLastAlive()
 end
 

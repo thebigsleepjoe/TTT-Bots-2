@@ -428,7 +428,6 @@ local LoadLang = function()
     Line("InvestigateNoise", "What was that noise?")
     Line("InvestigateNoise", "Did you hear that?")
     Line("InvestigateNoise", "Gonna go see what that was about")
-    Line("InvestigateNoise", "Uhhhh life check")
     Line("InvestigateNoise", "pew pew pew", A.Casual)
     Line("InvestigateNoise", "that sounded not good", A.Casual)
     Line("InvestigateNoise", "that sounded bad", A.Casual)
@@ -436,7 +435,6 @@ local LoadLang = function()
     Line("InvestigateNoise", "uh-oh", A.Casual)
     Line("InvestigateNoise", "uhhh", A.Casual)
     Line("InvestigateNoise", "okay that's not good", A.Casual)
-    Line("InvestigateNoise", "life check", A.Casual)
 
 
     -----------------------------------------------------------
