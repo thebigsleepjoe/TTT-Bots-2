@@ -107,10 +107,28 @@ function Wander.GetRandomNav()
 end
 
 --- Returns a random nav with preference to the current area
-function Wander.GetAnyRandomNav(bot)
-    return (math.random(1, 5) <= 4 and Wander.GetRandomNavInRegion(bot))
-        or
-        Wander.GetRandomNav() -- 80% chance of getting a random nav in the nearest region, 20% chance of getting a random nav from the entire navmesh
+function Wander.GetAnyRandomNav(bot, level)
+    level = level or 0
+    -- 80% chance of getting a random nav in the nearest region, 20% chance of getting a random nav from the entire navmesh
+    local area = (math.random(1, 5) <= 4 and Wander.GetRandomNavInRegion(bot)) or Wander.GetRandomNav()
+
+    if level < 5 then
+        -- Test if the area is near a known bomb
+        local isEvil = lib.IsEvil(bot)
+        local bombs = (isEvil and TTTBots.Match.AllArmedC4s) or TTTBots.Match.SpottedC4s
+
+        for bomb, _ in pairs(bombs) do
+            if not IsValid(bomb) then continue end
+            local bombPos = bomb:GetPos()
+            local dist = bombPos:Distance(area:GetCenter())
+            if dist < 1000 then
+                print("trying to avoid planted bomb")
+                return Wander.GetAnyRandomNav(bot, level + 1)
+            end
+        end
+    end
+
+    return area
 end
 
 function Wander.UpdateWanderGoal(bot)

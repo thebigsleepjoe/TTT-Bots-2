@@ -9,7 +9,7 @@ local InvestigateNoise = TTTBots.Behaviors.InvestigateNoise
 InvestigateNoise.INVESTIGATE_CATEGORIES = {
     Gunshot = true,
     Death = true,
-    C4Beep = true,
+    C4Beep = false, -- Disabled due to behavior where bot would hover around an armed bomb that's about to explode
     Explosion = true
 }
 
