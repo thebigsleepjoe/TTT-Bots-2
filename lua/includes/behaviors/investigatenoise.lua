@@ -95,6 +95,7 @@ function InvestigateNoise.ShouldInvestigateNoise(bot)
 end
 
 function InvestigateNoise.Validate(bot)
+    if not TTTBots.Match.IsRoundActive() then return false end
     return #InvestigateNoise.GetInterestingSounds(bot) > 0
 end
 
