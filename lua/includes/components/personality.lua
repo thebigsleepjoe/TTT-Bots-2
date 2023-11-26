@@ -439,6 +439,7 @@ end
 
 function plyMeta:GetDifficulty()
     if self.calcDifficulty ~= nil then return self.calcDifficulty end
+    if not (self and self.components and self.components.personality) then return 0 end
     local diff = self.components.personality:GetTraitAdditive("difficulty")
     self.calcDifficulty = diff
     return diff

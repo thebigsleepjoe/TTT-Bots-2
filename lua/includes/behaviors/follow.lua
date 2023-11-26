@@ -14,20 +14,6 @@ local STATUS = {
     FAILURE = 3,
 }
 
---- A list of string traits that this behavior uses.
---- Traitors will be much more likely to follow people around regardless of traits.
-local FOLLOWING_TRAITS = {
-    aggressive = true,
-    suspicious = true,
-    veryoblivious = true,
-    doesntcare = true,
-    lovescrowds = true,
-    teamplayer = true,
-    follower = true,
-    rdmer = true,
-    bodyguard = true,
-}
-
 --- Return if whether or not the bot is a follower. That is, if they are a traitor or have a following trait.
 ---@param bot Player
 ---@return boolean
@@ -43,9 +29,11 @@ end
 
 --- Similar to IsFollower, but returns mathematical chance of deciding to follow a new person this tick.
 function Follow.GetFollowChance(bot)
-    local BASE_CHANCE = 4 -- X % chance per tick
+    local BASE_CHANCE = 3 -- X % chance per tick
     local debugging = false
-    local chance = BASE_CHANCE * (Follow.IsFollower(bot) and 1 or 0) * (lib.IsEvil(bot) and 2 or 1)
+    local chance = BASE_CHANCE * (Follow.IsFollower(bot) and 1 or 0.3) * (lib.IsEvil(bot) and 1.5 or 1)
+
+    print("Follow chance is " .. chance)
 
     local personality = lib.GetComp(bot, "personality") ---@type CPersonality
     if not personality then return chance end

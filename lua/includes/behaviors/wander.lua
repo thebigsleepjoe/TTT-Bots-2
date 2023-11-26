@@ -9,6 +9,8 @@ Wander.Description = "Wanders around the map"
 Wander.Interruptible = true
 Wander.Debug = false
 
+Wander.CHANCE_TO_HIDE_IF_TRAIT = 3 -- 1 in X chance of hiding (or going to sniper spot) if we have a relevant trait
+
 local STATUS = {
     RUNNING = 1,
     SUCCESS = 2,
@@ -38,9 +40,26 @@ function Wander.OnRunning(bot)
     if hasExpired then return STATUS.SUCCESS end
 
     local wanderPos = bot.wander.targetPos
-    bot.components.locomotor:SetGoalPos(wanderPos)
+    local loco = lib.GetComp(bot, "locomotor") ---@type CLocomotor
+    loco:SetGoalPos(wanderPos)
+
+    if loco:CloseEnoughTo(wanderPos) then
+        Wander.StareAtNearbyPlayers(bot, loco)
+    end
 
     return STATUS.Running
+end
+
+---Make the bot stare at the nearest player. Useful for when the bot is standing still.
+---@param bot Player
+---@param locomotor CLocomotor
+function Wander.StareAtNearbyPlayers(bot, locomotor)
+    local players = lib.GetAllVisible(bot, false)
+    local closest = lib.GetClosest(players, bot:GetPos())
+
+    if closest then
+        locomotor:AimAt(closest:GetPos())
+    end
 end
 
 --- Called when the behavior returns a success state
@@ -145,7 +164,7 @@ function Wander.UpdateWanderGoal(bot)
     local canSnipe =
         personality:GetTraitBool("sniper")
         or math.random(1, 10) == 1
-    local shouldSpot = math.random(1, 5) <= 4
+    local shouldSpot = math.random(1, Wander.CHANCE_TO_HIDE_IF_TRAIT) == 1
 
     if (canHide or canSnipe) and shouldSpot then
         isSpot = true
