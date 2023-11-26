@@ -31,9 +31,7 @@ end
 function Follow.GetFollowChance(bot)
     local BASE_CHANCE = 3 -- X % chance per tick
     local debugging = false
-    local chance = BASE_CHANCE * (Follow.IsFollower(bot) and 1 or 0.3) * (lib.IsEvil(bot) and 1.5 or 1)
-
-    print("Follow chance is " .. chance)
+    local chance = BASE_CHANCE * (Follow.IsFollower(bot) and 1 or 0.4) * (lib.IsEvil(bot) and 1.5 or 1)
 
     local personality = lib.GetComp(bot, "personality") ---@type CPersonality
     if not personality then return chance end

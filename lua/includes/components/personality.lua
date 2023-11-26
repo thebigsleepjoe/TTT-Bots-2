@@ -116,7 +116,7 @@ function BotPersonality:PrintFlavoredTraits()
 end
 
 local DECAY_BOREDOM = -0.0005 -- at 100% rate, with no interruptions, this is about 2000 secs (32 mins) to reach 1 from 0
-local DECAY_PRESSURE = 0.05   -- at 100% rate, with no interruptions, this is about 20 secs to reach 0 from 1
+local DECAY_PRESSURE = 0.025  -- at 100% rate, with no interruptions, this is about 40 secs to reach 0 from 1
 local DECAY_RAGE = 0.002      -- at 100% rate, with no interruptions, this is about 500 secs (8 mins) to reach 0 from 1
 
 local BOREDOM_ENABLED = 1

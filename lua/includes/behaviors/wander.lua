@@ -54,7 +54,7 @@ end
 ---@param bot Player
 ---@param locomotor CLocomotor
 function Wander.StareAtNearbyPlayers(bot, locomotor)
-    local players = lib.GetAllVisible(bot, false)
+    local players = lib.GetAllVisible(bot:GetPos(), false)
     local closest = lib.GetClosest(players, bot:GetPos())
 
     if closest then
