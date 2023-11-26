@@ -22,16 +22,15 @@ function Follow.IsFollower(bot)
     if not personality then return false end
 
     local hasTrait = personality:GetTraitBool("follower") or personality:GetTraitBool("followerAlways")
-    local isEvil = lib.IsEvil(bot)
 
-    return isEvil or hasTrait
+    return hasTrait
 end
 
 --- Similar to IsFollower, but returns mathematical chance of deciding to follow a new person this tick.
 function Follow.GetFollowChance(bot)
-    local BASE_CHANCE = 2 -- X % chance per tick
+    local BASE_CHANCE = 1.5 -- X % chance per tick
     local debugging = false
-    local chance = BASE_CHANCE * (Follow.IsFollower(bot) and 1 or 0.4) * (lib.IsEvil(bot) and 1.5 or 1)
+    local chance = BASE_CHANCE * (Follow.IsFollower(bot) and 2 or 1) * (lib.IsEvil(bot) and 1.5 or 1)
 
     local personality = lib.GetComp(bot, "personality") ---@type CPersonality
     if not personality then return chance end
