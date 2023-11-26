@@ -309,8 +309,6 @@ function BotPersonality:GetNoConflictTraits(num)
         end
     end
 
-    print("Added bot with difficulty: ", difficultySoFar)
-
     return selectedTraits
 end
 

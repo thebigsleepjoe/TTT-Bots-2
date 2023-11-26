@@ -239,12 +239,12 @@ end
 
 --- Called when the behavior returns a success state
 function FollowPlan.OnSuccess(bot)
-    print(string.format("%s completed job: %s", bot:Nick(), bot.Job))
+    -- print(string.format("%s completed job: %s", bot:Nick(), bot.Job))
 end
 
 --- Called when the behavior returns a failure state
 function FollowPlan.OnFailure(bot)
-    print(string.format("%s failed job: %s", bot:Nick(), bot.Job))
+    -- print(string.format("%s failed job: %s", bot:Nick(), bot.Job))
 end
 
 --- Called when the behavior ends
