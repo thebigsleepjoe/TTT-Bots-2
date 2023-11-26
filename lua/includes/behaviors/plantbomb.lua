@@ -168,7 +168,6 @@ hook.Add("TTTBeginRound", "TTTBots.Behaviors.PlantBomb.GiveBombToPersonality", f
     timer.Simple(2, function()
         local bots = TTTBots.Bots
         for _, bot in pairs(bots) do
-            print(IsValid(bot), TTTBots.Lib.IsPlayerAlive(bot), lib.IsEvil(bot, true))
             if not (IsValid(bot) and TTTBots.Lib.IsPlayerAlive(bot) and lib.IsEvil(bot, true)) then continue end
             local personality = lib.GetComp(bot, "personality") ---@type CPersonality
             local bombChance = math.random(1, 7) == 1
