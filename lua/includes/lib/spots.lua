@@ -84,6 +84,7 @@ function TTTBots.Spots.CacheSpecialSpots()
     local SniperExclusionaryFunc = function(spot)
         local visibleNavs = 0
         local myNav = navmesh.GetNearestNavArea(spot)
+        if not myNav then return false end
         local navsICanSee = myNav:GetVisibleAreas()
         for i, nav in pairs(navsICanSee) do
             if not nav:IsPartiallyVisible(spot) then -- If we can see them, but they can't see us (this is for exclusionary)
