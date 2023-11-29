@@ -754,7 +754,7 @@ function TTTBots.PathManager.PathPostProcess(path)
 
         -- Handle ladder areas.
         if isLadder then
-            if not climbDir then print("No ladder dir in node #" .. i) end
+            -- if not climbDir then print("No ladder dir in node #" .. i) end
             -- print("Direction of ladder travel is " .. tostring(climbDir) .. " in node #" .. i)
             local ladderGoal = (climbDir == "up") and navArea:GetTop2() or navArea:GetBottom2()
             local ladderStart = (climbDir == "up") and navArea:GetBottom2() or navArea:GetTop2()
