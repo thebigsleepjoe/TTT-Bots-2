@@ -217,6 +217,31 @@ Chat.Commands = {
         end
         ply:ConCommand("ttt_bot_debug_showui")
     end,
+    ["!botquota"] = function(ply, fulltxt)
+        if not ply:IsSuperAdmin() then
+            TTTBots.Chat.MessagePlayer(ply,
+                gls("not.superadmin"))
+            return
+        end
+        -- Basic function to just set ttt_bot_quota to the number specified
+        local split = string.gmatch(fulltxt, "%S+") -- split by spaces
+        local cmd = split()                         -- first word is the command
+        local amt = split()                         -- second word is the amount of bots to add
+
+        -- check we can convert amt to a number, if it isn't nil or blank
+        if amt ~= nil and amt ~= "" then
+            amt = tonumber(amt)
+            if amt == nil then
+                TTTBots.Chat.MessagePlayer(ply, gls("invalid.bot.number"))
+                return
+            end
+        else
+            amt = 1
+        end
+
+        ply:ConCommand("ttt_bot_quota " .. tostring(amt))
+        TTTBots.Chat.BroadcastInChat(gls("bot.quota.changed", ply:Nick(), amt))
+    end,
 }
 
 function TTTBots.Chat.MessagePlayer(ply, message)

@@ -3,7 +3,7 @@ util.AddNetworkString("TTTBots_ClientData")
 util.AddNetworkString("TTTBots_RequestData")
 util.AddNetworkString("TTTBots_SyncAvatarNumbers")
 
-AddCSLuaFile("tttbots2/client/debuginterface.lua")
+AddCSLuaFile("tttbots2/client/debugui.lua")
 AddCSLuaFile("tttbots2/client/scoreboardoverride.lua")
 AddCSLuaFile("tttbots2/client/debug3d.lua")
 
