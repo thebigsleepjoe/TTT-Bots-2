@@ -1,6 +1,6 @@
 TTTBots.Lib = TTTBots.Lib or {}
 
-include("tttbots2/data/usernames.lua")
+include("tttbots2/lib/namemanager.lua")
 
 -- Import components for bot creation
 TTTBots.Components = {}
