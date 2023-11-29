@@ -56,6 +56,12 @@ bot_cvar("kos_limit", "2",
     "The upper bound of KOS calls an individual, bot or player, can make per round. Before the bots ignore them, at least. Used to deter trolls.")
 bot_cvar("reaction_speed", "0.5",
     "The base time, in seconds, a bot will take before attacking a newly assigned target. Higher means easier gameplay. THIS INVERSELY SCALES WITH DIFFICULTY AUTOMATICALLY.")
+bot_cvar("plant_c4", "1",
+    "Whether or not ANY bots are permitted to plant c4. It will not disable the ability to *have* c4, just prevent the use of it.")
+bot_cvar("defuse_c4", "1",
+    "Whether or not ANY bots are permitted to defuse c4. Does not affect if bots will buy defuse kits or not as detective (they just won't use it).")
+bot_cvar("personalities", "1",
+    "Whether or not each bot should spawn in as its own unique individual (basically have their own gameplay-effecting traits)")
 
 -- Noise cvars
 bot_cvar("noise_investigate_chance", "50", "The % chance (therefore 0-100) that a bot will investigate a noise he hears.")

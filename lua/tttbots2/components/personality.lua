@@ -40,7 +40,9 @@ function BotPersonality:Initialize(bot)
     ---@deprecated not implemented yet
     self.preferOnlySecondary = math.random(1, 100) < 10     -- Prefer ONLY using secondary unless no secondary or no ammo
 
-    self.traits = self:GetNoConflictTraits(4)
+    local traits_enabled = lib.GetConVarBool("personalities")
+    self.traits = (traits_enabled and self:GetNoConflictTraits(4)) or
+    {}                                                                   -- The bot's traits. These are just keynames and not the actual trait objects.
     self.archetype = self:GetClosestArchetype()
 
     --- How angry the bot is, from 1-100. Adds onto pressure. At 100% rage, the bot will leave voluntary (if enabled).

@@ -61,6 +61,7 @@ end
 
 --- Validate the behavior
 function Defuse.Validate(bot)
+    if not lib.GetConVarBool("defuse_c4") then return false end -- This behavior is disabled per the user's choice.
     if not TTTBots.Match.IsRoundActive() then return false end
     if lib.IsEvil(bot) then return false end
     if bot.defuseTarget ~= nil then return true end

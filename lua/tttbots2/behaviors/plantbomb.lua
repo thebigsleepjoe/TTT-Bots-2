@@ -24,6 +24,7 @@ end
 
 --- Validate the behavior
 function PlantBomb.Validate(bot)
+    if not lib.GetConVarBool("plant_c4") then return false end -- This behavior is disabled per the user's choice.
     local inRound = TTTBots.Match.IsRoundActive()
     local isEvil = lib.IsEvil(bot)
     local hasBomb = PlantBomb.HasBomb(bot)
