@@ -60,7 +60,7 @@ local function checkChars(str)
 end
 
 --- Percent chance of a community name being selected if enabled.
-local COMMUNITY_NAME_CHANCE = 20
+local COMMUNITY_NAME_CHANCE = 40
 --- Percent chance of a generic name being selected if enabled. Assuming that a community name is not selected.
 local GENERIC_NAME_CHANCE = 50
 
