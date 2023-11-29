@@ -71,7 +71,12 @@ function Lib.CheckNameInUse(name)
     return false
 end
 
+---Returns the first unused name from a table of names.
+---@param names table<string>
+---@param makeLower boolean
+---@return string|boolean String if a name is found, false if not.
 function Lib.GetFirstUnusedName(names, makeLower)
+    if not (names and type(names) == "table") then return false end
     local playerNames = {}
     for i, v in pairs(player.GetAll()) do
         if not IsValid(v) then continue end
