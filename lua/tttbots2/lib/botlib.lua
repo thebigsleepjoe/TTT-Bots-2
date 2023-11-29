@@ -645,6 +645,15 @@ function TTTBots.Lib.CreateBot(name)
     return bot
 end
 
+hook.Add("PlayerInitialSpawn", "TTTBots.Lib.PlayerInitialSpawn.Chatter", function(bot)
+    timer.Simple(math.pi, function()
+        if not (bot and IsValid(bot) and bot:IsBot()) then return end
+        local chatter = TTTBots.Lib.GetComp(bot, "chatter") ---@type CChatter
+        if not chatter then return end
+        chatter:On("ServerConnected", { player = bot:Nick() })
+    end)
+end)
+
 --- Removes the first bot in the match that is dead (or if we are outside of a match). Will avoid kicking living bots during a match.
 ---@param reason string|nil Optional, defaults to "Removed by server"
 function TTTBots.Lib.RemoveBot(reason)

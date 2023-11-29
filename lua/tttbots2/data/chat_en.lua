@@ -134,6 +134,33 @@ local LoadLang = function()
     Line("DisconnectRage", "Waste of my skills. I'm gone.", A.Tryhard)
     Line("DisconnectRage", "This isn't worth my time. Bye losers.", A.Tryhard)
 
+    RegisterCategory("ServerConnected", P.NORMAL)
+    Line("ServerConnected", "I'm back!", A.Default)
+    Line("ServerConnected", "Hi everyone.", A.Default)
+    Line("ServerConnected", "Ready to go.", A.Default)
+    Line("ServerConnected", "I'm here.", A.Default)
+    Line("ServerConnected", "I'm back.", A.Default)
+    Line("ServerConnected", "Happy to be here", A.Default)
+    Line("ServerConnected", "yo im here lol", A.Casual)
+    Line("ServerConnected", "sup everyone", A.Casual)
+    Line("ServerConnected", "hey, just joined in", A.Casual)
+    Line("ServerConnected", "The best player has arrived.", A.Bad)
+    Line("ServerConnected", "Watch out, I'm here now.", A.Bad)
+    Line("ServerConnected", "Let the games begin.", A.Bad)
+    Line("ServerConnected", "uhhh hi", A.Dumb)
+    Line("ServerConnected", "this server is definitely not a fastdl", A.Dumb)
+    Line("ServerConnected", "Why was I invited here? oh well", A.Dumb)
+    Line("ServerConnected", "Finally, I'm in! Let's do this!", A.Hothead)
+    Line("ServerConnected", "That load time was terrible. Excited to play.", A.Hothead)
+    Line("ServerConnected", "Ready to rumble!", A.Hothead)
+    Line("ServerConnected", "Happy to be here with you all!", A.Nice)
+    Line("ServerConnected", "Looking forward to playing together!", A.Nice)
+    Line("ServerConnected", "Hello everyone, let's have fun!", A.Nice)
+    Line("ServerConnected", "I'm not planning anything, promise.", A.Sus)
+    Line("ServerConnected", "You can trust me, really.", A.Sus)
+    Line("ServerConnected", "Just a regular player here, nothing to see.", A.Sus)
+
+
     -----------------------------------------------------------
     -- TARGET ASSIGNMENT / ATTACK
     -----------------------------------------------------------
