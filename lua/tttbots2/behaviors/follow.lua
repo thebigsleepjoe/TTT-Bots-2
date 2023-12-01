@@ -28,9 +28,9 @@ end
 
 --- Similar to IsFollower, but returns mathematical chance of deciding to follow a new person this tick.
 function Follow.GetFollowChance(bot)
-    local BASE_CHANCE = 1.5 -- X % chance per tick
+    local BASE_CHANCE = 1 -- X % chance per tick
     local debugging = false
-    local chance = BASE_CHANCE * (Follow.IsFollower(bot) and 2 or 1) * (lib.IsEvil(bot) and 1.5 or 1)
+    local chance = BASE_CHANCE * (Follow.IsFollower(bot) and 2 or 1) * (lib.IsEvil(bot) and 2 or 1)
 
     local personality = lib.GetComp(bot, "personality") ---@type CPersonality
     if not personality then return chance end
@@ -45,7 +45,7 @@ end
 function Follow.GetFollowTargets(bot)
     local targets = {}
     local isEvil = lib.IsEvil(bot)
-    local followTeammates = isEvil and bot:HasTrait("teamplayer") -- Only applies for traitors
+    local followTeammates = isEvil -- and bot:HasTrait("teamplayer") -- Only applies for traitors
 
     ---@type CMemory
     local memory = bot.components.memory
