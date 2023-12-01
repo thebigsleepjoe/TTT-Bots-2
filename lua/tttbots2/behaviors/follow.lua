@@ -52,12 +52,17 @@ function Follow.GetFollowTargets(bot)
     local recentPlayers = memory:GetRecentlySeenPlayers(8)
 
     -- For this function we are going to cheat and assume we know the updated positions of every player we've seen recently.
-    for i, ply in pairs(recentPlayers) do
-        if ply == bot then continue end             -- shouldn't be possible but neither should a lot of things.
-        if followTeammates and lib.IsEvil(ply) then -- we are following teammates and this player is evil (like ourselves).
-            table.insert(targets, ply)
-        elseif not followTeammates then             -- we are not following teammates so just add everyone.
-            table.insert(targets, ply)
+    for i, other in pairs(recentPlayers) do
+        if not lib.IsPlayerAlive(other) then continue end
+        if other == bot then continue end -- shouldn't be possible but neither should a lot of things.
+        if other:IsBot() then
+            local otherFollowTarget = other.followTarget
+            if otherFollowTarget == bot then continue end -- don't follow bots that are following us. This will create a death spiral.
+        end
+        if followTeammates and lib.IsEvil(other) then     -- we are following teammates and this player is evil (like ourselves).
+            table.insert(targets, other)
+        elseif not followTeammates then                   -- we are not following teammates so just add everyone.
+            table.insert(targets, other)
         end
     end
 
