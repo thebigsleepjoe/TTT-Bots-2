@@ -561,28 +561,51 @@ function BotLocomotor:AvoidPlayers()
     if self:GetIsCliffed() then return end -- don't let trolls push us off the map...
     local plys = player.GetAll()
     local pos = self.bot:GetPos()
-    local bodyfacingdir = self:GetMoveNormal() or Vector(0, 0, 0)
+    local nearbyClumpCenter = Vector(0, 0, 0)
+    local nearbyClumpCount = 0
 
-    for _, ply in pairs(plys) do
-        if ply == self.bot then continue end
-        if not lib.IsPlayerAlive(ply) then continue end
+    for _, other in pairs(plys) do
+        if other == self.bot then continue end
+        if self.bot.attackTarget == other then continue end -- Don't try to avoid someone we want to kill. Duh!
+        if not lib.IsPlayerAlive(other) then continue end
 
-        local plypos = ply:GetPos()
+        local plypos = other:GetPos()
         local dist = pos:Distance(plypos)
 
-        if dist < 64 then
-            local dir = (pos - plypos):GetNormalized()
-            local dot = dir:Dot(bodyfacingdir)
-
-            if dot > 0 then
-                self:SetStrafe("left")
-                -- TTTBots.DebugServer.DrawLineBetween(pos, self.bot:GetPos() - self.bot:GetRight() * 100, Color(255, 0, 0))
-            else
-                self:SetStrafe("right")
-                -- TTTBots.DebugServer.DrawLineBetween(pos, self.bot:GetPos() + self.bot:GetRight() * 100, Color(255, 0, 0))
-            end
+        if dist < 50 then
+            nearbyClumpCenter = nearbyClumpCenter + plypos
+            nearbyClumpCount = nearbyClumpCount + 1
         end
     end
+
+    if nearbyClumpCount == 0 then return end
+
+    -- Get the clump position & try to navigate away from it
+    local clumpPos = nearbyClumpCenter / nearbyClumpCount
+    local clumpBackward = -self:GetNormalFacing(pos, clumpPos)
+
+    self:SetRepelForce(clumpBackward, 0.3)
+end
+
+--- Returns the normal vector from pos1 to pos2. Basically this is just a normalized vector pointing from A to B.
+---@param pos1 Vector
+---@param pos2 Vector
+---@return Vector normal
+function BotLocomotor:GetNormalFacing(pos1, pos2)
+    local dir = (pos2 - pos1):GetNormalized()
+    return dir
+end
+
+function BotLocomotor:SetRepelForce(normal, duration)
+    self.repelDir = normal
+    self.repelStopTime = CurTime() + (duration or 1.0)
+    self.repelled = true
+end
+
+function BotLocomotor:StopRepel()
+    self.repelDir = nil
+    self.repelStopTime = nil
+    self.repelled = false
 end
 
 --- Determine if we're "Cliffed" (i.e., on the edge of something)
@@ -1227,8 +1250,7 @@ end
 function BotLocomotor:LerpMovement(factor, goal)
     if not goal then return end
 
-    self.movementVec = self.movementVec and LerpVector(factor, self.movementVec, goal) or goal
-    local dvlpr = lib.GetDebugFor("pathfinding")
+    self.movementVec = (self.movementVec and LerpVector(factor, self.movementVec, goal)) or goal
 end
 
 function BotLocomotor:StartAttack()
@@ -1252,16 +1274,17 @@ function BotLocomotor:SetAttack(attack, time)
     end
 end
 
-function BotLocomotor:StartCommand(cmd)
+function BotLocomotor:StartCommand(cmd) -- aka StartCmd
     cmd:ClearButtons()
     cmd:ClearMovement()
     if self.dontmove then return end
     if not lib.IsPlayerAlive(self.bot) then return end
 
     local hasPath = self:HasPath()
-    local dvlpr = lib.GetDebugFor("pathfinding")
+    local DVLPR_PATHFINDING = lib.GetDebugFor("pathfinding")
 
     local TIMESTAMP = CurTime()
+    local MYPOS = self.bot:GetPos()
 
 
     -- SetButtons to IN_DUCK if crouch is true 🦆
@@ -1269,8 +1292,8 @@ function BotLocomotor:StartCommand(cmd)
         (self:GetCrouching() or self:GetJumping()) and IN_DUCK or 0
     )
 
-    -- Set buttons for jumping if :GetJumping() is true 🦘
-    -- The way jumping works is a little quirky, as it cannot be held down. We must release it occasionally
+    --- 🦘 Set buttons for jumping if :GetJumping() is true
+    --- The way jumping works is a little quirky, as it cannot be held down. We must release it occasionally
     if self:GetJumping() and (self.jumpReleaseTime < TIMESTAMP) or self.jumpReleaseTime == nil then
         local onGround = self.bot:OnGround()
         if not onGround then
@@ -1280,30 +1303,43 @@ function BotLocomotor:StartCommand(cmd)
         end
         self.jumpReleaseTime = TIMESTAMP + 0.1
 
-        if dvlpr then
-            TTTBots.DebugServer.DrawText(self.bot:GetPos(), "Crouch Jumping", Color(255, 255, 255))
+        if DVLPR_PATHFINDING then
+            TTTBots.DebugServer.DrawText(MYPOS, "Crouch Jumping", Color(255, 255, 255))
         end
     end
 
-    -- WALK TOWARDS NEXT POSITION ON PATH (OR IMMEDIATE PRIORITY GOAL), IF WE HAVE ONE 🏃
+    --- 🏃 WALK TOWARDS NEXT POSITION ON PATH (OR IMMEDIATE PRIORITY GOAL), IF WE HAVE ONE
     if self:HasPath() and not self:GetPriorityGoal() then
         self:LerpMovement(0.1, self.nextPos)
     elseif self:GetPriorityGoal() then
         self:LerpMovement(0.1, self:GetPriorityGoal())
-        if dvlpr then TTTBots.DebugServer.DrawCross(self.movePriorityVec, 10, Color(0, 255, 255)) end
+        if DVLPR_PATHFINDING then TTTBots.DebugServer.DrawCross(self.movePriorityVec, 10, Color(0, 255, 255)) end
     end
 
-    -- If there is a movement vector, check the distance between the movement vector and the bot's position, to see if we can stop moving.
+    --- 🏃 MANAGE REPEL FORCES
+    if self.repelled then
+        local normal = self.repelDir
+        local endTime = self.repelStopTime
+        local repelPos = (normal * 75) + MYPOS
+
+        if endTime < TIMESTAMP then
+            self.repelled = false
+        else
+            self:LerpMovement(0.15, repelPos) -- Much more emphasis on the repel than normal movement patterns.
+        end
+    end
+
+    -- If there is a movement vector,
     if self.movementVec then
-        local dist = self:GetXYDist(self.movementVec, self.bot:GetPos())
+        local dist = self:GetXYDist(self.movementVec, MYPOS)
         -- If the distance is less than 16, set the movement vector to nil. We have reached our destination.
         if dist < 16 then
             self.movementVec = nil
         else
             -- Calculate the movement angles using the movement vector and the bot's position
-            local ang = (self.movementVec - self.bot:GetPos()):Angle()
+            local ang = (self.movementVec - MYPOS):Angle()
             -- If debug mode is enabled, draw a cross at the movement vector
-            if dvlpr then
+            if DVLPR_PATHFINDING then
                 TTTBots.DebugServer.DrawCross(self.movementVec, 5, Color(255, 255, 255), nil,
                     self.bot:Nick() .. "movementVec")
             end
@@ -1312,18 +1348,13 @@ function BotLocomotor:StartCommand(cmd)
         end
     end
 
-    local goalPos = self:GetGoalPos()
-    if goalPos and self.bot:GetPos():Distance(goalPos) < 16 then
-        self.movementVec = nil
-    end
-
-    --- SET VIEW ANGLES USING UpdateViewAngles HELPER FUNCTION 📷
+    --- 📷 SET VIEW ANGLES USING UpdateViewAngles HELPER FUNCTION
     self:UpdateViewAngles(cmd) -- The real view angles
 
-    --- STRAFESTR FOR LADDER + STRAFE CALCS 🏃
+    --- 🏃 STRAFESTR FOR LADDER + STRAFE CALCS
     local strafeStr = self:GetStrafe()
 
-    --- MANAGE LADDER MOVEMENT 🪜
+    --- 🪜 MANAGE LADDER MOVEMENT
     if self:IsOnLadder() then -- Ladder movement
         local strafe_dir = (strafeStr == "left" and IN_MOVELEFT) or (strafeStr == "right" and IN_MOVERIGHT) or
             0
@@ -1332,28 +1363,28 @@ function BotLocomotor:StartCommand(cmd)
         return
     end
 
-    --- STRAFE CALCULATIONS 🏃
+    --- 🏃 STRAFE CALCULATIONS
     local side = cmd:GetSideMove()
     side = (strafeStr == "left" and -400)
         or (strafeStr == "right" and 400)
         or 0
-    local forceForward = self:GetForceForward()
+    local forceForward = self:GetForceForward() or self.repelled
     local dbgStrafe = lib.GetConVarBool("debug_strafe")
     if dbgStrafe then
         if strafeStr ~= nil then
             -- Draw a line towards the direction of our strafe, out 100 units.
-            local strafePos = self.bot:GetPos() + (self.bot:GetRight() * 100 * (side == -400 and -1 or 1))
-            TTTBots.DebugServer.DrawLineBetween(self.bot:GetPos(), strafePos, Color(255, 0, 0))
+            local strafePos = MYPOS + (self.bot:GetRight() * 100 * (side == -400 and -1 or 1))
+            TTTBots.DebugServer.DrawLineBetween(MYPOS, strafePos, Color(255, 0, 0))
         end
 
         if forceForward and self.movementVec then
             -- Draw a line forward 100 units
-            local forwardPos = self.bot:GetPos() + (self.bot:GetForward() * 100)
-            TTTBots.DebugServer.DrawLineBetween(self.bot:GetPos(), forwardPos, Color(0, 255, 0))
+            local forwardPos = MYPOS + (self.bot:GetForward() * 100)
+            TTTBots.DebugServer.DrawLineBetween(MYPOS, forwardPos, Color(0, 255, 0))
         end
     end
 
-    --- MANAGE MOVEMENT SIDE/FORWARD 🏃
+    --- 🏃 MANAGE MOVEMENT SIDE/FORWARD
     local forward = self.movementVec == nil and 0 or 400
     cmd:SetSideMove(side)
     cmd:SetForwardMove((not forceForward and forward) or 400)
@@ -1361,15 +1392,15 @@ function BotLocomotor:StartCommand(cmd)
     -- Set up movement to always be up. This doesn't seem to do much tbh
     cmd:SetUpMove(400)
 
-    --- MANAGE BOT DOOR HANDLING 🚪
+    --- 🚪 MANAGE BOT DOOR HANDLING
     if self:GetUsing() and self:DoorOpenTimer() then
-        if dvlpr then
-            TTTBots.DebugServer.DrawText(self.bot:GetPos(), "Opening door", Color(255, 255, 255))
+        if DVLPR_PATHFINDING then
+            TTTBots.DebugServer.DrawText(MYPOS, "Opening door", Color(255, 255, 255))
         end
         cmd:SetButtons(cmd:GetButtons() + IN_USE)
     end
 
-    --- MANAGE ATTACKING OF THE BOT 🔫
+    --- 🔫 MANAGE ATTACKING OF THE BOT
     if ((self.reactionDelay or 0) < TIMESTAMP) then
         if (self.attack and not self.attackReleaseTime) or                                       -- if we are attacking and we don't have an attack release time
             (self.attack and self.attackReleaseTime and self.attackReleaseTime > TIMESTAMP) then -- or if we are attacking and we have an attack release time and it's not yet time to release:
@@ -1381,7 +1412,7 @@ function BotLocomotor:StartCommand(cmd)
         end
     end
 
-    --- MANAGE RELOADING OF THE BOT 🔫
+    --- 🔫 MANAGE RELOADING OF THE BOT
     if self.reload then
         cmd:SetButtons(cmd:GetButtons() + IN_RELOAD)
         self.reload = false
