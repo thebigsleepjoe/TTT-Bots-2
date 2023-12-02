@@ -11,7 +11,7 @@ Defuse.Interruptible = true
 Defuse.DEFUSE_RANGE = 80       --- The maximum range that a defuse attempt can be made
 Defuse.ABANDON_TIME = 5        --- Seconds until explosion to abandon defuse attempt
 Defuse.DEFUSE_WIN_CHANCE = 3   --- 1 in X chance of a successful defuse
-Defuse.DEFUSE_TRY_CHANCE = 40  --- 1 in X chance of attempting to defuse (per tick) if other conditions not met
+Defuse.DEFUSE_TRY_CHANCE = 30  --- 1 in X chance of attempting to defuse (per tick) if other conditions not met
 Defuse.DEFUSE_TIME_DELAY = 1.5 --- Seconds to wait before defusing (when within range!)
 
 local STATUS = {
