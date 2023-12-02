@@ -31,6 +31,9 @@ function PlantBomb.Validate(bot)
     return inRound and isEvil and hasBomb
 end
 
+---@type table<Vector, number> -- A list of spots that have been penalized for being impossible to plant at.
+local penalizedBombSpots = {}
+
 ---Gets the best spot to plant a bomb around the bot.
 ---@param bot Player
 ---@return Vector|nil
@@ -49,6 +52,10 @@ function PlantBomb.FindPlantSpot(bot)
 
         for _, witness in pairs(witnesses) do -- Get a list of all non-evils that can see this pos
             weightedOptions[spot] = weightedOptions[spot] - 2
+        end
+
+        if penalizedBombSpots[spot] then
+            weightedOptions[spot] = weightedOptions[spot] - penalizedBombSpots[spot]
         end
 
         for _, ply in pairs(player.GetAll()) do
@@ -102,6 +109,11 @@ function PlantBomb.OnRunning(bot)
     locomotor:SetGoalPos(spot)
     if distToSpot > PlantBomb.PLANT_RANGE then
         return STATUS.RUNNING
+    end
+
+    if locomotor.status == locomotor.STATUSES.IMPOSSIBLE then
+        penalizedBombSpots[spot] = (penalizedBombSpots[spot] or 0) + 5
+        return STATUS.FAILURE
     end
 
     -- We are close enough to plant.
