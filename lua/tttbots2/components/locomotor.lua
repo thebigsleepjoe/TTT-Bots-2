@@ -848,15 +848,28 @@ function BotLocomotor:CanSeeAnyNodesWithinDist(path, range)
     return false
 end
 
+---@enum LocoStatus
+BotLocomotor.STATUSES = {
+    DONTMOVE = "dont_move",
+    NOGOALPOS = "no_goalpos",
+    BOTDEAD = "bot_dead",
+    PATHTOOFAR = "path_too_far",
+    PATHINGCURRENTLY = "pathing_currently",
+    IMPOSSIBLE = "path_impossible",
+    PENDING = "path_pending",
+    READY = "path_ready",
+}
+
 --- Update the path. Requests a path from our current position to our goal position.
----@return string status Status of the pathing, mostly flavor/debugging text.
+---@return LocoStatus status Status of the pathing, mostly flavor/debugging text.
 function BotLocomotor:UpdatePath()
+    local STAT = BotLocomotor.STATUSES
     self.cantReachGoal = false
     self.pathInfoWaiting = false
-    if self.dontmove then return "dont_move" end
+    if self.dontmove then return STAT.DONTMOVE end
     local goalPos = self:GetGoalPos()
-    if goalPos == nil then return "no_goalpos" end
-    if not lib.IsPlayerAlive(self.bot) then return "bot_dead" end
+    if goalPos == nil then return STAT.NOGOALPOS end
+    if not lib.IsPlayerAlive(self.bot) then return STAT.BOTDEAD end
 
     local path = self:GetPath()
     local goalNav = navmesh.GetNearestNavArea(goalPos)
@@ -868,13 +881,11 @@ function BotLocomotor:UpdatePath()
     if hasPath and endIsGoal and not self:CanSeeAnyNodesWithinDist(path.path.path, 500) then
         local dvlpr = lib.GetConVarBool("debug_pathfinding")
         if dvlpr then print(self.bot:Nick() .. " path is too far") end
-        -- return "path_too_far"
+        -- return STAT.PATHTOOFAR
     elseif (hasPath and pathLength > 0 and endIsGoal) then
-        return "pathing_currently"
+        return STAT.PATHINGCURRENTLY
     end
 
-
-    if not lib.IsPlayerAlive(self.bot) then return "bot_dead" end
     -- If we don't have a path, request one
     local pathid, path, status = TTTBots.PathManager.RequestPath(self.bot, self.bot:GetPos(), goalPos, false)
 
@@ -884,10 +895,10 @@ function BotLocomotor:UpdatePath()
         self.cantReachGoal = true
         self.pathInfoWaiting = false
         self.pathInfo = nil
-        return "path_impossible"
+        return STAT.IMPOSSIBLE
     elseif (path == true) then
         self.pathInfoWaiting = true
-        return "path_pending"
+        return STAT.PENDING
     else -- path is a table
         self.pathInfo = {
             path = path,
@@ -897,7 +908,7 @@ function BotLocomotor:UpdatePath()
             owner = self.bot,
         }
         self.pathInfoWaiting = false
-        return "path_ready"
+        return STAT.READY
     end
 end
 
