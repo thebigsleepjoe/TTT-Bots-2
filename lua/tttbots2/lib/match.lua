@@ -31,8 +31,8 @@ Match.SecondsPassed = 0 --- Time since match began. This is important for traito
 Match.KOSCounter = {} ---@type table<Player, number>
 --- List of active KOS calls. Indexed by person called out, with each value being a table of people who called them out.
 Match.KOSList = {} ---@type table<Player, table<Player>>
-Match.SpottedC4s = {} ---@type table<Entity, boolean> Armed C4 that has been spotted by the innocent bots at least once.
-Match.AllArmedC4s = {} ---@type table<Entity, Player>
+Match.SpottedC4s = {} ---@type table<Entity, boolean> Armed C4 that has been spotted by the innocent bots at least once. key and value are the same entity
+Match.AllArmedC4s = {} ---@type table<Entity, boolean>
 
 function Match.Tick()
     if not Match.RoundActive then return end
@@ -126,8 +126,8 @@ function Match.ResetStats(roundActive)
     Match.DisguisedPlayers = {}
     Match.KOSCounter = {}
     Match.KOSList = {}
-    Match.SpottedC4s = {} ---@type table<Entity, boolean> Armed C4 that has been spotted by the innocent bots at least once.
-    Match.AllArmedC4s = {} ---@type table<Entity, Player>
+    Match.SpottedC4s = {}
+    Match.AllArmedC4s = {}
     Match.RoundID = TTTBots.Lib.GenerateID()
 
     -- Just gonna put this here since it's related to resetting stats.
@@ -222,15 +222,11 @@ function Match.BotsTrySpotC4()
         if not TTTBots.Lib.IsPlayerAlive(bot) then continue end
         if TTTBots.Lib.IsEvil(bot) then continue end
 
-        for c4, planter in pairs(Match.AllArmedC4s) do
+        for c4, _ in pairs(Match.AllArmedC4s) do
             if not IsValid(c4) then continue end
-            if not c4:GetArmed() then
-                Match.AllArmedC4s[c4] = nil
-                continue
-            end
 
             if not Match.SpottedC4s[c4] then
-                local canSee = TTTBots.Lib.CanSeeArc(bot, c4:GetPos(), 120)
+                local canSee = TTTBots.Lib.CanSeeArc(bot, c4:GetPos() + Vector(0, 0, 16), 120)
                 if canSee and (bot:GetPos():Distance(c4:GetPos()) < 2000) then
                     Match.SpottedC4s[c4] = true
                     Match.OnBotSpotC4(bot, c4)
@@ -297,26 +293,37 @@ hook.Add("TTTPlayerRadioCommand", "TTTBots.Match.TTTRadioMessage", function(ply,
     Match.CallKOS(ply, msgTarget)
 end)
 
-hook.Add("TTTC4Arm", "TTTBots.Match.TTTC4Arm", function(c4, ply)
-    if not Match.RoundActive then return end
-    if not (IsValid(c4) and IsValid(ply)) then return end
-    Match.AllArmedC4s[c4] = ply
-end)
+-- hook.Add("TTTC4Arm", "TTTBots.Match.TTTC4Arm", function(c4, ply)
+--     if not Match.RoundActive then return end
+--     if not (IsValid(c4) and IsValid(ply)) then return end
+--     Match.AllArmedC4s[c4] = ply
+-- end)
 
-hook.Add("TTTC4Disarm", "TTTBots.Match.TTTC4Disarm", function(c4, result, ply)
-    if not Match.RoundActive then return end
-    if not (IsValid(c4) and IsValid(ply)) then return end
-    Match.AllArmedC4s[c4] = nil
-    Match.SpottedC4s[c4] = nil
-end)
+-- hook.Add("TTTC4Disarm", "TTTBots.Match.TTTC4Disarm", function(c4, result, ply)
+--     if not Match.RoundActive then return end
+--     if not (IsValid(c4) and IsValid(ply)) then return end
+--     Match.AllArmedC4s[c4] = nil
+--     Match.SpottedC4s[c4] = nil
+-- end)
 
-hook.Add("TTTC4Destroyed", "TTTBots.Match.TTTC4Destroyed", function(c4, ply)
-    if not Match.RoundActive then return end
-    if not (IsValid(c4) and IsValid(ply)) then return end
-    Match.AllArmedC4s[c4] = nil
-    Match.SpottedC4s[c4] = nil
-end)
+-- hook.Add("TTTC4Destroyed", "TTTBots.Match.TTTC4Destroyed", function(c4, ply)
+--     if not Match.RoundActive then return end
+--     if not (IsValid(c4) and IsValid(ply)) then return end
+--     Match.AllArmedC4s[c4] = nil
+--     Match.SpottedC4s[c4] = nil
+-- end)
 
-timer.Create("TTTBots.Match.C4Spotting", 1.5, 0, function()
+timer.Create("TTTBots.Match.UpdateC4List", 1, 0, function()
+    if not Match.RoundActive then return end
+    local bombs = ents.FindByClass("ttt_c4")
+
+    Match.AllArmedC4s = {}
+
+    for i, c4 in pairs(bombs) do
+        if not IsValid(c4) then continue end
+        if not c4:GetArmed() then continue end
+        Match.AllArmedC4s[c4] = true
+    end
+
     Match.BotsTrySpotC4()
 end)
