@@ -113,7 +113,7 @@ Chat.Commands = {
         end
     end,
     ["!botadd"] = function(ply, fulltxt)
-        Chat.Commands['!roundrestart'](ply, fulltxt)
+        Chat.Commands['!addbot'](ply, fulltxt)
     end,
     ["!botrr"] = function(ply, fulltxt)
         if not ply:IsSuperAdmin() then
