@@ -122,7 +122,6 @@ function Wander.GetAnyRandomNav(bot, level)
             local bombPos = bomb:GetPos()
             local dist = bombPos:Distance(area:GetCenter())
             if dist < 1000 then
-                print("trying to avoid planted bomb")
                 return Wander.GetAnyRandomNav(bot, level + 1)
             end
         end
