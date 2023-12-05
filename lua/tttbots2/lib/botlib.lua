@@ -547,6 +547,24 @@ end
 local isEvilCache = {}
 local EVIL_CACHE_DURATION = 5 -- Duration in seconds for how long to cache results.
 
+function TTTBots.Lib.IsTTT2()
+    return addonChecker ~= nil -- addonChecker is a global defined solely by TTT2
+end
+
+function TTTBots.Lib.IsDoor(ent)
+    local class = ent:GetClass()
+    local validClasses = {
+        ["func_door"] = true,
+        ["func_door_rotating"] = true,
+        ["prop_door_rotating"] = true
+    }
+    return validClasses[class] or false
+end
+
+function TTTBots.Lib.IsValidBody(rag)
+    return IsValid(rag) and CORPSE.GetPlayerNick(rag, false) ~= false
+end
+
 --- Uses built-in ply:HasEvilTeam but is nil-safe. Basically if they're a traitor.
 ---@param ply Player
 ---@param skipCache boolean|nil Optional, defaults to false
@@ -574,7 +592,7 @@ function TTTBots.Lib.IsEvil(ply, skipCache)
         return false
     end
 
-    local isEvil = ply:HasEvilTeam()
+    local isEvil = TTTBots.Lib.IsTTT2() and ply:HasEvilTeam() or (ply:GetRole() == ROLE_TRAITOR)
     if not skipCache then isEvilCache[ply] = { value = isEvil, time = currentTime } end
     return isEvil
 end

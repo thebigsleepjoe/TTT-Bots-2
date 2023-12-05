@@ -58,10 +58,10 @@ function InvestigateCorpse.GetShouldInvestigateCorpses(bot)
 end
 
 function InvestigateCorpse.CorpseValid(rag)
-    if rag == nil then return false, "nil" end                          -- The corpse is nil.
-    if not IsValid(rag) then return false, "invalid" end                -- The corpse is invalid.
-    if not CORPSE.IsValidBody(rag) then return false, "invalidbody" end -- The corpse is not a valid body.
-    if CORPSE.GetFound(rag, false) then return false, "discovered" end  -- The corpse was discovered.
+    if rag == nil then return false, "nil" end                         -- The corpse is nil.
+    if not IsValid(rag) then return false, "invalid" end               -- The corpse is invalid.
+    if not lib.IsValidBody(rag) then return false, "invalidbody" end   -- The corpse is not a valid body.
+    if CORPSE.GetFound(rag, false) then return false, "discovered" end -- The corpse was discovered.
 
     return true, "valid"
 end

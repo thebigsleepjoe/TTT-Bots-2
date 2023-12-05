@@ -453,7 +453,7 @@ function BotLocomotor:CheckFeetAreObstructed()
     -- draw debug line
     --TTTBots.DebugServer.DrawLineBetween(startpos, endpos, Color(255, 0, 255))
 
-    return trce.Hit and not (trce.Entity and (trce.Entity:IsPlayer() or trce.Entity:IsDoor()))
+    return trce.Hit and not (trce.Entity and (trce.Entity:IsPlayer() or lib.IsDoor(trce.Entity)))
 end
 
 function BotLocomotor:ShouldJump()
@@ -485,7 +485,7 @@ function BotLocomotor:DetectDoorAhead()
     if npTrace.Hit then
         local ent = npTrace.Entity
 
-        if IsValid(ent) and ent:IsDoor() then
+        if IsValid(ent) and lib.IsDoor(ent) then
             return ent
         end
     end
@@ -498,7 +498,7 @@ function BotLocomotor:DetectDoorNearby()
     local pos = self.bot:GetPos()
     local doors = {}
     for i, ent in pairs(ents.FindInSphere(pos, range)) do
-        if IsValid(ent) and ent:IsDoor() then
+        if IsValid(ent) and lib.IsDoor(ent) then
             table.insert(doors, ent)
         end
     end
@@ -726,7 +726,7 @@ function BotLocomotor:Unstuck()
     self:SetJumping(false)
     self:SetCrouching(false)
 
-    self:SetJumping(trce1.Hit and not (trce1.Entity and (trce1.Entity:IsPlayer() or trce1.Entity:IsDoor())))
+    self:SetJumping(trce1.Hit and not (trce1.Entity and (trce1.Entity:IsPlayer() or lib.IsDoor(trce1.Entity))))
     self:SetStrafe(
         (trce2.Hit and "left") or
         (trce3.Hit and "right") or
