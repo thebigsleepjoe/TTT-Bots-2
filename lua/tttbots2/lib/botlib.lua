@@ -283,6 +283,7 @@ function TTTBots.Lib.UpdateQuota()
 
     -- Iterate through each bot
     for i, bot in ipairs(TTTBots.Bots) do
+        if not (bot and bot ~= NULL and IsValid(bot)) then continue end
         if (TTTBots.Lib.IsPlayerAlive(bot) and TTTBots.Match.IsRoundActive()) then continue end -- Do not kick bots that are alive during a round
         local botDifficulty = bot:GetDifficulty()
         -- If the bot's difficulty is too high or too low compared to the expected difficulty
