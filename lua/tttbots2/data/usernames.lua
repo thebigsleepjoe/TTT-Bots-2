@@ -680,6 +680,8 @@ TTTBots.Lib.namePostfixes = {
 -- Thanks to all of you! <3
 -- WARNING: These names are not guaranteed to be safe for work, and many are offensive.
 TTTBots.Lib.communityNames = {
+    "Pastor Whiskey",
+    "Buffalo Bill",
     "Combine soldier",
     "Not the terrorist",
     "yomama",
