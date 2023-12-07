@@ -111,7 +111,7 @@ function PlantBomb.OnRunning(bot)
         return STATUS.RUNNING
     end
 
-    if locomotor.status == locomotor.STATUSES.IMPOSSIBLE then
+    if locomotor.status == locomotor.PATH_STATUSES.IMPOSSIBLE then
         penalizedBombSpots[spot] = (penalizedBombSpots[spot] or 0) + 5
         return STATUS.FAILURE
     end

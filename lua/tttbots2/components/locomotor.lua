@@ -849,7 +849,7 @@ function BotLocomotor:CanSeeAnyNodesWithinDist(path, range)
 end
 
 ---@enum LocoStatus
-BotLocomotor.STATUSES = {
+BotLocomotor.PATH_STATUSES = {
     DONTMOVE = "dont_move",
     NOGOALPOS = "no_goalpos",
     BOTDEAD = "bot_dead",
@@ -863,7 +863,7 @@ BotLocomotor.STATUSES = {
 --- Update the path. Requests a path from our current position to our goal position.
 ---@return LocoStatus status Status of the pathing, mostly flavor/debugging text.
 function BotLocomotor:UpdatePath()
-    local STAT = BotLocomotor.STATUSES
+    local STAT = BotLocomotor.PATH_STATUSES
     self.cantReachGoal = false
     self.pathInfoWaiting = false
     if self.dontmove then return STAT.DONTMOVE end
