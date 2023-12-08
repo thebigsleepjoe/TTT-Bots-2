@@ -164,8 +164,8 @@ function Defuse.OnRunning(bot)
     if not locomotor then return STATUS.FAILURE end
 
     local bombPos = bomb:GetPos()
-    locomotor:SetGoalPos(bombPos)
-    locomotor:AimAt(bombPos)
+    locomotor:SetGoal(bombPos)
+    locomotor:LookAt(bombPos)
 
     return STATUS.RUNNING
 end

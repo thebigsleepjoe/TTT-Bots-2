@@ -41,9 +41,9 @@ function Wander.OnRunning(bot)
 
     local wanderPos = bot.wander.targetPos
     local loco = lib.GetComp(bot, "locomotor") ---@type CLocomotor
-    loco:SetGoalPos(wanderPos)
+    loco:SetGoal(wanderPos)
 
-    if loco:CloseEnoughTo(wanderPos) then
+    if loco:IsCloseEnough(wanderPos) then
         Wander.StareAtNearbyPlayers(bot, loco)
     end
 
@@ -58,7 +58,7 @@ function Wander.StareAtNearbyPlayers(bot, locomotor)
     local closest = lib.GetClosest(players, bot:GetPos())
 
     if closest then
-        locomotor:AimAt(closest:GetPos())
+        locomotor:LookAt(closest:GetPos())
     end
 end
 

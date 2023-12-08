@@ -58,7 +58,7 @@ function Breaker.OnRunning(bot)
     local loco = bot.components.locomotor
     ---@type CInventory
     local imgr = bot.components.inventorymgr
-    loco:AimAt(closest:GetPos(), 0.5)
+    loco:LookAt(closest:GetPos(), 0.5)
     imgr:EquipMelee()
     imgr:PauseAutoSwitch()
     loco:StartAttack()

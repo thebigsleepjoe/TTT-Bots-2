@@ -152,7 +152,7 @@ function FindWeapon.OnRunning(bot)
 
     local target = bot.findweapon.target
     local loco = bot.components.locomotor
-    loco:SetGoalPos(target:GetPos())
+    loco:SetGoal(target:GetPos())
 
     return STATUS.Running
 end

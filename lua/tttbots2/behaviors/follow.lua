@@ -148,7 +148,7 @@ function Follow.OnRunning(bot)
 
     if bot.botFollowPoint == false then return STATUS.FAILURE end
 
-    loco:SetGoalPos(bot.botFollowPoint)
+    loco:SetGoal(bot.botFollowPoint)
 end
 
 --- Called when the behavior returns a success state

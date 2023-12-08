@@ -47,15 +47,15 @@ function Attack.Seek(bot, targetPos)
     loco:StopAttack()
     -- If we can't see them, we need to move to them
     -- local targetPos = target:GetPos()
-    --loco:SetGoalPos(targetPos)
+    --loco:SetGoal(targetPos)
 
     ---@type CMemory
     local memory = bot.components.memory
     local lastKnownPos = memory:GetSuspectedPositionFor(target) or memory:GetKnownPositionFor(target)
 
     if lastKnownPos then
-        loco:SetGoalPos(lastKnownPos)
-        loco:SetLookPosGoal(lastKnownPos)
+        loco:SetGoal(lastKnownPos)
+        loco:LookAt(lastKnownPos)
     else
         -- We have not heard nor seen the target in a while, so we will wander around.
         lib.CallEveryNTicks(
@@ -63,7 +63,7 @@ function Attack.Seek(bot, targetPos)
             function()
                 local wanderArea = TTTBots.Behaviors.Wander.GetAnyRandomNav(bot)
                 if not IsValid(wanderArea) then return end
-                loco:SetGoalPos(wanderArea:GetCenter())
+                loco:SetGoal(wanderArea:GetCenter())
             end,
             math.ceil(TTTBots.Tickrate * 5)
         )
@@ -110,7 +110,7 @@ function Attack.GetTargetBodyPos(targetPly)
     end
 end
 
-function Attack.ShouldAimAtBody(bot, weapon)
+function Attack.ShouldLookAtBody(bot, weapon)
     return weapon.is_shotgun or weapon.is_melee
 end
 
@@ -121,7 +121,7 @@ function Attack.StrafeIfNecessary(bot, weapon, loco)
     if not (bot.attackTarget and bot.attackTarget.GetPos) then return false end
 
     -- Do not strafe if we are on a cliff. We will fall off.
-    local isCliffed = loco:GetIsCliffed()
+    local isCliffed = loco:IsCliffed()
     if isCliffed then return false end
 
     local distToTarget = bot:GetPos():Distance(bot.attackTarget:GetPos())
@@ -133,7 +133,7 @@ function Attack.StrafeIfNecessary(bot, weapon, loco)
     if not shouldStrafe then return false end
 
     local strafeDir = math.random(0, 1) == 0 and "left" or "right"
-    loco:SetStrafe(strafeDir)
+    loco:Strafe(strafeDir)
 
     return true -- We are strafing
 end
@@ -213,7 +213,7 @@ function Attack.Engage(bot, targetPos)
             loco:Stop()
             bot.wasPathing = false
         else
-            loco:SetGoalPos(targetPos)
+            loco:SetGoal(targetPos)
             bot.wasPathing = true
         end
     end
@@ -234,7 +234,7 @@ function Attack.Engage(bot, targetPos)
         end
     else
         loco:StopAttack()
-        loco:SetStrafe()
+        loco:Strafe()
     end
 
     local dvlpr = lib.GetDebugFor("attack")
@@ -249,7 +249,7 @@ function Attack.Engage(bot, targetPos)
     end
 
     local aimTarget
-    if Attack.ShouldAimAtBody(bot, weapon) then
+    if Attack.ShouldLookAtBody(bot, weapon) then
         aimTarget = Attack.GetTargetBodyPos(target)
     else
         aimTarget = Attack.GetTargetHeadPos(target)
@@ -269,7 +269,7 @@ function Attack.Engage(bot, targetPos)
 
     local predictedPoint = aimTarget + Attack.PredictMovement(target, 0.4)
     local inaccuracyTarget = predictedPoint + Attack.CalculateInaccuracy(bot, aimTarget)
-    loco:AimAt(inaccuracyTarget)
+    loco:LookAt(inaccuracyTarget)
 end
 
 local INACCURACY_BASE = 7 --- The higher this is, the more inaccurate the bots will be.

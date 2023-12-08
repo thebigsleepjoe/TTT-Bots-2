@@ -1,9 +1,5 @@
 --[[
-
 This component is how the bot gets to something. It does not create the paths, it just follows them.
-
-TODO: rewrite instructions on how to use this component
-
 ]]
 ---@class CLocomotor
 TTTBots.Components.Locomotor = {}
@@ -15,7 +11,7 @@ local BotLocomotor = TTTBots.Components.Locomotor
 -- Define constants
 local NEXTPOS_COMPLETE_DIST_CANSEE = 32
 local NEXTPOS_COMPLETE_DIST_CANTSEE = 16
-local NEXTPOS_COMPLETE_DIST_VERTICAL_RANGE = 64  --- The range considered, irrespective of visual range, when above NEXTPOS_COMPLETE_DIST_VERTICAL_THRESH
+local NEXTPOS_COMPLETE_DIST_VERTICAL_RANGE = 64  --- The Z-completion range, irrespective of visual range, when dist is greater than _THRESH
 local NEXTPOS_COMPLETE_DIST_VERTICAL_THRESH = 64 --- The Z axis must have a difference of this value to consider NEXTPOS_COMPLETE_DIST_VERTICAL_RANGE
 
 
@@ -34,6 +30,7 @@ function BotLocomotor:New(bot)
     return newLocomotor
 end
 
+---@package
 function BotLocomotor:Initialize(bot)
     bot.components = bot.components or {}
     bot.components.locomotor = self
@@ -43,34 +40,32 @@ function BotLocomotor:Initialize(bot)
     self.tick = 0                                                        -- Tick counter
     self.bot = bot
 
-    self.pathInfo = nil                   -- Current path
-    self.pathInfoingRandomAngle = Angle() -- Random angle used for viewangles when pathing
+    self.pathInfo = nil               -- Current path
 
-    self.goalPos = nil                    -- Current goal position, if any. If nil, then bot is not moving.
+    self.goalPos = nil                -- Current goal position, if any. If nil, then bot is not moving.
 
-    self.tryingMove = false               -- If true, then the bot is trying to move to the goal position.
-    self.posOneSecAgo = nil               -- Position of the bot one second ago. Used for pathfinding.
+    self.isTryingPath = false         -- If true, then the bot is trying to move to the goal position.
+    self.posLastSecond = nil          -- Position of the bot one second ago. Used for pathfinding.
 
-    self.lookPosOverride = nil            -- Override look position, this is only used from outside of this component. Like aiming at a player.
-    self.lookLerpSpeed = 0.05             -- Current look speed (rate of lerp)
-    self.lookPosGoal = nil                -- The current goal position to look at
-    self.lookPos = nil                    -- Current look position, gets lerped to Override, or to self.lookPosGoal.
+    self.lookGoal = nil               -- Override look position, this is only used from outside of this component. Like aiming at a player.
+    self.pathingLookGoal = nil        -- The current goal position to look at
+    self.lookPos = nil                -- Current look position, gets interpolated to Override, or to self.lookPosGoal.
 
-    self.movePriorityVec = nil            -- Current movement priority vector, overrides movementVec if not nil
-    self.movementVec = nil                -- Current movement position, gets lerped to Override
-    self.moveLerpSpeed = 0                -- Current movement speed (rate of lerp)
-    self.moveNormal = Vector(0, 0, 0)     -- Current movement normal, functionally this is read-only.
-    self.moveNormalOverride = nil         -- Override movement normal, mostly used within this component.
+    self.movePriorityVec = nil        -- Current movement priority vector, overrides movementVec if not nil
+    self.movementVec = nil            -- Current movement position
+    self.moveInterpRate = 0           -- Current movement speed (rate of lerp)
+    self.moveNormal = Vector(0, 0, 0) -- Current movement normal, functionally this is read-only.
 
-    self.strafe = nil                     -- "left" or "right" or nil
-    self.strafeTimeout = 0                -- The next tick our strafe will time out on, which is when it will be set to nil.
-    self.forceForward = false             -- If true, then the bot will always move forward
+    self.strafe = nil                 -- "left" or "right" or nil
+    self.strafeTimeout = 0            -- The next tick our strafe will time out on, which is when it will be set to nil.
+    self.forceForward = false         -- If true, then the bot will always move forward
 
     self.crouch = false
     self.jump = false
     self.dontmove = false
 end
 
+---@package
 function BotLocomotor:GetWhereStandForDoor(door)
     if not IsValid(door) then return end
     if not IsEntity(door) then return end
@@ -104,16 +99,7 @@ function BotLocomotor:GetXYDist(a, b)
 end
 
 function BotLocomotor:GetMoveNormal()
-    if self.moveNormalOverride then return self.moveNormalOverride end
     return self.moveNormal
-end
-
-function BotLocomotor:GetMoveNormalOverride()
-    return self.moveNormalOverride
-end
-
-function BotLocomotor:OverrideMoveNormal(vec)
-    self.moveNormalOverride = vec
 end
 
 function BotLocomotor:GetPriorityGoal()
@@ -158,36 +144,8 @@ function BotLocomotor:GetPathLength()
 end
 
 ---@return boolean
-function BotLocomotor:WaitingForPath()
+function BotLocomotor:IsWaitingForPath()
     return self.pathInfoWaiting
-end
-
----@deprecated
----@see TTTBots.Components.Locomotor.HasPath
-function BotLocomotor:ValidatePath()
-    error("Deprecated function. Use HasPath instead.")
-end
-
---- Legacy functionn to lerp eyeangles. This is not used anymore because it doesn't look realistic enough.
---- It's still here just in case.
----@see BotLocomotor.UpdateEyeAnglesFinal
----@deprecated
-function BotLocomotor:LerpEyeAnglesFinal()
-    local targetAngles = (self.lookPos - self.bot:EyePos()):Angle()
-    local currentAngles = self.bot:EyeAngles()
-    local rotationSpeed = 4 * (self.lookPosOverride and 1.75 or 1) -- Modify this value to change rotation speed
-    local deltaTime = FrameTime()                                  -- Add frame time for frame rate independence
-
-    local yawDiff = math.AngleDifference(targetAngles.y, currentAngles.y)
-    local pitchDiff = math.AngleDifference(targetAngles.p, currentAngles.p)
-
-    local yawFraction = math.Clamp(rotationSpeed * deltaTime, 0, 1)
-    local pitchFraction = math.Clamp(rotationSpeed * deltaTime, 0, 1)
-
-    local newYaw = Lerp(yawFraction, currentAngles.y, currentAngles.y + yawDiff)
-    local newPitch = Lerp(pitchFraction, currentAngles.p, currentAngles.p + pitchDiff)
-
-    self.bot:SetEyeAngles(Angle(newPitch, newYaw, 0))
 end
 
 --- Return the angle, in degrees, to the target from where we are currently looking.
@@ -202,7 +160,8 @@ function BotLocomotor:GetEyeAngleDiffTo(pos)
 end
 
 local LOOKSPEEDMULT_DECAYRATE = 0.96
---- [CALCULATED PER-FRAME] Decays the lookSpeedMultiplier value by LOOKSPEEDMULT_DECAYRATE to the bot's decay goal (usually 1)
+--- Decays the lookSpeedMultiplier value by LOOKSPEEDMULT_DECAYRATE to the bot's decay goal (usually 1). Used internally.
+---@package
 function BotLocomotor:DecayLookSpeedMultiplier()
     local current = (self.lookSpeedMultiplier or 1)
     local decayGoal = 1
@@ -212,34 +171,38 @@ function BotLocomotor:DecayLookSpeedMultiplier()
     return self.lookSpeedMultiplier
 end
 
+---@package
 function BotLocomotor:OnNewTarget(target)
     if not (target and IsValid(target)) then return end
 
     -- REACTION DELAY
-    local ttt_bot_reaction_speed = lib.GetConVarFloat("reaction_speed")
-    local ttt_bot_difficulty = lib.GetConVarInt("difficulty")
-    local DIFFICULTY_MULT_HASH = {
-        [1] = 3,   -- e.g. 0.3 x 3 = 0.9s
-        [2] = 2,   -- e.g. 0.3 x 2 = 0.6s
-        [3] = 1,   -- e.g. 0.3 x 1 = 0.3s
-        [4] = 0.8, -- e.g. 0.3 x 0.8 = 0.24s
-        [5] = 0,   -- e.g. 0.3 x 0 = 0s
+    local REACTION_SPEED_BASE = lib.GetConVarFloat("reaction_speed")
+    local DIFFICULTY = lib.GetConVarInt("difficulty")
+    local DIFFICULTY_MULTIPLIERS = {
+        [1] = 3,
+        [2] = 2,
+        [3] = 1,
+        [4] = 0.6,
+        [5] = 0,
     }
-    local ttt_bot_cheat_traitor_reactionspd = lib.GetConVarBool("cheat_traitor_reactionspd")
-    if ttt_bot_cheat_traitor_reactionspd and lib.IsEvil(self.bot) then
-        ttt_bot_reaction_speed = ttt_bot_reaction_speed * 0.5
+    local TRAITORS_REACT_QUICKER = lib.GetConVarBool("cheat_traitor_reactionspd")
+    if TRAITORS_REACT_QUICKER and lib.IsEvil(self.bot) then
+        REACTION_SPEED_BASE = REACTION_SPEED_BASE * 0.5
     end
-    local DIFFICULTY_MULT = DIFFICULTY_MULT_HASH[ttt_bot_difficulty] or 1
-    local reactionSpeed = ttt_bot_reaction_speed * DIFFICULTY_MULT
+    local DIFFICULTY_MULT = DIFFICULTY_MULTIPLIERS[DIFFICULTY] or 1
+    local reactionSpeed = REACTION_SPEED_BASE * DIFFICULTY_MULT
     self.reactionDelay = CurTime() + reactionSpeed
 
     -- Simulate a 'flick'
-    local ttt_bot_flicking = lib.GetConVarBool("flicking")
-    if ttt_bot_flicking then
+    local BOTS_FLICK = lib.GetConVarBool("flicking")
+    if BOTS_FLICK then
         self.lookSpeedMultiplier = 5
     end
 end
 
+---Rotates the current eye angles to face targetPos. This is used internally and should not be called from outside of this component.
+---@param targetPos Vector
+---@package
 function BotLocomotor:RotateEyeAnglesTo(targetPos)
     local speedMult = self:DecayLookSpeedMultiplier()
     -- Settings for easier tweaking
@@ -270,14 +233,14 @@ function BotLocomotor:RotateEyeAnglesTo(targetPos)
     self.bot:SetEyeAngles(Angle(currentAngles.p + pitchChange, currentAngles.y + yawChange, 0))
 end
 
---- This is the function responsible for actually changing the eye angles of the bot on the server's side.
---- It uses lookPosOverride/lookPosGoal to determine where to look.
+--- This is the function responsible for properly changing the eye angles of the bot on the server's side.
+---@package
 function BotLocomotor:UpdateEyeAnglesFinal()
-    if self.lookPosOverride then
-        self.lookPos = self:GetLookPosOverride()
+    if self.lookGoal then
+        self.lookPos = self:GetLookGoal()
     else
-        if self.lookPosGoal then
-            self.lookPos = self:GetLookPosGoal()
+        if self.pathingLookGoal then
+            self.lookPos = self:GetPathingLookGoal()
         end
     end
 
@@ -288,40 +251,38 @@ end
 --- Aims at a given pos for "time" seconds (optional). If no time, then one-time set.
 ---@param pos Vector
 ---@param time number|nil
-function BotLocomotor:AimAt(pos, time)
+function BotLocomotor:LookAt(pos, time)
     if not time then time = 1 end
-    self.lookPosOverride = pos
-    self.lookPosOverrideEnd = CurTime() + time
+    self:SetLookGoal(pos)
+    self.lookGoalStopTime = CurTime() + time
 end
 
 -- Getters and setters, just for formality and easy reading.
-function BotLocomotor:SetCrouching(bool) self.crouch = bool end
+function BotLocomotor:Crouch(bool) self.crouch = bool end
 
-function BotLocomotor:SetJumping(bool) self.jump = bool end
+function BotLocomotor:Jump(bool) self.jump = bool end
 
-function BotLocomotor:SetCanMove(bool) self.dontmove = not bool end
+--- Order the bot to stop this tick.
+---@param bool boolean
+function BotLocomotor:SetHalt(bool) self.dontmove = not bool end
 
--- Set a look override, we will use the look override to override viewangles. Actual look angle is lerped to the override using moveLerpSpeed.
-function BotLocomotor:SetLookPosOverride(pos) self.lookPosOverride = pos end
+--- Sets the current look target. Use :LookAt to set this from outside of this component.
+---@see LookAt
+---@package
+function BotLocomotor:SetLookGoal(pos) self.lookGoal = pos end
 
----@deprecated Don't use. It works, but just don't use it. It's too abrupt.
-function BotLocomotor:SetCurrentLookPos(pos) self.lookPos = pos end
-
-function BotLocomotor:SetLookPosGoal(pos) self.lookPosGoal = pos end
-
-function BotLocomotor:ClearLookPosOverride() self.lookPosOverride = nil end
-
-function BotLocomotor:SetMoveLerpSpeed(speed) self.moveLerpSpeed = speed end
+---@package
+function BotLocomotor:ClearLookGoal() self.lookGoal = nil end
 
 --- Set the direction of our strafing to either "left", "right", or nil. Non-nil values timeout after 2 ticks.
----@param value string|nil the strafe direction, or nil for none.
-function BotLocomotor:SetStrafe(value)
-    if type(value) == "number" then
+---@param direction string|nil the strafe direction, or nil for none.
+function BotLocomotor:Strafe(direction)
+    if type(direction) == "number" then
         print("Strafe direction cannot be a number")
         return
     end
-    if value then self.strafeTimeout = self.tick + (TTTBots.Tickrate) end -- expire after 1 second
-    self.strafe = value
+    if direction then self.strafeTimeout = self.tick + (TTTBots.Tickrate) end -- expire after 1 second
+    self.strafe = direction
 end
 
 function BotLocomotor:SetForceForward(value)
@@ -333,32 +294,32 @@ function BotLocomotor:SetRandomStrafe()
     local options = {
         "left", "right"
     }
-    self:SetStrafe(table.Random(options))
+    self:Strafe(table.Random(options))
 end
 
-function BotLocomotor:SetGoalPos(pos) self.goalPos = pos end
+function BotLocomotor:SetGoal(pos) self.goalPos = pos end
 
-function BotLocomotor:SetUsing(bool) self.emulateInUse = bool end
+function BotLocomotor:SetUse(bool) self.emulateInUse = bool end
 
-function BotLocomotor:GetCrouching() return self.crouch end
+function BotLocomotor:IsTryingCrouch() return self.crouch end
 
-function BotLocomotor:GetJumping() return self.jump end
+function BotLocomotor:IsTryingJump() return self.jump end
 
-function BotLocomotor:GetCanMove() return not self.dontmove end
+function BotLocomotor:IsHalted() return not self.dontmove end
 
-function BotLocomotor:GetLookPosOverride() return self.lookPosOverride end
+function BotLocomotor:GetLookGoal() return self.lookGoal end
 
-function BotLocomotor:GetLookPosGoal() return self.lookPosGoal end
+function BotLocomotor:GetPathingLookGoal() return self.pathingLookGoal end
 
+--- Returns the current position we are looking at by performing an eyetrace. Returns HitPos or nil if none.
+---@return Vector|unknown
 function BotLocomotor:GetCurrentLookPos() return self.lookPos or self.bot:GetEyeTrace().HitPos end
-
-function BotLocomotor:GetMoveLerpSpeed() return self.moveLerpSpeed end
 
 --- Sets self.strafe to nil if strafeTimeout has been reached; returns self.strafe
 ---@return string|nil
-function BotLocomotor:CancelStrafeIfTimeout()
+function BotLocomotor:VerifyStrafeTimeout()
     if (self.strafeTimeout or 0) < self.tick then
-        self:SetStrafe(nil)
+        self:Strafe(nil)
         -- print(string.format("strafe timeout; %d vs %d", self.strafeTimeout, self.tick))
     end
     return self.strafe
@@ -366,7 +327,7 @@ end
 
 --- Sets self.forceForward to nil if forceForwardTimeout has been reached; returns self.forceForward
 ---@return boolean|nil
-function BotLocomotor:CancelForceForwardIfTimeout()
+function BotLocomotor:VerifyForwardTimeout()
     if (self.forceForwardTimeout or 0) < self.tick then
         self:SetForceForward(nil)
         -- print(string.format("ForceForward timeout; %d vs %d", self.ForceForwardTimeout, self.tick))
@@ -376,15 +337,15 @@ end
 
 ---@return string|nil
 function BotLocomotor:GetStrafe()
-    return self:CancelStrafeIfTimeout()
+    return self:VerifyStrafeTimeout()
 end
 
 ---@return boolean|nil
 function BotLocomotor:GetForceForward()
-    return self:CancelForceForwardIfTimeout()
+    return self:VerifyForwardTimeout()
 end
 
-function BotLocomotor:GetGoalPos()
+function BotLocomotor:GetGoal()
     -- BotLocomotor:GetXYDist(a, b)
     if self.goalPos == nil then return nil end
 
@@ -396,12 +357,12 @@ function BotLocomotor:GetGoalPos()
 end
 
 function BotLocomotor:Stop()
-    self:SetGoalPos(nil)
-    self:SetUsing(false)
-    self:SetStrafe(nil)
-    self:SetJumping(false)
-    self:SetCrouching(false)
-    self:SetLookPosOverride(nil)
+    self:SetGoal(nil)
+    self:SetUse(false)
+    self:Strafe(nil)
+    self:Jump(false)
+    self:Crouch(false)
+    self:SetLookGoal(nil)
     self.pathInfo = nil
     self.RLOStop = nil
     self.randomLook = nil
@@ -412,13 +373,17 @@ end
 function BotLocomotor:GetUsing() return self.emulateInUse end
 
 --- Prop and player avoidance
-function BotLocomotor:EnableAvoidance()
+function BotLocomotor:EnableAvoid()
     self.dontAvoid = false
 end
 
 --- Prop and player avoidance
-function BotLocomotor:DisableAvoidance()
+function BotLocomotor:DisableAvoid()
     self.dontAvoid = true
+end
+
+function BotLocomotor:IsAvoid()
+    return not self.dontAvoid
 end
 
 function BotLocomotor:WithinCompleteRange(pos)
@@ -433,7 +398,8 @@ function BotLocomotor:IsOnLadder()
     return self.bot:GetMoveType() == MOVETYPE_LADDER
 end
 
--- Do a trace to check if our feet are obstructed, but our head is not.
+--- Performs a trace to check if the bot's feet are obstructed by anything, according to the movement direction (not facing dir)
+---@return boolean
 function BotLocomotor:CheckFeetAreObstructed()
     local pos = self.bot:GetPos()
     local bodyfacingdir = self:GetMoveNormal() or Vector(0, 0, 0)
@@ -460,7 +426,7 @@ function BotLocomotor:ShouldJump()
     return self:CheckFeetAreObstructed() or (math.random(1, 100) == 1 and self:IsStuck())
 end
 
-function BotLocomotor:ShouldCrouchBetweenPoints(a, b)
+function BotLocomotor:ShouldCrouchBetween(a, b)
     if not a or not b then return false end
     local area1 = navmesh.GetNearestNavArea(a)
     local area2 = navmesh.GetNearestNavArea(b)
@@ -468,12 +434,15 @@ function BotLocomotor:ShouldCrouchBetweenPoints(a, b)
     return (area1 and area1:IsCrouch()) or (area2 and area2:IsCrouch())
 end
 
---- Wrapper for TTTBots.PathManager.BotIsCloseEnough(bot, pos)
-function BotLocomotor:CloseEnoughTo(pos)
+--- Test if the bot is close enough to pos to stop maneuvering to it.
+---@param pos Vector
+---@return boolean
+function BotLocomotor:IsCloseEnough(pos)
     return TTTBots.PathManager.BotIsCloseEnough(self.bot, pos)
 end
 
---- Detect if there is a door ahead of us. Runs two traces, one for moveangles and one for viewangles. If so, then return the door.
+--- Detect if there is a door ahead of us. Runs a trace towards where we are currently moving towards.
+-- TODO: Use view angles instead of movement angles?
 function BotLocomotor:DetectDoorAhead()
     local off = Vector(0, 0, 16)
     local npTrace = util.TraceLine({
@@ -493,6 +462,8 @@ function BotLocomotor:DetectDoorAhead()
     return false
 end
 
+---Tries to find any doors in a sphere around ourselves. Returns the closest elsewhere nil.
+---@return Entity|nil
 function BotLocomotor:DetectDoorNearby()
     local range = 100
     local pos = self.bot:GetPos()
@@ -511,6 +482,7 @@ end
 ---@param name string Name of the variable to set
 ---@param value any Value to set the variable to
 ---@param time number Time in seconds
+---@package
 function BotLocomotor:TimedVariable(name, value, time)
     self[name] = value
 
@@ -529,6 +501,7 @@ end
 ---@param value any
 ---@param time number
 ---@return boolean Output True if the variable is already set, false if it is not.
+---@package
 function BotLocomotor:GetSetTimedVariable(name, value, time)
     if self[name] then return true end
 
@@ -539,7 +512,8 @@ end
 --- Used to prevent spamming of doors.
 --- Calling this function returns a bool. True if can use again. If it returns true, it starts the timer.
 --- Otherwise it returns false, and does nothing
-function BotLocomotor:DoorOpenTimer()
+---@package
+function BotLocomotor:TestDoorTimer()
     -- if self.cantUseAgain then return false end
 
     -- self:TimedVariable("cantUseAgain", true, 1.2)
@@ -550,15 +524,15 @@ end
 --- Tick periodically. Do not tick per GM:StartCommand
 function BotLocomotor:Think()
     self.tick = self.tick + 1
-    local status = self:UpdatePath() -- Update the path that the bot is following, so that we can move along it.
+    local status = self:UpdatePathInfo() -- Update the path that the bot is following, so that we can move along it.
     self.status = status
-    self:UpdateMovement()            -- Update the invisible angle that the bot moves at, and make it move.
+    self:UpdateMovement()                -- Update the invisible angle that the bot moves at, and make it move.
 end
 
 --- Gets nearby players then determines the best direction to strafe to avoid them.
 function BotLocomotor:AvoidPlayers()
     if self.dontAvoid then return end
-    if self:GetIsCliffed() then return end -- don't let trolls push us off the map...
+    if self:IsCliffed() then return end -- don't let trolls push us off the map...
     local plys = player.GetAll()
     local pos = self.bot:GetPos()
     local nearbyClumpCenter = Vector(0, 0, 0)
@@ -582,7 +556,7 @@ function BotLocomotor:AvoidPlayers()
 
     -- Get the clump position & try to navigate away from it
     local clumpPos = nearbyClumpCenter / nearbyClumpCount
-    local clumpBackward = -self:GetNormalFacing(pos, clumpPos)
+    local clumpBackward = -self:GetNormalBetween(pos, clumpPos)
 
     self:SetRepelForce(clumpBackward, 0.3)
 end
@@ -591,17 +565,19 @@ end
 ---@param pos1 Vector
 ---@param pos2 Vector
 ---@return Vector normal
-function BotLocomotor:GetNormalFacing(pos1, pos2)
+function BotLocomotor:GetNormalBetween(pos1, pos2)
     local dir = (pos2 - pos1):GetNormalized()
     return dir
 end
 
+---@package
 function BotLocomotor:SetRepelForce(normal, duration)
     self.repelDir = normal
     self.repelStopTime = CurTime() + (duration or 1.0)
     self.repelled = true
 end
 
+---@package
 function BotLocomotor:StopRepel()
     self.repelDir = nil
     self.repelStopTime = nil
@@ -611,7 +587,8 @@ end
 --- Determine if we're "Cliffed" (i.e., on the edge of something)
 --- by doing two traces to our right and left, starting from EyePos and ending 100 units down, offset by 50 units to the right or left.
 ---@return boolean Cliffed True if we're cliffed (on the edge of something), false if we're not.
-function BotLocomotor:SetIsCliffed()
+---@package
+function BotLocomotor:SetCliffed()
     local pos = self.bot:EyePos()
     local right = self.bot:GetRight()
     local forward = self.bot:GetForward()
@@ -643,37 +620,12 @@ end
 
 --- Check if we're "cliffed" this tick. Basically this just means "is one of our strafe directions next to an edge?"
 ---@return boolean
-function BotLocomotor:GetIsCliffed()
+function BotLocomotor:IsCliffed()
     return self.isCliffed
 end
 
---- Fetch obstacle props from our obstacletracker component, and modify the moveNormal
----@deprecated
-function BotLocomotor:AvoidObstacles()
-    if self.dontAvoid then return end
-    local pos = self.bot:GetPos()
-    local bodyfacingdir = self:GetMoveNormal() or Vector(0, 0, 0)
-    local avgNearby = Vector(0, 0, 0)
-    local nearbyCount = 0
-
-    for _, ent in pairs(self.bot.components.obstacletracker:GetNearbyObstacles()) do
-        if ent:GetClass() ~= "prop_physics" then continue end
-        local entpos = ent:GetPos()
-        avgNearby = avgNearby + entpos
-        nearbyCount = nearbyCount + 1
-    end
-
-    if nearbyCount > 0 then
-        avgNearby = avgNearby / nearbyCount
-        local dir = (pos - avgNearby):GetNormalized()
-        local dot = dir:Dot(bodyfacingdir)
-
-        self:OverrideMoveNormal((bodyfacingdir + dir) * 0.5)
-        TTTBots.DebugServer.DrawLineBetween(pos, pos + self.moveNormal * 100, Color(255, 0, 0))
-    end
-end
-
-function BotLocomotor:Unstuck()
+---@package
+function BotLocomotor:TryUnstick()
     --[[
         So we're stuck. Let's send 3x raycasts to figure out why.
             Ray 1: Straight forward, at knee-height, 30 units long. Mask is everything
@@ -723,64 +675,94 @@ function BotLocomotor:Unstuck()
         TTTBots.DebugServer.DrawText(kneePos, string.format("%s's stuck!", self.bot:Nick()), Color(255, 0, 255))
     end
 
-    self:SetJumping(false)
-    self:SetCrouching(false)
+    self:Jump(false)
+    self:Crouch(false)
 
-    self:SetJumping(trce1.Hit and not (trce1.Entity and (trce1.Entity:IsPlayer() or lib.IsDoor(trce1.Entity))))
-    self:SetStrafe(
+    self:Jump(trce1.Hit and not (trce1.Entity and (trce1.Entity:IsPlayer() or lib.IsDoor(trce1.Entity))))
+    self:Strafe(
         (trce2.Hit and "left") or
         (trce3.Hit and "right") or
         nil
     )
 
     if math.random(1, 5) == 3 then
-        self:SetJumping(true)
+        self:Jump(true)
     end
 
     if not (trce1.Hit or trce2.Hit or trce3.Hit) then
         -- We are still stuck but we can't figure out why. Just strafe in a random direction based off of the current tick.
         local direction = (self.tick % 20 == 0) and "left" or "right"
-        self:SetStrafe(direction)
+        self:Strafe(direction)
+    end
+end
+
+---An UpdateMovement function that is passes a door entity and will set a priority goal to evade it if it is in the way.
+---@param door any
+---@package
+function BotLocomotor:AvoidDoor(door)
+    if self.dontAvoid then return end
+    local dvlpr_door = lib.GetConVarBool("debug_doors")
+    if dvlpr_door then print(self.bot:Nick() .. " opening door") end
+
+    self:SetUse(true)
+    if not self.doorStandPos then
+        local vec = self:GetWhereStandForDoor(door)
+        local duration = 0.9
+        self:TimedVariable("doorStandPos", vec, duration)
+        self:TimedVariable("targetDoor", door, duration)
+    end
+
+    -- Above if sttement ensures doorStandPos is not nil
+    local res = self:SetPriorityGoal(self.doorStandPos, 8)
+    if res then
+        self:TimedVariable('dontmove', true, 0.4)
+    end
+end
+
+---Order the locomotor to path directly towards goal if we are close enough (aka on the same nav area). Uses the priority goal system.
+---@param goal Vector
+---@package
+function BotLocomotor:MoveDirectlyIfClose(goal)
+    -- check goal navarea is same as bot:GetPos() nav area
+    local botArea = navmesh.GetNearestNavArea(self.bot:GetPos())
+    local goalArea = navmesh.GetNearestNavArea(goal)
+    if (botArea == goalArea) then
+        --self:LerpMovement(0.1, goal)
+        self:SetPriorityGoal(goal)
+        self.isTryingPath = true
     end
 end
 
 --- Manage the movement; do not use CMoveData, use the bot's movement functions and fields instead.
+---@package
 function BotLocomotor:UpdateMovement()
-    self:SetJumping(false)
-    self:SetCrouching(false)
-    self:SetUsing(false)
-    self:OverrideMoveNormal(nil)
+    self:Jump(false)
+    self:Crouch(false)
+    self:SetUse(false)
     self:StopPriorityMovement()
-    self.tryingMove = false
-    self:SetIsCliffed()
+    self.isTryingPath = false
+    self:SetCliffed()
     if self.dontmove then return end
 
     local followingPath = self:FollowPath() -- true if doing proper pathing
-    self.tryingMove = followingPath
+    self.isTryingPath = followingPath
     -- Walk straight towards the goal if it doesn't require complex pathing.
-    local goal = self:GetGoalPos()
+    local goal = self:GetGoal()
 
-    if goal and not followingPath and not self:CloseEnoughTo(goal) then
-        -- check goal navarea is same as bot:GetPos() nav area
-        local botArea = navmesh.GetNearestNavArea(self.bot:GetPos())
-        local goalArea = navmesh.GetNearestNavArea(goal)
-        if (botArea == goalArea) then
-            --self:LerpMovement(0.1, goal)
-            self:SetPriorityGoal(goal)
-            self.tryingMove = true
-        end
+    if goal and not followingPath and not self:IsCloseEnough(goal) then
+        self:MoveDirectlyIfClose(goal)
     end
 
     -----------------------
     -- Unstuck code
     -----------------------
 
-    if not self.tryingMove then return end
+    if not self.isTryingPath then return end
 
     -- If we're stuck, try to get unstuck.
     if self.tick % 3 == 1 then self:RecordPosition() end
     if self:IsStuck() then
-        self:Unstuck()
+        self:TryUnstick()
     end
 
     -- self:AvoidObstacles()
@@ -792,26 +774,12 @@ function BotLocomotor:UpdateMovement()
 
     local door = self:DetectDoorAhead()
     if door then
-        local dvlpr_door = lib.GetConVarBool("debug_doors")
-        if dvlpr_door then print(self.bot:Nick() .. " opening door") end
-
-        self:SetUsing(true)
-        if not self.doorStandPos then
-            local vec = self:GetWhereStandForDoor(door)
-            local duration = 0.9
-            self:TimedVariable("doorStandPos", vec, duration)
-            self:TimedVariable("targetDoor", door, duration)
-        end
-
-        -- Above if sttement ensures doorStandPos is not nil
-        local res = self:SetPriorityGoal(self.doorStandPos, 8)
-        if res then
-            self:TimedVariable('dontmove', true, 0.4)
-        end
+        self:AvoidDoor(door)
     end
 end
 
 --- Record the bot's position. This is used for getting the bot unstuck from weird situations.
+---@package
 function BotLocomotor:RecordPosition()
     if self.lastPositions == nil then self.lastPositions = {} end
     table.insert(self.lastPositions, self.bot:GetPos())
@@ -838,7 +806,12 @@ function BotLocomotor:IsStuck()
     return dist < 8
 end
 
-function BotLocomotor:CanSeeAnyNodesWithinDist(path, range)
+---Test if any segments along the path are within the given range.
+---@param path table
+---@param range number
+---@return boolean
+---@package
+function BotLocomotor:AnySegmentsNearby(path, range)
     for i, nav in pairs(path) do
         local center = nav:GetCenter()
         if self.bot:VisibleVec(center) and (center:Distance(self.bot:GetPos()) < range) then
@@ -860,14 +833,15 @@ BotLocomotor.PATH_STATUSES = {
     READY = "path_ready",
 }
 
---- Update the path. Requests a path from our current position to our goal position.
+--- Update the path. Requests a path from our current position to our goal position. Internal function.
 ---@return LocoStatus status Status of the pathing, mostly flavor/debugging text.
-function BotLocomotor:UpdatePath()
+---@package
+function BotLocomotor:UpdatePathInfo()
     local STAT = BotLocomotor.PATH_STATUSES
     self.cantReachGoal = false
     self.pathInfoWaiting = false
     if self.dontmove then return STAT.DONTMOVE end
-    local goalPos = self:GetGoalPos()
+    local goalPos = self:GetGoal()
     if goalPos == nil then return STAT.NOGOALPOS end
     if not lib.IsPlayerAlive(self.bot) then return STAT.BOTDEAD end
 
@@ -878,7 +852,7 @@ function BotLocomotor:UpdatePath()
     local hasPath = self:HasPath()
     local endIsGoal = hasPath
         and path.path.path[self:GetPathLength()] == goalNav -- true if we already have a path to the goal
-    if hasPath and endIsGoal and not self:CanSeeAnyNodesWithinDist(path.path.path, 500) then
+    if hasPath and endIsGoal and not self:AnySegmentsNearby(path.path.path, 500) then
         local dvlpr = lib.GetConVarBool("debug_pathfinding")
         if dvlpr then print(self.bot:Nick() .. " path is too far") end
         -- return STAT.PATHTOOFAR
@@ -914,7 +888,8 @@ end
 
 --- Do a traceline from startPos to endPos, with no specific mask (hit anything). Filter out ourselves.
 --- Returns if we can see the endPos without interruption
-function BotLocomotor:VisionTestNoMask(startPos, endPos)
+--TODO: Move to botlib
+function BotLocomotor:TestVisionNoMask(startPos, endPos)
     local trace = util.TraceLine({
         start = startPos,
         endpos = endPos,
@@ -923,7 +898,8 @@ function BotLocomotor:VisionTestNoMask(startPos, endPos)
     return not trace.Hit -- true if we can see the endPos
 end
 
-function BotLocomotor:VisionTestWorldMask(startPos, endPos)
+--TODO: Move to botlib
+function BotLocomotor:TestVisionWorldMask(startPos, endPos)
     local trace = util.TraceLine({
         start = startPos,
         endpos = endPos,
@@ -933,7 +909,8 @@ function BotLocomotor:VisionTestWorldMask(startPos, endPos)
     return not trace.Hit -- true if we can see the endPos
 end
 
-function BotLocomotor:DivideLineIntoSegments(startPos, endPos, units)
+--TODO: Move to botlib
+function BotLocomotor:DivideIntoSegments(startPos, endPos, units)
     local dist = startPos:Distance(endPos)
     local numSegments = math.ceil(dist / units)
     local segments = {}
@@ -945,7 +922,10 @@ function BotLocomotor:DivideLineIntoSegments(startPos, endPos, units)
     return segments
 end
 
-function BotLocomotor:GetStandHereTrace(pos)
+--TODO: Move to botlib
+function BotLocomotor:CanStandAt(pos)
+    if util.IsInWorld(pos) then return false end
+
     local origin = pos + Vector(0, 0, 16)
     local mins = self.bot:OBBMins()
     local maxs = self.bot:OBBMaxs() - Vector(0, 0, 16)
@@ -957,94 +937,15 @@ function BotLocomotor:GetStandHereTrace(pos)
         filter = self.bot,
         ignoreworld = true,
     })
-    return tr
-end
 
-function BotLocomotor:CanStandHere(pos)
-    if util.IsInWorld(pos) then return false end
-
-    local tr = self:GetStandHereTrace(pos)
     return not tr.Hit
 end
 
-function BotLocomotor:SnapPosToNearestNav(pos)
-    local closestNav = lib.GetNearestNavArea(pos)
-    if not closestNav:IsLadder() then
-        pos = closestNav:GetClosestPointOnArea(pos)
-    end
-    return pos
-end
-
---- Find the nearest walkable position around an entity
----@param point Vector The point to start from
----@param entity Entity The entity to find a walkable position around
----@param origin Vector The origin to measure distance from
----@return Vector WalkablePos the nearest walkable position
-function BotLocomotor:FindNearestWalkableAroundEnt(point, entity, origin, lastWasAdjusted)
-    if not origin then origin = self.bot:GetPos() end
-    if not IsValid(entity) then return point end
-    local attempts = {}
-    local boundingR = entity:BoundingRadius() + 32
-
-    local function addAttempt(pos)
-        local dist = pos:Distance(origin)
-        local walkable = self:CanStandHere(pos)
-        local tr = util.TraceLine(
-            {
-                start = pos + Vector(0, 0, 0),
-                endpos = pos + Vector(0, 0, 0),
-                mask = MASK_SOLID_BRUSHONLY,
-            }
-        )
-        local hitpos = tr.HitPos
-        table.insert(attempts, {
-            pos = hitpos or pos,
-            walkable = walkable,
-            dist = dist,
-        })
-    end
-
-    addAttempt(point + Vector(boundingR, 0, 0))
-    addAttempt(point + Vector(-boundingR, 0, 0))
-    addAttempt(point + Vector(0, boundingR, 0))
-    addAttempt(point + Vector(0, -boundingR, 0))
-
-    table.SortByMember(attempts, "dist", true)
-    local filter = lib.NthFilteredItem
-    local N = lastWasAdjusted and 1 or 2
-    local closestSuccess = filter(N, attempts, function(a)
-        return a.walkable
-    end)
-    local closestFail = filter(N, attempts, function(a)
-        return not a.walkable
-    end)
-    closestSuccess = closestSuccess and closestSuccess.pos
-    closestFail = closestFail and closestFail.pos
-
-
-    if closestSuccess then return closestSuccess end
-
-    return closestFail
-end
-
-local function getClosestInTable(tbl, origin)
-    local closestDist = math.huge
-    local closestI = nil
-    for i, v in ipairs(tbl) do
-        local dist = v:Distance(origin)
-        if dist < closestDist then
-            closestDist = dist
-            closestI = i
-        end
-    end
-    return tbl[closestI], closestI
-end
-
 --- Determine the next pos along our current path
-function BotLocomotor:DetermineNextPos()
+---@package
+function BotLocomotor:SetNextPos()
     local pathinfo = self:GetPath().path
     if not pathinfo or not pathinfo.path or not pathinfo.processedPath then return nil end
-    local purePath = pathinfo.path
     local prepPath = pathinfo.processedPath
 
     local bot = self.bot
@@ -1063,46 +964,26 @@ function BotLocomotor:DetermineNextPos()
         end
     end
     if not nextUncompleted then return nil end -- no more nodes to go to
-    -- If we can't see neither the next node nor the last completed node, then we're stuck, mark the last completed as uncompleted
-    -- if lastCompleted and not self:VisionTestWorldMask(botEyePos, lastCompleted.pos + Vector(0, 0, 16)) and not self:VisionTestWorldMask(botEyePos, nextUncompleted.pos + Vector(0, 0, 16)) then
-    --     lastCompleted.completed = false
-    --     if dvlpr then print("Bot " .. self.bot:Nick() .. " is stuck, marking last completed node as uncompleted") end
-    --     return nil, lastCompleted -- return nil because if we return DetermineNextPos we will soft lock
-    -- end
 
     local nextPos = nextUncompleted.pos
 
     local distXY = lib.DistanceXY(botPos, nextPos)
     local distZ = math.abs(botPos.z - nextPos.z)
-    -- local dist = self:GetXYDist(botPos, nextPos)
-    local canSee = self:VisionTestWorldMask(botEyePos, nextPos + Vector(0, 0, 16))
+    local canSee = self:TestVisionWorldMask(botEyePos, nextPos + Vector(0, 0, 16))
     if
         (distZ > NEXTPOS_COMPLETE_DIST_VERTICAL_THRESH and distXY < NEXTPOS_COMPLETE_DIST_VERTICAL_RANGE)
         or (distXY < NEXTPOS_COMPLETE_DIST_CANSEE and canSee)
         or distXY < NEXTPOS_COMPLETE_DIST_CANTSEE
     then
         nextUncompleted.completed = true
-        return self:DetermineNextPos()
+        return self:SetNextPos()
     end
 
     return nextPos, nextUncompleted
 end
 
---- If there are any blocking entities, aim our crowbar and IN_ATTACK at them
----@deprecated This should be a behavior and should not be in the locomotor
-function BotLocomotor:DestroyBlockingEntities()
-    local bot = self.bot
-    local obtracker = bot.components.obstacletracker
-    local breakable = obtracker:GetBlockingBreakable()
-
-    if not breakable or not IsValid(breakable) then return end
-
-    self:AimAt(breakable:GetPos(), 0.5)
-    self:SetAttack(true, 0.5)
-    bot.components.inventorymgr:EquipMelee()
-end
-
 -- Determines how the bot navigates through its path once it has one.
+---@package
 function BotLocomotor:FollowPath()
     local hasPath = self:HasPath()
     if not (hasPath) then return false end
@@ -1135,18 +1016,18 @@ function BotLocomotor:FollowPath()
         end
     end
 
-    local nextPos, nextPosI = self:DetermineNextPos()
+    local nextPos, nextPosI = self:SetNextPos()
     self.nextPos = nextPos
     self.nextPosI = nextPosI
 
     if not self.nextPos then return false end
 
     if self:ShouldJump() then
-        self:SetJumping(true)
+        self:Jump(true)
     end
 
-    if self:ShouldCrouchBetweenPoints(bot:GetPos(), nextPos) then
-        self:SetCrouching(true)
+    if self:ShouldCrouchBetween(bot:GetPos(), nextPos) then
+        self:Crouch(true)
     end
 
     if dvlpr then
@@ -1164,10 +1045,13 @@ function BotLocomotor:IsFalling()
     return vel.z < -100
 end
 
+-- FIXME: This is unhinged code. It's a mess. It's a disaster. It's a catastrophe. It's a calamity. It's a cataclysm. It's a cataclysmic disaster. Fix.
+---@param cmd any
+---@package
 function BotLocomotor:UpdateViewAngles(cmd)
-    local override = self:GetLookPosOverride()
+    local override = self:GetLookGoal()
     if override then
-        self.lookPosGoal = override
+        self.pathingLookGoal = override
         self:UpdateEyeAnglesFinal()
         return
     end
@@ -1177,7 +1061,7 @@ function BotLocomotor:UpdateViewAngles(cmd)
 
     if self.nextPos then
         if self:IsFalling() and not self:IsOnLadder() then
-            self.lookPosGoal = self.nextPos
+            self.pathingLookGoal = self.nextPos
             self:UpdateEyeAnglesFinal()
             return
         end
@@ -1221,7 +1105,7 @@ function BotLocomotor:UpdateViewAngles(cmd)
             if not self.bot:Visible(self.randomLookOverride) then self.randomLookOverride = nil end
         end
 
-        self.lookPosGoal = (
+        self.pathingLookGoal = (
             (self.randomLookOverride and self.randomLook)
             or (not wallClose and self["randomLook"])
             or (wallClose and self.nextPos + Vector(0, 0, 64))
@@ -1232,11 +1116,11 @@ function BotLocomotor:UpdateViewAngles(cmd)
     local dvlpr_door = lib.GetDebugFor("doors")
 
     if self:IsOnLadder() then
-        self.lookPosGoal = self.nextPos
+        self.pathingLookGoal = self.nextPos
     elseif IsValid(self.targetDoor) then
         local doorCenter = self.targetDoor:WorldSpaceCenter()
         if dvlpr_door then print(self.bot:Nick() .. " is looking at blocking door " .. self.targetDoor:EntIndex()) end
-        self.lookPosGoal = doorCenter
+        self.pathingLookGoal = doorCenter
         -- else
         --     local nearbyDoor = self:DetectDoorNearby()
         --     if nearbyDoor then
@@ -1245,29 +1129,33 @@ function BotLocomotor:UpdateViewAngles(cmd)
         --     end
     end
 
-    if not self.lookPosGoal then return end
+    if not self.pathingLookGoal then return end
 
     self:UpdateEyeAnglesFinal()
 
     local dvlpr = lib.GetDebugFor("look")
     if dvlpr then
         -- DrawCross at lookPosGoal and lookPos
-        TTTBots.DebugServer.DrawCross(self.lookPosGoal, 10, Color(255, 255, 255), 0.15, "lookPosGoal-" .. self.bot:Nick())
+        TTTBots.DebugServer.DrawCross(self.pathingLookGoal, 10, Color(255, 255, 255), 0.15,
+            "lookPosGoal-" .. self.bot:Nick())
         TTTBots.DebugServer.DrawCross(self.lookPos, 10, Color(255, 0, 0), 0.15, "lookPos-" .. self.bot:Nick())
     end
 end
 
 --- Lerp look towards the goal position
-function BotLocomotor:LerpMovement(factor, goal)
+---@package
+function BotLocomotor:InterpolateMovement(factor, goal)
     if not goal then return end
 
     self.movementVec = (self.movementVec and LerpVector(factor, self.movementVec, goal)) or goal
 end
 
+--- Start attacking with the currently held item.
 function BotLocomotor:StartAttack()
     self.attack = true
 end
 
+--- Stop attacking with the current held item.
 function BotLocomotor:StopAttack()
     self.attack = false
 end
@@ -1277,14 +1165,8 @@ function BotLocomotor:Reload()
     self.reload = true
 end
 
----@deprecated see StartAttack and StopAttack: these are untimed and generally neater.
-function BotLocomotor:SetAttack(attack, time)
-    self.attack = attack
-    if time then
-        self.attackReleaseTime = CurTime() + time
-    end
-end
-
+---Basically manages the locomotor of the locomotor
+---@package
 function BotLocomotor:StartCommand(cmd) -- aka StartCmd
     cmd:ClearButtons()
     cmd:ClearMovement()
@@ -1300,12 +1182,12 @@ function BotLocomotor:StartCommand(cmd) -- aka StartCmd
 
     -- SetButtons to IN_DUCK if crouch is true 🦆
     cmd:SetButtons(
-        (self:GetCrouching() or self:GetJumping()) and IN_DUCK or 0
+        (self:IsTryingCrouch() or self:IsTryingJump()) and IN_DUCK or 0
     )
 
     --- 🦘 Set buttons for jumping if :GetJumping() is true
     --- The way jumping works is a little quirky, as it cannot be held down. We must release it occasionally
-    if self:GetJumping() and (self.jumpReleaseTime < TIMESTAMP) or self.jumpReleaseTime == nil then
+    if self:IsTryingJump() and (self.jumpReleaseTime < TIMESTAMP) or self.jumpReleaseTime == nil then
         local onGround = self.bot:OnGround()
         if not onGround then
             cmd:SetButtons(IN_JUMP + IN_DUCK)
@@ -1321,9 +1203,9 @@ function BotLocomotor:StartCommand(cmd) -- aka StartCmd
 
     --- 🏃 WALK TOWARDS NEXT POSITION ON PATH (OR IMMEDIATE PRIORITY GOAL), IF WE HAVE ONE
     if self:HasPath() and not self:GetPriorityGoal() then
-        self:LerpMovement(0.1, self.nextPos)
+        self:InterpolateMovement(0.1, self.nextPos)
     elseif self:GetPriorityGoal() then
-        self:LerpMovement(0.1, self:GetPriorityGoal())
+        self:InterpolateMovement(0.1, self:GetPriorityGoal())
         if DVLPR_PATHFINDING then TTTBots.DebugServer.DrawCross(self.movePriorityVec, 10, Color(0, 255, 255)) end
     end
 
@@ -1336,7 +1218,7 @@ function BotLocomotor:StartCommand(cmd) -- aka StartCmd
         if endTime < TIMESTAMP then
             self.repelled = false
         else
-            self:LerpMovement(0.15, repelPos) -- Much more emphasis on the repel than normal movement patterns.
+            self:InterpolateMovement(0.15, repelPos) -- Much more emphasis on the repel than normal movement patterns.
         end
     end
 
@@ -1404,7 +1286,7 @@ function BotLocomotor:StartCommand(cmd) -- aka StartCmd
     cmd:SetUpMove(400)
 
     --- 🚪 MANAGE BOT DOOR HANDLING
-    if self:GetUsing() and self:DoorOpenTimer() then
+    if self:GetUsing() and self:TestDoorTimer() then
         if DVLPR_PATHFINDING then
             TTTBots.DebugServer.DrawText(MYPOS, "Opening door", Color(255, 255, 255))
         end
@@ -1553,10 +1435,10 @@ timer.Create("TTTBots.Locomotor.lookPosOverride.ForgetOverride", 1.0 / TTTBots.T
     for i, bot in pairs(TTTBots.Bots) do
         if not (bot and bot.components and bot.components.locomotor) then continue end
         local loco = bot.components.locomotor
-        local endTime = loco.lookPosOverrideEnd
+        local endTime = loco.lookGoalStopTime
         if endTime and endTime < CurTime() then
-            loco.lookPosOverride = nil
-            loco.lookPosOverrideEnd = nil
+            loco.lookGoal = nil
+            loco.lookGoalStopTime = nil
         end
     end
 end)

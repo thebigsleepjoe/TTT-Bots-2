@@ -214,7 +214,7 @@ function Match.OnBotSpotC4(bot, c4)
     local locomotor = TTTBots.Lib.GetComp(bot, "locomotor") ---@type CLocomotor
     if not chatter then return end
     chatter:On("SpottedC4", {}, false)
-    locomotor:AimAt(c4:GetPos())
+    locomotor:LookAt(c4:GetPos())
 end
 
 function Match.BotsTrySpotC4()

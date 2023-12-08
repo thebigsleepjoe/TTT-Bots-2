@@ -106,7 +106,7 @@ function PlantBomb.OnRunning(bot)
 
     local distToSpot = bot:GetPos():Distance(spot)
     local locomotor = lib.GetComp(bot, "locomotor") ---@type CLocomotor
-    locomotor:SetGoalPos(spot)
+    locomotor:SetGoal(spot)
     if distToSpot > PlantBomb.PLANT_RANGE then
         return STATUS.RUNNING
     end
@@ -129,7 +129,7 @@ function PlantBomb.OnRunning(bot)
 
     -- We are safe to plant.
     bot:SelectWeapon("weapon_ttt_c4")
-    locomotor:AimAt(spot)
+    locomotor:LookAt(spot)
     locomotor:StartAttack()
 
     return STATUS.RUNNING -- This behavior depends on the validation call ending it.

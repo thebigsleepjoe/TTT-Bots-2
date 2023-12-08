@@ -119,7 +119,7 @@ net.Receive("TTTBots_RequestData", function(len, ply)
             hearingMult = memory:GetHearingMultiplier(),
             hearingMult_GunshotDist = TTTBots.Sound.DetectionInfo.Gunshot.Distance * memory:GetHearingMultiplier(),
             stopLookingAround = locomotor.stopLookingAround or "false",
-            pathGoalPos = locomotor:GetGoalPos() or "None",
+            pathGoalPos = locomotor:GetGoal() or "None",
             pathStatus = locomotor.status or "None",
             pauseAutoSwitch = inventory.pauseAutoSwitch or "false",
             weaponHeld = heldWepTxt,
