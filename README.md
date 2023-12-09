@@ -20,16 +20,16 @@ TODO: Put a wiki here
 ## Progress:
 Basically this is a to-do list before full Steam release
 
-Note that this list is far from comprehensive, and only serves to give you a rough list in order of priority:
+Note that this list is far from comprehensive, and only serves to give you a rough list in order of priority.
+
+Prior to release:
+- Cleanup the codebase. I don't want any significant amount of technical debt on release.
 - Place a health station if is detective
 - Allow bots to heal from health stations
-- Have bots be able to use the DNA scanner
-- Avoid areas spotted with bombs close by, and communicate when spotting a bomb.
-- Ensure TTT/2 cross-compatibility
+- Have bots be able to emulate using the DNA scanner
+- Enable bots to have 'silly chats' the way they did before, and let them have basic conversations with each other.
+- Create a wiki for server owners and general tips
 
-Misc stuff, aka probably after release:
-- CUSTOM Tutorial on how to create navmeshes + how to let them use ladders
-- Push the first 'ready' build to Steam
-- Extreme baby-proofing: tell user if no navmesh, no player slots, etc. Maybe even link them to tutorial from #2.
-- Ban certain traits from being selected, have a UI to explain assigned traits
-- Have a full UI for bot customization
+Post-release:
+- Custom Tutorial on how to fine-tune navmeshes + how to let bots use ladders
+- Implement the !botmenu: blacklist/whitelist certain traits, change bot count, etc.
