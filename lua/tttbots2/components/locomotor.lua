@@ -40,7 +40,7 @@ function BotLocomotor:Initialize(bot)
     self.tick = 0                                                        -- Tick counter
     self.bot = bot
 
-    self.pathInfo = nil               -- Current path
+    self.pathRequest = nil            -- Current path
 
     self.goalPos = nil                -- Current goal position, if any. If nil, then bot is not moving.
 
@@ -125,27 +125,27 @@ function BotLocomotor:StopPriorityMovement()
 end
 
 --- Returns a table of the path generation info. The actual path is stored in a key called "path"
----@return table
-function BotLocomotor:GetPath()
-    return self.pathInfo
+---@return PathRequest|nil
+function BotLocomotor:GetPathRequest()
+    return self.pathRequest
 end
 
 ---@return boolean
 function BotLocomotor:HasPath()
-    return type(self.pathInfo) == "table" and type(self.pathInfo.path) == "table"
+    return type(self.pathRequest) == "table" and type(self.pathRequest.pathInfo) == "table"
 end
 
 function BotLocomotor:GetPathLength()
     if not self:HasPath() then return 0 end
-    if type(self:GetPath()) ~= "table" then return 0 end
-    if not (self.pathInfo and self.pathInfo.path and self.pathInfo.path.path and type(self.pathInfo.path.path) == "table") then return 0 end
+    if type(self:GetPathRequest()) ~= "table" then return 0 end
+    if not (self.pathRequest and self.pathRequest.pathInfo and self.pathRequest.pathInfo.path and type(self.pathRequest.pathInfo.path) == "table") then return 0 end
     -- # operator does not work here for some reason so count the old way
-    return table.Count(self.pathInfo.path.path)
+    return table.Count(self.pathRequest.pathInfo.path)
 end
 
 ---@return boolean
 function BotLocomotor:IsWaitingForPath()
-    return self.pathInfoWaiting
+    return self.pathRequestWaiting
 end
 
 --- Return the angle, in degrees, to the target from where we are currently looking.
@@ -363,7 +363,7 @@ function BotLocomotor:Stop()
     self:Jump(false)
     self:Crouch(false)
     self:SetLookGoal(nil)
-    self.pathInfo = nil
+    self.pathRequest = nil
     self.RLOStop = nil
     self.randomLook = nil
     self.movePriorityVec = nil
@@ -524,9 +524,9 @@ end
 --- Tick periodically. Do not tick per GM:StartCommand
 function BotLocomotor:Think()
     self.tick = self.tick + 1
-    local status = self:UpdatePathInfo() -- Update the path that the bot is following, so that we can move along it.
+    local status = self:UpdatePathRequest() -- Update the path that the bot is following, so that we can move along it.
     self.status = status
-    self:UpdateMovement()                -- Update the invisible angle that the bot moves at, and make it move.
+    self:UpdateMovement()                   -- Update the invisible angle that the bot moves at, and make it move.
 end
 
 --- Gets nearby players then determines the best direction to strafe to avoid them.
@@ -833,26 +833,45 @@ BotLocomotor.PATH_STATUSES = {
     READY = "path_ready",
 }
 
+---@class PathRequest
+---@field pathInfo PathInfo
+---@field pathid number
+---@field processedPath table<PathNode>
+---@field pathIndex number
+---@field owner Player
+
+---@class PathNode
+---@field area CNavArea|CNavLadder
+---@field completed boolean
+---@field pos Vector
+---@field type string e.g. "walk" or "fall"
+
+---@class PathInfo
+---@field TimeSince function A callback that returns the time since the path was generated
+---@field generatedAt number The timestamp the path was generated at
+---@field path table<CNavArea|CNavLadder> The raw path itself
+
+
 --- Update the path. Requests a path from our current position to our goal position. Internal function.
 ---@return LocoStatus status Status of the pathing, mostly flavor/debugging text.
 ---@package
-function BotLocomotor:UpdatePathInfo()
+function BotLocomotor:UpdatePathRequest()
     local STAT = BotLocomotor.PATH_STATUSES
     self.cantReachGoal = false
-    self.pathInfoWaiting = false
+    self.pathRequestWaiting = false
     if self.dontmove then return STAT.DONTMOVE end
     local goalPos = self:GetGoal()
     if goalPos == nil then return STAT.NOGOALPOS end
     if not lib.IsPlayerAlive(self.bot) then return STAT.BOTDEAD end
 
-    local path = self:GetPath()
+    local pathRequest = self:GetPathRequest()
     local goalNav = navmesh.GetNearestNavArea(goalPos)
     local pathLength = self:GetPathLength()
 
     local hasPath = self:HasPath()
     local endIsGoal = hasPath
-        and path.path.path[self:GetPathLength()] == goalNav -- true if we already have a path to the goal
-    if hasPath and endIsGoal and not self:AnySegmentsNearby(path.path.path, 500) then
+        and pathRequest.pathInfo.path[self:GetPathLength()] == goalNav -- true if we already have a path to the goal
+    if hasPath and endIsGoal and not self:AnySegmentsNearby(pathRequest.pathInfo.path, 500) then
         local dvlpr = lib.GetConVarBool("debug_pathfinding")
         if dvlpr then print(self.bot:Nick() .. " path is too far") end
         -- return STAT.PATHTOOFAR
@@ -861,27 +880,27 @@ function BotLocomotor:UpdatePathInfo()
     end
 
     -- If we don't have a path, request one
-    local pathid, path, status = TTTBots.PathManager.RequestPath(self.bot, self.bot:GetPos(), goalPos, false)
+    local pathid, pathInfo, status = TTTBots.PathManager.RequestPath(self.bot, self.bot:GetPos(), goalPos, false)
 
     local fr = string.format
 
-    if (path == false or path == nil) then -- path is impossible
+    if (pathInfo == false or pathInfo == nil) then -- path is impossible
         self.cantReachGoal = true
-        self.pathInfoWaiting = false
-        self.pathInfo = nil
+        self.pathRequestWaiting = false
+        self.pathRequest = nil
         return STAT.IMPOSSIBLE
-    elseif (path == true) then
-        self.pathInfoWaiting = true
+    elseif (pathInfo == true) then
+        self.pathRequestWaiting = true
         return STAT.PENDING
     else -- path is a table
-        self.pathInfo = {
-            path = path,
+        self.pathRequest = {
+            pathInfo = pathInfo,
             pathid = pathid,
-            processedPath = path.processedPath,
+            processedPath = pathInfo.processedPath,
             pathIndex = 1, -- the index of the next path node to go to
             owner = self.bot,
         }
-        self.pathInfoWaiting = false
+        self.pathRequestWaiting = false
         return STAT.READY
     end
 end
@@ -944,7 +963,7 @@ end
 --- Determine the next pos along our current path
 ---@package
 function BotLocomotor:SetNextPos()
-    local pathinfo = self:GetPath().path
+    local pathinfo = self:GetPathRequest().pathInfo
     if not pathinfo or not pathinfo.path or not pathinfo.processedPath then return nil end
     local prepPath = pathinfo.processedPath
 
@@ -993,14 +1012,14 @@ function BotLocomotor:FollowPath()
     --     "GoalLineFor" .. self.bot:Nick())
     local dvlpr = lib.GetDebugFor("pathfinding")
     local bot = self.bot
-    local pathInfo = self:GetPath()
+    local pathRequest = self:GetPathRequest()
 
-    local processedPath = pathInfo.processedPath
+    local processedPath = pathRequest.processedPath
     if not processedPath or #processedPath == 0 then return false end
 
     -- Check if impossible
-    local isImpossible = TTTBots.PathManager.impossiblePaths[pathInfo.pathid] ~= nil
-    -- print(self.bot:Nick(), pathInfo.pathid, isImpossible)
+    local isImpossible = TTTBots.PathManager.impossiblePaths[pathRequest.pathid] ~= nil
+    -- print(self.bot:Nick(), pathRequest.pathid, isImpossible)
     if isImpossible then
         return false
     end
@@ -1056,7 +1075,7 @@ function BotLocomotor:UpdateViewAngles(cmd)
         return
     end
 
-    local processedPath = self:HasPath() and self:GetPath().processedPath
+    local processedPath = self:HasPath() and self:GetPathRequest().processedPath
     local goal = self.goalPos
 
     if self.nextPos then
