@@ -236,13 +236,7 @@ end
 --- This is the function responsible for properly changing the eye angles of the bot on the server's side.
 ---@package
 function BotLocomotor:UpdateEyeAnglesFinal()
-    if self.lookGoal then
-        self.lookPos = self:GetLookGoal()
-    else
-        if self.pathingLookGoal then
-            self.lookPos = self:GetPathingLookGoal()
-        end
-    end
+    self.lookPos = self:GetLookGoal() or self:GetPathingLookGoal() or self.lookPos
 
     -- self:LerpEyeAnglesFinal()
     self:RotateEyeAnglesTo(self.lookPos)
@@ -364,7 +358,7 @@ function BotLocomotor:Stop()
     self:Crouch(false)
     self:SetLookGoal(nil)
     self.pathRequest = nil
-    self.RLOStop = nil
+    self.randomLookEntityStopTime = nil
     self.randomLook = nil
     self.movePriorityVec = nil
     self.movementVec = nil
@@ -1064,101 +1058,144 @@ function BotLocomotor:IsFalling()
     return vel.z < -100
 end
 
--- FIXME: This is unhinged code. It's a mess. It's a disaster. It's a catastrophe. It's a calamity. It's a cataclysm. It's a cataclysmic disaster. Fix.
----@param cmd any
+---Functionally sets loco.pathingLookGoal, used for low-priority looking around.
+---@param goal Vector
 ---@package
-function BotLocomotor:UpdateViewAngles(cmd)
+function BotLocomotor:SetPathingLookGoal(goal)
+    self.pathingLookGoal = goal
+end
+
+---Return if the bot's face is within 100 units of a wall (or other obstruction).
+---@return boolean
+function BotLocomotor:IsWallClose()
+    local eyeTrace = self.bot:GetEyeTrace()
+    local eyeTracePos = eyeTrace.HitPos
+    local eyeTraceDist = eyeTracePos and eyeTracePos:Distance(self.bot:GetPos())
+    local wallClose = eyeTraceDist and eyeTraceDist < 100
+
+    return wallClose
+end
+
+---@return boolean
+---@package
+function BotLocomotor:HandleFallingLook()
+    if self:IsFalling() and not self:IsOnLadder() then
+        self.pathingLookGoal = self.nextPos
+        return true
+    end
+end
+
+--- Look at a random player in sight
+---@package
+function BotLocomotor:TryRandomPlayerLook()
+    if not self.randomLookEntity and not self.randomLookEntityStopTime then
+        local plys = player.GetAll()
+        local plysNearby = {}
+        for i, ply in pairs(plys) do
+            if not lib.IsPlayerAlive(ply) then continue end
+            if ply == self.bot then continue end
+            if self.bot:Visible(ply) then
+                table.insert(plysNearby, ply)
+            end
+        end
+        if #plysNearby > 0 then
+            local ply = table.Random(plysNearby)
+            local firstWithin = lib.GetFirstCloserThan(plysNearby, self.bot:GetPos(), 200)
+            if firstWithin then ply = firstWithin end
+
+            self:TimedVariable("randomLookEntity", ply, math.random(10, 30) / 10)
+            self:TimedVariable("randomLookEntityStopTime", true, math.random(4, 30))
+        end
+    end
+
+    if self.randomLookEntity ~= nil and IsValid(self.randomLookEntity) then
+        self.randomLook = self.randomLookEntity:GetPos() + Vector(0, 0, 64)
+        if not self.bot:Visible(self.randomLookEntity) then self.randomLookEntity = nil end
+    end
+end
+
+--- Wander around with our eyes while we are walking around.
+---@return boolean
+---@package
+function BotLocomotor:HandleRandomWalkLook()
+    if not self.nextPos then return end
+
+    local nextPosNormal = (self.nextPos - self.bot:GetPos()):GetNormal()
+    local outwards = self.bot:GetPos() + nextPosNormal * 1200
+    self:GetSetTimedVariable("randomLook", outwards, math.random(0.5, 2))
+
+    local wallClose = self:IsWallClose()
+
+    if wallClose then self.randomLook = nil end
+
+    self:TryRandomPlayerLook()
+
+    self.pathingLookGoal = (
+        (self.randomLookEntity and self.randomLook)
+        or (not wallClose and self.randomLook)
+        or self.nextPos + Vector(0, 0, 64)
+    )
+
+    return true
+end
+
+---@return boolean
+---@package
+function BotLocomotor:HandleLadderLook()
+    if self:IsOnLadder() then
+        self.pathingLookGoal = self.nextPos
+        return true
+    end
+
+    return false
+end
+
+---@return boolean
+---@package
+function BotLocomotor:HandleDoorLook()
+    local dvlpr_door = lib.GetDebugFor("doors")
+    if IsValid(self.targetDoor) then
+        local doorCenter = self.targetDoor:WorldSpaceCenter()
+        if dvlpr_door then print(self.bot:Nick() .. " is looking at blocking door " .. self.targetDoor:EntIndex()) end
+        self.pathingLookGoal = doorCenter
+
+        return true
+    end
+
+    return false
+end
+
+---@return boolean
+---@package
+function BotLocomotor:HandleOverrideLook()
     local override = self:GetLookGoal()
     if override then
         self.pathingLookGoal = override
         self:UpdateEyeAnglesFinal()
-        return
+        return true
     end
 
-    local processedPath = self:HasPath() and self:GetPathRequest().processedPath
-    local goal = self.goalPos
+    return false
+end
 
-    if self.nextPos then
-        if self:IsFalling() and not self:IsOnLadder() then
-            self.pathingLookGoal = self.nextPos
-            self:UpdateEyeAnglesFinal()
-            return
-        end
+---@param cmd any
+---@package
+function BotLocomotor:TickViewAngles(cmd)
+    local priorityTree = {
+        self.HandleOverrideLook,
+        self.HandleLadderLook,
+        self.HandleDoorLook,
+        self.HandleFallingLook,
+        self.HandleRandomWalkLook,
+    }
 
-        local nextPosNormal = (self.nextPos - self.bot:GetPos()):GetNormal()
-        local outwards = self.bot:GetPos() + nextPosNormal * 1200
-        self:GetSetTimedVariable("randomLook", outwards, math.random(0.5, 2))
-
-        -- do an eyetrace to see if there is something directly ahead of us
-        local eyeTrace = self.bot:GetEyeTrace()
-        local eyeTracePos = eyeTrace.HitPos
-        local eyeTraceDist = eyeTracePos and eyeTracePos:Distance(self.bot:GetPos())
-        local wallClose = eyeTraceDist and eyeTraceDist < 100
-
-        if wallClose then self.randomLook = nil end
-
-        -- Check if there are any plys nearby and look at the closest one if there are, instead of looking at the random look pos
-        if not self.randomLookOverride and not self.RLOStop and not self.stopLookingAround then
-            local plys = player.GetAll()
-            local plysNearby = {}
-            for i, ply in pairs(plys) do
-                if not lib.IsPlayerAlive(ply) then continue end
-                if ply == self.bot then continue end
-                if self.bot:Visible(ply) then
-                    table.insert(plysNearby, ply)
-                end
-            end
-            if #plysNearby > 0 then
-                -- local ply, plyDist = lib.GetClosest(plysNearby, self.bot:GetPos())
-                local ply = table.Random(plysNearby)
-                local firstWithin = lib.GetFirstCloserThan(plysNearby, self.bot:GetPos(), 200)
-                if firstWithin then ply = firstWithin end
-
-                self:TimedVariable("randomLookOverride", ply, math.random(10, 30) / 10)
-                self:TimedVariable("RLOStop", true, math.random(4, 30))
-            end
-        end
-
-        if self.randomLookOverride ~= nil and IsValid(self.randomLookOverride) then
-            self.randomLook = self.randomLookOverride:GetPos() + Vector(0, 0, 64)
-            if not self.bot:Visible(self.randomLookOverride) then self.randomLookOverride = nil end
-        end
-
-        self.pathingLookGoal = (
-            (self.randomLookOverride and self.randomLook)
-            or (not wallClose and self["randomLook"])
-            or (wallClose and self.nextPos + Vector(0, 0, 64))
-            or goal
-        )
+    for _, func in pairs(priorityTree) do
+        if func(self) then break end
     end
 
-    local dvlpr_door = lib.GetDebugFor("doors")
-
-    if self:IsOnLadder() then
-        self.pathingLookGoal = self.nextPos
-    elseif IsValid(self.targetDoor) then
-        local doorCenter = self.targetDoor:WorldSpaceCenter()
-        if dvlpr_door then print(self.bot:Nick() .. " is looking at blocking door " .. self.targetDoor:EntIndex()) end
-        self.pathingLookGoal = doorCenter
-        -- else
-        --     local nearbyDoor = self:DetectDoorNearby()
-        --     if nearbyDoor then
-        --         if dvlpr_door then print(self.bot:Nick() .. " is looking at nearby door " .. nearbyDoor:EntIndex()) end
-        --         self.lookPosGoal = nearbyDoor:WorldSpaceCenter()
-        --     end
-    end
-
-    if not self.pathingLookGoal then return end
+    if self.pathingLookGoal == nil then return end
 
     self:UpdateEyeAnglesFinal()
-
-    local dvlpr = lib.GetDebugFor("look")
-    if dvlpr then
-        -- DrawCross at lookPosGoal and lookPos
-        TTTBots.DebugServer.DrawCross(self.pathingLookGoal, 10, Color(255, 255, 255), 0.15,
-            "lookPosGoal-" .. self.bot:Nick())
-        TTTBots.DebugServer.DrawCross(self.lookPos, 10, Color(255, 0, 0), 0.15, "lookPos-" .. self.bot:Nick())
-    end
 end
 
 --- Lerp look towards the goal position
@@ -1261,7 +1298,7 @@ function BotLocomotor:StartCommand(cmd) -- aka StartCmd
     end
 
     --- 📷 SET VIEW ANGLES USING UpdateViewAngles HELPER FUNCTION
-    self:UpdateViewAngles(cmd) -- The real view angles
+    self:TickViewAngles(cmd) -- The real view angles
 
     --- 🏃 STRAFESTR FOR LADDER + STRAFE CALCS
     local strafeStr = self:GetStrafe()
