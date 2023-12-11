@@ -486,7 +486,6 @@ function BotInventoryMgr:BuyItemsAtStart()
 
     for class, func in pairs(options) do
         if func(self, personality) then
-            printf("Callback for %s was true; giving %s item.", class, self.bot:Nick())
             self.bot:Give(class)
         end
     end
