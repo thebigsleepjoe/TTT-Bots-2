@@ -481,7 +481,7 @@ function BotInventoryMgr:BuyItemsAtStart()
 
     local options = {
         ["weapon_ttt_c4"] = self.ShouldBuyBomb,
-        ["ttt_health_station"] = self.ShouldBuyHealth,
+        ["weapon_ttt_health_station"] = self.ShouldBuyHealth,
     }
 
     for class, func in pairs(options) do
