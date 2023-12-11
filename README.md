@@ -23,13 +23,11 @@ Basically this is a to-do list before full Steam release
 Note that this list is far from comprehensive, and only serves to give you a rough list in order of priority.
 
 Prior to release:
-- Place a health station if is detective
-- Allow bots to heal from health stations
-- Have bots be able to emulate using the DNA scanner
 - Enable bots to have 'silly chats' the way they did before, and let them have basic conversations with each other.
 - Create a wiki for server owners and general tips
 
 Post-release:
+- Have bots be able to emulate using the DNA scanner (??)
 - Create trailer for new mod, take new screenshots, make everything more professional.
 - Custom Tutorial on how to fine-tune navmeshes + how to let bots use ladders
 - Create some more bot maps as separate addons but link them here.
