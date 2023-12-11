@@ -23,6 +23,7 @@ Basically this is a to-do list before full Steam release
 Note that this list is far from comprehensive, and only serves to give you a rough list in order of priority.
 
 Prior to release:
+- FIX PLANTING BUG
 - Enable bots to have 'silly chats' the way they did before, and let them have basic conversations with each other.
 - Create a wiki for server owners and general tips
 
