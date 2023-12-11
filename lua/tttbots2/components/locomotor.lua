@@ -236,6 +236,7 @@ end
 --- This is the function responsible for properly changing the eye angles of the bot on the server's side.
 ---@package
 function BotLocomotor:UpdateEyeAnglesFinal()
+    if self.pathingLookGoal == nil then return end
     self.lookPos = self:GetLookGoal() or self:GetPathingLookGoal() or self.lookPos
 
     -- self:LerpEyeAnglesFinal()
@@ -521,6 +522,7 @@ function BotLocomotor:Think()
     local status = self:UpdatePathRequest() -- Update the path that the bot is following, so that we can move along it.
     self.status = status
     self:UpdateMovement()                   -- Update the invisible angle that the bot moves at, and make it move.
+    self:TickViewAngles()                   -- The real view angles
 end
 
 --- Gets nearby players then determines the best direction to strafe to avoid them.
@@ -1085,33 +1087,46 @@ function BotLocomotor:HandleFallingLook()
     end
 end
 
---- Look at a random player in sight
 ---@package
-function BotLocomotor:TryRandomPlayerLook()
-    if not self.randomLookEntity and not self.randomLookEntityStopTime then
-        local plys = player.GetAll()
-        local plysNearby = {}
-        for i, ply in pairs(plys) do
-            if not lib.IsPlayerAlive(ply) then continue end
-            if ply == self.bot then continue end
-            if self.bot:Visible(ply) then
-                table.insert(plysNearby, ply)
-            end
-        end
-        if #plysNearby > 0 then
-            local ply = table.Random(plysNearby)
-            local firstWithin = lib.GetFirstCloserThan(plysNearby, self.bot:GetPos(), 200)
-            if firstWithin then ply = firstWithin end
-
-            self:TimedVariable("randomLookEntity", ply, math.random(10, 30) / 10)
-            self:TimedVariable("randomLookEntityStopTime", true, math.random(4, 30))
+function BotLocomotor:SetRandomLookPlayer()
+    if self.randomLookEntity or self.randomLookEntityStopTime then
+        return false
+    end
+    local plys = player.GetAll()
+    local plysNearby = {}
+    for i, ply in pairs(plys) do
+        if not lib.IsPlayerAlive(ply) then continue end
+        if ply == self.bot then continue end
+        if self.bot:Visible(ply) then
+            table.insert(plysNearby, ply)
         end
     end
+    if #plysNearby > 0 then
+        local ply = table.Random(plysNearby)
+        local firstWithin = lib.GetFirstCloserThan(plysNearby, self.bot:GetPos(), 200)
+        if firstWithin then ply = firstWithin end
 
-    if self.randomLookEntity ~= nil and IsValid(self.randomLookEntity) then
+        self:TimedVariable("randomLookEntity", ply, math.random(10, 30) / 10)
+        self:TimedVariable("randomLookEntityStopTime", true, math.random(4, 30))
+
+        return true
+    end
+
+    return false
+end
+
+--- Finds and then looks at a random player in sight
+---@return boolean success If we found a player to look at
+---@package
+function BotLocomotor:TryRandomPlayerLook()
+    local success = self:SetRandomLookPlayer()
+
+    if success then
         self.randomLook = self.randomLookEntity:GetPos() + Vector(0, 0, 64)
         if not self.bot:Visible(self.randomLookEntity) then self.randomLookEntity = nil end
     end
+
+    return success
 end
 
 --- Wander around with our eyes while we are walking around.
@@ -1171,31 +1186,48 @@ function BotLocomotor:HandleOverrideLook()
     local override = self:GetLookGoal()
     if override then
         self.pathingLookGoal = override
-        self:UpdateEyeAnglesFinal()
         return true
     end
 
     return false
 end
 
----@param cmd any
+---@return boolean
 ---@package
-function BotLocomotor:TickViewAngles(cmd)
+function BotLocomotor:HandleRandomIdleLook()
+    local foundPlayer = self:TryRandomPlayerLook()
+    if foundPlayer then return end
+
+    lib.CallEveryNTicks(self.bot, function()
+        local myPos = self.bot:EyePos()
+        local randomOpenNormal = lib.GetRandomOpenNormal(myPos, 500)
+        if not randomOpenNormal then return end
+        local randomLook = myPos + randomOpenNormal * 1000
+
+        self.pathingLookGoal = randomLook
+    end, TTTBots.Tickrate * 2)
+
+    return true
+end
+
+---@package
+function BotLocomotor:TickViewAngles()
+    -- This is a set of package functions that will be called in order until one of them returns true. Each is set up to update pathingLookGoal internally.
+    -- Local functions would *probably* make more sense, but it already works and I kind of like how this looks more.
     local priorityTree = {
         self.HandleOverrideLook,
         self.HandleLadderLook,
         self.HandleDoorLook,
         self.HandleFallingLook,
         self.HandleRandomWalkLook,
+        self.HandleRandomIdleLook,
     }
 
-    for _, func in pairs(priorityTree) do
-        if func(self) then break end
+    for i, func in pairs(priorityTree) do
+        if func(self) then
+            break
+        end
     end
-
-    if self.pathingLookGoal == nil then return end
-
-    self:UpdateEyeAnglesFinal()
 end
 
 --- Lerp look towards the goal position
@@ -1297,8 +1329,8 @@ function BotLocomotor:StartCommand(cmd) -- aka StartCmd
         end
     end
 
-    --- 📷 SET VIEW ANGLES USING UpdateViewAngles HELPER FUNCTION
-    self:TickViewAngles(cmd) -- The real view angles
+    --- 📷 SET VIEW ANGLES USING HELPER FUNCTION
+    self:UpdateEyeAnglesFinal()
 
     --- 🏃 STRAFESTR FOR LADDER + STRAFE CALCS
     local strafeStr = self:GetStrafe()

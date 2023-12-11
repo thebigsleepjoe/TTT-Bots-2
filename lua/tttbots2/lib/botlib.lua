@@ -620,6 +620,27 @@ function TTTBots.Lib.IsGood(ply)
     return not out
 end
 
+--- Return a random open angle in a circle around the given position, or nil if there are none.
+---@param origin Vector
+---@param range number
+---@return Vector|nil
+function TTTBots.Lib.GetRandomOpenNormal(origin, range)
+    local angles = TTTBots.Lib.GetAngleTable(16)
+    local options = {}
+
+    for i, angle in pairs(angles) do
+        local x = math.cos(math.rad(angle)) * range
+        local y = math.sin(math.rad(angle)) * range
+        local trace = TTTBots.Lib.TracePercent(origin, origin + Vector(x, y, 0))
+
+        if trace > 50 then
+            table.insert(options, Vector(x, y, 0))
+        end
+    end
+
+    return table.Random(options)
+end
+
 --- Check that the nearest point on the nearest navmesh is within 32 units of the given position. Irrespective of Z/height.
 --- This is intended to be used with weapons.
 ---@param pos any
