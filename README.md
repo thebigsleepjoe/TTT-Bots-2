@@ -23,7 +23,6 @@ Basically this is a to-do list before full Steam release
 Note that this list is far from comprehensive, and only serves to give you a rough list in order of priority.
 
 Prior to release:
-- Cleanup the codebase. I don't want any significant amount of technical debt on release.
 - Place a health station if is detective
 - Allow bots to heal from health stations
 - Have bots be able to emulate using the DNA scanner
