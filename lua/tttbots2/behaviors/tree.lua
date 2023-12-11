@@ -16,6 +16,7 @@ include("tttbots2/behaviors/follow.lua")
 include("tttbots2/behaviors/followplan.lua")
 include("tttbots2/behaviors/defuse.lua")
 include("tttbots2/behaviors/plantbomb.lua")
+include("tttbots2/behaviors/usehealthstation.lua")
 
 local b = TTTBots.Behaviors
 
@@ -30,9 +31,8 @@ TTTBots.Behaviors.Trees = {
             b.Defuse,
             b.InvestigateCorpse,
             b.FindWeapon,
-            b.FollowPlan,
             b.InvestigateNoise,
-            -- b.Heal,
+            b.UseHealthStation,
             b.Follow,
             b.Wander,
         }
@@ -44,12 +44,11 @@ TTTBots.Behaviors.Trees = {
             b.ClearBreakables,
             b.AttackTarget,
             b.PlantBomb,
-            b.Defuse,
             b.InvestigateCorpse,
             b.FindWeapon,
             b.FollowPlan,
             b.InvestigateNoise,
-            -- b.Heal,
+            b.UseHealthStation,
             b.Follow,
             b.Wander,
         }
@@ -63,9 +62,8 @@ TTTBots.Behaviors.Trees = {
             b.Defuse,
             b.InvestigateCorpse,
             b.FindWeapon,
-            b.FollowPlan,
             b.InvestigateNoise,
-            -- b.Heal,
+            b.UseHealthStation,
             b.Follow,
             b.Wander,
         }
