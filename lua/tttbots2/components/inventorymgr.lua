@@ -451,3 +451,55 @@ function BotInventoryMgr:PrintInventory()
     printf(self:GetInventoryString())
     printf("===III=== End inventory ===III===")
 end
+
+--- Buy bomb at round start if applicable
+---@param personality CPersonality
+---@return boolean
+function BotInventoryMgr:ShouldBuyBomb(personality)
+    if not lib.IsEvil(self.bot, true) then return false end
+    local bombChance = math.random(1, 7) == 1
+    if personality:GetTraitBool("planter") or bombChance then
+        return true
+    end
+
+    return false
+end
+
+function BotInventoryMgr:ShouldBuyHealth(personality)
+    if not lib.IsPolice(self.bot) then return false end
+    local healthChance = math.random(1, 3) <= 2
+    if personality:GetTraitBool("healer") or healthChance then
+        return true
+    end
+
+    return false
+end
+
+function BotInventoryMgr:BuyItemsAtStart()
+    local personality = lib.GetComp(self.bot, "personality") ---@type CPersonality
+    if not personality then return end
+
+    local options = {
+        ["weapon_ttt_c4"] = self.ShouldBuyBomb,
+        ["ttt_health_station"] = self.ShouldBuyHealth,
+    }
+
+    for class, func in pairs(options) do
+        if func(self, personality) then
+            printf("Callback for %s was true; giving %s item.", class, self.bot:Nick())
+            self.bot:Give(class)
+        end
+    end
+end
+
+--- on ttt round start:
+hook.Add("TTTBeginRound", "TTTBots.InventoryMgr.RoundStartGiveWeapons", function()
+    timer.Simple(2, function()
+        local bots = TTTBots.Bots
+        for _, bot in pairs(bots) do
+            if not (IsValid(bot) and TTTBots.Lib.IsPlayerAlive(bot)) then continue end
+            local inventory = lib.GetComp(bot, "inventorymgr") ---@type CInventory
+            inventory:BuyItemsAtStart()
+        end
+    end)
+end)

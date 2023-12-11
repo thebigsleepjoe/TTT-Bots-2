@@ -175,18 +175,3 @@ function PlantBomb.OnEnd(bot)
     locomotor:StopAttack()
     PlantBomb.ArmNearbyBomb(bot)
 end
-
---- on ttt round start:
-hook.Add("TTTBeginRound", "TTTBots.Behaviors.PlantBomb.GiveBombToPersonality", function()
-    timer.Simple(2, function()
-        local bots = TTTBots.Bots
-        for _, bot in pairs(bots) do
-            if not (IsValid(bot) and TTTBots.Lib.IsPlayerAlive(bot) and lib.IsEvil(bot, true)) then continue end
-            local personality = lib.GetComp(bot, "personality") ---@type CPersonality
-            local bombChance = math.random(1, 7) == 1
-            if personality:GetTraitBool("planter") or bombChance then
-                bot:Give("weapon_ttt_c4")
-            end
-        end
-    end)
-end)
