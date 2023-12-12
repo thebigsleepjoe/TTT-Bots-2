@@ -27,8 +27,8 @@ Prior to release:
 - Create a wiki for server owners and general tips
 
 Post-release:
-- Have bots be able to emulate using the DNA scanner (??)
 - Create trailer for new mod, take new screenshots, make everything more professional.
 - Custom Tutorial on how to fine-tune navmeshes + how to let bots use ladders
 - Create some more bot maps as separate addons but link them here.
 - Implement the !botmenu: blacklist/whitelist certain traits, change bot count, etc.
+- Have bots be able to emulate using the DNA scanner (??)
