@@ -105,13 +105,15 @@ local initChecks = {}
 local function addInitCheck(data)
     initChecks[data.name] = data
     initChecks[data.name].notifiedPlayers = {}
+    initChecks[data.name].dontChat = data.dontChat or false
 end
 
 addInitCheck({
     name = "gamemodeCompatible",
     callback = gamemodeCompatible,
     adminsOnly = true,
-    msg = TTTBots.Locale.GetLocalizedString("gamemode.not.compatible")
+    msg = TTTBots.Locale.GetLocalizedString("gamemode.not.compatible"),
+    dontChat = true,
 })
 
 addInitCheck({
@@ -136,7 +138,11 @@ local function initializeIfChecksPassed()
     for i, check in pairs(initChecks) do
         local passed = check.callback()
         if (not passed) then
-            chatCheck(check)
+            if not check.dontChat then
+                chatCheck(check)
+            else
+                print("TTT Bots: " .. check.msg)
+            end
             timer.Simple(1, initializeIfChecksPassed)
             return
         end
