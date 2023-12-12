@@ -276,7 +276,8 @@ function BotMorality:OnKilled(attacker)
     self.bot.grudge = attacker -- Set grudge to the attacker
 end
 
-function BotMorality:OnWitnessKill(victim, attacker)
+function BotMorality:OnWitnessKill(victim, weapon, attacker)
+    if (weapon and IsValid(weapon) and weapon.GetClass and weapon:GetClass() == "ttt_c4") then return end -- We don't know who killed who with C4, so we can't build sus on it.
     -- For this function, we will allow the bots to technically cheat and know what role the victim was. They will not know what role the attacker is.
     -- This allows us to save time and resources in optimization and let players have a more fun experience, despite technically being a cheat.
     if not lib.IsPlayerAlive(self.bot) then return end
@@ -337,7 +338,7 @@ hook.Add("PlayerDeath", "TTTBots.Components.Morality.PlayerDeath", function(vict
 
     for i, witness in pairs(witnesses) do
         if witness and witness.components then
-            witness.components.morality:OnWitnessKill(victim, attacker)
+            witness.components.morality:OnWitnessKill(victim, weapon, attacker)
         end
     end
 end)
