@@ -115,7 +115,7 @@ function BotChatter:On(event_name, args, teamOnly)
         CallKOS = 15 * difficulty * kosChanceMult,
         FollowStarted = 10,
         ServerConnected = 45,
-        SillyChat = 6,
+        SillyChat = 4,
         SillyChatDead = 4,
     }
 
