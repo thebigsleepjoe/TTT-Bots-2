@@ -115,8 +115,8 @@ function BotChatter:On(event_name, args, teamOnly)
         CallKOS = 15 * difficulty * kosChanceMult,
         FollowStarted = 10,
         ServerConnected = 45,
-        SillyChat = 4,
-        SillyChatDead = 4,
+        SillyChat = 30,
+        SillyChatDead = 15,
     }
 
     local personality = self.bot.components.personality --- @type CPersonality
@@ -139,14 +139,6 @@ function BotChatter:On(event_name, args, teamOnly)
 end
 
 function BotChatter:Think()
-    if not lib.GetConVarBool("chatter_silly") then return end
-    lib.CallEveryNTicks(self.bot, function()
-        local randomPlayer = TTTBots.Match.AlivePlayers[math.random(1, #TTTBots.Match.AlivePlayers)]
-        if not randomPlayer or randomPlayer == self.bot then return end
-
-        local eventName = lib.IsPlayerAlive(self.bot) and "SillyChat" or "SillyChatDead"
-        self:On(eventName, { player = randomPlayer:Nick() })
-    end, TTTBots.Tickrate * 10)
 end
 
 -- hook for GM:PlayerCanSeePlayersChat(text, taemOnly, listener, sender)
@@ -192,4 +184,17 @@ hook.Add("PlayerSay", "TTTBots.Chatter.PromptResponse", function(sender, text, t
             handleEvent(event) -- Pass the full chat message to handleEvent
         end
     end
+end)
+
+timer.Create("TTTBots.Chatter.SillyChat", 10, 0, function()
+    local targetBot = TTTBots.Bots[math.random(1, #TTTBots.Bots)]
+    if not targetBot then return end
+    local chatter = lib.GetComp(targetBot, "chatter") ---@type CChatter
+    if not chatter then return end
+
+    local randomPlayer = TTTBots.Match.AlivePlayers[math.random(1, #TTTBots.Match.AlivePlayers)]
+    if not randomPlayer or randomPlayer == targetBot then return end
+
+    local eventName = lib.IsPlayerAlive(targetBot) and "SillyChat" or "SillyChatDead"
+    chatter:On(eventName, { player = randomPlayer:Nick() })
 end)
