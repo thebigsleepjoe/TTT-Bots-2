@@ -402,7 +402,7 @@ end
 function Attack.OnRunning(bot)
     local target = bot.attackTarget
     -- We could probably do Attack.Validate but this is more explicit:
-    if not Attack.ValidateTarget(bot) then return STATUS.Failure end -- Target is not valid
+    if not Attack.ValidateTarget(bot) then return STATUS.FAILURE end -- Target is not valid
     if target == bot then
         bot:SetAttackTarget(nil)
         return STATUS.FAILURE
