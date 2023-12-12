@@ -28,6 +28,7 @@ local gamemodeCompatible = function()
 end
 
 local hasNavmesh = function() return navmesh.GetNavAreaCount() > 0 end
+local alreadyAddedResources = false
 
 ---Load all of the mod's depdenencies and initialize the mod
 function TTTBots.Reload()
@@ -98,6 +99,39 @@ function TTTBots.Reload()
             locomotor:StartCommand(cmd)
         end
     end)
+
+    -- Function to notify players (when bots are masked from the scoreboard) that there are bots in the server.
+    -- This is for ethical purposes and to prevent the mod breaching the Steam Workshop/Garry's Mod guidelines.
+    -- The bot masking features should ONLY ever be used on a private server with consenting players, and this is why this notification exists.
+    hook.Add("TTTBeginRound", "TTTBots_EthicalNotify", function()
+        local msg = TTTBots.Locale.GetLocalizedString("bot.notice", #TTTBots.Bots)
+        local notifyAnyway = Lib.GetConVarBool("notify_always")
+
+        -- If any of these 3 are FALSE, then it is obvious who is a bot, so we don't need to notify.
+        local humanlikePfps = (not Lib.GetConVarBool("pfps")) or
+            Lib.GetConVarBool("pfps_humanlike")                    -- If pfps are disabled or they are humanlike
+        local emulatePing = Lib.GetConVarBool("emulate_ping")      -- If ping is emulated (instead of reading "BOT")
+        local noPrefixes = not Lib.GetConVarBool("names_prefixes") -- If their usernames aren't prefixed by [BOT]
+
+        if notifyAnyway or (humanlikePfps and emulatePing and noPrefixes) then
+            TTTBots.Chat.BroadcastInChat(msg)
+            print(msg)
+        end
+    end)
+
+    -- Send avatars to clients
+    if alreadyAddedResources then return end
+    alreadyAddedResources = true
+
+    local f = string.format
+
+    for i = 0, 5 do
+        resource.AddFile(f("materials/avatars/%d.png", i))
+    end
+
+    for i = 0, 87 do
+        resource.AddFile(f("materials/avatars/humanlike/%d.jpg", i))
+    end
 end
 
 local initChecks = {}
@@ -128,7 +162,11 @@ local function chatCheck(check)
     for i, v in pairs(player.GetHumans()) do
         if (check.adminsOnly and not v:IsSuperAdmin()) then continue end
         if check.notifiedPlayers[v] then continue end
-        v:ChatPrint("TTT Bots: " .. msg)
+        if not check.dontChat then
+            v:ChatPrint("TTT Bots: " .. msg)
+        else
+            print("TTT Bots: " .. check.msg)
+        end
         check.notifiedPlayers[v] = true
     end
 end
@@ -138,11 +176,7 @@ local function initializeIfChecksPassed()
     for i, check in pairs(initChecks) do
         local passed = check.callback()
         if (not passed) then
-            if not check.dontChat then
-                chatCheck(check)
-            else
-                print("TTT Bots: " .. check.msg)
-            end
+            chatCheck(check)
             timer.Simple(1, initializeIfChecksPassed)
             return
         end
@@ -153,17 +187,3 @@ local function initializeIfChecksPassed()
 end
 
 initializeIfChecksPassed()
-
--- Force download of bot avatars
-
-if engine.ActiveGamemode() ~= "terrortown" then return end
-
-local f = string.format
-
-for i = 0, 5 do
-    resource.AddFile(f("materials/avatars/%d.png", i))
-end
-
-for i = 0, 87 do
-    resource.AddFile(f("materials/avatars/humanlike/%d.jpg", i))
-end

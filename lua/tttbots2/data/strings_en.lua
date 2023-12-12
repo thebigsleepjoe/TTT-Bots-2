@@ -27,6 +27,7 @@ localize("bot.kicked", "[NOTICE] '%s' kicked a bot.")
 localize("bot.kicked.all", "[NOTICE] '%s' kicked all bots.")
 localize("bot.rr", "[NOTICE] '%s' restarted the round and added %s bots.")
 localize("bot.quota.changed", "[NOTICE] %s adjusted the bot quota to %d bots.")
+localize("bot.notice", "[NOTICE] You are playing a match with %d TTT bots in the server.")
 
 localize("difficulty.1", "Very Easy")
 localize("difficulty.2", "Easy")
