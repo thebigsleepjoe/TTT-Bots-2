@@ -55,6 +55,7 @@ function PlantBomb.FindPlantSpot(bot)
         end
 
         if penalizedBombSpots[spot] then
+            if penalizedBombSpots[spot] > 25 then continue end -- This spot is too penalized to be considered.
             weightedOptions[spot] = weightedOptions[spot] - penalizedBombSpots[spot]
         end
 
@@ -107,15 +108,15 @@ function PlantBomb.OnRunning(bot)
     local distToSpot = bot:GetPos():Distance(spot)
     local locomotor = lib.GetComp(bot, "locomotor") ---@type CLocomotor
     locomotor:SetGoal(spot)
-    if distToSpot > PlantBomb.PLANT_RANGE then
-        return STATUS.RUNNING
-    end
 
     if locomotor.status == locomotor.PATH_STATUSES.IMPOSSIBLE then
-        penalizedBombSpots[spot] = (penalizedBombSpots[spot] or 0) + 5
+        penalizedBombSpots[spot] = (penalizedBombSpots[spot] or 0) + 3
         return STATUS.FAILURE
     end
 
+    if distToSpot > PlantBomb.PLANT_RANGE then
+        return STATUS.RUNNING
+    end
     -- We are close enough to plant.
     local witnesses = lib.GetAllVisible(spot, true)
     local currentTime = CurTime()
