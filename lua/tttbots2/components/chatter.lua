@@ -115,6 +115,8 @@ function BotChatter:On(event_name, args, teamOnly)
         CallKOS = 15 * difficulty * kosChanceMult,
         FollowStarted = 10,
         ServerConnected = 45,
+        SillyChat = 4,
+        SillyChatDead = 2,
     }
 
     local personality = self.bot.components.personality --- @type CPersonality
@@ -137,6 +139,13 @@ function BotChatter:On(event_name, args, teamOnly)
 end
 
 function BotChatter:Think()
+    lib.CallEveryNTicks(self.bot, function()
+        local randomPlayer = TTTBots.Match.AlivePlayers[math.random(1, #TTTBots.Match.AlivePlayers)]
+        if not randomPlayer then return end
+
+        local eventName = lib.IsPlayerAlive(self.bot) and "SillyChat" or "SillyChatDead"
+        self:On(eventName, { player = randomPlayer:Nick() })
+    end, TTTBots.Tickrate * 10)
 end
 
 -- hook for GM:PlayerCanSeePlayersChat(text, taemOnly, listener, sender)
@@ -179,9 +188,6 @@ hook.Add("PlayerSay", "TTTBots.Chatter.PromptResponse", function(sender, text, t
 
     for keyword, event in pairs(keywordEvents) do
         if string.find(text2, keyword) then
-            print("~~~~~~~~~~~~~~~")
-            print(string.format("Match [%s]! Triggered event (%s) with string: '%s'", keyword, event, text))
-            print("~~~~~~~~~~~~~~~")
             handleEvent(event) -- Pass the full chat message to handleEvent
         end
     end
