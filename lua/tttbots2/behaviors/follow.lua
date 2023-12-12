@@ -115,7 +115,7 @@ end
 function Follow.OnStart(bot)
     bot.followTarget = table.Random(Follow.GetFollowTargets(bot))
     if not bot.followTarget then return STATUS.FAILURE end -- IDK how this happens but it just does.
-    bot.followEndTime = CurTime() + math.random(15, 30)
+    bot.followEndTime = CurTime() + math.random(12, 24)
 
     local chatter = lib.GetComp(bot, "chatter") ---@type CChatter
     chatter:On("FollowStarted", { player = bot.followTarget:Nick() })
@@ -148,7 +148,10 @@ function Follow.OnRunning(bot)
 
     if bot.botFollowPoint == false then return STATUS.FAILURE end
 
-    loco:SetGoal(bot.botFollowPoint)
+    local distToPoint = bot:GetPos():Distance(bot.botFollowPoint)
+    local finalTarget = (distToPoint < 100 and bot:GetPos()) or bot.botFollowPoint
+
+    loco:SetGoal(finalTarget)
 end
 
 --- Called when the behavior returns a success state
