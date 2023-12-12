@@ -56,6 +56,7 @@ end
 
 --- Validate the behavior
 function UseHealthStation.Validate(bot)
+    if not TTTBots.Match.IsRoundActive() then return false end
     if bot.attackTarget ~= nil then return false end             --- We are preoccupied with an attacker.
     if not lib.GetConVarBool("use_health") then return false end -- This behavior is disabled per the user's choice.
 
