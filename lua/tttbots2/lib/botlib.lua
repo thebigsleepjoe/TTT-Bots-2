@@ -258,15 +258,17 @@ function TTTBots.Lib.UpdateQuota()
 
     if quotaMode == "fill" then
         if nPlayers < quotaN then
-            TTTBots.Lib.CreateBot() -- Add bots one at a time
+            if slotsLeft == 0 then return end -- Don't add bots if there are no slots left
+            TTTBots.Lib.CreateBot()           -- Add bots one at a time
         elseif nPlayers > quotaN then
-            TTTBots.Lib.RemoveBot() -- Remove bots one at a time
+            TTTBots.Lib.RemoveBot()           -- Remove bots one at a time
         end
         return
     end
 
     if quotaMode == "exact" then
         if nBots < quotaN then
+            if slotsLeft == 0 then return end -- Don't add bots if there are no slots left
             TTTBots.Lib.CreateBot()
         elseif nBots > quotaN then
             TTTBots.Lib.RemoveBot()
