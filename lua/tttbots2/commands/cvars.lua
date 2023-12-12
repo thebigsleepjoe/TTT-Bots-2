@@ -41,6 +41,8 @@ bot_cvar("chatter_minrepeat", "15",
     "The minimum time between a bot can repeat the same chatter event in voice/text chat.")
 bot_cvar("chatter_koschance", "1",
     "A multiplier value that affects a bots chance to call KOS. Higher values = more KOS calls. Only does anything if ttt_bot_chatter_lvl is 1 or higher. Set to 0 to disable KOS calls.")
+bot_cvar("chatter_silly", "1",
+    "Whether or not bots can say silly stuff randomly in chat and/or converse with each other.")
 
 -- Gameplay-effecting cvars
 bot_cvar("plans_mindelay", "12",

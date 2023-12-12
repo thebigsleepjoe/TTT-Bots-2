@@ -115,8 +115,8 @@ function BotChatter:On(event_name, args, teamOnly)
         CallKOS = 15 * difficulty * kosChanceMult,
         FollowStarted = 10,
         ServerConnected = 45,
-        SillyChat = 4,
-        SillyChatDead = 2,
+        SillyChat = 6,
+        SillyChatDead = 4,
     }
 
     local personality = self.bot.components.personality --- @type CPersonality
@@ -139,9 +139,10 @@ function BotChatter:On(event_name, args, teamOnly)
 end
 
 function BotChatter:Think()
+    if not lib.GetConVarBool("chatter_silly") then return end
     lib.CallEveryNTicks(self.bot, function()
         local randomPlayer = TTTBots.Match.AlivePlayers[math.random(1, #TTTBots.Match.AlivePlayers)]
-        if not randomPlayer then return end
+        if not randomPlayer or randomPlayer == self.bot then return end
 
         local eventName = lib.IsPlayerAlive(self.bot) and "SillyChat" or "SillyChatDead"
         self:On(eventName, { player = randomPlayer:Nick() })
