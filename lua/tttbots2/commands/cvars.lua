@@ -54,7 +54,7 @@ bot_cvar("difficulty", "3",
     "A difficulty integer between 1-5; higher = harder. This affects trait selection and aim speed, reaction speed, and KOS callout chances.")
 bot_cvar("kos_limit", "2",
     "The upper bound of KOS calls an individual, bot or player, can make per round. Before the bots ignore them, at least. Used to deter trolls.")
-bot_cvar("reaction_speed", "0.5",
+bot_cvar("reaction_speed", "0.8",
     "The base time, in seconds, a bot will take before attacking a newly assigned target. Higher means easier gameplay. THIS INVERSELY SCALES WITH DIFFICULTY AUTOMATICALLY.")
 bot_cvar("plant_c4", "1",
     "Whether or not ANY bots are permitted to plant c4. It will not disable the ability to *have* c4, just prevent the use of it.")
