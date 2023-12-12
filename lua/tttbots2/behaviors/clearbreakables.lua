@@ -34,7 +34,7 @@ end
 
 --- Called when the behavior is started
 function Breaker.OnStart(bot)
-    return STATUS.Running
+    return STATUS.RUNNING
 end
 
 --- Called when the behavior's last state is running
@@ -51,7 +51,7 @@ function Breaker.OnRunning(bot)
 
     -- If the line trace did not hit a valid breakable, return failure
     if not traceResult.Hit or not IsValid(closest) or closest:Health() <= 0 then
-        return STATUS.Failure
+        return STATUS.FAILURE
     end
 
     ---@type CLocomotor
@@ -63,7 +63,7 @@ function Breaker.OnRunning(bot)
     imgr:PauseAutoSwitch()
     loco:StartAttack()
     loco:SetPriorityGoal(closest:GetPos(), 8) -- 8 is distance threshold
-    return STATUS.Running
+    return STATUS.RUNNING
 end
 
 --- Called when the behavior returns a success state

@@ -51,7 +51,7 @@ end
 
 function InvestigateNoise.OnStart(bot)
     bot.components.chatter:On("InvestigateNoise", {})
-    return STATUS.Running
+    return STATUS.RUNNING
 end
 
 function InvestigateNoise.OnRunning(bot)
@@ -59,22 +59,22 @@ function InvestigateNoise.OnRunning(bot)
     local closestVisible = InvestigateNoise.FindClosestSound(bot, true)
     if closestVisible then
         loco:LookAt(closestVisible.pos + Vector(0, 0, 72))
-        return STATUS.Running
+        return STATUS.RUNNING
     end
 
     -- Skip investigating if we don't want to.
     if not InvestigateNoise.ShouldInvestigateNoise(bot) then
-        return STATUS.Failure
+        return STATUS.FAILURE
     end
 
     local closestHidden = InvestigateNoise.FindClosestSound(bot, false)
     if closestHidden then
         loco:LookAt(closestHidden.pos + Vector(0, 0, 72))
         loco:SetGoal(closestHidden.pos)
-        return STATUS.Running
+        return STATUS.RUNNING
     end
 
-    return STATUS.Success
+    return STATUS.SUCCESS
 end
 
 --- Return true/false based off of a random chance. This is meant to be called every tick (5x per sec as of writing), so the chance is low by default.

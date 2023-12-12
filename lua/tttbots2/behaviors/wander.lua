@@ -29,7 +29,7 @@ end
 --- Called when the behavior is started
 function Wander.OnStart(bot)
     Wander.UpdateWanderGoal(bot) -- sets bot.wander
-    return STATUS.Running
+    return STATUS.RUNNING
 end
 
 --- Called when the behavior's last state is running
@@ -47,7 +47,7 @@ function Wander.OnRunning(bot)
         Wander.StareAtNearbyPlayers(bot, loco)
     end
 
-    return STATUS.Running
+    return STATUS.RUNNING
 end
 
 ---Make the bot stare at the nearest player. Useful for when the bot is standing still.

@@ -36,7 +36,7 @@ end
 --- Called when the behavior is started
 function Attack.OnStart(bot)
     bot.wasPathing = true -- set this to true here for the first tick, despite the nam being misleading
-    return STATUS.Running
+    return STATUS.RUNNING
 end
 
 function Attack.Seek(bot, targetPos)
@@ -418,7 +418,7 @@ function Attack.OnRunning(bot)
     local attack = Attack.RunningAttackLogic(bot)
     bot.attackBehaviorMode = attack
 
-    return STATUS.Running
+    return STATUS.RUNNING
 end
 
 --- Called when the behavior returns a success state
