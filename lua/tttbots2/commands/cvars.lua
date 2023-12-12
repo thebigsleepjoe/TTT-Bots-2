@@ -128,7 +128,7 @@ bot_cvar("allow_leaving", "1",
     "Enables bots to leave the server if they get too bored or angry. Bots that leave voluntarily will automatically have a replacement join within 30 seconds.")
 
 -- Pathfinding cvars
-bot_cvar("pathfinding_cpf", "50",
+bot_cvar("pathfinding_cpf", "240",
     "Don't change this unless you know what you are doing. How many pathfinding calculations to do per frame. Higher values = more CPU usage, but faster pathfinding.")
 bot_cvar("pathfinding_cpf_scaling", "0",
     "Don't change this unless you know what you are doing. Should we dynamically multiply the pathfinding calculations per frame by the number of bots? (e.g. 50 cpf * 2 bots = 100 cpf)")
