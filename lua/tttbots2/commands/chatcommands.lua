@@ -122,9 +122,9 @@ Chat.Commands = {
             return
         end
         local nBots = #TTTBots.Bots
-        concommand.Run(ply, "ttt_bot_kickall")
-        concommand.Run(ply, "ttt_roundrestart")
-        concommand.Run(ply, "ttt_bot_add", { tostring(nBots) })
+        RunConsoleCommand("ttt_bot_kickall")
+        RunConsoleCommand("ttt_roundrestart")
+        RunConsoleCommand("ttt_bot_add", tostring(nBots))
 
         TTTBots.Chat.BroadcastInChat(gls("bot.rr", ply:Nick(), tostring(nBots)))
     end,
@@ -134,7 +134,8 @@ Chat.Commands = {
                 gls("not.superadmin"))
             return
         end
-        concommand.Run(ply, "ttt_bot_kickall")
+        RunConsoleCommand("ttt_bot_kickall")
+        RunConsoleCommand("ttt_bot_quota", "0")
         TTTBots.Chat.BroadcastInChat(gls("bot.kicked.all", ply:Nick()))
     end,
     ["!botdifficulty"] = function(ply, fulltxt)
