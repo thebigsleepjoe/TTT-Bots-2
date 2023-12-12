@@ -475,17 +475,31 @@ function BotInventoryMgr:ShouldBuyHealth(personality)
     return false
 end
 
+function BotInventoryMgr:ShouldBuyDefuser(personality)
+    if not lib.IsPolice(self.bot) then return false end
+    local defuserChance = math.random(1, 3) <= 2
+    if personality:GetTraitBool("defuser") or defuserChance then
+        return true
+    end
+
+    return false
+end
+
+BotInventoryMgr.BuyableItems = {
+    ["weapon_ttt_c4"] = BotInventoryMgr.ShouldBuyBomb,
+    ["weapon_ttt_health_station"] = BotInventoryMgr.ShouldBuyHealth,
+    ["weapon_ttt_defuser"] = BotInventoryMgr.ShouldBuyDefuser,
+}
+
 function BotInventoryMgr:BuyItemsAtStart()
     local personality = lib.GetComp(self.bot, "personality") ---@type CPersonality
+    local credits = 2 -- Bots have 2 credits to buy things with
     if not personality then return end
 
-    local options = {
-        ["weapon_ttt_c4"] = self.ShouldBuyBomb,
-        ["weapon_ttt_health_station"] = self.ShouldBuyHealth,
-    }
-
-    for class, func in pairs(options) do
+    for class, func in pairs(BotInventoryMgr.BuyableItems) do
+        if credits <= 0 then break end
         if func(self, personality) then
+            credits = credits - 1
             self.bot:Give(class)
         end
     end
