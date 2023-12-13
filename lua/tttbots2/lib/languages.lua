@@ -33,7 +33,7 @@ function TTTBots.Locale.GetLocalizedString(name, ...)
 end
 
 --- warning: do not move this include to the top of the file, it will cause an error. leave it below GetLocalizedString
-include("tttbots2/data/strings_en.lua")
+include("tttbots2/locale/strings_en.lua")
 
 --- Add a line into the localized strings table, according to its language. Depending on the type of event, the line may contain parameters.
 --- An example is "Hi, my name is {{botname}}" -> "Hi, my name is Bob"
@@ -166,4 +166,4 @@ function TTTBots.Locale.CategoryIsEnabled(event_name)
     return level and (level <= maxlevel) or false
 end
 
-include("tttbots2/data/chat_en.lua")
+include("tttbots2/locale/chat_en.lua")
