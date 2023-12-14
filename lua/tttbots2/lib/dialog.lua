@@ -175,7 +175,7 @@ include("tttbots2/data/dialogtemplates.lua")
 
 local currentDialog = nil ---@type Dialog|nil
 timer.Create("TTTBots.Dialog.StartRandomDialogs", 5, 0, function()
-    if math.random(1, 20) > 1 then return end -- 1 in 6 chance to start a dialog
+    if math.random(1, 20) > 1 then return end -- 1 in X chance to start a dialog
     if (currentDialog and not Dialog.VerifyLifeStates(currentDialog)) then currentDialog = nil end
     -- if (currentDialog) then PrintTable(currentDialog) end
     if (currentDialog and not currentDialog.isFinished) then return end
