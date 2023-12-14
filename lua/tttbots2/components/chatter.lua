@@ -60,8 +60,6 @@ function BotChatter:TypoText(text)
     local typoFuncs = {
         remove_character = function(last, this, next) return "" end,
         duplicate_character = function(last, this, next) return this .. this end,
-        duplicate_last = function(last, this, next) return last .. this end,
-        duplicate_next = function(last, this, next) return this .. (next or "") end,
         capitalize_this = function(last, this, next) return string.upper(this) end,
         lowercase_this = function(last, this, next) return string.lower(this) end,
     }
