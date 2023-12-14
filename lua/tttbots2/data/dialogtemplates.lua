@@ -7,7 +7,6 @@ Dialog.NewTemplate(
     {
         Dialog.NewLine("GreetNext", 1),
         Dialog.NewLine("GreetLast", 2),
-        Dialog.NewLine("GreetLast", 1),
     },
     false
 )
