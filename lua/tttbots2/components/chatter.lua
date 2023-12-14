@@ -52,6 +52,38 @@ function BotChatter:SayRaw(text, teamOnly)
     self.bot:Say(text, teamOnly)
 end
 
+--- Intentionally inject typos into the text based on the chatter_typo_chance convars
+---@param text string
+---@param string result
+function BotChatter:TypoText(text)
+    local chance = lib.GetConVarFloat("chatter_typo_chance") -- This is a percent chance per character to do a whoopsie
+    --- This is a table of functions that will be selected at random, if chance passes, to modify the current character.
+    --- Each function is passed the last, current, and next character to improve the quality of the typos, but only the current character is modified.
+    local typoFuncs = {
+        remove_character = function(last, this, next) return "" end,
+        duplicate_character = function(last, this, next) return this .. this end,
+        duplicate_last = function(last, this, next) return last .. this end,
+        duplicate_next = function(last, this, next) return this .. next end,
+        capitalize_this = function(last, this, next) return last .. string.upper(this) .. next end,
+        lowercase_this = function(last, this, next) return last .. string.lower(this) .. next end,
+    }
+
+    local result = ""
+    local textLength = string.len(text)
+    for i = 1, textLength do
+        local char = string.sub(text, i, i)
+        local last = i > 1 and string.sub(text, i - 1, i - 1) or ""
+        local next = i < textLength and string.sub(text, i + 1, i + 1) or ""
+        local typoFunc = math.random(0, 100) < chance and table.Random(typoFuncs) or nil
+        if typoFunc then
+            char = typoFunc(last, char, next)
+        end
+        result = result .. char
+    end
+
+    return result
+end
+
 --- Order the bot to say a string of text in chat. This function is rate limited and types messages out at a somewhat random speed.
 ---@param text string The raw string of text to put in chat.
 ---@param teamOnly boolean|nil (OPTIONAL, =FALSE) Should the bot place the message in the team chat?
@@ -65,6 +97,7 @@ function BotChatter:Say(text, teamOnly, ignoreDeath, callback)
     self.typing = true
     -- remove "[BOT] " occurences from the text
     text = string.gsub(text, "%[BOT%] ", "")
+    text = self:TypoText(text)
     timer.Simple(delay, function()
         if self.bot and (ignoreDeath or lib.IsPlayerAlive(self.bot)) then
             self:SayRaw(text, teamOnly)
