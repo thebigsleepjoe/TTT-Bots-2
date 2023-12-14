@@ -42,6 +42,7 @@ function TTTBots.Reload()
     include("tttbots2/lib/match.lua")
     include("tttbots2/lib/PlanCoordinator.lua")
     include("tttbots2/commands/chatcommands.lua")
+    include("tttbots2/lib/dialog.lua")
 
     -- Initialize behaviors
     include("tttbots2/behaviors/tree.lua")

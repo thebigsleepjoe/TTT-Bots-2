@@ -749,6 +749,14 @@ local LoadLang = function()
     Line("Better luck next time", A.Default)
     Line("GGs", A.Default)
     Line("So close to winning", A.Default)
+
+    -----------------------------------------------------------
+    -- DIALOG
+    -----------------------------------------------------------
+    RegisterCategory("DialogGreetNext", P.NORMAL)
+    Line("Hello {{nextBot}}!")
+    RegisterCategory("DialogGreetLast", P.NORMAL)
+    Line("Hello to you, {{lastBot}}!")
 end
 
 local DEPENDENCIES = { "Plans" }

@@ -179,7 +179,7 @@ function Match.UpdateAlivePlayers()
     Match.AliveTraitors = {}
     Match.DisguisedPlayers = {}
     for bot, isAlive in pairs(TTTBots.Lib.GetPlayerLifeStates()) do
-        if not (bot and isAlive) then continue end
+        if not (bot and isAlive) or bot == NULL or not IsValid(bot) then continue end
         table.insert(Match.AlivePlayers, bot)
         if TTTBots.Lib.IsEvil(bot, true) then
             if not bot:IsBot() then
