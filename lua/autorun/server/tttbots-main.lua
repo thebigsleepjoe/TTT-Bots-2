@@ -6,6 +6,7 @@ util.AddNetworkString("TTTBots_SyncAvatarNumbers")
 AddCSLuaFile("tttbots2/client/debugui.lua")
 AddCSLuaFile("tttbots2/client/scoreboardoverride.lua")
 AddCSLuaFile("tttbots2/client/debug3d.lua")
+AddCSLuaFile("tttbots2/commands/sh_cvars.lua")
 
 -- Declare TTTBots table
 TTTBots = {
@@ -15,7 +16,8 @@ TTTBots = {
 }
 
 include("tttbots2/commands/concommands.lua")
-include("tttbots2/commands/cvars.lua")
+include("tttbots2/commands/sv_cvars.lua")
+include("tttbots2/commands/sh_cvars.lua")
 include("tttbots2/lib/languages.lua")
 
 -- Pre-check before initializing
