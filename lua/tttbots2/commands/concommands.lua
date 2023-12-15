@@ -3,9 +3,14 @@ local Lib = TTTBots.Lib
 local f = string.format
 local printf = function(...) print(f(...)) end
 
+local IsPlayerSuperAdmin = function(ply)
+    return ply == NULL --dedicated server console
+        or (IsValid(ply) and ply:IsSuperAdmin())
+end
+
 --# ConCommands
 concommand.Add("ttt_bot_add", function(ply, cmd, args)
-    if not ply or not (ply and ply:IsSuperAdmin()) then return end -- cmd only works as server or SA
+    if not IsPlayerSuperAdmin(ply) then return end -- cmd only works as server or SA
     local number = tonumber(args[1])
     if number then
         for i = 1, number do
@@ -21,14 +26,14 @@ concommand.Add("ttt_bot_add", function(ply, cmd, args)
 end)
 
 concommand.Add("ttt_bot_kickall", function(ply, cmd, args)
-    if not ply or not (ply and ply:IsSuperAdmin()) then return end -- cmd only works as server or SA
+    if not IsPlayerSuperAdmin(ply) then return end -- cmd only works as server or SA
     for _, bot in pairs(TTTBots.Bots) do
         bot:Kick("Kicked by " .. (ply and ply:Nick() or "[Server]") .. " using ttt_bot_kickall")
     end
 end)
 
 concommand.Add("ttt_bot_kick", function(ply, cmd, args)
-    if not ply or not (ply and ply:IsSuperAdmin()) then return end -- cmd only works as server or SA
+    if not IsPlayerSuperAdmin(ply) then return end -- cmd only works as server or SA
     local botname = args[1]
     if not botname then
         TTTBots.Chat.MessagePlayer(ply, "You must specify a bot name.")
@@ -45,25 +50,25 @@ concommand.Add("ttt_bot_kick", function(ply, cmd, args)
 end)
 
 concommand.Add("ttt_bot_reload", function(ply, cmd, args)
-    if not ply or not (ply and ply:IsSuperAdmin()) then return end -- cmd only works as server or SA
+    if not IsPlayerSuperAdmin(ply) then return end -- cmd only works as server or SA
     TTTBots.Reload()
     RunConsoleCommand("ttt_roundrestart")
 end)
 
 concommand.Add('ttt_bot_recache_spots', function(ply, cmd, args)
-    if not ply or not (ply and ply:IsSuperAdmin()) then return end -- cmd only works as server or SA
+    if not IsPlayerSuperAdmin(ply) then return end -- cmd only works as server or SA
     TTTBots.Spots.CacheAllSpots()
 end)
 
 concommand.Add("ttt_bot_recache_regions", function(ply, cmd, args)
-    if not ply or not (ply and ply:IsSuperAdmin()) then return end -- cmd only works as server or SA
+    if not IsPlayerSuperAdmin(ply) then return end -- cmd only works as server or SA
 
     PrintTable(TTTBots.Lib.GetNavRegions(true))
 end)
 
 
 concommand.Add("ttt_bot_debug_locomotor", function(ply, cmd, args)
-    if not ply or not (ply and ply:IsSuperAdmin()) then return end -- cmd only works as server or SA
+    if not IsPlayerSuperAdmin(ply) then return end -- cmd only works as server or SA
     -- Execute ttt_bot_kickall, then ttt_bot_add, then ttt_roundrestart.
     -- This will remove all bots, then add one back, and then restart the round.
     RunConsoleCommand("ttt_bot_kickall")
@@ -80,7 +85,7 @@ concommand.Add("ttt_bot_debug_locomotor", function(ply, cmd, args)
 end)
 
 concommand.Add("ttt_bot_nav_cullconnections", function(ply, cmd, args)
-    if not ply or not (ply and ply:IsSuperAdmin()) then return end -- cmd only works as server or SA
+    if not IsPlayerSuperAdmin(ply) then return end -- cmd only works as server or SA
     -- For each node in the navmesh, get its adjacents. Calculate the edge-to-edge distance between the two nodes.
     -- if it's jumping more than 40 units, then it's not a valid connection. Remove it.
     local navmesh = navmesh.GetAllNavAreas()
@@ -117,7 +122,7 @@ concommand.Add("ttt_bot_nav_generate", function(ply, cmd, args)
 end)
 
 concommand.Add("ttt_bot_nav_markdangerousnavs", function(ply, cmd, args)
-    if not ply or not (ply and ply:IsSuperAdmin()) then return end -- cmd only works as server or SA
+    if not IsPlayerSuperAdmin(ply) then return end -- cmd only works as server or SA
 
     -- local navmesh = navmesh.GetAllNavAreas()
     local hazards = ents.FindByClass("trigger_hurt")
@@ -142,14 +147,14 @@ concommand.Add("ttt_bot_nav_markdangerousnavs", function(ply, cmd, args)
 end)
 
 concommand.Add("ttt_bot_print_ents", function(ply, cmd, args)
-    if not ply or not (ply and ply:IsSuperAdmin()) then return end -- cmd only works as server or SA
+    if not IsPlayerSuperAdmin(ply) then return end -- cmd only works as server or SA
     for i, v in pairs(ents.GetAll()) do
         print(v:GetClass(), v:GetClass() == "prop_physics" and v:GetModel() or "")
     end
 end)
 
 concommand.Add("ttt_bot_print_archetypes", function(ply, cmd, args)
-    if not ply or not (ply and ply:IsSuperAdmin()) then return end -- cmd only works as server or SA
+    if not IsPlayerSuperAdmin(ply) then return end -- cmd only works as server or SA
     for i, v in pairs(TTTBots.Bots) do
         if v and v.components and v.components.personality then
             local personality = v.components.personality ---@type CPersonality
@@ -160,7 +165,7 @@ end)
 
 --- Print rage, boredom, and pressure for all bots.
 concommand.Add("ttt_bot_print_rbp", function(ply, cmd, args)
-    if not ply or not (ply and ply:IsSuperAdmin()) then return end -- cmd only works as server or SA
+    if not IsPlayerSuperAdmin(ply) then return end -- cmd only works as server or SA
     print("PER-BOT RAGE-BOREDOM-PRESSURE PRINTOUT")
     print("--------------------------------")
     for i, v in pairs(TTTBots.Bots) do
@@ -175,7 +180,7 @@ concommand.Add("ttt_bot_print_rbp", function(ply, cmd, args)
 end)
 
 concommand.Add("ttt_bot_print_difficulty", function(ply, cmd, args)
-    if not ply or not (ply and ply:IsSuperAdmin()) then return end -- cmd only works as server or SA
+    if not IsPlayerSuperAdmin(ply) then return end -- cmd only works as server or SA
     local botDifficulty = TTTBots.Match.GetBotsDifficulty()
     print("BOT DIFFICULTY REPORT:")
     print("----------------------------")
@@ -190,7 +195,7 @@ concommand.Add("ttt_bot_print_difficulty", function(ply, cmd, args)
 end)
 
 concommand.Add("ttt_bot_print_heldweapons", function(ply, cmd, args)
-    if not ply or not (ply and ply:IsSuperAdmin()) then return end -- cmd only works as server or SA
+    if not IsPlayerSuperAdmin(ply) then return end -- cmd only works as server or SA
     print("PRINTING HELD WEAPONS")
     print("---------------------")
     for i, ply in pairs(player.GetAll()) do
