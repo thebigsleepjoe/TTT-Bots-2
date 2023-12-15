@@ -1,6 +1,6 @@
 ⚠️⚠️⚠️ WARNING: THIS IS NOT READY FOR PRODUCTION USE. ⚠️⚠️⚠️
 
-While the mod is less than a week from release, I wouldn't recommend using it just yet, as there are still some items left to tweak.
+While the mod is around a week from release (estimated release is around Christmas), I wouldn't recommend using it just yet, as there are still some items left to tweak.
 
 ![TTT Bots Header](tttbots-banner2.png)
 ## What is this?
