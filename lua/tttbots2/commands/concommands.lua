@@ -16,12 +16,12 @@ concommand.Add("ttt_bot_add", function(ply, cmd, args)
         for i = 1, number do
             local bot = Lib.CreateBot()
             if not bot then return end
-            print(string.format("%s created bot named %s", ply and ply:Nick() or "[Server]", bot:Nick()))
+            print(string.format("%s created bot", ply and ply:Nick() or "[Server]"))
         end
     else
         local bot = Lib.CreateBot()
         if not bot then return end
-        print(string.format("%s created bot named %s", ply and ply:Nick() or "[Server]", bot:Nick()))
+        print(string.format("%s created bot", ply and ply:Nick() or "[Server]"))
     end
 end)
 
