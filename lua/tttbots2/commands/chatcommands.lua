@@ -240,7 +240,7 @@ Chat.Commands = {
             amt = 1
         end
 
-        ply:ConCommand("ttt_bot_quota " .. tostring(amt))
+        RunConsoleCommand("ttt_bot_quota", tostring(amt))
         TTTBots.Chat.BroadcastInChat(gls("bot.quota.changed", ply:Nick(), amt))
     end,
 }
