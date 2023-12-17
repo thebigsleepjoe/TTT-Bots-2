@@ -359,7 +359,7 @@ function TTTBots.Lib.GetRandomAdjacentNth(nav, N, i)
     return TTTBots.Lib.GetRandomAdjacentNth(adjacent[random], N, i + 1)
 end
 
---- A table of [key] = weight
+--- A table of { key = element, weight = weight}
 ---@class WeightedTable
 ---@field public key any Can be a table, number, string, any value.
 ---@field public weight number The weight relative to the rest of the table.
@@ -506,23 +506,23 @@ end
 --- selects a random number in the range of total weight, then iterates through the array
 --- adding the weight of each item to a counter until it exceeds or equals to the random number.
 --- At that point, it returns the key of the current item.
----@param weightedTbl WeightedTable[] An array of WeightedTable objects.
+---@param options table<WeightedTable> An array of WeightedTable options.
 ---@return any The key of the randomly selected WeightedTable item.
 ---@realm shared
-function TTTBots.Lib.RandomWeighted(weightedTblTbl)
-    assert(#weightedTblTbl > 0, "Table is empty")
+function TTTBots.Lib.RandomWeighted(options)
+    assert(#options > 0, "Table is empty")
 
     local totalWeight = 0
-    for i = 1, #weightedTblTbl do
-        totalWeight = totalWeight + weightedTblTbl[i].weight
+    for i = 1, #options do
+        totalWeight = totalWeight + options[i].weight
     end
 
     local random = math.random(0, totalWeight)
     local currentWeight = 0
-    for i = 1, #weightedTblTbl do
-        currentWeight = currentWeight + weightedTblTbl[i].weight
+    for i = 1, #options do
+        currentWeight = currentWeight + options[i].weight
         if random <= currentWeight then
-            return weightedTblTbl[i].key
+            return options[i].key
         end
     end
 end

@@ -52,16 +52,69 @@ function BotChatter:SayRaw(text, teamOnly)
     self.bot:Say(text, teamOnly)
 end
 
+local keyboardLayout = {
+    ['q'] = { 'w', 'a' },
+    ['w'] = { 'q', 'e', 's', 'a' },
+    ['e'] = { 'w', 'r', 'd', 's' },
+    ['r'] = { 'e', 't', 'f', 'd' },
+    ['t'] = { 'r', 'y', 'g', 'f' },
+    ['y'] = { 't', 'u', 'h', 'g' },
+    ['u'] = { 'y', 'i', 'j', 'h' },
+    ['i'] = { 'u', 'o', 'k', 'j' },
+    ['o'] = { 'i', 'p', 'l', 'k' },
+    ['p'] = { 'o', 'l' },
+    ['a'] = { 'q', 'w', 's', 'z' },
+    ['s'] = { 'w', 'e', 'd', 'a', 'z', 'x' },
+    ['d'] = { 'e', 'r', 'f', 's', 'x', 'c' },
+    ['f'] = { 'r', 't', 'g', 'd', 'c', 'v' },
+    ['g'] = { 't', 'y', 'h', 'f', 'v', 'b' },
+    ['h'] = { 'y', 'u', 'j', 'g', 'b', 'n' },
+    ['j'] = { 'u', 'i', 'k', 'h', 'n', 'm' },
+    ['k'] = { 'i', 'o', 'l', 'j', 'm' },
+    ['l'] = { 'o', 'p', 'k' },
+    ['z'] = { 'a', 's', 'x' },
+    ['x'] = { 'z', 's', 'd', 'c' },
+    ['c'] = { 'x', 'd', 'f', 'v' },
+    ['v'] = { 'c', 'f', 'g', 'b' },
+    ['b'] = { 'v', 'g', 'h', 'n' },
+    ['n'] = { 'b', 'h', 'j', 'm' },
+    ['m'] = { 'n', 'j', 'k' },
+}
+
+local missKey = function(last, this, next)
+    local typoOptions = keyboardLayout[this]
+    if typoOptions then
+        return typoOptions[math.random(#typoOptions)]
+    else
+        return this
+    end
+end
+
 --- Intentionally inject typos into the text based on the chatter_typo_chance convars
 ---@param text string
 ---@return string result
 function BotChatter:TypoText(text)
     local chance = lib.GetConVarFloat("chatter_typo_chance")
+
     local typoFuncs = {
-        remove_character = function(last, this, next) return "" end,
-        duplicate_character = function(last, this, next) return this .. this end,
-        capitalize_this = function(last, this, next) return string.upper(this) end,
-        lowercase_this = function(last, this, next) return string.lower(this) end,
+        removeCharacter = function(last, this, next) return "" end,
+        duplicateCharacter = function(last, this, next) return this .. this end,
+        capitalizeCharacter = function(last, this, next) return string.upper(this) end,
+        lowercaseCharacter = function(last, this, next) return string.lower(this) end,
+        switchWithNext = function(last, this, next) return next .. this end,
+        insertRandomCharacter = function(last, this, next) return this .. string.char(math.random(97, 122)) end,
+        missKey = missKey
+    }
+
+    ---@type table<WeightedTable>
+    local typoFuncsWeighted = {
+        TTTBots.Lib.SetWeight(typoFuncs.removeCharacter, 20),
+        TTTBots.Lib.SetWeight(typoFuncs.duplicateCharacter, 7),
+        TTTBots.Lib.SetWeight(typoFuncs.capitalizeCharacter, 4),
+        TTTBots.Lib.SetWeight(typoFuncs.lowercaseCharacter, 7),
+        TTTBots.Lib.SetWeight(typoFuncs.switchWithNext, 12),
+        TTTBots.Lib.SetWeight(typoFuncs.insertRandomCharacter, 14),
+        TTTBots.Lib.SetWeight(typoFuncs.missKey, 30)
     }
 
     local result = ""
@@ -72,7 +125,7 @@ function BotChatter:TypoText(text)
         local next = i < textLength and string.sub(text, i + 1, i + 1) or ""
 
         if math.random(0, 100) < chance then
-            local typoFunc = table.Random(typoFuncs)
+            local typoFunc = lib.RandomWeighted(typoFuncsWeighted)
             char = typoFunc(last, char, next)
         end
 
