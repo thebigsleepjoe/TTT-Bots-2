@@ -1387,7 +1387,13 @@ function BotLocomotor:StartCommand(cmd) -- aka StartCmd
             (self.attack and self.attackReleaseTime and self.attackReleaseTime > TIMESTAMP) then -- or if we are attacking and we have an attack release time and it's not yet time to release:
             -- stop attack from interrupting reload
             local currentWep = self.bot.components.inventory:GetHeldWeaponInfo()
-            if (currentWep and (not currentWep.needs_reload)) or not currentWep then
+            local preventFire = (self.tick % TTTBots.Tickrate == 1) -- For compatibility with modded guns, sometimes we need to let go for a second to fire again.
+            local needsReload = (currentWep and (currentWep.needs_reload)) or false
+            if (
+                    not preventFire
+                    and not needsReload
+                    or not currentWep
+                ) then
                 cmd:SetButtons(cmd:GetButtons() + IN_ATTACK)
             end
         end
