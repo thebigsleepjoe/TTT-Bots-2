@@ -217,7 +217,8 @@ hook.Add("PlayerSay", "TTTBots.Chatter.PromptResponse", function(sender, text, t
     end
 end)
 
-timer.Create("TTTBots.Chatter.SillyChat", 10, 0, function()
+timer.Create("TTTBots.Chatter.SillyChat", 20, 0, function()
+    if math.random(1, 9) > 1 then return end -- Should average to about once every 3 minutes
     local targetBot = TTTBots.Bots[math.random(1, #TTTBots.Bots)]
     if not targetBot then return end
     local chatter = lib.GetComp(targetBot, "chatter") ---@type CChatter
