@@ -66,7 +66,7 @@ net.Receive("TTTBots_RequestData", function(len, ply)
         ---@type CPersonality
         local personality = bot.components.personality
         ---@type CInventory
-        local inventory = bot.components.inventorymgr
+        local inventory = bot.components.inventory
 
         local heldWeaponInfo = inventory:GetHeldWeaponInfo()
         local primaryWepInfo = inventory:GetPrimary()

@@ -93,7 +93,7 @@ function PlantBomb.OnStart(bot)
         print("No spot to plant bomb;", spot)
         return STATUS.FAILURE
     end
-    local inventory = lib.GetComp(bot, "inventorymgr") ---@type CInventory
+    local inventory = lib.GetComp(bot, "inventory") ---@type CInventory
     inventory:PauseAutoSwitch()
 
     bot.bombPlantSpot = spot
@@ -171,7 +171,7 @@ end
 function PlantBomb.OnEnd(bot)
     bot.bombPlantSpot = nil
     local locomotor = lib.GetComp(bot, "locomotor") ---@type CLocomotor
-    local inventory = lib.GetComp(bot, "inventorymgr") ---@type CInventory
+    local inventory = lib.GetComp(bot, "inventory") ---@type CInventory
     inventory:ResumeAutoSwitch()
     locomotor:StopAttack()
     PlantBomb.ArmNearbyBomb(bot)

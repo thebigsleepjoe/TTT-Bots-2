@@ -15,7 +15,7 @@ local STATUS = {
 }
 
 function FindWeapon.HasPrimary(bot)
-    local im = bot.components.inventorymgr
+    local im = bot.components.inventory
     local primary = im:GetPrimary()
     return primary ~= nil
 end
@@ -30,7 +30,7 @@ function FindWeapon.GetWeaponsNear(bot, radius)
     if getWeaponsNearCache and getWeaponsNearCache.time + GWNC_EXPIRY > CurTime() then
         return getWeaponsNearCache.weapons
     end
-    local im = bot.components.inventorymgr
+    local im = bot.components.inventory
     radius = radius or 1000
     local weapons = {}
     for k, v in pairs(ents.FindInSphere(bot:GetPos(), radius)) do
@@ -160,7 +160,7 @@ end
 --- Called when the behavior returns a success state
 function FindWeapon.OnSuccess(bot)
     print("Finished grabbing a weapon")
-    local im = bot.components.inventorymgr
+    local im = bot.components.inventory
     im:EquipPrimary()
 end
 

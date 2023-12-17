@@ -57,7 +57,7 @@ function Breaker.OnRunning(bot)
     ---@type CLocomotor
     local loco = bot.components.locomotor
     ---@type CInventory
-    local imgr = bot.components.inventorymgr
+    local imgr = bot.components.inventory
     loco:LookAt(closest:GetPos(), 0.5)
     imgr:EquipMelee()
     imgr:PauseAutoSwitch()
@@ -81,6 +81,6 @@ end
 --- Called when the behavior ends, regardless of success or failure
 function Breaker.OnEnd(bot)
     local loco = bot.components.locomotor
-    bot.components.inventorymgr:ResumeAutoSwitch()
+    bot.components.inventory:ResumeAutoSwitch()
     loco:StopAttack()
 end

@@ -1,4 +1,4 @@
-include("tttbots2/data/usernames.lua")
+include("tttbots2/data/sh_usernames.lua")
 
 local function splitstr(str, delimiter)
     if delimiter == nil then

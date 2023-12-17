@@ -1,31 +1,31 @@
----@class CInventory
-TTTBots.Components.InventoryMgr = TTTBots.Components.InventoryMgr or {}
+---@class CInventory : CBase
+TTTBots.Components.Inventory = TTTBots.Components.Inventory or {}
 
 local lib = TTTBots.Lib
----@class CInventory
-local BotInventoryMgr = TTTBots.Components.InventoryMgr
+---@class CInventory : CBase
+local BotInventory = TTTBots.Components.Inventory
 
-function BotInventoryMgr:New(bot)
-    local newInventoryMgr = {}
-    setmetatable(newInventoryMgr, {
-        __index = function(t, k) return BotInventoryMgr[k] end,
+function BotInventory:New(bot)
+    local newInventory = {}
+    setmetatable(newInventory, {
+        __index = function(t, k) return BotInventory[k] end,
     })
-    newInventoryMgr:Initialize(bot)
+    newInventory:Initialize(bot)
 
     local dbg = lib.GetConVarBool("debug_misc")
     if dbg then
-        print("Initialized InventoryMgr for bot " .. bot:Nick())
+        print("Initialized Inventory for bot " .. bot:Nick())
     end
 
-    return newInventoryMgr
+    return newInventory
 end
 
-function BotInventoryMgr:Initialize(bot)
+function BotInventory:Initialize(bot)
     -- print("Initializing")
     bot.components = bot.components or {}
-    bot.components.InventoryMgr = self
+    bot.components.Inventory = self
 
-    self.componentID = string.format("inventorymgr (%s)", lib.GenerateID()) -- Component ID, used for debugging
+    self.componentID = string.format("inventory (%s)", lib.GenerateID()) -- Component ID, used for debugging
 
     self.tick = 0
 
@@ -108,7 +108,7 @@ local ammoTypes = {
 ---Returns the WeaponInfo table of the given entity
 ---@param wep Weapon
 ---@return WeaponInfo
-function BotInventoryMgr:GetWeaponInfo(wep)
+function BotInventory:GetWeaponInfo(wep)
     if wep == nil or wep == NULL or not IsValid(wep) then return end
 
     local info = {}
@@ -195,7 +195,7 @@ function BotInventoryMgr:GetWeaponInfo(wep)
     return info
 end
 
-function BotInventoryMgr:GetAllWeaponInfo()
+function BotInventory:GetAllWeaponInfo()
     local weapons = self.bot:GetWeapons()
     local weapon_info = {}
     for _, wep in pairs(weapons) do
@@ -206,7 +206,7 @@ function BotInventoryMgr:GetAllWeaponInfo()
 end
 
 --- Manage our own inventory by selecting the best weapon, queueing a reload if necessary, etc.
-function BotInventoryMgr:AutoManageInventory()
+function BotInventory:AutoManageInventory()
     local SLOWDOWN = math.floor(TTTBots.Tickrate / 2) -- about twice per second
     if self.tick % SLOWDOWN ~= 0 or self.disabled then return end
 
@@ -248,7 +248,7 @@ function BotInventoryMgr:AutoManageInventory()
 end
 
 --- Gives the bot weapon_ttt_c4 if he doesn't have it already.
-function BotInventoryMgr:GiveC4()
+function BotInventory:GiveC4()
     local hasC4 = false
     local weapons = self.bot:GetWeapons()
     for _, wep in pairs(weapons) do
@@ -263,15 +263,15 @@ function BotInventoryMgr:GiveC4()
     end
 end
 
-function BotInventoryMgr:PauseAutoSwitch()
+function BotInventory:PauseAutoSwitch()
     self.pauseAutoSwitch = true
 end
 
-function BotInventoryMgr:ResumeAutoSwitch()
+function BotInventory:ResumeAutoSwitch()
     self.pauseAutoSwitch = false
 end
 
-function BotInventoryMgr:Think()
+function BotInventory:Think()
     if not lib.IsPlayerAlive(self.bot) then return end
     if lib.GetDebugFor("inventory") then
         self:PrintInventory()
@@ -286,7 +286,7 @@ end
 ---Returns the weapon info table for the weapon we are holding, or what the target is holding if any.
 ---@param target Player|nil
 ---@return WeaponInfo
-function BotInventoryMgr:GetHeldWeaponInfo(target)
+function BotInventory:GetHeldWeaponInfo(target)
     if not target then
         return self:GetWeaponInfo(self.bot:GetActiveWeapon())
     end
@@ -297,7 +297,7 @@ function BotInventoryMgr:GetHeldWeaponInfo(target)
 end
 
 ---@return WeaponInfo
-function BotInventoryMgr:GetPrimary()
+function BotInventory:GetPrimary()
     -- info.slot == "primary"
     local weapons = self.bot:GetWeapons()
     for _, wep in pairs(weapons) do
@@ -309,7 +309,7 @@ function BotInventoryMgr:GetPrimary()
 end
 
 ---@return WeaponInfo
-function BotInventoryMgr:GetSecondary()
+function BotInventory:GetSecondary()
     -- info.slot == "secondary"
     local weapons = self.bot:GetWeapons()
     for _, wep in pairs(weapons) do
@@ -321,7 +321,7 @@ function BotInventoryMgr:GetSecondary()
 end
 
 ---@return WeaponInfo
-function BotInventoryMgr:GetCrowbar()
+function BotInventory:GetCrowbar()
     -- info.slot == "melee"
     local weapons = self.bot:GetWeapons()
     for _, wep in pairs(weapons) do
@@ -333,7 +333,7 @@ function BotInventoryMgr:GetCrowbar()
 end
 
 ---@return WeaponInfo
-function BotInventoryMgr:GetGrenade()
+function BotInventory:GetGrenade()
     -- info.slot == "grenade"
     local weapons = self.bot:GetWeapons()
     for _, wep in pairs(weapons) do
@@ -345,7 +345,7 @@ function BotInventoryMgr:GetGrenade()
 end
 
 ---@return WeaponInfo
-function BotInventoryMgr:GetWeaponByName(name)
+function BotInventory:GetWeaponByName(name)
     local weapons = self.bot:GetWeapons()
     for _, wep in pairs(weapons) do
         local info = self:GetWeaponInfo(wep)
@@ -358,7 +358,7 @@ end
 --- Gets the debug/stylized text for the given weapon info. Used to check the ammo and weapon type.
 ---@param wepInfo any
 ---@return string str Formatted info string
-function BotInventoryMgr:GetWepInfoText(wepInfo)
+function BotInventory:GetWepInfoText(wepInfo)
     if not wepInfo then return "nil" end
     local ammoLeft = wepInfo.clip or 0
     local ammoMax = wepInfo.max_ammo or 0
@@ -375,7 +375,7 @@ end
 --- 4. "grenade": equips the bot's grenade
 --- 5. "weapon_name": equips the bot's weapon with the given name
 ---<p>Otherwise, wep is a weapon object and it is equipped.</p>
-function BotInventoryMgr:Equip(wep)
+function BotInventory:Equip(wep)
     local found
     if type(wep) == "string" then
         local funcTbl = {
@@ -401,24 +401,24 @@ function BotInventoryMgr:Equip(wep)
     return (found ~= nil)
 end
 
-function BotInventoryMgr:EquipPrimary()
+function BotInventory:EquipPrimary()
     return self:Equip("primary")
 end
 
-function BotInventoryMgr:EquipSecondary()
+function BotInventory:EquipSecondary()
     return self:Equip("secondary")
 end
 
-function BotInventoryMgr:EquipMelee()
+function BotInventory:EquipMelee()
     -- return self:Equip("melee")
     return self.bot:SelectWeapon("weapon_zm_improvised")
 end
 
-function BotInventoryMgr:EquipGrenade()
+function BotInventory:EquipGrenade()
     return self:Equip("grenade")
 end
 
-function BotInventoryMgr:GetInventoryString()
+function BotInventory:GetInventoryString()
     local weapons = self.bot:GetWeapons()
     local str = ""
     for _, wep in pairs(weapons) do
@@ -446,7 +446,7 @@ local function printf(str, ...)
     print(string.format(str, ...))
 end
 
-function BotInventoryMgr:PrintInventory()
+function BotInventory:PrintInventory()
     printf("===III=== Inventory for bot %s ===III===", self.bot:Nick())
     printf(self:GetInventoryString())
     printf("===III=== End inventory ===III===")
@@ -455,7 +455,7 @@ end
 --- Buy bomb at round start if applicable
 ---@param personality CPersonality
 ---@return boolean
-function BotInventoryMgr:ShouldBuyBomb(personality)
+function BotInventory:ShouldBuyBomb(personality)
     if not lib.IsEvil(self.bot, true) then return false end
     local bombChance = math.random(1, 7) == 1
     if personality:GetTraitBool("planter") or bombChance then
@@ -465,7 +465,7 @@ function BotInventoryMgr:ShouldBuyBomb(personality)
     return false
 end
 
-function BotInventoryMgr:ShouldBuyHealth(personality)
+function BotInventory:ShouldBuyHealth(personality)
     if not lib.IsPolice(self.bot) then return false end
     local healthChance = math.random(1, 3) <= 2
     if personality:GetTraitBool("healer") or healthChance then
@@ -475,7 +475,7 @@ function BotInventoryMgr:ShouldBuyHealth(personality)
     return false
 end
 
-function BotInventoryMgr:ShouldBuyDefuser(personality)
+function BotInventory:ShouldBuyDefuser(personality)
     if not lib.IsPolice(self.bot) then return false end
     local defuserChance = math.random(1, 3) <= 2
     if personality:GetTraitBool("defuser") or defuserChance then
@@ -485,18 +485,18 @@ function BotInventoryMgr:ShouldBuyDefuser(personality)
     return false
 end
 
-BotInventoryMgr.BuyableItems = {
-    ["weapon_ttt_c4"] = BotInventoryMgr.ShouldBuyBomb,
-    ["weapon_ttt_health_station"] = BotInventoryMgr.ShouldBuyHealth,
-    ["weapon_ttt_defuser"] = BotInventoryMgr.ShouldBuyDefuser,
+BotInventory.BuyableItems = {
+    ["weapon_ttt_c4"] = BotInventory.ShouldBuyBomb,
+    ["weapon_ttt_health_station"] = BotInventory.ShouldBuyHealth,
+    ["weapon_ttt_defuser"] = BotInventory.ShouldBuyDefuser,
 }
 
-function BotInventoryMgr:BuyItemsAtStart()
+function BotInventory:BuyItemsAtStart()
     local personality = lib.GetComp(self.bot, "personality") ---@type CPersonality
     local credits = 2 -- Bots have 2 credits to buy things with
     if not personality then return end
 
-    for class, func in pairs(BotInventoryMgr.BuyableItems) do
+    for class, func in pairs(BotInventory.BuyableItems) do
         if credits <= 0 then break end
         if func(self, personality) then
             credits = credits - 1
@@ -506,12 +506,12 @@ function BotInventoryMgr:BuyItemsAtStart()
 end
 
 --- on ttt round start:
-hook.Add("TTTBeginRound", "TTTBots.InventoryMgr.RoundStartGiveWeapons", function()
+hook.Add("TTTBeginRound", "TTTBots.Inventory.RoundStartGiveWeapons", function()
     timer.Simple(2, function()
         local bots = TTTBots.Bots
         for _, bot in pairs(bots) do
             if not (IsValid(bot) and TTTBots.Lib.IsPlayerAlive(bot)) then continue end
-            local inventory = lib.GetComp(bot, "inventorymgr") ---@type CInventory
+            local inventory = lib.GetComp(bot, "inventory") ---@type CInventory
             inventory:BuyItemsAtStart()
         end
     end)

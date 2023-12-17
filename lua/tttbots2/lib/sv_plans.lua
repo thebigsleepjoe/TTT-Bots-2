@@ -44,7 +44,7 @@ TTTBots.Plans = {
     CurrentPlanState = "",
     SelectedPlan = nil,
 }
-include("tttbots2/data/planpresets.lua") --- Load data into TTTBots.Plans.PRESETS
+include("tttbots2/data/sv_planpresets.lua") --- Load data into TTTBots.Plans.PRESETS
 
 --- When a bot wants to share the status with this module (bot->server), it will call this function.
 function TTTBots.Plans.BotUpdateStatus(bot, status)

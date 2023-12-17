@@ -1,7 +1,7 @@
 --[[
     This module is primarily for coordinating traitor bots with one another.
 ]]
-include("tttbots2/lib/plans.lua")
+include("tttbots2/lib/sv_plans.lua")
 
 TTTBots.PlanCoordinator = {}
 local PlanCoordinator = TTTBots.PlanCoordinator

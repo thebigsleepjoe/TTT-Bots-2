@@ -5,8 +5,6 @@ local function bot_sv_cvar(name, def, desc)
 end
 
 -- Misc cvars
-bot_sv_cvar("language", "en",
-    "Changes the language that the bots speak in text chat, and may modify some GUI strings. Example is 'en' or 'es'")
 bot_sv_cvar("chat_cmds", "1",
     "If you want to allow chat commands to be used for administration. This cvar exists for mod compatibility.")
 bot_sv_cvar("names_prefixes", "1", "Bot names are forced prefixed by '[BOT]'")

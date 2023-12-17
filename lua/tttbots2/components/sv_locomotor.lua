@@ -1,11 +1,11 @@
 --[[
 This component is how the bot gets to something. It does not create the paths, it just follows them.
 ]]
----@class CLocomotor
+---@class CLocomotor : CBase
 TTTBots.Components.Locomotor = {}
 
 local lib = TTTBots.Lib
----@class CLocomotor
+---@class CLocomotor : CBase
 local BotLocomotor = TTTBots.Components.Locomotor
 
 -- Define constants
@@ -1386,7 +1386,7 @@ function BotLocomotor:StartCommand(cmd) -- aka StartCmd
         if (self.attack and not self.attackReleaseTime) or                                       -- if we are attacking and we don't have an attack release time
             (self.attack and self.attackReleaseTime and self.attackReleaseTime > TIMESTAMP) then -- or if we are attacking and we have an attack release time and it's not yet time to release:
             -- stop attack from interrupting reload
-            local currentWep = self.bot.components.inventorymgr:GetHeldWeaponInfo()
+            local currentWep = self.bot.components.inventory:GetHeldWeaponInfo()
             if (currentWep and (not currentWep.needs_reload)) or not currentWep then
                 cmd:SetButtons(cmd:GetButtons() + IN_ATTACK)
             end

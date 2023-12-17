@@ -6,17 +6,17 @@
 
 TTTBots.Behaviors = {}
 
-include("tttbots2/behaviors/wander.lua")
-include("tttbots2/behaviors/findweapon.lua")
-include("tttbots2/behaviors/clearbreakables.lua")
-include("tttbots2/behaviors/attacktarget.lua")
-include("tttbots2/behaviors/investigatenoise.lua")
-include("tttbots2/behaviors/investigatecorpse.lua")
-include("tttbots2/behaviors/follow.lua")
-include("tttbots2/behaviors/followplan.lua")
-include("tttbots2/behaviors/defuse.lua")
-include("tttbots2/behaviors/plantbomb.lua")
-include("tttbots2/behaviors/usehealthstation.lua")
+include("tttbots2/behaviors/sv_wander.lua")
+include("tttbots2/behaviors/sv_findweapon.lua")
+include("tttbots2/behaviors/sv_clearbreakables.lua")
+include("tttbots2/behaviors/sv_attacktarget.lua")
+include("tttbots2/behaviors/sv_investigatenoise.lua")
+include("tttbots2/behaviors/sv_investigatecorpse.lua")
+include("tttbots2/behaviors/sv_follow.lua")
+include("tttbots2/behaviors/sv_followplan.lua")
+include("tttbots2/behaviors/sv_defuse.lua")
+include("tttbots2/behaviors/sv_plantbomb.lua")
+include("tttbots2/behaviors/sv_usehealthstation.lua")
 
 local b = TTTBots.Behaviors
 

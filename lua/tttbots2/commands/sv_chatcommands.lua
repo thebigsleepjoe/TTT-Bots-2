@@ -245,9 +245,6 @@ Chat.Commands = {
     end,
 }
 
-function TTTBots.Chat.MessagePlayer(ply, message)
-    ply:ChatPrint("[TTT Bots] " .. message)
-end
 
 hook.Add("PlayerSay", "TTTBots.PlayerSay", function(ply, text, team)
     if ply:IsBot() then return end

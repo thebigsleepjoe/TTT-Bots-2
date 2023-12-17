@@ -1,10 +1,8 @@
-include("tttbots2/data/traits.lua")
-
----@class CPersonality
+---@class CPersonality : CBase
 TTTBots.Components.Personality = {}
 
 local lib = TTTBots.Lib
----@class CPersonality
+---@class CPersonality : CBase
 local BotPersonality = TTTBots.Components.Personality
 
 BotPersonality.Traits = TTTBots.Traits
@@ -42,7 +40,7 @@ function BotPersonality:Initialize(bot)
 
     local traits_enabled = lib.GetConVarBool("personalities")
     self.traits = (traits_enabled and self:GetNoConflictTraits(4)) or
-    {}                                                                   -- The bot's traits. These are just keynames and not the actual trait objects.
+        {} -- The bot's traits. These are just keynames and not the actual trait objects.
     self.archetype = self:GetClosestArchetype()
 
     --- How angry the bot is, from 1-100. Adds onto pressure. At 100% rage, the bot will leave voluntary (if enabled).

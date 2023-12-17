@@ -7,6 +7,8 @@ local function bot_sh_cvar(name, def, desc)
 end
 
 
+bot_sh_cvar("language", "en",
+    "Changes the language that the bots speak in text chat, and may modify some GUI strings. Example is 'en' or 'es'")
 bot_sh_cvar("pfps", "1", "Bots can have AI-related profile pictures in the scoreboard")
 bot_sh_cvar("pfps_humanlike", "0", "Bots can have AI-related profile pictures in the scoreboard")
 bot_sh_cvar("emulate_ping", "0",

@@ -41,6 +41,7 @@ function Match.Tick()
 end
 
 --- Returns true if enough time, as defined by plans_mindelay and _maxdelay, has passed since the round began. Used for automatic plan execution by bots.
+---@realm server
 function Match.PlansCanStart()
     if not Match.RoundActive then return false end
     local minTime = TTTBots.Lib.GetConVarFloat("plans_mindelay")
@@ -57,6 +58,7 @@ end
 ---@param ply Player
 ---@param dontIterate nil|boolean (OPTIONAL=false)
 ---@return boolean is_trustworthy - if we can trust this player's KOS
+---@realm server
 function Match.KOSIsApproved(ply, dontIterate)
     if not Match.IsRoundActive() then return false end
     local MAX_KOS_PER_PLY = TTTBots.Lib.GetConVarInt("kos_limit")
@@ -74,6 +76,7 @@ end
 ---@param caller Player
 ---@param target Player
 ---@return boolean success
+---@realm server
 function Match.CallKOS(caller, target)
     if not Match.IsRoundActive() then return false end
     if TTTBots.Lib.IsPolice(target) then return false end
@@ -94,23 +97,26 @@ end
 
 --- Returns the time in seconds since the match began.
 ---@return number seconds
+---@realm shared
 function Match.Time()
     return (Match.RoundActive and Match.SecondsPassed) or 0
 end
 
+---@realm shared
 function Match.IsRoundActive()
     return Match.RoundActive
 end
 
+---@realm shared
 function Match.CleanupNullCorpses()
     for i, v in pairs(Match.Corpses) do
         if not IsValid(v) or v == NULL then
             table.remove(Match.Corpses, i)
-            print("Cleaned up null corpse")
         end
     end
 end
 
+---@realm shared
 function Match.ResetStats(roundActive)
     Match.RoundActive = roundActive or false
     Match.Corpses = {}
@@ -130,15 +136,17 @@ function Match.ResetStats(roundActive)
     Match.AllArmedC4s = {}
     Match.RoundID = TTTBots.Lib.GenerateID()
 
-    -- Just gonna put this here since it's related to resetting stats.
-    for i, v in pairs(TTTBots.Bots) do
-        v:SetAttackTarget(nil)
+    if SERVER then
+        for i, v in pairs(TTTBots.Bots) do
+            v:SetAttackTarget(nil)
+        end
     end
 end
 
 ---Gets the difficulty scoring of the given bot. Returns -1 if the bot is not a TTTBot.
 ---@param bot Player
 ---@return number difficulty
+---@realm server
 function Match.GetBotDifficulty(bot)
     local personality = TTTBots.Lib.GetComp(bot, "personality") ---@type CPersonality
     if not personality then return -1 end
@@ -148,6 +156,7 @@ end
 
 --- Returns a table of all bots in the game, indexed by bot object, with each key as the estimated difficulty score.
 ---@return table<bot, number> botDifficulty
+---@realm server
 function Match.GetBotsDifficulty()
     local tbl = {}
     for i, bot in pairs(TTTBots.Bots) do
@@ -158,6 +167,7 @@ function Match.GetBotsDifficulty()
 end
 
 --- Comb thru the damage logs and find the player who shot the other first.
+---@realm server
 function Match.WhoShotFirst(ply1, ply2)
     local hansolo = nil
     local oldestTime = math.huge
@@ -172,6 +182,7 @@ function Match.WhoShotFirst(ply1, ply2)
     return hansolo -- hehehehe get it?
 end
 
+---@realm shared
 function Match.UpdateAlivePlayers()
     Match.AlivePlayers = {}
     Match.AliveHumanTraitors = {}
@@ -202,6 +213,7 @@ function Match.UpdateAlivePlayers()
     end
 end
 
+---@realm shared
 function Match.IsPlayerDisguised(ply)
     return Match.DisguisedPlayers[ply] or false
 end
@@ -209,6 +221,7 @@ end
 ---Event called when an innocent bot spots a C4.
 ---@param bot Player
 ---@param c4 Entity
+---@realm server
 function Match.OnBotSpotC4(bot, c4)
     local chatter = TTTBots.Lib.GetComp(bot, "chatter") ---@type CChatter
     local locomotor = TTTBots.Lib.GetComp(bot, "locomotor") ---@type CLocomotor
@@ -217,6 +230,7 @@ function Match.OnBotSpotC4(bot, c4)
     locomotor:LookAt(c4:GetPos())
 end
 
+---@realm server
 function Match.BotsTrySpotC4()
     for i, bot in pairs(TTTBots.Bots) do
         if not TTTBots.Lib.IsPlayerAlive(bot) then continue end
@@ -258,72 +272,54 @@ hook.Add("TTTPrepareRound", "TTTBots.Match.PrepareRound", function()
     Match.ResetStats(false)
 end)
 
-hook.Add("TTTOnCorpseCreated", "TTTBots.Match.OnCorpseCreated", function(corpse)
-    if not Match.RoundActive then return end
-    table.insert(Match.Corpses, corpse)
-end)
+if SERVER then
+    hook.Add("TTTOnCorpseCreated", "TTTBots.Match.OnCorpseCreated", function(corpse)
+        if not Match.RoundActive then return end
+        table.insert(Match.Corpses, corpse)
+    end)
 
-hook.Add("TTTBodyFound", "TTTBots.Match.BodyFound", function(discoverer, deceased, ragdoll)
-    if not Match.RoundActive then return end
-    if not IsValid(deceased) then return end
-    if not deceased:IsPlayer() then return end
-    if not Match.PlayersInRound[deceased] then return end
-    Match.ConfirmedDead[deceased] = true
-end)
+    hook.Add("TTTBodyFound", "TTTBots.Match.BodyFound", function(discoverer, deceased, ragdoll)
+        if not Match.RoundActive then return end
+        if not IsValid(deceased) then return end
+        if not deceased:IsPlayer() then return end
+        if not Match.PlayersInRound[deceased] then return end
+        Match.ConfirmedDead[deceased] = true
+    end)
 
-hook.Add("PlayerHurt", "TTTBots.Match.PlayerHurt", function(victim, attacker, healthRemaining, damageTaken)
-    if not Match.RoundActive then return end
-    if not (IsValid(victim) and IsValid(attacker) and victim:IsPlayer() and attacker:IsPlayer()) then return end
-    table.insert(Match.DamageLogs, {
-        victim = victim,
-        attacker = attacker,
-        healthRemaining = healthRemaining,
-        damageTaken = damageTaken,
-        time = CurTime()
-    })
-end)
+    hook.Add("PlayerHurt", "TTTBots.Match.PlayerHurt", function(victim, attacker, healthRemaining, damageTaken)
+        if not Match.RoundActive then return end
+        if not (IsValid(victim) and IsValid(attacker) and victim:IsPlayer() and attacker:IsPlayer()) then return end
+        table.insert(Match.DamageLogs, {
+            victim = victim,
+            attacker = attacker,
+            healthRemaining = healthRemaining,
+            damageTaken = damageTaken,
+            time = CurTime()
+        })
+    end)
 
-hook.Add("TTTPlayerRadioCommand", "TTTBots.Match.TTTRadioMessage", function(ply, msgName, msgTarget)
-    if msgName ~= "quick_traitor" then return end
-    if not (ply and msgTarget) then return end
-    if not (IsValid(ply) and IsValid(msgTarget)) then return end
-    local callerAlive = TTTBots.Lib.IsPlayerAlive(ply)
-    local targetAlive = TTTBots.Lib.IsPlayerAlive(msgTarget)
-    if not (callerAlive and targetAlive) then return end
-    Match.CallKOS(ply, msgTarget)
-end)
+    hook.Add("TTTPlayerRadioCommand", "TTTBots.Match.TTTRadioMessage", function(ply, msgName, msgTarget)
+        if msgName ~= "quick_traitor" then return end
+        if not (ply and msgTarget) then return end
+        if not (IsValid(ply) and IsValid(msgTarget)) then return end
+        local callerAlive = TTTBots.Lib.IsPlayerAlive(ply)
+        local targetAlive = TTTBots.Lib.IsPlayerAlive(msgTarget)
+        if not (callerAlive and targetAlive) then return end
+        Match.CallKOS(ply, msgTarget)
+    end)
 
--- hook.Add("TTTC4Arm", "TTTBots.Match.TTTC4Arm", function(c4, ply)
---     if not Match.RoundActive then return end
---     if not (IsValid(c4) and IsValid(ply)) then return end
---     Match.AllArmedC4s[c4] = ply
--- end)
+    timer.Create("TTTBots.Match.UpdateC4List", 1, 0, function()
+        if not Match.RoundActive then return end
+        local bombs = ents.FindByClass("ttt_c4")
 
--- hook.Add("TTTC4Disarm", "TTTBots.Match.TTTC4Disarm", function(c4, result, ply)
---     if not Match.RoundActive then return end
---     if not (IsValid(c4) and IsValid(ply)) then return end
---     Match.AllArmedC4s[c4] = nil
---     Match.SpottedC4s[c4] = nil
--- end)
+        Match.AllArmedC4s = {}
 
--- hook.Add("TTTC4Destroyed", "TTTBots.Match.TTTC4Destroyed", function(c4, ply)
---     if not Match.RoundActive then return end
---     if not (IsValid(c4) and IsValid(ply)) then return end
---     Match.AllArmedC4s[c4] = nil
---     Match.SpottedC4s[c4] = nil
--- end)
+        for i, c4 in pairs(bombs) do
+            if not IsValid(c4) then continue end
+            if not c4:GetArmed() then continue end
+            Match.AllArmedC4s[c4] = true
+        end
 
-timer.Create("TTTBots.Match.UpdateC4List", 1, 0, function()
-    if not Match.RoundActive then return end
-    local bombs = ents.FindByClass("ttt_c4")
-
-    Match.AllArmedC4s = {}
-
-    for i, c4 in pairs(bombs) do
-        if not IsValid(c4) then continue end
-        if not c4:GetArmed() then continue end
-        Match.AllArmedC4s[c4] = true
-    end
-
-    Match.BotsTrySpotC4()
-end)
+        Match.BotsTrySpotC4()
+    end)
+end

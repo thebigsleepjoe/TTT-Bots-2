@@ -1,38 +1,41 @@
 TTTBots.Lib = TTTBots.Lib or {}
 
-include("tttbots2/lib/namemanager.lua")
+if SERVER then
+    include("tttbots2/lib/sv_namemanager.lua")
+    -- Import components for bot creation
+    TTTBots.Components = {}
+    include("tttbots2/components/sv_locomotor.lua")
+    include("tttbots2/components/sv_obstacletracker.lua")
+    include("tttbots2/components/sv_inventory.lua")
+    include("tttbots2/components/sv_personality.lua")
+    include("tttbots2/components/sv_memory.lua")
+    include("tttbots2/components/sv_morality.lua")
+    include("tttbots2/components/sv_chatter.lua")
+end
 
--- Import components for bot creation
-TTTBots.Components = {}
-include("tttbots2/components/locomotor.lua")
-include("tttbots2/components/obstacletracker.lua")
-include("tttbots2/components/inventorymgr.lua")
-include("tttbots2/components/personality.lua")
-include("tttbots2/components/memory.lua")
-include("tttbots2/components/morality.lua")
-include("tttbots2/components/chatter.lua")
-
-local BASIC_VISIBILITY_RANGE = 4000 --- Threshold to be considred for the :VisibleVec function in a basic visibility check.
+TTTBots.Lib.BASIC_VIS_RANGE = 4000 --- Threshold to be considred for the :VisibleVec function in a basic visibility check.
 
 local format = string.format
 
 local alivePlayers = {}
-
+---@realm server
 local function updateAlivePlayers()
     alivePlayers = {}
     for i, ply in pairs(player.GetAll()) do
         alivePlayers[ply] = (IsValid(ply) and not (ply:IsSpec()) and ply:Alive() and ply:Health() > 0)
     end
 end
-timer.Create("TTTBots.Lib.AlivePlayersInterval", 1 / (TTTBots.Tickrate), 0, updateAlivePlayers)
+if SERVER then timer.Create("TTTBots.Lib.AlivePlayersInterval", 1 / (TTTBots.Tickrate), 0, updateAlivePlayers) end
 
 
--- Check if not :IsSpec and :Alive
+--- Check if not :IsSpec and :Alive
+---@realm shared
 function TTTBots.Lib.IsPlayerAlive(ply)
     return alivePlayers[ply]
 end
 
 --- returns the cached lib table of all players and whether or not they are living
+---@realm server
 ---@return table<Player, boolean>
 function TTTBots.Lib.GetPlayerLifeStates()
     return alivePlayers
@@ -43,6 +46,11 @@ local EXPLOSIVE_BARREL_MODELS = {
     ["models//props_c17/oildrum001_explosive.mdl"] = true,
     ["props_c17/oildrum001_explosive.mdl"] = true
 }
+---Returns the closest explosive barrel to the target.
+---@param target Entity
+---@return Entity|nil barrel the barrel, else nil
+---@return number distance distance to the barrel
+---@realm shared
 function TTTBots.Lib.GetClosestBarrel(target)
     local SPHERE_SIZE = 128
     local entities = ents.FindInSphere(target:GetPos(), SPHERE_SIZE)
@@ -59,6 +67,9 @@ function TTTBots.Lib.GetClosestBarrel(target)
     return closest, closestDist
 end
 
+---Returns a table of living players, according to the IsPlayerAlive cache.
+---@return table<Player>
+---@realm shared
 function TTTBots.Lib.GetAlivePlayers()
     local alive = {}
     for _, ply in ipairs(player.GetAll()) do
@@ -69,6 +80,9 @@ function TTTBots.Lib.GetAlivePlayers()
     return alive
 end
 
+---Returns a table of living bots, according to the IsPlayerAlive cache.
+---@return table<Player>
+---@realm shared
 function TTTBots.Lib.GetAliveBots()
     local alive = {}
     for _, ply in ipairs(TTTBots.Bots) do
@@ -79,6 +93,9 @@ function TTTBots.Lib.GetAliveBots()
     return alive
 end
 
+--- Returns a table of living evil bots, according to the IsPlayerAlive and IsEvil caches.
+---@return table<Player>
+---@realm shared
 function TTTBots.Lib.GetAliveEvilBots()
     local alive = {}
     for _, ply in ipairs(TTTBots.Bots) do
@@ -92,6 +109,7 @@ end
 ---Looks at the active weapon ply is holding and returns true if it is a traitor-specific weapon. DOES NOT ACCOUNT FOR CUSTOM ROLES.
 ---@param ply Player
 ---@return boolean isTraitorWep
+---@realm shared
 function TTTBots.Lib.IsHoldingTraitorWep(ply)
     local wep = ply:GetActiveWeapon()
     if not IsValid(wep) then return false end
@@ -102,7 +120,9 @@ function TTTBots.Lib.IsHoldingTraitorWep(ply)
     return traitorsCanBuy and not canSpawnNaturally
 end
 
--- Generate lowercase alphanumeric string of length 6
+--- Generate lowercase alphanumeric string of length 6
+---@return string id
+---@realm shared
 function TTTBots.Lib.GenerateID()
     local id = ""
     for i = 1, 6 do
@@ -111,13 +131,13 @@ function TTTBots.Lib.GenerateID()
     return id
 end
 
+---@realm shared
 function TTTBots.Lib.PrintInitMessage()
     print("~~~~~~~~~~~~~~~~~~~~~")
     print("TTT Bots initialized!")
     print(format("Version: %s", TTTBots.Version))
     print(format("Number of players: %s/%s", #player.GetAll(), game.MaxPlayers()))
-    print(format("Gamemode: %s", engine.ActiveGamemode()) ..
-        " | (Compatible = " .. tostring(TTTBots.Lib.CheckCompatibleGamemode()) .. ")")
+    print(format("Gamemode: %s", engine.ActiveGamemode()))
     print(
         "NOTE: If you are reading this as a dedicated server owner, you cannot use chat commands remotely, your character must be in the server for that. You may still use most concommands.")
     print("~~~~~~~~~~~~~~~~~~~~~")
@@ -125,6 +145,7 @@ end
 
 --- Checks if there are currently any player slots available
 ---@return boolean
+---@realm shared
 function TTTBots.Lib.CheckIfPlayerSlots()
     return not (#player.GetAll() >= game.MaxPlayers())
 end
@@ -133,11 +154,13 @@ end
 ---@param ply1 Player
 ---@param ply2 Player
 ---@return boolean
+---@realm shared
 function TTTBots.Lib.CanShoot(ply1, ply2)
     return ply1:Visible(ply2)
 end
 
 local cached_navs_by_size = {}
+---@realm shared
 function TTTBots.Lib.GetNavsOfGreaterArea(area)
     area = math.floor(area)
     if cached_navs_by_size[area] then return cached_navs_by_size[area] end
@@ -149,6 +172,7 @@ function TTTBots.Lib.GetNavsOfGreaterArea(area)
     return filtered
 end
 
+---@realm server
 function TTTBots.Lib.CallEveryNTicks(bot, callback, N)
     local tick = bot.tick or 0
     if tick % N == 0 then
@@ -156,8 +180,11 @@ function TTTBots.Lib.CallEveryNTicks(bot, callback, N)
     end
 end
 
+--- An expensive visibility function that checks if ply1 can see ply2's feet, eyes, or hitbox center
 ---@param ply1 Player1
 ---@param ply2 Player2
+---@return boolean canSee
+---@realm shared
 function TTTBots.Lib.CanSee(ply1, ply2)
     if not IsValid(ply1) or not IsValid(ply2) then return false end
     local start = ply1:EyePos()
@@ -180,10 +207,12 @@ function TTTBots.Lib.CanSee(ply1, ply2)
     return false
 end
 
+--- Checks if ply can see pos within an arc of X degrees. If so, checks if a VisibleVec returns true.
 ---@param ply Player
 ---@param pos Vector
 ---@param arc number The arc, in degrees, that the player can see. e.g., 90* = 45* in both directions
 ---@return boolean CanSee
+---@realm shared
 function TTTBots.Lib.CanSeeArc(ply, pos, arc)
     if not IsValid(ply) then return false end
 
@@ -202,12 +231,13 @@ function TTTBots.Lib.CanSeeArc(ply, pos, arc)
     return ply:VisibleVec(pos)
 end
 
---- Return a table of every given player within range that also have a sightline to the position.
+--- Return a table of every given player within range that also have a VisibleVec sightline to the position.
 ---@param pos Vector The position to check
 ---@param playerTbl table<Player>|nil (optional) defaults to all living players
 ---@param ignorePly Player|nil a player to ignore in the check, if any
+---@realm shared
 function TTTBots.Lib.GetAllWitnessesBasic(pos, playerTbl, ignorePly)
-    local RANGE = BASIC_VISIBILITY_RANGE
+    local RANGE = TTTBots.Lib.BASIC_VIS_RANGE
     local witnesses = {}
     for i, ply in pairs(playerTbl) do
         if ply:GetPos():Distance(pos) <= RANGE then
@@ -221,10 +251,11 @@ function TTTBots.Lib.GetAllWitnessesBasic(pos, playerTbl, ignorePly)
     return witnesses
 end
 
----Get a list of players/bots that can see the position. This factors in for a FOV of 90.
+---Get a list of players/bots that can see the position. Runs a CanSeeArc check with an FOV of 90*
 ---@param pos Vector
 ---@param botsOnly boolean
 ---@return table
+---@realm shared
 function TTTBots.Lib.GetAllWitnesses(pos, botsOnly)
     local witnesses = {}
     for _, ply in ipairs(botsOnly and TTTBots.Bots or player.GetAll()) do
@@ -248,6 +279,7 @@ TTTBots.Lib.DIFFICULTY_RANGES = {    --- The expected :GetDifficulty() ranges pe
 TTTBots.Lib.DIFFICULTY_TOLERANCE = 4 --- The variability in difficulty that is allowed for a bot to be considered for removal.
 
 --- Function responsible for managing bots to be added and removed by the quota system.
+---@realm server
 function TTTBots.Lib.UpdateQuota()
     local quotaN = TTTBots.Lib.GetConVarInt("quota")
     if quotaN == 0 then return end
@@ -297,10 +329,13 @@ function TTTBots.Lib.UpdateQuota()
     end
 end
 
-local QUOTA_INTERVAL = 2.5 --- The period between adding/removing bots automatically. Used to prevent lag spikes, mostly.
-timer.Create("TTTBots.Lib.UpdateQuota", QUOTA_INTERVAL, 0, TTTBots.Lib.UpdateQuota)
+if SERVER then
+    local QUOTA_INTERVAL = 2.5 --- The period between adding/removing bots automatically. Used to prevent lag spikes, mostly.
+    timer.Create("TTTBots.Lib.UpdateQuota", QUOTA_INTERVAL, 0, TTTBots.Lib.UpdateQuota)
+end
 
 --- Grabs the convar ttt_bot_playermodel and sets each bots model to that string. Does not do anything if is blank.
+---@realm server
 function TTTBots.Lib.UpdateBotModels()
     local model = TTTBots.Lib.GetConVarString("playermodel")
     if model == "" then return end
@@ -309,12 +344,14 @@ function TTTBots.Lib.UpdateBotModels()
     end
 end
 
+---@realm shared
 function TTTBots.Lib.GetRandomAdjacent(nav)
     local adjacent = nav:GetAdjacentAreas()
     local random = math.random(1, #adjacent)
     return adjacent[random]
 end
 
+---@realm shared
 function TTTBots.Lib.GetRandomAdjacentNth(nav, N, i)
     local adjacent = nav:GetAdjacentAreas()
     local random = math.random(1, #adjacent)
@@ -331,6 +368,7 @@ end
 ---@param element any Can be a table, number, string, any value.
 ---@param weight number The weight relative to the rest of the table.
 ---@return WeightedTable
+---@realm shared
 function TTTBots.Lib.SetWeight(element, weight)
     return { key = element, weight = weight }
 end
@@ -338,6 +376,7 @@ end
 --- Get all visible nav areas to the given nav, that have a center within maxdist.
 ---@param nav CNavArea
 ---@param maxdist number
+---@realm shared
 function TTTBots.Lib.GetAllVisibleWithinDist(nav, maxdist)
     local allVisible = nav:GetVisibleAreas()
     local filteredDist = TTTBots.Lib.FilterTable(allVisible, function(nav2)
@@ -348,6 +387,7 @@ function TTTBots.Lib.GetAllVisibleWithinDist(nav, maxdist)
 end
 
 --- Performs a basic line trace from start to finish
+---@realm shared
 function TTTBots.Lib.TraceBasic(start, finish)
     local trace = util.TraceLine({
         start = start,
@@ -358,6 +398,7 @@ function TTTBots.Lib.TraceBasic(start, finish)
 end
 
 --- Performs a basic trace and returns the percentage (0-100) of the trace that was clear.
+---@realm shared
 function TTTBots.Lib.TracePercent(start, finish)
     local trace = TTTBots.Lib.TraceBasic(start, finish)
     local dist = start:Distance(finish) or 1
@@ -368,6 +409,7 @@ end
 local _cachedAngleTable = {}
 --- Return a table of calculated angles for a given number of angles.
 --- For instance, if n = 4, then the angles will be {0, 90, 180, 270}.
+---@realm shared
 function TTTBots.Lib.GetAngleTable(n)
     if _cachedAngleTable[n] then return _cachedAngleTable[n] end
     local angles = {}
@@ -388,6 +430,7 @@ local _cachedRegions = {
 }
 
 --- Recursively add adjacent nav areas to a region table. Avoids affecting already cached navs.
+---@realm server
 function TTTBots.Lib.AddAdjacentsToRegion(nav, regionTbl, alreadyCached)
     if alreadyCached[nav] then return end
 
@@ -405,6 +448,7 @@ function TTTBots.Lib.AddAdjacentsToRegion(nav, regionTbl, alreadyCached)
     end
 end
 
+---@realm server
 function TTTBots.Lib.GetNavRegions(forceRecache)
     if not forceRecache and _cachedRegions.hasCached then
         return _cachedRegions.regions
@@ -435,6 +479,7 @@ function TTTBots.Lib.GetNavRegions(forceRecache)
 end
 
 --- Return the closest region table to position "pos"
+---@realm server
 function TTTBots.Lib.GetNearestRegion(pos)
     local regions = TTTBots.Lib.GetNavRegions()
     local closestNav = navmesh.GetNearestNavArea(pos)
@@ -444,10 +489,12 @@ function TTTBots.Lib.GetNearestRegion(pos)
     end
 end
 
+---@realm server
 function TTTBots.Lib.GetRandomNavInRegion(region)
     return table.Random(region)
 end
 
+---@realm server
 function TTTBots.Lib.GetRandomNavInNearestRegion(pos)
     local region = TTTBots.Lib.GetNearestRegion(pos)
     if not region then return end
@@ -461,6 +508,7 @@ end
 --- At that point, it returns the key of the current item.
 ---@param weightedTbl WeightedTable[] An array of WeightedTable objects.
 ---@return any The key of the randomly selected WeightedTable item.
+---@realm shared
 function TTTBots.Lib.RandomWeighted(weightedTblTbl)
     assert(#weightedTblTbl > 0, "Table is empty")
 
@@ -480,6 +528,7 @@ function TTTBots.Lib.RandomWeighted(weightedTblTbl)
 end
 
 --- Similar to GetAllWitnesses, but internally uses CanSee instead of CanSeeArc (so 360*)
+---@realm shared
 function TTTBots.Lib.GetAllWitnesses360(pos)
     local witnesses = {}
     for _, ply in ipairs(player.GetAll()) do
@@ -497,6 +546,7 @@ end
 ---@param pos Vector
 ---@param innocentOnly boolean Only return innocent (not lib.IsEvil) players
 ---@return table<Player> witnesses A table of players that can see the position.
+---@realm shared
 function TTTBots.Lib.GetAllVisible(pos, innocentOnly)
     if (type(pos) ~= "Vector") then
         ErrorNoHaltWithStack("Invalid vec type to GetAllVisible: " .. type(pos))
@@ -517,6 +567,7 @@ end
 --- Iterate through players on the server and return the first player with the given nickname
 ---@param nick string
 ---@return Player|nil
+---@realm shared
 function TTTBots.Lib.GetPlayerByNick(nick)
     local plys = player.GetAll()
     for i, v in ipairs(plys) do
@@ -528,6 +579,7 @@ end
 
 --- Get the number of free player slots
 ---@return number
+---@realm shared
 function TTTBots.Lib.GetFreePlayerSlots()
     return game.MaxPlayers() - #player.GetAll()
 end
@@ -535,6 +587,7 @@ end
 --- Equivalent of GetConVar("ttt_bot_debug_(debugType)"):GetBool()
 ---@param debugType string
 ---@return boolean
+---@realm server
 function TTTBots.Lib.GetDebugFor(debugType)
     return GetConVar("ttt_bot_debug_" .. debugType):GetBool()
 end
@@ -543,6 +596,7 @@ end
 ---@param pos1 any
 ---@param pos2 any
 ---@return number
+---@realm shared
 function TTTBots.Lib.DistanceXY(pos1, pos2)
     return math.sqrt((pos1.x - pos2.x) ^ 2 + (pos1.y - pos2.y) ^ 2)
 end
@@ -550,10 +604,12 @@ end
 local isEvilCache = {}
 local EVIL_CACHE_DURATION = 5 -- Duration in seconds for how long to cache results.
 
+---@realm shared
 function TTTBots.Lib.IsTTT2()
     return addonChecker ~= nil -- addonChecker is a global defined solely by TTT2
 end
 
+---@realm shared
 function TTTBots.Lib.IsDoor(ent)
     local class = ent:GetClass()
     local validClasses = {
@@ -564,6 +620,7 @@ function TTTBots.Lib.IsDoor(ent)
     return validClasses[class] or false
 end
 
+---@realm shared
 function TTTBots.Lib.IsValidBody(rag)
     return IsValid(rag) and CORPSE.GetPlayerNick(rag, false) ~= false
 end
@@ -572,6 +629,7 @@ end
 ---@param ply Player
 ---@param skipCache boolean|nil Optional, defaults to false
 ---@return boolean
+---@realm shared
 function TTTBots.Lib.IsEvil(ply, skipCache)
     local currentTime = CurTime()
     if not skipCache then
@@ -603,12 +661,14 @@ end
 --- Uses built-in ply:GetDetective but is nil-safe. Basically if they're a detective.
 ---@param ply Player
 ---@return boolean
+---@realm shared
 function TTTBots.Lib.IsPolice(ply)
     if not ply then return nil end
     if not ply:IsPlayer() then return false end
     return ply:GetDetective()
 end
 
+---@realm shared
 function TTTBots.Lib.IsDetective(ply)
     return TTTBots.Lib.IsPolice(ply)
 end
@@ -616,6 +676,7 @@ end
 --- Opposite of IsEvil, nil-safe. Basically if they're not a traitor.
 ---@param ply Player
 ---@return boolean
+---@realm shared
 function TTTBots.Lib.IsGood(ply)
     local out = TTTBots.Lib.IsEvil(ply)
     if out == nil then return end
@@ -626,6 +687,7 @@ end
 ---@param origin Vector
 ---@param range number
 ---@return Vector|nil
+---@realm shared
 function TTTBots.Lib.GetRandomOpenNormal(origin, range)
     local angles = TTTBots.Lib.GetAngleTable(16)
     local options = {}
@@ -647,6 +709,7 @@ end
 --- This is intended to be used with weapons.
 ---@param pos any
 ---@return boolean
+---@realm shared
 function TTTBots.Lib.BotCanReachPos(pos)
     local nav = navmesh.GetNearestNavArea(pos)
     if not nav then
@@ -657,8 +720,9 @@ function TTTBots.Lib.BotCanReachPos(pos)
 end
 
 --- Create a bot, optionally with a name.
----@param name string|nil Optional, defaults to random name
----@return any
+---@param name? string Optional, defaults to random name
+---@return Player|false bot The bot, or false if there are no player slots
+---@realm server
 function TTTBots.Lib.CreateBot(name)
     if not TTTBots.Lib.CheckIfPlayerSlots() then
         TTTBots.Chat.BroadcastInChat("Somebody tried to add a bot, but there are not enough player slots.")
@@ -670,7 +734,7 @@ function TTTBots.Lib.CreateBot(name)
     bot.components = {
         locomotor = TTTBots.Components.Locomotor:New(bot),
         obstacletracker = TTTBots.Components.ObstacleTracker:New(bot),
-        inventorymgr = TTTBots.Components.InventoryMgr:New(bot),
+        inventory = TTTBots.Components.Inventory:New(bot),
         personality = TTTBots.Components.Personality:New(bot),
         memory = TTTBots.Components.Memory:New(bot),
         morality = TTTBots.Components.Morality:New(bot),
@@ -687,17 +751,20 @@ function TTTBots.Lib.CreateBot(name)
     return bot
 end
 
-hook.Add("PlayerInitialSpawn", "TTTBots.Lib.PlayerInitialSpawn.Chatter", function(bot)
-    timer.Simple(math.pi, function()
-        if not (bot and IsValid(bot) and bot:IsBot()) then return end
-        local chatter = TTTBots.Lib.GetComp(bot, "chatter") ---@type CChatter
-        if not chatter then return end
-        chatter:On("ServerConnected", { player = bot:Nick() })
+if SERVER then
+    hook.Add("PlayerInitialSpawn", "TTTBots.Lib.PlayerInitialSpawn.Chatter", function(bot)
+        timer.Simple(math.pi, function()
+            if not (bot and IsValid(bot) and bot:IsBot()) then return end
+            local chatter = TTTBots.Lib.GetComp(bot, "chatter") ---@type CChatter
+            if not chatter then return end
+            chatter:On("ServerConnected", { player = bot:Nick() })
+        end)
     end)
-end)
+end
 
 --- Removes the first bot in the match that is dead (or if we are outside of a match). Will avoid kicking living bots during a match.
----@param reason string|nil Optional, defaults to "Removed by server"
+---@param reason? string Optional, defaults to "Removed by server"
+---@realm server
 function TTTBots.Lib.RemoveBot(reason)
     local bots = TTTBots.Bots
     if #bots == 0 then return end
@@ -714,10 +781,11 @@ end
 
 --- Trace line from eyes (if fromEyes, else feet) to the given position. Returns the trace result.
 --- This is used to cut corners when pathfinding.
----@param player any
+---@param player Player
 ---@param fromEyes boolean Optional, defaults to false
----@param finish any Vector
+---@param finish Vector Vector
 ---@return any TraceResult
+---@realm shared
 function TTTBots.Lib.TraceVisibilityLine(player, fromEyes, finish)
     local startPos = player:GetPos()
     if fromEyes then
@@ -738,6 +806,7 @@ end
 ---@param extraCallback function|nil Optional, a function that takes an entity and returns true/false
 ---@return Entity|nil Entity the entity, else nill
 ---@return number ClosestDist
+---@realm shared
 function TTTBots.Lib.GetClosest(entities, pos, extraCallback)
     if (#entities == 1) then return entities[1], 0 end
     local closest = nil
@@ -760,6 +829,7 @@ end
 ---@param pos any Vector
 ---@param threshold number Distance threshold
 ---@return Entity|nil Closest closest ent or nil
+---@realm shared
 function TTTBots.Lib.GetFirstCloserThan(entities, pos, threshold)
     for i, v in pairs(entities) do
         local dist = v:GetPos():Distance(pos)
@@ -774,6 +844,7 @@ end
 ---@param pos any Vector
 ---@return any CNavLadder Closest ladder
 ---@return number Distance Distance to closest ladder
+---@realm server
 function TTTBots.Lib.GetClosestLadder(pos)
     local closestLadder = nil
     local closestDist = 99999
@@ -790,6 +861,7 @@ function TTTBots.Lib.GetClosestLadder(pos)
     return closestLadder, closestDist
 end
 
+---@realm server
 function TTTBots.Lib.VoluntaryDisconnect(bot, reason)
     if bot.disconnecting then return true end -- already disconnecting
     bot.disconnecting = true
@@ -819,6 +891,7 @@ end
 ---@param bot Player
 ---@param type string
 ---@return any Component
+---@realm server
 function TTTBots.Lib.GetComp(bot, type)
     if bot and bot.components and bot.components[type] then
         return bot.components[type]
@@ -829,6 +902,7 @@ end
 --- Functionally the same as navmesh.GetNavArea(pos), but includes ladder areas.
 ---@param pos any Vector
 ---@return CNavArea|CNavLadder nav: CNavArea CNavLadder
+---@realm server
 function TTTBots.Lib.GetNearestNavArea(pos)
     local closestCNavArea = navmesh.GetNearestNavArea(pos)
     local closestLadder = TTTBots.Lib.GetClosestLadder(pos)
@@ -863,6 +937,7 @@ function TTTBots.Lib.GetNearestNavArea(pos)
 end
 
 --- Deep copy a table and return a new replica.
+---@realm shared
 function TTTBots.Lib.DeepCopy(orig)
     local orig_type = type(orig)
     local copy
@@ -877,11 +952,13 @@ function TTTBots.Lib.DeepCopy(orig)
     return copy
 end
 
+---@realm shared
 function TTTBots.Lib.HUToMeters(hammer_units)
     local conversionMult = 0.01905
     return hammer_units * conversionMult
 end
 
+---@realm shared
 function TTTBots.Lib.MetersToHU(meters)
     local conversionDiv = 0.01905
     return meters / conversionDiv
@@ -889,28 +966,33 @@ end
 
 -- Wrapper for "ttt_bot_" + name convars
 -- Prepends "ttt_bot_" to the name of the convar, and returns the boolean value of the convar.
+---@realm shared
 function TTTBots.Lib.GetConVarBool(name)
     return GetConVar("ttt_bot_" .. name):GetBool()
 end
 
 -- Wrapper for "ttt_bot_" + name convars
 -- Prepends "ttt_bot_" to the name of the convar, and returns the string value of the convar.
+---@realm shared
 function TTTBots.Lib.GetConVarString(name)
     return GetConVar("ttt_bot_" .. name):GetString()
 end
 
 --- Wrapper for "ttt_bot_" + name convars
 --- Prepends "ttt_bot_" to the name of the convar, and returns the integer value of the convar.
+---@realm shared
 function TTTBots.Lib.GetConVarInt(name)
     return GetConVar("ttt_bot_" .. name):GetInt()
 end
 
 --- Wrapper for "ttt_bot_" + name convars
 --- Prepends "ttt_bot_" to the name of the convar, and returns the float value of the convar.
+---@realm shared
 function TTTBots.Lib.GetConVarFloat(name)
     return GetConVar("ttt_bot_" .. name):GetFloat()
 end
 
+---@realm shared
 function TTTBots.Lib.WeightedVectorMean(tbl)
     --[[
         tbl example = {
@@ -931,6 +1013,7 @@ end
 ---@param name string name of the profiler
 ---@param donotprint boolean if not nil/false, the profiler will not print the time elapsed
 ---@return function milliseconds Returns a function that returns the time elapsed since the function was called.
+---@realm shared
 function TTTBots.Lib.Profiler(name, donotprint)
     local startTime = SysTime()
     return function()
@@ -944,6 +1027,7 @@ end
 
 --- Get a random number between 1 and 100 and return true if it is less than pct.
 ---@param pct number
+---@realm shared
 function TTTBots.Lib.CalculatePercentChance(pct)
     return (math.random(1, 10000) / 100) <= pct
 end
@@ -954,6 +1038,7 @@ end
 ---@param vec Vector
 ---@param doTrace boolean
 ---@return Vector
+---@realm shared
 function TTTBots.Lib.OffsetForGround(vec, doTrace)
     local offset = Vector(0, 0, 32)
     if doTrace then
@@ -976,6 +1061,7 @@ end
 ---@param p0 Vector This is the start point
 ---@param p1 Vector This is the control point
 ---@param p2 Vector This is the end point
+---@realm shared
 function TTTBots.Lib.QuadraticBezier(t, p0, p1, p2)
     return (1 - t) ^ 2 * p0 + 2 * (1 - t) * t * p1 + t ^ 2 * p2
 end
@@ -984,6 +1070,7 @@ end
 ---@param tbl table
 ---@param filterFunc function
 ---@return table
+---@realm shared
 function TTTBots.Lib.FilterTable(tbl, filterFunc)
     local newTbl = {}
     for i, v in pairs(tbl) do
@@ -994,6 +1081,12 @@ function TTTBots.Lib.FilterTable(tbl, filterFunc)
     return newTbl
 end
 
+---Retrieves the Nth item from a table after applying a filter function.
+---@param N (number): The index of the item to retrieve.
+---@param tbl (table): The table to filter and retrieve the item from.
+---@param filterFunc (function): The filter function to apply on each item in the table.
+---@return (any): The Nth filtered item from the table, or nil if it doesn't exist.
+---@realm shared
 function TTTBots.Lib.NthFilteredItem(N, tbl, filterFunc)
     local newTbl = {}
     for i, v in pairs(tbl) do
@@ -1011,6 +1104,7 @@ end
 ---@param vec Vector The position to check
 ---@param range number The range to check
 ---@return table<CNavArea> visible A table of nav areas that are visible to vec's nearest nav area.
+---@realm server
 function TTTBots.Lib.VisibleNavsInRange(vec, range)
     local nav = navmesh.GetNearestNavArea(vec)
     if not nav then return {} end
@@ -1024,25 +1118,11 @@ function TTTBots.Lib.VisibleNavsInRange(vec, range)
 end
 
 TTTBots.Chat = TTTBots.Chat or {}
---- Broadcasts a standard greeting in chat.
----
---- This used to be in the Chat library but due to loading orders it must be here.
-function TTTBots.Chat.BroadcastGreeting()
-    local broad = TTTBots.Chat.BroadcastInChat
-    broad("---------", true)
-    broad("Hello! You are playing on a TTT Bots compatible gamemode!", true)
-    broad(
-        "To add a bot, open the GUI menu using !botmenu, or use the console commands provided in the mod's workshop page.",
-        true)
-    broad(
-        "Bots can also be added with the chat command !addbot X, where X is the number of bots. Type !help for more info.",
-        true)
-    broad("---------", true)
-end
 
 --- Basic wrapper to print a message in every player's chat.
 ---
 --- This used to be in the Chat library but due to loading orders it must be here.
+---@realm server
 function TTTBots.Chat.BroadcastInChat(message, adminsOnly)
     for _, ply in pairs(player.GetAll()) do
         ply:ChatPrint(message)

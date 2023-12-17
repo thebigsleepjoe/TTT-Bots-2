@@ -171,7 +171,7 @@ function Dialog.NewFromRandom()
     return Dialog.New(template.name, participants)
 end
 
-include("tttbots2/data/dialogtemplates.lua")
+include("tttbots2/data/sv_dialogtemplates.lua")
 
 local currentDialog = nil ---@type Dialog|nil
 timer.Create("TTTBots.Dialog.StartRandomDialogs", 5, 0, function()

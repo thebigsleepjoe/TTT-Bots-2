@@ -2,11 +2,11 @@
     This component defines the morality of the agent. It is primarily responsible for determining who to shoot.
     It also tells traitors who to kill.
 ]]
----@class CMorality
+---@class CMorality : CBase
 TTTBots.Components.Morality = TTTBots.Components.Morality or {}
 
 local lib = TTTBots.Lib
----@class CMorality
+---@class CMorality : CBase
 local BotMorality = TTTBots.Components.Morality
 
 --- A scale of suspicious events to apply to a player's suspicion value. Scale is normally -10 to 10.

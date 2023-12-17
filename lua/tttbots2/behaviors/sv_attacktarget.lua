@@ -193,7 +193,7 @@ end
 function Attack.Engage(bot, targetPos)
     local target = bot.attackTarget
     ---@class CInventory
-    local inv = bot.components.inventorymgr
+    local inv = bot.components.inventory
     ---@type WeaponInfo
     local weapon = inv:GetHeldWeaponInfo()
     if not weapon then return end
