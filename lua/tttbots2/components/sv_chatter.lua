@@ -54,7 +54,7 @@ end
 
 --- Intentionally inject typos into the text based on the chatter_typo_chance convars
 ---@param text string
----@param string result
+---@return string result
 function BotChatter:TypoText(text)
     local chance = lib.GetConVarFloat("chatter_typo_chance")
     local typoFuncs = {
