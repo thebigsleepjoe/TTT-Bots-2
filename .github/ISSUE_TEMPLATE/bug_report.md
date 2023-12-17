@@ -7,9 +7,10 @@ assignees: thebigsleepjoe
 
 ---
 **Game version/server type**
-SERVER TYPE (PICK ONE): P2P or SRCDS or ALL
-WHICH TTT (PICK ONE): TTT or TTT2
-WHAT VERSION OF BOTS: Run the ttt_bot_version command to see the current version.
+
+* SERVER TYPE (PICK ONE): P2P or SRCDS or ALL
+* WHICH TTT (PICK ONE): TTT or TTT2
+* WHAT VERSION OF BOTS: Run the ttt_bot_version command to see the current version.
 
 **Describe the bug**
 A clear and concise description of what the bug is.
