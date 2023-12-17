@@ -16,12 +16,12 @@ concommand.Add("ttt_bot_add", function(ply, cmd, args)
         for i = 1, number do
             local bot = Lib.CreateBot()
             if not bot then return end
-            print(string.format("%s created bot", ply and ply:Nick() or "[Server]"))
+            print(string.format("%s created bot", IsValid(ply) and ply:Nick() or "[Server]"))
         end
     else
         local bot = Lib.CreateBot()
         if not bot then return end
-        print(string.format("%s created bot", ply and ply:Nick() or "[Server]"))
+        print(string.format("%s created bot", IsValid(ply) and ply:Nick() or "[Server]"))
     end
 end)
 
@@ -32,7 +32,7 @@ end)
 concommand.Add("ttt_bot_kickall", function(ply, cmd, args)
     if not IsPlayerSuperAdmin(ply) then return end -- cmd only works as server or SA
     for _, bot in pairs(TTTBots.Bots) do
-        bot:Kick("Kicked by " .. (ply and ply:Nick() or "[Server]") .. " using ttt_bot_kickall")
+        bot:Kick("Kicked by " .. (IsValid(ply) and ply:Nick() or "[Server]") .. " using ttt_bot_kickall")
     end
 end)
 
@@ -45,7 +45,7 @@ concommand.Add("ttt_bot_kick", function(ply, cmd, args)
     end
     for _, bot in pairs(TTTBots.Bots) do
         if bot:Nick() == botname or botname == "all" then
-            bot:Kick("Kicked by " .. (ply and ply:Nick() or "[Server]") .. " using ttt_bot_kick")
+            bot:Kick("Kicked by " .. (IsValid(ply) and ply:Nick() or "[Server]") .. " using ttt_bot_kick")
         end
         if not botname == "all" then
             return
