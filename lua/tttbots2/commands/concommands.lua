@@ -25,6 +25,10 @@ concommand.Add("ttt_bot_add", function(ply, cmd, args)
     end
 end)
 
+concommand.Add("ttt_bot_version", function(ply, cmd, args)
+    print("TTTBots version: " .. TTTBots.Version)
+end)
+
 concommand.Add("ttt_bot_kickall", function(ply, cmd, args)
     if not IsPlayerSuperAdmin(ply) then return end -- cmd only works as server or SA
     for _, bot in pairs(TTTBots.Bots) do

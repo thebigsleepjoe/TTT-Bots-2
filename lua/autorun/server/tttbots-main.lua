@@ -10,8 +10,8 @@ AddCSLuaFile("tttbots2/commands/sh_cvars.lua")
 
 -- Declare TTTBots table
 TTTBots = {
-    Version = "2.0.0",
-    Tickrate = 5, -- per second
+    Version = "0.9.0: 12/16/23",
+    Tickrate = 5, -- Ticks per second. Do not change unless you really know what you're doing.
     Lib = {}
 }
 
