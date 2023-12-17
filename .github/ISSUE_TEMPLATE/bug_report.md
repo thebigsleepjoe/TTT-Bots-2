@@ -1,17 +1,22 @@
 ---
 name: Bug report
 about: Create a report to help us improve
-title: "[BUG] New bug report"
+title: "[BUG] New bug report (please rename)"
 labels: bug
 assignees: thebigsleepjoe
 
 ---
+**Game version/server type**
+SERVER TYPE (PICK ONE): P2P or SRCDS or ALL
+WHICH TTT (PICK ONE): TTT or TTT2
+WHAT VERSION OF BOTS: Run the ttt_bot_version command to see the current version.
 
 **Describe the bug**
 A clear and concise description of what the bug is.
 
 **Stack trace/error**
 The error, if any. Example:
+
 ```
 [ttt bots 2 electric boogaloo] addons/ttt bots 2 electric boogaloo/lua/tttbots2/lib/botlib.lua:893: attempt to index a nil value
   1. GetConVarBool - addons/ttt bots 2 electric boogaloo/lua/tttbots2/lib/botlib.lua:893
@@ -21,6 +26,7 @@ The error, if any. Example:
 
 Timer Failed! [prep2begin][@gamemodes/terrortown/gamemode/server/sv_main.lua (line 1013)]
 ```
+^^ If no error, please ensure you remove the triple backticks.
 
 **To Reproduce**
 Steps to reproduce the behavior:
