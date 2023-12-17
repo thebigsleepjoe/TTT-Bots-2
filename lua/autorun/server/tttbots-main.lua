@@ -15,12 +15,13 @@ TTTBots = {
     Lib = {}
 }
 
-include("tttbots2/commands/concommands.lua")
+-- SERVERSIDE, PRE-INIT INCLUDES
 include("tttbots2/commands/sv_cvars.lua")
-include("tttbots2/commands/sh_cvars.lua")
 include("tttbots2/lib/languages.lua")
 
--- Pre-check before initializing
+-- SHARED, PRE-INIT INCLUDES
+include("tttbots2/commands/sh_concommands.lua")
+include("tttbots2/commands/sh_cvars.lua")
 
 --- Checks if the current engine.ActiveGamemode is compatible with TTT Bots
 ---@return boolean
