@@ -1,14 +1,14 @@
 ⚠️⚠️⚠️ WARNING: THIS IS NOT READY FOR PRODUCTION USE. ⚠️⚠️⚠️
 
-While the mod is around a week from release (estimated release is around Christmas), I wouldn't recommend using it just yet, as there are still some items left to tweak.
+While the mod is around a week from release (estimated release is around Christmas), I wouldn't recommend using it just yet, as there are still critical bugs/behaviors left to tweak.
+
+Until this line is removed from the readme, please do not create any extensions to this addon, as compatibility may change rapidly before/around release.
 
 ![TTT Bots Header](tttbots-banner2.png)
 ## What is this?
 This is a player bot addon for the Trouble in Terrorist Town game mode in Garry's Mod. It is currently a **WIP**.
 
 It is designed to be as modular as possible, allowing for easy customization and expansion. It is designed for TTT2 while being fully playable in regular TTT.
-
-Until this line is removed from the readme, please do not create any extensions to this addon, as compatibility may change rapidly before/around release.
 
 ## How to use
 1. Download the latest version from the Steam Workshop **(Will go here when ready)**
