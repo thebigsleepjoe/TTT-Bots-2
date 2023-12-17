@@ -25,12 +25,14 @@ Basically this is a to-do list before full Steam release
 Note that this list is far from comprehensive, and only serves to give you a rough list in order of priority.
 
 Prior to release:
-- Enable bots to have 'silly chats' the way they did before, and let them have basic conversations with each other.
 - Create a wiki for server owners and general tips
+- Anything in the Issues section
 
 Post-release:
 - Create trailer for new mod, take new screenshots, make everything more professional.
-- Custom Tutorial on how to fine-tune navmeshes + how to let bots use ladders
 - Create some more bot maps as separate addons but link them here.
 - Implement the !botmenu: blacklist/whitelist certain traits, change bot count, etc.
 - Have bots be able to emulate using the DNA scanner (??)
+
+## License
+I am deeply committed to keeping this project open-source and easily accessible to everyone. I want aspiring developers and bot enthusiasts to be able to examine my code, offer feedback, and contribute. However, I have invested a lot of time and effort into developing this project to its current state. Therefore, I have licensed it under CC-BY-SA 4.0, which allows you to clone, use, modify, and redistribute my content freely as long as you give me credit upon redistribution, and use the same license. You can find more information about the license in the LICENSE.txt file.
