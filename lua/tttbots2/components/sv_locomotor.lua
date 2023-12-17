@@ -542,7 +542,7 @@ function BotLocomotor:AvoidPlayers()
         local plypos = other:GetPos()
         local dist = pos:Distance(plypos)
 
-        if dist < 50 then
+        if dist < 45 then
             nearbyClumpCenter = nearbyClumpCenter + plypos
             nearbyClumpCount = nearbyClumpCount + 1
         end
@@ -749,6 +749,7 @@ function BotLocomotor:UpdateMovement()
         self:MoveDirectlyIfClose(goal)
     end
 
+    self:AvoidPlayers()
     -----------------------
     -- Unstuck code
     -----------------------
@@ -762,7 +763,6 @@ function BotLocomotor:UpdateMovement()
     end
 
     -- self:AvoidObstacles()
-    self:AvoidPlayers()
 
     -----------------------
     -- Door code
