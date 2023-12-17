@@ -7,6 +7,7 @@ AddCSLuaFile("tttbots2/client/debugui.lua")
 AddCSLuaFile("tttbots2/client/scoreboardoverride.lua")
 AddCSLuaFile("tttbots2/client/debug3d.lua")
 AddCSLuaFile("tttbots2/commands/sh_cvars.lua")
+AddCSLuaFile("tttbots2/commands/sh_concommands.lua")
 
 -- Declare TTTBots table
 TTTBots = {
