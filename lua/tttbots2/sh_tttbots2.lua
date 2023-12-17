@@ -80,6 +80,7 @@ if SERVER then
     util.AddNetworkString("TTTBots_ClientData")
     util.AddNetworkString("TTTBots_RequestData")
     util.AddNetworkString("TTTBots_SyncAvatarNumbers")
+    util.AddNetworkString("TTTBots_RequestConCommand")
 
     local hasNavmesh = function() return navmesh.GetNavAreaCount() > 0 end
     local alreadyAddedResources = false
