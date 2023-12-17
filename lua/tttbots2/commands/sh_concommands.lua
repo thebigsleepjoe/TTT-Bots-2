@@ -8,20 +8,22 @@ local IsPlayerSuperAdmin = function(ply)
         or (IsValid(ply) and ply:IsSuperAdmin())
 end
 
+---Gets a string that is either the player's :Nick or else default (or else [Server])
+---@param ply Player
+---@param default? string If nil, defaults to "[Server]"
+---@return string
+local GetNickOrDefault = function(ply, default)
+    return IsValid(ply) and ply:Nick() or (default or "[Server]")
+end
+
 --# ConCommands
 concommand.Add("ttt_bot_add", function(ply, cmd, args)
     if not IsPlayerSuperAdmin(ply) then return end -- cmd only works as server or SA
-    local number = tonumber(args[1])
-    if number then
-        for i = 1, number do
-            local bot = Lib.CreateBot()
-            if not bot then return end
-            print(string.format("%s created bot", IsValid(ply) and ply:Nick() or "[Server]"))
-        end
-    else
+    local number = tonumber(args[1]) or 1
+    for i = 1, number do
         local bot = Lib.CreateBot()
         if not bot then return end
-        print(string.format("%s created bot", IsValid(ply) and ply:Nick() or "[Server]"))
+        print(string.format("%s created bot %s", GetNickOrDefault(ply), GetNickOrDefault(bot, "???")))
     end
 end)
 
@@ -32,7 +34,7 @@ end)
 concommand.Add("ttt_bot_kickall", function(ply, cmd, args)
     if not IsPlayerSuperAdmin(ply) then return end -- cmd only works as server or SA
     for _, bot in pairs(TTTBots.Bots) do
-        bot:Kick("Kicked by " .. (IsValid(ply) and ply:Nick() or "[Server]") .. " using ttt_bot_kickall")
+        bot:Kick("Kicked by " .. (GetNickOrDefault(ply)) .. " using ttt_bot_kickall")
     end
 end)
 
@@ -45,7 +47,7 @@ concommand.Add("ttt_bot_kick", function(ply, cmd, args)
     end
     for _, bot in pairs(TTTBots.Bots) do
         if bot:Nick() == botname or botname == "all" then
-            bot:Kick("Kicked by " .. (IsValid(ply) and ply:Nick() or "[Server]") .. " using ttt_bot_kick")
+            bot:Kick("Kicked by " .. (GetNickOrDefault(ply)) .. " using ttt_bot_kick")
         end
         if not botname == "all" then
             return
