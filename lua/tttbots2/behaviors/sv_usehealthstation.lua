@@ -34,7 +34,6 @@ function UseHealthStation.ValidateStation(hs)
         and hs:GetClass() == UseHealthStation.TargetClass
         and hs:GetStoredHealth() > 0
     )
-    if not isvalid then print("Invalidated health station. Info: ", hs, hs:GetClass(), hs:GetStoredHealth()) end
     return isvalid
 end
 
