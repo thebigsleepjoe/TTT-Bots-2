@@ -128,47 +128,47 @@ end
 function TTTBots.Behaviors.CallTreeOnBots()
     for _, bot in pairs(TTTBots.Bots) do
         if not IsValid(bot) or not TTTBots.Lib.IsPlayerAlive(bot) then continue end
-
         local tree = TTTBots.Behaviors.GetTreeFor(bot).Behaviors
+        local behaviorChanged
+
         local lastBehavior = bot.lastBehavior
-        local lastStatus = bot.lastBStatus
-        local lastIsInterruptable = lastBehavior and lastBehavior.Interruptible
-        local lastIsOver = not (lastStatus and lastStatus == STATUS.RUNNING)
-
-        local currentBehavior = nil
-        local behaviorChanged = false
-
-        if not (lastIsOver or lastIsInterruptable) then
-            currentBehavior = lastBehavior
-        else
-            local firstValid = TTTBots.Behaviors.GetFirstValid(tree, bot)
-            if not firstValid then return STATUS.FAILURE end
-            behaviorChanged = firstValid ~= lastBehavior
-            currentBehavior = firstValid
-        end
-
+        local interruptible = lastBehavior and lastBehavior.Interruptible or true
         local newState = STATUS.FAILURE
 
+        if lastBehavior and lastBehavior.Validate(bot) then
+            newState = lastBehavior.OnRunning(bot)
+        end
+
+        if interruptible then
+            for _, behavior in ipairs(tree) do
+                if behavior.Validate(bot) then
+                    if lastBehavior ~= behavior then
+                        if lastBehavior then
+                            lastBehavior.OnEnd(bot)
+                        end
+                        lastBehavior = behavior
+                        bot.lastBehavior = behavior
+                        behaviorChanged = true
+                    end
+                    break
+                end
+            end
+        end
+
         if behaviorChanged then
-            newState = currentBehavior.OnStart(bot)
-        elseif lastStatus == STATUS.RUNNING then
-            newState = currentBehavior.OnRunning(bot)
+            newState = lastBehavior.OnStart(bot)
         end
 
         if newState == STATUS.SUCCESS or newState == STATUS.FAILURE then
-            currentBehavior.OnEnd(bot)
+            lastBehavior.OnEnd(bot)
             bot.lastBehavior = nil
-        else
-            bot.lastBehavior = currentBehavior
         end
 
         if newState == STATUS.SUCCESS then
-            currentBehavior.OnSuccess(bot)
+            lastBehavior.OnSuccess(bot)
         elseif newState == STATUS.FAILURE then
-            currentBehavior.OnFailure(bot)
+            lastBehavior.OnFailure(bot)
         end
-
-        bot.lastBStatus = newState
     end
 
     return STATUS.FAILURE
