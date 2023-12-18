@@ -432,18 +432,27 @@ local _cachedRegions = {
 --- Recursively add adjacent nav areas to a region table. Avoids affecting already cached navs.
 ---@realm server
 function TTTBots.Lib.AddAdjacentsToRegion(nav, regionTbl, alreadyCached)
-    if alreadyCached[nav] then return end
+    -- Initialize tables if not provided.
+    regionTbl = regionTbl or {}
+    alreadyCached = alreadyCached or {}
 
-    -- Initialize the table for storing adjacent nav areas if not provided.
-    if not regionTbl then regionTbl = {} end
-    if not alreadyCached then alreadyCached = {} end
+    -- Stack for nav areas to process
+    local stack = { nav }
 
-    alreadyCached[nav] = nav
-    regionTbl[nav] = nav
+    while #stack > 0 do
+        local currentNav = table.remove(stack)
 
-    for _, adj in pairs(nav:GetAdjacentAreas()) do
-        if not alreadyCached[adj] then
-            TTTBots.Lib.AddAdjacentsToRegion(adj, regionTbl, alreadyCached)
+        -- Process the current nav area if not already cached
+        if not alreadyCached[currentNav] then
+            alreadyCached[currentNav] = currentNav
+            regionTbl[currentNav] = currentNav
+
+            -- Add adjacent nav areas to the stack
+            for _, adj in pairs(currentNav:GetAdjacentAreas()) do
+                if not alreadyCached[adj] then
+                    table.insert(stack, adj)
+                end
+            end
         end
     end
 end

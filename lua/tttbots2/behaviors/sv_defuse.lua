@@ -108,7 +108,7 @@ function Defuse.DefuseC4(bot, c4, isSuccess)
 
             local chatter = lib.GetComp(bot, "chatter") ---@type CChatter
             if not chatter then return end
-            chatter:On("DefuseSuccessful")
+            chatter:On("DefusingSuccessful")
             Defuse.DestroyC4(c4)
         else
             c4:FailedDisarm(bot)
