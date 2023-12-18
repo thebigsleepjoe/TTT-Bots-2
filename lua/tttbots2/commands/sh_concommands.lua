@@ -274,6 +274,7 @@ if SERVER then
         local args = net.ReadTable()
         if not sharedFunctions[name] then return end
         local sharedFunc = sharedFunctions[name]
+        printf("Player %s, who is a superadmin, called concommand '%s' remotely.", ply:Nick(), name)
         sharedFunc(ply, nil, args)
     end)
 end

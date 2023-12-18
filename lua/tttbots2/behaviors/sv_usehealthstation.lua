@@ -7,6 +7,7 @@ local UseHealthStation = TTTBots.Behaviors.UseHealthStation
 UseHealthStation.Name = "Use Health Station"
 UseHealthStation.Description = "Use or place a health station"
 UseHealthStation.Interruptible = true
+UseHealthStation.UseRange = 64 --- The range at which we can use a health station
 
 UseHealthStation.TargetClass = "ttt_health_station"
 
@@ -24,16 +25,17 @@ end
 function UseHealthStation.IsHurt(bot)
     local health = bot:Health()
     local maxHealth = bot:GetMaxHealth()
-    local healthPercentage = health / maxHealth
-    return healthPercentage < 0.9
+    return health + 1 < maxHealth
 end
 
 function UseHealthStation.ValidateStation(hs)
-    return (
+    local isvalid = (
         IsValid(hs)
         and hs:GetClass() == UseHealthStation.TargetClass
         and hs:GetStoredHealth() > 0
     )
+    if not isvalid then print("Invalidated health station. Info: ", hs, hs:GetClass(), hs:GetStoredHealth()) end
+    return isvalid
 end
 
 function UseHealthStation.GetNearestStation(bot)
@@ -62,8 +64,9 @@ function UseHealthStation.Validate(bot)
 
     local isHurt = UseHealthStation.IsHurt(bot)
     local hasHealthStation = UseHealthStation.HasHealthStation(bot)
+    local isStationNearby = (bot.targetStation or UseHealthStation.GetNearestStation(bot) ~= nil)
 
-    return hasHealthStation or (isHurt and UseHealthStation.GetNearestStation(bot) ~= nil)
+    return hasHealthStation or (isHurt and isStationNearby)
 end
 
 --- Called when the behavior is started
@@ -92,7 +95,9 @@ function UseHealthStation.OnRunning(bot)
         return STATUS.RUNNING
     end
 
-    if not UseHealthStation.IsHurt(bot) then return STATUS.SUCCESS end
+    if not UseHealthStation.IsHurt(bot) then
+        return STATUS.SUCCESS
+    end
 
     if not UseHealthStation.ValidateStation(bot.targetStation) then
         return STATUS.FAILURE
@@ -103,11 +108,8 @@ function UseHealthStation.OnRunning(bot)
     locomotor:SetGoal(station:GetPos())
     local distToStation = bot:GetPos():Distance(station:GetPos())
 
-    if distToStation < 500 then
+    if distToStation < 300 then
         locomotor:LookAt(station:GetPos())
-        if distToStation < 100 then
-            UseHealthStation.TakeHealthFrom(bot, station)
-        end
     end
 
     return STATUS.RUNNING
@@ -129,3 +131,15 @@ function UseHealthStation.OnEnd(bot)
     inventory:ResumeAutoSwitch()
     locomotor:StopAttack()
 end
+
+timer.Create("TTTBots.Behaviors.UseHealthStation.UseNearbyStations", 0.5, 0, function()
+    for i, bot in pairs(TTTBots.Bots) do
+        if not (IsValid(bot) and lib.IsPlayerAlive(bot)) then continue end
+        local healthStation = bot.targetStation
+        if not (healthStation and UseHealthStation.ValidateStation(healthStation)) then continue end
+        local distToStation = bot:GetPos():Distance(healthStation:GetPos())
+        if distToStation < UseHealthStation.UseRange then
+            UseHealthStation.TakeHealthFrom(bot, healthStation)
+        end
+    end
+end)

@@ -80,8 +80,8 @@ net.Receive("TTTBots_RequestData", function(len, ply)
         local actualNumAlive = #memory:GetActualAlivePlayers()
         -- local knownAlivePct = numKnownAlive / actualNumAlive
 
-        local behaviorName = bot.currentBehavior and bot.currentBehavior.Name or "None"
-        local behaviorDesc = bot.currentBehavior and bot.currentBehavior.Description or "None"
+        local behaviorName = bot.lastBehavior and bot.lastBehavior.Name or "None"
+        local behaviorDesc = bot.lastBehavior and bot.lastBehavior.Description or "None"
 
         local traits = personality:GetTraits()
         local traitsCommaSep = table.concat(traits, ", ")

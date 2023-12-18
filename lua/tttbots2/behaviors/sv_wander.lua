@@ -188,7 +188,7 @@ function Wander.UpdateWanderGoal(bot)
         local kindStr = (canHide and "hiding") or "sniper"
         local spot = TTTBots.Spots.GetNearestSpotOfCategory(bot:GetPos(), kindStr)
         if spot then
-            targetPos = spot
+            targetPos = spot + Vector(0, 0, 64)
             if Wander.Debug then
                 printf("Bot %s wandering to a %s spot", bot:Nick(), kindStr)
             end
