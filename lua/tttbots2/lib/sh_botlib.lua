@@ -459,7 +459,7 @@ function TTTBots.Lib.GetNavRegions(forceRecache)
     _cachedRegions.alreadyCached = {}
     _cachedRegions.hasCached = false
 
-    print("[TTT Bots] Caching nav regions...")
+    print("[TTT Bots 2] Caching nav regions...")
     local allNavsCached = {}
 
     local navs = navmesh.GetAllNavAreas()
@@ -474,7 +474,7 @@ function TTTBots.Lib.GetNavRegions(forceRecache)
     end
 
     _cachedRegions.hasCached = true
-    print("[TTT Bots] Cached nav regions; there are " .. #_cachedRegions.regions .. " regions.")
+    print("[TTT Bots 2] Cached nav regions; there are " .. #_cachedRegions.regions .. " regions.")
     return _cachedRegions.regions
 end
 

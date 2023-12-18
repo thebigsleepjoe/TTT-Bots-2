@@ -21,7 +21,7 @@ TTTBots = {
 }
 
 function TTTBots.Chat.MessagePlayer(ply, message)
-    ply:ChatPrint("[TTT Bots] " .. message)
+    ply:ChatPrint("[TTT Bots 2] " .. message)
 end
 
 if SERVER then include("tttbots2/commands/sv_cvars.lua") end -- This line is necessary to prevent errors from sh_botlib.lua
@@ -213,7 +213,7 @@ if SERVER then
             end
         end
 
-        print("Initializing TTT Bots...")
+        print("[TTT Bots 2] Initializing TTT Bots...")
         TTTBots.Reload()
     end
 
