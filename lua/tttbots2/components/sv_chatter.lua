@@ -150,7 +150,8 @@ function BotChatter:Say(text, teamOnly, ignoreDeath, callback)
     text = string.gsub(text, "%[BOT%] ", "")
     text = self:TypoText(text)
     timer.Simple(delay, function()
-        if self.bot and (ignoreDeath or lib.IsPlayerAlive(self.bot)) then
+        if self.bot == NULL or not IsValid(self.bot) then return end
+        if ignoreDeath or lib.IsPlayerAlive(self.bot) then
             self:SayRaw(text, teamOnly)
             self.typing = false
             if callback then callback() end
