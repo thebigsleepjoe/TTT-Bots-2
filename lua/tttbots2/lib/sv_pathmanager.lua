@@ -664,6 +664,7 @@ end
 
 local paddingCache = {}
 local closestCache = {} -- indexed by "navarea id : navarea id"
+--- Return the closest point within the padded borders of areaA and areaB, to areaB.
 local function getClosestCache(areaA, areaB, pos)
     local index = areaA:GetID() .. ":" .. areaB:GetID() .. ((pos and VectorToString(pos)) or "")
     if closestCache[index] then return closestCache[index] end
@@ -761,13 +762,10 @@ function TTTBots.PathManager.PathPostProcess(path)
             addPointToPoints(points, ladderStart, navArea, "ladder", climbDir)
             addPointToPoints(points, ladderGoal, navArea, "ladder", climbDir)
 
-            if climbDir == "up" then
-                -- Add the opposite forward at the top of the ladder (basically some units behind the ladder at the top)\
-                local ladderTop = navArea:GetTop2()
-                local ladderForward = navArea:GetNormal()
-                local ladderBackwardOfset = -1 * ladderForward * LADDER_TOP_FORWARD_OFFSET
-                local ladderTopBackward = ladderTop + ladderBackwardOfset
-                addPointToPoints(points, ladderTopBackward, navArea, "ladder", climbDir)
+            if climbDir == "up" and nextNavArea then
+                local ladderOffPoint = navArea:GetTop2() + Vector(0, 0, 32)
+                local ladderDismountGoal = nextNavArea:GetClosestPointOnArea(ladderOffPoint) or nextNavArea:GetCenter()
+                addPointToPoints(points, ladderDismountGoal, navArea, nextNavArea, climbDir)
             end
         else
             -- Handle first navigation area in the path.

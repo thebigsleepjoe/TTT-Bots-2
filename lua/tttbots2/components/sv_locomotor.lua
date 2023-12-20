@@ -30,6 +30,25 @@ function BotLocomotor:New(bot)
     return newLocomotor
 end
 
+--- Create and return a get and set function on variable varname, defaulting to the 'default' value
+---@param varname string
+---@param default any
+---@return function getFunc
+---@return function setFunc
+local function getSet(varname, default)
+    local setFunc = function(self, value)
+        self["m_" .. varname] = value
+    end
+    local getFunc = function(self)
+        if self["m_" .. varname] == nil then
+            self["m_" .. varname] = default
+        end
+        return self["m_" .. varname]
+    end
+
+    return getFunc, setFunc
+end
+
 ---@package
 function BotLocomotor:Initialize(bot)
     bot.components = bot.components or {}
@@ -63,6 +82,9 @@ function BotLocomotor:Initialize(bot)
     self.crouch = false
     self.jump = false
     self.dontmove = false
+
+    self.GetClimbDir, self.SetClimbDir = getSet("ClimbDir", "none")
+    self.GetDismount, self.SetDismount = getSet("Dismount", true)
 end
 
 ---@package
@@ -385,6 +407,9 @@ function BotLocomotor:WithinCompleteRange(pos)
     return self.bot:GetPos():Distance(pos) < TTTBots.PathManager.completeRange
 end
 
+---Return the nearest ladder and distance to
+---@return CNavLadder ladder
+---@return number distance
 function BotLocomotor:GetClosestLadder()
     return lib.GetClosestLadder(self.bot:GetPos())
 end
@@ -740,6 +765,8 @@ function BotLocomotor:UpdateMovement()
     self:SetCliffed()
     if self.dontmove then return end
 
+    self:SetDismount(self:ShouldDismountLadder())
+
     local followingPath = self:FollowPath() -- true if doing proper pathing
     self.isTryingPath = followingPath
     -- Walk straight towards the goal if it doesn't require complex pathing.
@@ -958,7 +985,7 @@ end
 
 --- Determine the next pos along our current path
 ---@package
-function BotLocomotor:SetNextPos()
+function BotLocomotor:FindNextPos()
     local pathinfo = self:GetPathRequest().pathInfo
     if not pathinfo or not pathinfo.path or not pathinfo.processedPath then return nil end
     local prepPath = pathinfo.processedPath
@@ -969,18 +996,18 @@ function BotLocomotor:SetNextPos()
 
     local dvlpr = lib.GetConVarBool("debug_pathfinding")
 
-    local nextUncompleted = nil
+    local nextNode = nil
     local lastCompleted = nil
     for i, v in ipairs(prepPath) do
         if not v.completed then
-            nextUncompleted = v
+            nextNode = v
             lastCompleted = prepPath[i - 1]
             break
         end
     end
-    if not nextUncompleted then return nil end -- no more nodes to go to
+    if not nextNode then return nil end -- no more nodes to go to
 
-    local nextPos = nextUncompleted.pos
+    local nextPos = nextNode.pos
 
     local distXY = lib.DistanceXY(botPos, nextPos)
     local distZ = math.abs(botPos.z - nextPos.z)
@@ -990,11 +1017,15 @@ function BotLocomotor:SetNextPos()
         or (distXY < NEXTPOS_COMPLETE_DIST_CANSEE and canSee)
         or distXY < NEXTPOS_COMPLETE_DIST_CANTSEE
     then
-        nextUncompleted.completed = true
-        return self:SetNextPos()
+        nextNode.completed = true
+        return self:FindNextPos()
     end
 
-    return nextPos, nextUncompleted
+    if nextNode.ladder_dir then
+        self:SetClimbDir(nextNode.ladder_dir)
+    end
+
+    return nextPos, nextNode
 end
 
 -- Determines how the bot navigates through its path once it has one.
@@ -1031,7 +1062,7 @@ function BotLocomotor:FollowPath()
         end
     end
 
-    local nextPos, nextPosI = self:SetNextPos()
+    local nextPos, nextPosI = self:FindNextPos()
     self.nextPos = nextPos
     self.nextPosI = nextPosI
 
@@ -1253,6 +1284,44 @@ function BotLocomotor:Reload()
     self.reload = true
 end
 
+local LADDER_THRESH_TOP = 30
+local LADDER_THRESH_BOTTOM = 64
+--- Functionally similar to IsNearEndOfLadder, but checks the current navigational goal to see if it agrees.
+---
+--- In other words, it checks if we're supposed to be going up/down AND we are close to the top/bottom respectively before dismounting
+---@return boolean
+function BotLocomotor:ShouldDismountLadder()
+    if (math.random(1, 5) == 1) then return true end -- Just in case.
+    local ladder, distTo = self:GetClosestLadder()
+    if not (ladder and distTo < 1000) then return self:IsOnLadder() end
+    local climbDir = self:GetClimbDir()
+
+    -- if climbDir == "none" then return self:IsNearEndOfLadder() end -- We don't know what's going on so just default to this action instead.
+
+    if climbDir == "up" then
+        local distTop = self.bot:GetPos():Distance(ladder:GetTop())
+        return distTop < LADDER_THRESH_TOP
+    elseif climbDir == "down" then
+        local distBottom = self.bot:GetPos():Distance(ladder:GetBottom())
+        return distBottom < LADDER_THRESH_BOTTOM
+    end
+
+    return false
+end
+
+--- Gets if the bot is within a certain distance of the top of bottom of a ladder.
+--- Primarily useful for func_useableladder
+---@return boolean
+function BotLocomotor:IsNearEndOfLadder()
+    local bot = self.bot
+    if not self:IsOnLadder() then return false end
+    local ladder = self:GetClosestLadder()
+    local distTop = bot:GetPos():Distance(ladder:GetTop())
+    local distBottom = bot:GetPos():Distance(ladder:GetBottom())
+
+    return (distTop < LADDER_THRESH_TOP or distBottom < LADDER_THRESH_BOTTOM) or false
+end
+
 ---Basically manages the locomotor of the locomotor
 ---@package
 function BotLocomotor:StartCommand(cmd) -- aka StartCmd
@@ -1283,7 +1352,6 @@ function BotLocomotor:StartCommand(cmd) -- aka StartCmd
             cmd:SetButtons(IN_JUMP)
         end
         self.jumpReleaseTime = TIMESTAMP + 0.1
-
         if DVLPR_PATHFINDING then
             TTTBots.DebugServer.DrawText(MYPOS, "Crouch Jumping", Color(255, 255, 255))
         end
@@ -1336,13 +1404,24 @@ function BotLocomotor:StartCommand(cmd) -- aka StartCmd
     local strafeStr = self:GetStrafe()
 
     --- 🪜 MANAGE LADDER MOVEMENT
+    local dismount = self:GetDismount()
+    local climbDir = self:GetClimbDir()
     if self:IsOnLadder() then -- Ladder movement
         local strafe_dir = (strafeStr == "left" and IN_MOVELEFT) or (strafeStr == "right" and IN_MOVERIGHT) or
             0
         cmd:SetButtons(IN_FORWARD + strafe_dir)
 
+        if dismount then
+            cmd:SetButtons(cmd:GetButtons() + IN_USE)
+        end
+
         return
     end
+    cmd:SetUpMove(
+        (climbDir == "up" and 500)
+        or (climbDir == "down" and -500)
+        or 0
+    )
 
     --- 🏃 STRAFE CALCULATIONS
     local side = cmd:GetSideMove()
@@ -1369,9 +1448,6 @@ function BotLocomotor:StartCommand(cmd) -- aka StartCmd
     local forward = self.movementVec == nil and 0 or 400
     cmd:SetSideMove(side)
     cmd:SetForwardMove((not forceForward and forward) or 400)
-
-    -- Set up movement to always be up. This doesn't seem to do much tbh
-    cmd:SetUpMove(400)
 
     --- 🚪 MANAGE BOT DOOR HANDLING
     if self:GetUsing() and self:TestDoorTimer() then
@@ -1405,7 +1481,7 @@ function BotLocomotor:StartCommand(cmd) -- aka StartCmd
         self.reload = false
     end
 
-    -- TODO: use IN_RUN to sprint around. cannot be held down constantly or else it won't work.
+    -- TODO: use IN_SPEED to sprint around. cannot be held down constantly or else it won't work.
     cmd:SetButtons(cmd:GetButtons())
 
     self.moveNormal = cmd:GetViewAngles():Forward()
