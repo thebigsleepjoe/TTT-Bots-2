@@ -615,7 +615,7 @@ local EVIL_CACHE_DURATION = 5 -- Duration in seconds for how long to cache resul
 
 ---@realm shared
 function TTTBots.Lib.IsTTT2()
-    return addonChecker ~= nil -- addonChecker is a global defined solely by TTT2
+    return TTT2
 end
 
 ---@realm shared
