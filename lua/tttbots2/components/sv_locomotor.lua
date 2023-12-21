@@ -9,10 +9,10 @@ local lib = TTTBots.Lib
 local BotLocomotor = TTTBots.Components.Locomotor
 
 -- Define constants
-local NEXTPOS_COMPLETE_DIST_CANSEE = 32
-local NEXTPOS_COMPLETE_DIST_CANTSEE = 16
-local NEXTPOS_COMPLETE_DIST_VERTICAL_RANGE = 64  --- The Z-completion range, irrespective of visual range, when dist is greater than _THRESH
-local NEXTPOS_COMPLETE_DIST_VERTICAL_THRESH = 64 --- The Z axis must have a difference of this value to consider NEXTPOS_COMPLETE_DIST_VERTICAL_RANGE
+local COMPLETION_DIST_HORIZONTAL = 16
+local COMPLETION_DIST_VERTICAL = 32
+local LADDER_VERTICAL_THRESH = 16
+local LADDER_HORIZONTAL_THRESH = 32
 
 
 function BotLocomotor:New(bot)
@@ -994,8 +994,6 @@ function BotLocomotor:FindNextPos()
     local botPos = bot:GetPos()
     local botEyePos = bot:GetShootPos()
 
-    local dvlpr = lib.GetConVarBool("debug_pathfinding")
-
     local nextNode = nil
     local lastCompleted = nil
     for i, v in ipairs(prepPath) do
@@ -1008,21 +1006,22 @@ function BotLocomotor:FindNextPos()
     if not nextNode then return nil end -- no more nodes to go to
 
     local nextPos = nextNode.pos
-
     local distXY = lib.DistanceXY(botPos, nextPos)
     local distZ = math.abs(botPos.z - nextPos.z)
-    local canSee = self:TestVisionWorldMask(botEyePos, nextPos + Vector(0, 0, 16))
-    if
-        (distZ > NEXTPOS_COMPLETE_DIST_VERTICAL_THRESH and distXY < NEXTPOS_COMPLETE_DIST_VERTICAL_RANGE)
-        or (distXY < NEXTPOS_COMPLETE_DIST_CANSEE and canSee)
-        or distXY < NEXTPOS_COMPLETE_DIST_CANTSEE
-    then
-        nextNode.completed = true
-        return self:FindNextPos()
-    end
 
+    -- Special handling for vertical movement (e.g., ladders)
     if nextNode.ladder_dir then
         self:SetClimbDir(nextNode.ladder_dir)
+        if distZ < LADDER_VERTICAL_THRESH and distXY < LADDER_HORIZONTAL_THRESH then
+            nextNode.completed = true
+            return self:FindNextPos()
+        end
+    else
+        -- Standard completion check for non-ladder nodes
+        if (distZ < COMPLETION_DIST_VERTICAL and distXY < COMPLETION_DIST_HORIZONTAL) then
+            nextNode.completed = true
+            return self:FindNextPos()
+        end
     end
 
     return nextPos, nextNode
