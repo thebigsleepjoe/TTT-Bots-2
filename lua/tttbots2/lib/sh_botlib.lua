@@ -457,6 +457,25 @@ function TTTBots.Lib.AddAdjacentsToRegion(nav, regionTbl, alreadyCached)
     end
 end
 
+--- Create a Get and Set function for member varname
+---@param varname string The name of the variable. Recommended PascalCase
+---@param default any The default value of the variable.
+---@return function GetFunc Called with (self)
+---@return function SetFunc Called with (self, value)
+function TTTBots.Lib.GetSet(varname, default)
+    local setFunc = function(self, value)
+        self["m_" .. varname] = value
+    end
+    local getFunc = function(self)
+        if self["m_" .. varname] == nil then
+            self["m_" .. varname] = default
+        end
+        return self["m_" .. varname]
+    end
+
+    return getFunc, setFunc
+end
+
 ---@realm server
 function TTTBots.Lib.GetNavRegions(forceRecache)
     if not forceRecache and _cachedRegions.hasCached then

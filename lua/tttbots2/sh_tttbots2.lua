@@ -14,7 +14,7 @@ if not gamemodeCompatible() then return end
 
 -- Declare TTTBots table
 TTTBots = {
-    Version = "v0.9.5 (12/20/23)",
+    Version = "v0.9.6-mbr (12/20/23)",
     Tickrate = 5, -- Ticks per second. Do not change unless you really know what you're doing.
     Lib = {},
     Chat = {}
