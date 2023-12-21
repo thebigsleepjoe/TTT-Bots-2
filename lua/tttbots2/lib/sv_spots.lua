@@ -56,7 +56,7 @@ function TTTBots.Spots.RegisterSpotCategory(title, spotValidCallback)
         end
     end
 
-    print(string.format("[TTT Bots 2]  Registered spot category '%s' with %d spots.", title,
+    print(string.format("[TTT Bots 2] Registered spot category '%s' with %d spots.", title,
         #TTTBots.Spots.CachedSpots[title].Spots))
 end
 
