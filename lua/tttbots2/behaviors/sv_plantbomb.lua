@@ -40,25 +40,40 @@ local penalizedBombSpots = {}
 function PlantBomb.FindPlantSpot(bot)
     local options = TTTBots.Spots.GetSpotsInCategory("bomb")
     local weightedOptions = {}
+    local extantBombs = ents.FindByClass("ttt_c4")
 
     -- We will use a weighting system for this.
     for _, spot in pairs(options) do
         weightedOptions[spot] = 0
         local witnesses = lib.GetAllVisible(spot, true)
-        -- If we can see the spot, it's a good spot.
+
+        -- 💣 Check for existing bombs near this spot
+        local bombTooClose = false
+        for _, bomb in pairs(extantBombs) do
+            if bomb:GetPos():Distance(spot) < 512 then
+                bombTooClose = true
+                break
+            end
+        end
+        if bombTooClose then continue end -- Skip this spot if a bomb is too close
+
+        -- 👀 Bonus if visible
         if bot:VisibleVec(spot) then
             weightedOptions[spot] = weightedOptions[spot] + 2
         end
 
+        -- 🧍🏽Big penalty for current witnesses
         for _, witness in pairs(witnesses) do -- Get a list of all non-evils that can see this pos
             weightedOptions[spot] = weightedOptions[spot] - 2
         end
 
+        -- ❌ Disqualify suspected broken spots
         if penalizedBombSpots[spot] then
             if penalizedBombSpots[spot] > 25 then continue end -- This spot is too penalized to be considered.
             weightedOptions[spot] = weightedOptions[spot] - penalizedBombSpots[spot]
         end
 
+        -- 🤏🏽Penalize or reward based on distance to targets
         for _, ply in pairs(player.GetAll()) do
             if not (lib.IsGood(ply) and lib.IsPlayerAlive(ply)) then continue end
 
@@ -81,6 +96,10 @@ function PlantBomb.FindPlantSpot(bot)
             bestWeight = weight
             bestSpot = spot
         end
+    end
+
+    if not bestSpot then
+        bot.bombFailCounter = (bot.bombFailCounter or 0) + 1
     end
 
     return bestSpot
@@ -111,6 +130,8 @@ function PlantBomb.OnRunning(bot)
 
     if locomotor.status == locomotor.PATH_STATUSES.IMPOSSIBLE then
         penalizedBombSpots[spot] = (penalizedBombSpots[spot] or 0) + 3
+        bot.bombFailCounter = (bot.bombFailCounter or 0) +
+        2                                                    -- Increment by 2 specifically to prevent the bot from trying to plant indefinitely.
         return STATUS.FAILURE
     end
 
@@ -176,3 +197,12 @@ function PlantBomb.OnEnd(bot)
     locomotor:StopAttack()
     PlantBomb.ArmNearbyBomb(bot)
 end
+
+-- This part of the code is referencing preevnting a bot trying to plant indefinitely (and thus failing)
+-- Specifically, we decrement the 'bomb fail' counter on each bot once per 20 seconds as to not break the behavior.
+timer.Create("TTTBots.Behavior.PlantBomb.PreventInfinitePlants", 20, 0, function()
+    for _, bot in pairs(TTTBots.Bots) do
+        if not (IsValid(bot) and bot ~= NULL and bot.components) then continue end
+        bot.bombFailCounter = math.max(bot.bombFailCounter or 0, 0) - 1
+    end
+end)
