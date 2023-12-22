@@ -892,6 +892,7 @@ function TTTBots.PathManager.GetPortals()
         if not destinationExists then continue end
 
         local destination = ents.FindByName(dest_name)[1]
+        if not (destination ~= NULL and IsValid(destination)) then continue end
         local destination_pos = destination:GetPos()
         local destination_cnavarea = navmesh.GetNearestNavArea(destination_pos)
 
