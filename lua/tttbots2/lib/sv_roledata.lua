@@ -52,6 +52,9 @@ function TTTBots.RoleData.New(rolename)
     --- You must disable SetAutoSwitch for this to work. You should control your bot weapon with the behavior tree if your role is more nuanced.
     newRole.GetPreferredWeapon, newRole.SetPreferredWeapon = getSet("preferredWeapon", nil)
 
+    --- Set the team for this role.
+    newRole.GetTeam, newRole.SetTeam = getSet("team", TEAM_INNOCENT)
+
     return newRole
 end
 
