@@ -9,13 +9,13 @@ local buyables_role = TTTBots.Buyables.m_buyables_role
 ---@field Class string - The class of this item.
 ---@field Price number - The price of this item, in credits. Bots are given an allowance of 2 credits.
 ---@field Priority number - The priority of this item. Higher numbers = higher priority. If two buyables have the same priority, the script will select one at random.
----@field OnBuy function - (OPTIONAL) Called when the bot successfully buys this item.
----@field CanBuy function - (OPTIONAL) Return false to prevent a bot from buying this item.
+---@field OnBuy function|nil - (OPTIONAL) Called when the bot successfully buys this item.
+---@field CanBuy function|nil - (OPTIONAL) Return false to prevent a bot from buying this item.
 ---@field Roles table<string> - A table of roles that can buy this item.
----@field RandomChance number - (OPTIONAL) An integer from 1 to math.huge. Functionally the item will be selected if random(1, RandomChoice) == 1.
----@field ShouldAnnounce boolean - (OPTIONAL) Should this create a chatter event?
----@field AnnounceTeam boolean - (OPTIONAL) Is announcing team-only?
----@field BuyFunc function - (OPTIONAL) A function called to "buy" the Class. By default, just calls function(ply) ply:Give(Class) end
+---@field RandomChance number|nil - (OPTIONAL) An integer from 1 to math.huge. Functionally the item will be selected if random(1, RandomChoice) == 1.
+---@field ShouldAnnounce boolean|nil - (OPTIONAL) Should this create a chatter event?
+---@field AnnounceTeam boolean|nil - (OPTIONAL) Is announcing team-only?
+---@field BuyFunc function|nil - (OPTIONAL) A function called to "buy" the Class. By default, just calls function(ply) ply:Give(Class) end
 
 
 --- Return a buyable item by its name.
@@ -54,7 +54,8 @@ function TTTBots.Buyables.PurchaseBuyablesFor(bot)
 
         creditAllowance = creditAllowance - option.Price
         table.insert(purchased, option)
-        (option.BuyFunc or function(ply) ply:Give(option.Class) end)(bot)
+        local buyfunc = option.BuyFunc or (function(ply) ply:Give(option.Class) end)
+        buyfunc(bot)
         if option.OnBuy then option.OnBuy(bot) end
         if option.ShouldAnnounce then
             local chatter = TTTBots.Lib.GetComp(bot, "chatter") ---@type CChatter
@@ -81,8 +82,9 @@ end
 
 -- hook for TTTBeginRound
 hook.Add("TTTBeginRound", "TTTBots_Buyables", function()
+    -- The two second delay can avoid a bunch of confusing errors. Don't ask why, I don't fucking know.
     timer.Simple(2,
-        function()             -- The two second delay can avoid a bunch of confusing errors. Don't ask why, I don't fucking know.
+        function()
             if not TTTBots.Match.IsRoundActive() then return end
             for _, bot in pairs(TTTBots.Bots) do
                 if not TTTBots.Lib.IsPlayerAlive(bot) then continue end
@@ -91,3 +93,6 @@ hook.Add("TTTBeginRound", "TTTBots_Buyables", function()
             end
         end)
 end)
+
+-- Import default data
+include("tttbots2/data/sv_default_buyables.lua")

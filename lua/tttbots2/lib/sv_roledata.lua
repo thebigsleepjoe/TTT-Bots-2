@@ -14,7 +14,8 @@ function TTTBots.RoleData.New(rolename)
 
     local getSet = lib.GetSet
 
-    newRole.Name = rolename
+    --- Get the name
+    newRole.GetName, newRole.SetName = getSet("name", rolename)
 
     --- Allies are people we know for sure are on our team.
     newRole.GetAllies, newRole.SetAllies = getSet("allies", {})

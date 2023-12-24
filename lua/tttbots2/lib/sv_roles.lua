@@ -7,7 +7,6 @@ local lib = TTTBots.Lib
 TTTBots.Roles.m_roles = {}
 
 include("sv_roledata.lua")
-include("sv_buyables.lua")
 
 function TTTBots.Roles.RegisterRole(roleData, priority)
     TTTBots.Roles.m_roles[roleData:GetName()] = roleData
