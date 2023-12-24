@@ -13,11 +13,58 @@ local buyables_role = TTTBots.Buyables.m_buyables_role
 ---@field CanBuy function - (OPTIONAL) Return false to prevent a bot from buying this item.
 ---@field Roles table<string> - A table of roles that can buy this item.
 ---@field RandomChance number - (OPTIONAL) An integer from 1 to math.huge. Functionally the item will be selected if random(1, RandomChoice) == 1.
----@field OnAnnounce function - (OPTIONAL) Called when the bot announces this item.
 ---@field ShouldAnnounce boolean - (OPTIONAL) Should this create a chatter event?
 ---@field AnnounceTeam boolean - (OPTIONAL) Is announcing team-only?
----@field BuyFunc function - (OPTIONAL) A function
+---@field BuyFunc function - (OPTIONAL) A function called to "buy" the Class. By default, just calls function(ply) ply:Give(Class) end
 
+
+--- Return a buyable item by its name.
+---@param name string - The name of the buyable item.
+---@return Buyable|nil - The buyable item, or nil if it does not exist.
+function TTTBots.Buyables.GetBuyable(name) return buyables[name] end
+
+---Return a list of buyables for the given rolestring. Defaults to an empty table.
+---The result is ALWAYS sorted by priority, descending.
+---@param roleString string
+---@return table<Buyable>
+function TTTBots.Buyables.GetBuyablesFor(roleString) return buyables_role[roleString] or {} end
+
+---Adds the given Buyable data to the roleString. This is called automatically when registering a Buyable, but exists for sanity.
+---@param buyable Buyable
+---@param roleString string
+function TTTBots.Buyables.AddBuyableToRole(buyable, roleString)
+    buyables_role[roleString] = buyables_role[roleString] or {}
+    table.insert(buyables_role[roleString], buyable)
+    table.sort(buyables_role[roleString], function(a, b) return a.Priority > b.Priority end)
+end
+
+---Purchases any registered buyables for the given bot's rolestring. Returns a table of Buyables that were successfully purchased.
+---@param bot any
+---@return table<Buyable>
+function TTTBots.Buyables.PurchaseBuyablesFor(bot)
+    local roleString = bot:GetRoleStringRaw()
+    local options = TTTBots.Buyables.GetBuyablesFor(roleString)
+    local creditAllowance = 2
+    local purchased = {}
+
+    for i, option in pairs(options) do
+        if option.Price > creditAllowance then continue end
+        if option.CanBuy and not option.CanBuy(bot) then continue end
+        if option.RandomChance and math.random(1, option.RandomChance) ~= 1 then continue end
+
+        creditAllowance = creditAllowance - option.Price
+        table.insert(purchased, option)
+        (option.BuyFunc or function(ply) ply:Give(option.Class) end)(bot)
+        if option.OnBuy then option.OnBuy(bot) end
+        if option.ShouldAnnounce then
+            local chatter = TTTBots.Lib.GetComp(bot, "chatter") ---@type CChatter
+            if not chatter then continue end
+            chatter:On("Buy" .. option.Name, {}, option.AnnounceTeam or false)
+        end
+    end
+
+    return purchased
+end
 
 --- Register a buyable item. This is useful for modders wanting to add custom buyable items.
 ---@param data Buyable - The data of the buyable item.
@@ -26,20 +73,21 @@ function TTTBots.Buyables.RegisterBuyable(data)
     buyables[data.Name] = data
 
     for _, roleString in pairs(buyables_role) do
-        buyables_role[roleString] = buyables_role[roleString] or {}
-        buyables_role[roleString][data] = data.Priority
-        table.sort(buyables_role[roleString], function(a, b) return a.Priority > b.Priority end)
+        TTTBots.Buyables.AddBuyableToRole(data, roleString)
     end
 
     return true
 end
 
---- Return a buyable item by its name.
----@param name string - The name of the buyable item.
----@return Buyable|nil - The buyable item, or nil if it does not exist.
-function TTTBots.Buyables.GetBuyable(name) return buyables[name] end
-
----Return a list of buyables for the given rolestring. Defaults to an empty table.
----@param roleString string
----@return table<Buyable>
-function TTTBots.Buyables.GetBuyablesFor(roleString) return buyables_role[roleString] or {} end
+-- hook for TTTBeginRound
+hook.Add("TTTBeginRound", "TTTBots_Buyables", function()
+    timer.Simple(2,
+        function()             -- The two second delay can avoid a bunch of confusing errors. Don't ask why, I don't fucking know.
+            if not TTTBots.Match.IsRoundActive() then return end
+            for _, bot in pairs(TTTBots.Bots) do
+                if not TTTBots.Lib.IsPlayerAlive(bot) then continue end
+                if bot == NULL then continue end
+                TTTBots.Buyables.PurchaseBuyablesFor(bot)
+            end
+        end)
+end)
