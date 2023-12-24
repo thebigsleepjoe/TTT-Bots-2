@@ -282,13 +282,19 @@ function Attack.CalculateInaccuracy(bot, origin)
     if not (difficulty or personality) then return Vector(0, 0, 0) end
 
     local distFactor = (bot:GetPos():Distance(origin) / 16) ^ 1.5
-    local pressure = personality:GetPressure()     -- float [0,1]
-    local rage = (personality:GetRage() * 2) + 1   -- float [1,3]
+    local pressure = personality:GetPressure()   -- float [0,1]
+    local rage = (personality:GetRage() * 2) + 1 -- float [1,3]
+
+    local inaccuarcy_reduction =
+        (bot:GetRoleStringRaw() == "traitor" and lib.GetConVarBool("ttt_bot_cheat_traitor_accuracy"))
+        and 2 or 1
 
     local inaccuracy_mod = (pressure / difficulty) -- The more pressure we have, the more inaccurate we are; decreased by difficulty
         * distFactor                               -- The further away we are, the more inaccurate we are
         * INACCURACY_BASE                          -- Obviously, multiply by a constant to make it more inaccurate
         * rage                                     -- The more rage we have, the more inaccurate we are
+        / inaccuarcy_reduction                     -- Reduce aim difficulty if the cheat cvar is enabled
+
     inaccuracy_mod = math.min(math.max(inaccuracy_mod, 0.1), 6)
 
     local rand = VectorRand() * inaccuracy_mod

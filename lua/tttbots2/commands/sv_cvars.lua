@@ -20,11 +20,13 @@ bot_sv_cvar("notify_always", "0", "If we should notify players of the number bot
 
 -- "Cheat" cvars
 bot_sv_cvar("cheat_know_shooter", "1",
-    "If set to 1, bots will automatically know who in a firefight shot first, and will use that to determine who to shoot. While technically a cheat, the bots feel much dumber when this is off.")
+    "If set to 1, bots will automatically know who in a firefight shot first, and will use that to determine who to shoot. While technically a cheat, the bots may feel dumber when this is off.")
 bot_sv_cvar("cheat_redhanded_time", "3",
-    "This is the number of seconds that a player is silently marked KOS by bots after killing a non-evil class. Set to 0 to disable. This is technically a cheat, but makes the bots more engaging.")
+    "This is the number of seconds that a player is silently marked KOS by bots after killing a non-evil class. Set to 0 to disable.")
 bot_sv_cvar("cheat_traitor_reactionspd", "1",
-    "If set to 1, traitor bots will have a superior reaction speed. This is technically a cheat, but makes the bots more engaging.")
+    "If set to 1, traitor bots will have a superior reaction speed. TTT2: Does not apply to custom traitor-ish roles.")
+bot_sv_cvar("cheat_traitor_accuracy", "1",
+    "If set to 1, traitor bots will have double the accuracy of standard bots. TTT2: Does not apply to custom traitor-ish roles.")
 
 -- Chatter cvars
 bot_sv_cvar("chatter_lvl", "3",

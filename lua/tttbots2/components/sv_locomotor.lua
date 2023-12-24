@@ -9,10 +9,8 @@ local lib = TTTBots.Lib
 local BotLocomotor = TTTBots.Components.Locomotor
 
 -- Define constants
-local COMPLETION_DIST_HORIZONTAL = 16
-local COMPLETION_DIST_VERTICAL = 32
-local LADDER_VERTICAL_THRESH = 16
-local LADDER_HORIZONTAL_THRESH = 32
+local COMPLETION_DIST_HORIZONTAL = 24
+local COMPLETION_DIST_VERTICAL = 48
 
 
 function BotLocomotor:New(bot)
@@ -1009,19 +1007,9 @@ function BotLocomotor:FindNextPos()
     local distXY = lib.DistanceXY(botPos, nextPos)
     local distZ = math.abs(botPos.z - nextPos.z)
 
-    -- Special handling for vertical movement (e.g., ladders)
-    if nextNode.ladder_dir then
-        self:SetClimbDir(nextNode.ladder_dir)
-        if distZ < LADDER_VERTICAL_THRESH and distXY < LADDER_HORIZONTAL_THRESH then
-            nextNode.completed = true
-            return self:FindNextPos()
-        end
-    else
-        -- Standard completion check for non-ladder nodes
-        if (distZ < COMPLETION_DIST_VERTICAL and distXY < COMPLETION_DIST_HORIZONTAL) then
-            nextNode.completed = true
-            return self:FindNextPos()
-        end
+    if (distZ < COMPLETION_DIST_VERTICAL and distXY < COMPLETION_DIST_HORIZONTAL) then
+        nextNode.completed = true
+        return self:FindNextPos()
     end
 
     return nextPos, nextNode
