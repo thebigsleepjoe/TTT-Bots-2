@@ -327,12 +327,11 @@ function Attack.WillShootingTeamkill(bot, target)
     -- Get the eye trace of our bot.
     local eyeTrace = bot:GetEyeTrace()
     local ent = eyeTrace.Entity
-    if not ent then return false end                             -- We are not looking at anything important, we can shoot
-    if ent == target then return false end                       -- We are looking at our target, we can shoot
-    if IsValid(ent) and not ent:IsPlayer() then return false end -- We are looking at something that is not a player, we can shoot
-    local sameTeam = lib.IsEvil(bot) == lib.IsEvil(ent)
-    if not sameTeam then return false end                        -- We are not looking at a teammate, we can shoot
-    return true                                                  -- We are looking at a teammate, we cannot shoot
+    if not ent then return false end                                   -- We are not looking at anything important, we can shoot
+    if ent == target then return false end                             -- We are looking at our target, we can shoot
+    if IsValid(ent) and not ent:IsPlayer() then return false end       -- We are looking at something that is not a player, we can shoot
+    if not TTTBots.Roles.IsSameTeam(bot, target) then return false end -- We are not looking at a teammate, we can shoot
+    return true                                                        -- We are looking at a teammate, we cannot shoot
 end
 
 function Attack.LookingCloseToTarget(bot, target)

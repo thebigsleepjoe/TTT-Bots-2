@@ -1,5 +1,4 @@
---- This module is an abstraction layer for TTT/2 compatibility. TTT2 does provide a lot of functionality for this,
---- but TTT does not.
+--- This module is an abstraction layer for TTT/2 compatibility.
 
 TTTBots.Roles = {}
 
@@ -14,8 +13,16 @@ end
 
 --- Return a role by its name.
 ---@param name string
----@return table<RoleData>|nil
+---@return RoleData|nil
 function TTTBots.Roles.GetRole(name) return TTTBots.Roles.m_roles[name] end
+
+---Returns the RoleData of the player, else nil if it doesn't exist.
+---@param ply Player
+---@return RoleData|nil
+function TTTBots.Role.GetRoleFor(ply)
+    local roleString = ply:GetRoleStringRaw()
+    return TTTBots.Roles.GetRole(roleString)
+end
 
 --- Return a comprehensive table of the defined roles.
 ---@return table<RoleData>
@@ -24,6 +31,10 @@ function TTTBots.Roles.GetRoles() return TTTBots.Roles.m_roles end
 function TTTBots.Roles.GetTeamMembers(player)
     -- TODO: Use GetRoleString and check if there are any defined RoleDatas for this role.
     -- If not then just error out.
+end
+
+function TTTBots.Roles.IsSameTeam(ply1, ply2)
+    -- TODO: Write this. Check if allies or if team value is equivalent
 end
 
 --- Registers the TTT default roles. traitor, detective, innocent

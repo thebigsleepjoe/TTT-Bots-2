@@ -54,12 +54,12 @@ function TTTBots.RoleData.New(rolename)
     newRole.GetPreferredWeapon, newRole.SetPreferredWeapon = getSet("preferredWeapon", nil)
 
     --- Set the team for this role.
-    newRole.GetTeam, newRole.SetTeam = getSet("team", TEAM_INNOCENT)
+    newRole.GetTeam, newRole.SetTeam = getSet("team", TEAM_TERROR)
 
     return newRole
 end
 
 --- Try to register our allies automatically if we're in TTT2.
 function TTTBots.RoleData:RegisterAllies()
-
+    -- TODO: Find the ally roles of this role (check TEAM_ values) and register them.
 end
