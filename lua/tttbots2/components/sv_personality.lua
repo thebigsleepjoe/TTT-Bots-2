@@ -481,49 +481,29 @@ local WIN_PRESSURE_BASE = -1       -- Decrease pressure by this amount when winn
 local WIN_BOREDOM_BASE = -0.05     -- Decrease boredom by this amount when winning a round
 local SURVIVAL_WIN_MODIFIER = 2    -- Multiply the above values by this amount if the bot survives the round
 
-local function updateBotAttributes(traitorsWon)
+local function updateBotAttributes(winTeam)
     for i, bot in pairs(TTTBots.Bots) do
         local personality = bot and bot.components and bot.components.personality
         if not personality then continue end
-        local botEvil = lib.IsEvil(bot)
+        local botTeam = bot:GetTeam()
         local botSurvived = lib.IsPlayerAlive(bot)
+        local botWon = (winTeam == botTeam)
 
-        if botEvil then
-            if traitorsWon then
-                personality:AddRage(WIN_RAGE_BASE * (botSurvived and SURVIVAL_WIN_MODIFIER or 1))
-                personality:AddPressure(WIN_PRESSURE_BASE * (botSurvived and SURVIVAL_WIN_MODIFIER or 1))
-                personality:AddBoredom(WIN_BOREDOM_BASE * (botSurvived and SURVIVAL_WIN_MODIFIER or 1))
-            else
-                personality:AddRage(LOSE_RAGE_BASE * (botSurvived and SURVIVAL_LOSE_MODIFIER or 1))
-                personality:AddPressure(LOSE_PRESSURE_BASE * (botSurvived and SURVIVAL_LOSE_MODIFIER or 1))
-                personality:AddBoredom(LOSE_BOREDOM_BASE * (botSurvived and SURVIVAL_LOSE_MODIFIER or 1))
-            end
+        if botWon then
+            personality:AddRage(WIN_RAGE_BASE * (botSurvived and SURVIVAL_WIN_MODIFIER or 1))
+            personality:AddPressure(WIN_PRESSURE_BASE * (botSurvived and SURVIVAL_WIN_MODIFIER or 1))
+            personality:AddBoredom(WIN_BOREDOM_BASE * (botSurvived and SURVIVAL_WIN_MODIFIER or 1))
         else
-            if traitorsWon then
-                personality:AddRage(LOSE_RAGE_BASE * (botSurvived and SURVIVAL_LOSE_MODIFIER or 1))
-                personality:AddPressure(LOSE_PRESSURE_BASE * (botSurvived and SURVIVAL_LOSE_MODIFIER or 1))
-                personality:AddBoredom(LOSE_BOREDOM_BASE * (botSurvived and SURVIVAL_LOSE_MODIFIER or 1))
-            else
-                personality:AddRage(WIN_RAGE_BASE * (botSurvived and SURVIVAL_WIN_MODIFIER or 1))
-                personality:AddPressure(WIN_PRESSURE_BASE * (botSurvived and SURVIVAL_WIN_MODIFIER or 1))
-                personality:AddBoredom(WIN_BOREDOM_BASE * (botSurvived and SURVIVAL_WIN_MODIFIER or 1))
-            end
+            personality:AddRage(LOSE_RAGE_BASE * (botSurvived and SURVIVAL_LOSE_MODIFIER or 1))
+            personality:AddPressure(LOSE_PRESSURE_BASE * (botSurvived and SURVIVAL_LOSE_MODIFIER or 1))
+            personality:AddBoredom(LOSE_BOREDOM_BASE * (botSurvived and SURVIVAL_LOSE_MODIFIER or 1))
         end
     end
 end
 
 hook.Add("TTTEndRound", "TTTBots.Personality.EndRound", function(result)
-    local RESULTS = {
-        innocents = "innocents",
-        traitors = "traitors",
-    }
-    if not RESULTS[result] then return end
-
-    if result == RESULTS.innocents then
-        updateBotAttributes(false)
-    else
-        updateBotAttributes(true)
-    end
+    -- result is usually a string like "innocents" or "traitors", which is = to TEAM_INNOCENT and TEAM_TRAITOR
+    updateBotAttributes(result)
 end)
 
 local RDM_RAGE_MIN = 0.7
@@ -536,7 +516,6 @@ timer.Create("TTTBots.Personality.RDM", 2.5, 0, function()
         if not lib.IsPlayerAlive(bot) then continue end -- skip if bot not loaded
         local personality = lib.GetComp(bot, "personality") ---@type CPersonality
         if not personality then continue end            -- skip if bot not loaded
-        if lib.IsEvil(bot) then continue end            -- no rdm for traitors
         if bot.attackTarget ~= nil then continue end    -- no rdm if we're already attacking someone
 
         local boredom = personality:GetBoredom()

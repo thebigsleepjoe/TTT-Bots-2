@@ -126,7 +126,7 @@ end
 --- Simulates radar scanning the position of ply
 function Memory:UpdateRadar(ply)
     if self.UseRadar and self.tick % 300 ~= 69 then return end -- Nice
-    if not TTTBots.Lib.IsEvil(self.bot) then return end
+    if not TTTBots.Roles.GetRoleFor(ply):GetCanHaveRadar() then return end
     if not TTTBots.Lib.IsPlayerAlive(ply) then return end
 
     local pos = ply:GetPos()
@@ -268,7 +268,7 @@ function Memory:UpdatePlayerLifeStates()
     local CurrentlyAlive = lib.GetAlivePlayers()
     local ConfirmedDead = TTTBots.Match.ConfirmedDead
     local RoundActive = TTTBots.Match.RoundActive
-    local IsEvil = lib.IsEvil
+    local isOmniscient = TTTBots.Roles.GetRoleFor(self.bot):GetKnowsLifeStates()
     local bot = self.bot
 
     if not RoundActive then
@@ -280,8 +280,7 @@ function Memory:UpdatePlayerLifeStates()
         self:SetPlayerLifeState(plyname, DEAD)
     end
 
-    -- Traitor handling
-    if IsEvil(bot) then
+    if isOmniscient then
         -- Traitors know who is dead and who is alive, so first set everyone to dead.
         for i, ply in pairs(player.GetAll()) do
             if ply == bot then continue end
@@ -318,18 +317,6 @@ end
 function Memory:GetKnownPlayersPos()
     local positions = {}
     for i, ply in pairs(player.GetAll()) do
-        local pnp = self.playerKnownPositions[ply:Nick()]
-        if not pnp then continue end
-        positions[ply] = pnp.pos
-    end
-    return positions
-end
-
---- Basically same as GetKnownPlayersPos, but filters for 'not lib.IsEvil(player)'
-function Memory:GetKnownInnocentsPos()
-    local positions = {}
-    for i, ply in pairs(player.GetAll()) do
-        if lib.IsEvil(ply) then continue end
         local pnp = self.playerKnownPositions[ply:Nick()]
         if not pnp then continue end
         positions[ply] = pnp.pos

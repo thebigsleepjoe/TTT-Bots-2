@@ -22,10 +22,10 @@ Match.PlayersInRound = Match.PlayersInRound or {}
 Match.ConfirmedDead = Match.ConfirmedDead or {}
 Match.DamageLogs = Match.DamageLogs or {}
 Match.AlivePlayers = {}
-Match.AliveTraitors = {}
-Match.AliveHumanTraitors = {}
-Match.AliveNonEvil = {}
-Match.AlivePolice = {}
+Match.AliveTraitors = {} ---@deprecated
+Match.AliveHumanTraitors = {} ---@deprecated
+Match.AliveNonEvil = {} ---@deprecated
+Match.AlivePolice = {} ---@deprecated
 Match.DisguisedPlayers = {}
 Match.SecondsPassed = 0 --- Time since match began. This is important for traitor bots.
 Match.KOSCounter = {} ---@type table<Player, number>
@@ -79,7 +79,7 @@ end
 ---@realm server
 function Match.CallKOS(caller, target)
     if not Match.IsRoundActive() then return false end
-    if TTTBots.Lib.IsPolice(target) then return false end
+    if TTTBots.Roles.GetRoleFor(target):GetAppearsPolice() then return false end
     local isApproved = Match.KOSIsApproved(caller)
     if not isApproved then return false end
 
@@ -124,10 +124,6 @@ function Match.ResetStats(roundActive)
     Match.PlayersInRound = {}
     Match.DamageLogs = {}
     Match.AlivePlayers = {}
-    Match.AliveTraitors = {}
-    Match.AliveHumanTraitors = {}
-    Match.AliveNonEvil = {}
-    Match.AlivePolice = {}
     Match.SecondsPassed = 0
     Match.DisguisedPlayers = {}
     Match.KOSCounter = {}
@@ -185,26 +181,10 @@ end
 ---@realm shared
 function Match.UpdateAlivePlayers()
     Match.AlivePlayers = {}
-    Match.AliveHumanTraitors = {}
-    Match.AliveNonEvil = {}
-    Match.AliveTraitors = {}
     Match.DisguisedPlayers = {}
     for bot, isAlive in pairs(TTTBots.Lib.GetPlayerLifeStates()) do
         if not (bot and isAlive) or bot == NULL or not IsValid(bot) then continue end
         table.insert(Match.AlivePlayers, bot)
-        if TTTBots.Lib.IsEvil(bot, true) then
-            if not bot:IsBot() then
-                table.insert(Match.AliveHumanTraitors, bot)
-            else
-                table.insert(Match.AliveTraitors, bot)
-            end
-        elseif TTTBots.Lib.IsPolice(bot) then
-            table.insert(Match.AliveNonEvil, bot)
-            table.insert(Match.AlivePolice, bot)
-        else
-            table.insert(Match.AliveNonEvil, bot)
-        end
-
         -- Check if player is disguised, and if so, add them to the disguised tbl
         local isDisguised = bot:GetNWBool("disguised", false)
         if isDisguised then
@@ -234,7 +214,7 @@ end
 function Match.BotsTrySpotC4()
     for i, bot in pairs(TTTBots.Bots) do
         if not TTTBots.Lib.IsPlayerAlive(bot) then continue end
-        if TTTBots.Lib.IsEvil(bot) then continue end
+        if not TTTBots.Roles.GetRoleFor(bot):GetDefusesC4() then continue end
 
         for c4, _ in pairs(Match.AllArmedC4s) do
             if not IsValid(c4) then continue end

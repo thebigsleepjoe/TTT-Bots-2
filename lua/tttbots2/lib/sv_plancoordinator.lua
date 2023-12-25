@@ -161,8 +161,7 @@ function PlanCoordinator.CalcNearestEnemy(caller)
     for i, v in pairs(TTTBots.Match.AlivePlayers) do
         if v == caller then continue end
         if not TTTBots.Lib.IsPlayerAlive(v) then continue end
-        local isevil = TTTBots.Lib.IsEvil(v)
-        if isevil then continue end
+        if TTTBots.Roles.IsAllies(caller, v) then continue end
         local dist = v:GetPos():Distance(caller:GetPos())
         if dist < closestDist then
             closestInnocent = v
@@ -193,28 +192,37 @@ end
 
 --- A Target Hashtable function to calculate a target for a job.
 function PlanCoordinator.CalcRandEnemy(caller)
-    local randInnocent = table.Random(TTTBots.Match.AliveNonEvil)
+    local nonAllies = TTTBots.Lib.FilterTable(TTTBots.Match.AlivePlayers,
+        function(ply) return not TTTBots.Roles.IsAllies(caller, ply) end)
+    local randInnocent = table.Random(nonAllies)
 
     return randInnocent
 end
 
 --- A Target Hashtable function to calculate a target for a job.
 function PlanCoordinator.CalcRandFriendly(caller)
-    local randFriendly = table.Random(TTTBots.Match.AliveTraitors)
+    local allies = TTTBots.Lib.FilterTable(TTTBots.Match.AlivePlayers,
+        function(ply) return TTTBots.Roles.IsAllies(caller, ply) end)
+    local randFriendly = table.Random(allies)
 
     return randFriendly
 end
 
 --- A Target Hashtable function to calculate a target for a job.
 function PlanCoordinator.CalcRandFriendlyHuman(caller)
-    local randFriendlyHuman = table.Random(TTTBots.Match.AliveHumanTraitors)
+    local alliesHuman = TTTBots.Lib.FilterTable(TTTBots.Match.AlivePlayers, function(ply)
+        return TTTBots.Roles.IsAllies(caller, ply) and not ply:IsBot()
+    end)
+    local randFriendlyHuman = table.Random(alliesHuman)
 
-    return randFriendlyHuman or table.Random(TTTBots.Match.AliveTraitors)
+    return randFriendlyHuman or PlanCoordinator.CalcRandFriendly(caller)
 end
 
 --- A Target Hashtable function to calculate a target for a job.
 function PlanCoordinator.CalcRandPolice(caller)
-    local randPolice = table.Random(TTTBots.Match.AlivePolice)
+    local police = TTTBots.Lib.FilterTable(TTTBots.Match.AlivePlayers,
+        function(ply) return ply:GetRoleStringRaw() == "detective" end)
+    local randPolice = table.Random(police)
 
     return randPolice
 end

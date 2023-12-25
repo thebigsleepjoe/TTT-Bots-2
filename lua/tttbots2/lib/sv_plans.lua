@@ -94,10 +94,12 @@ local conditionsHashedFuncs = {
     end,
 }
 function TTTBots.Plans.AreConditionsValid(conditions)
+    local aliveCoordinators = TTTBots.Lib.FilterTable(TTTBots.Match.AlivePlayers,
+        function(ply) return TTTBots.Roles.GetRoleFor(ply):GetCanCoordinate() end)
     local Data = {
         NumPlysA = #TTTBots.Match.AlivePlayers,
-        NumTraitorsA = #TTTBots.Match.AliveTraitors,
-        NumHumanTraitorsA = #TTTBots.Match.AliveHumanTraitors,
+        NumTraitorsA = #aliveCoordinators,
+        NumHumanTraitorsA = #TTTBots.Lib.FilterTable(aliveCoordinators, function(ply) return not ply:IsBot() end),
     }
     for key, value in pairs(conditions) do
         if key == nil or value == nil then continue end

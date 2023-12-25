@@ -18,10 +18,13 @@ local STATUS = {
 local Plans = TTTBots.Plans
 local ACTIONS = Plans.ACTIONS
 
+function FollowPlan.IsPlanFollowerRole(bot)
+    return TTTBots.Role.GetRoleFor(bot):GetCanCoordinate()
+end
+
 --- Ignore plans if we aren't evil or have a conflicting personality trait.
 function FollowPlan.ShouldIgnorePlans(bot)
-    local isEvil = TTTBots.Lib.IsEvil(bot)
-    if not isEvil then return true end                                                             -- ignore plans if we aren't evil
+    if not FollowPlan.IsPlanFollowerRole(bot) then return true end
     if not FollowPlan.Debug and bot.components.personality:GetIgnoresOrders() then return true end -- ignore plans if we have a conflicting personality trait
 
     return false
@@ -259,10 +262,10 @@ hook.Add("PlayerSay", "TTTBots_FollowPlan_PlayerSay", function(sender, text, tea
     if sender:IsBot() then return end
     -- printf("PlayerSay %s: %s (%s)", sender:Nick(), text, teamChat and "team" or "global")
     if not teamChat then return end
-    if not (lib.IsPlayerAlive(sender) and lib.IsEvil(sender)) then return end
+    if not (lib.IsPlayerAlive(sender) and FollowPlan.IsPlanFollowerRole(sender)) then return end
     if not string.find(string.lower(text), "follow", 1, true) then return end
 
-    local bot = TTTBots.Lib.GetClosest(TTTBots.Lib.GetAliveEvilBots(), sender:GetPos())
+    local bot = TTTBots.Lib.GetClosest(TTTBots.Lib.GetAliveAllies(sender), sender:GetPos())
     if not (bot) then return end
     local chatter = lib.GetComp(bot, "chatter") ---@type CChatter
     if not (chatter) then return end

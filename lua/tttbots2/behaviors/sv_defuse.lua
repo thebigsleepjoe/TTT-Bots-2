@@ -21,23 +21,31 @@ local STATUS = {
 }
 
 
+---Returns true if a bot is able to defuse C4 per their role data.
+---@param bot Player
+---@return boolean
+function Defuse.IsBotEligableRole(bot)
+    local role = TTTBots.Roles.GetRoleFor(bot) ---@type RoleData
+    if not role then return false end
+    return role:GetDefusesC4()
+end
+
 ---Return whether or not a bot is elligible to defuse a C4 (does not factor in if there is one nearby)
 ---@param bot Player
 ---@return boolean
 function Defuse.IsEligible(bot)
-    if lib.IsEvil(bot) then return false end
     if not lib.IsPlayerAlive(bot) then return false end
+    if not Defuse.IsBotEligableRole(bot) then return false end
 
     local personality = lib.GetComp(bot, "personality") ---@type CPersonality
     if not personality then return false end
 
     local isDefuser = personality:GetTraitBool("defuser")
-    local isPolice = lib.IsPolice(bot)
     -- weapon_ttt_defuser
     local hasDefuseKit = bot:HasWeapon("weapon_ttt_defuser")
     local chance = math.random(1, Defuse.DEFUSE_TRY_CHANCE) == 1
 
-    if hasDefuseKit or isDefuser or isPolice or chance then
+    if hasDefuseKit or isDefuser or chance then
         return true
     end
 
@@ -63,7 +71,7 @@ end
 function Defuse.Validate(bot)
     if not lib.GetConVarBool("defuse_c4") then return false end -- This behavior is disabled per the user's choice.
     if not TTTBots.Match.IsRoundActive() then return false end
-    if lib.IsEvil(bot) then return false end
+    if not Defuse.IsBotEligableRole(bot) then return false end
     if bot.defuseTarget ~= nil then return true end
     if not Defuse.IsEligible(bot) then return false end
     return Defuse.GetVisibleC4(bot) ~= nil

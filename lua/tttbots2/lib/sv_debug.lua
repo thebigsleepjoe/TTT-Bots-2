@@ -114,7 +114,7 @@ net.Receive("TTTBots_RequestData", function(len, ply)
             attackBehaviorMode = abm and (abm .. " (" .. abmTxt .. ")") or "None",
             behaviorName = behaviorName,
             behaviorDesc = behaviorDesc,
-            isEvil = TTTBots.Lib.IsEvil(bot),
+            teamString = bot:GetTeam(),
             traits = traitsCommaSep,
             hearingMult = memory:GetHearingMultiplier(),
             hearingMult_GunshotDist = TTTBots.Sound.DetectionInfo.Gunshot.Distance * memory:GetHearingMultiplier(),

@@ -93,14 +93,14 @@ function TTTBots.Lib.GetAliveBots()
     return alive
 end
 
---- Returns a table of living evil bots, according to the IsPlayerAlive and IsEvil caches.
+--- Returns a table of living allies
 ---@return table<Player>
 ---@realm shared
-function TTTBots.Lib.GetAliveEvilBots()
+function TTTBots.Lib.GetAliveAllies(ply1)
     local alive = {}
-    for _, ply in ipairs(TTTBots.Bots) do
-        if TTTBots.Lib.IsPlayerAlive(ply) and TTTBots.Lib.IsEvil(ply) then
-            table.insert(alive, ply)
+    for _, ply2 in ipairs(TTTBots.Bots) do
+        if TTTBots.Lib.IsPlayerAlive(ply2) and TTTBots.Roles.IsAllies(ply1, ply2) then
+            table.insert(alive, ply2)
         end
     end
     return alive
@@ -572,17 +572,18 @@ end
 
 --- Like GetAllWitnesses360, but uses the :Visible function instead of CanSee, for greater optimization.
 ---@param pos Vector
----@param innocentOnly boolean Only return innocent (not lib.IsEvil) players
+---@param nonTeammatesOnly? boolean
+---@param caller? Player The player to use for teammate comparison
 ---@return table<Player> witnesses A table of players that can see the position.
 ---@realm shared
-function TTTBots.Lib.GetAllVisible(pos, innocentOnly)
+function TTTBots.Lib.GetAllVisible(pos, nonTeammatesOnly, caller)
     if (type(pos) ~= "Vector") then
         ErrorNoHaltWithStack("Invalid vec type to GetAllVisible: " .. type(pos))
         return {}
     end
     local witnesses = {}
     for _, ply in ipairs(player.GetAll()) do
-        if TTTBots.Lib.IsPlayerAlive(ply) and (not innocentOnly or not TTTBots.Lib.IsEvil(ply)) then
+        if TTTBots.Lib.IsPlayerAlive(ply) and (nonTeammatesOnly and caller and not TTTBots.Roles.IsAllies(caller, ply)) then
             local sawthat = ply:VisibleVec(pos)
             if sawthat then
                 table.insert(witnesses, ply)
@@ -628,9 +629,6 @@ end
 function TTTBots.Lib.DistanceXY(pos1, pos2)
     return math.sqrt((pos1.x - pos2.x) ^ 2 + (pos1.y - pos2.y) ^ 2)
 end
-
-local isEvilCache = {}
-local EVIL_CACHE_DURATION = 5 -- Duration in seconds for how long to cache results.
 
 ---@realm shared
 function TTTBots.Lib.IsTTT2()

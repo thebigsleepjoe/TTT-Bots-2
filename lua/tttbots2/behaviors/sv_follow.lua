@@ -14,10 +14,10 @@ local STATUS = {
     FAILURE = 3,
 }
 
---- Return if whether or not the bot is a follower. That is, if they are a traitor or have a following trait.
+--- Return if whether or not the bot is a follower per their personality. That is, if they are a traitor or have a following trait.
 ---@param bot Player
 ---@return boolean
-function Follow.IsFollower(bot)
+function Follow.IsFollowerPersonality(bot)
     local personality = lib.GetComp(bot, "personality") ---@type CPersonality
     if not personality then return false end
 
@@ -26,11 +26,20 @@ function Follow.IsFollower(bot)
     return hasTrait
 end
 
+--- Return if the bot is a follower role, like a traitor.
+---@param bot any
+function Follow.IsFollowerRole(bot)
+    local role = TTTBots.Roles.GetRoleFor(bot) ---@type RoleData
+    if not role then return false end
+
+    return role:GetIsFollower()
+end
+
 --- Similar to IsFollower, but returns mathematical chance of deciding to follow a new person this tick.
 function Follow.GetFollowChance(bot)
     local BASE_CHANCE = 1 -- X % chance per tick
     local debugging = false
-    local chance = BASE_CHANCE * (Follow.IsFollower(bot) and 2 or 1) * (lib.IsEvil(bot) and 2 or 1)
+    local chance = BASE_CHANCE * (Follow.IsFollowerPersonality(bot) and 2 or 1) * (Follow.IsFollowerRole(bot) and 2 or 1)
 
     local personality = lib.GetComp(bot, "personality") ---@type CPersonality
     if not personality then return chance end
@@ -44,8 +53,8 @@ end
 
 function Follow.GetFollowTargets(bot)
     local targets = {}
-    local isEvil = lib.IsEvil(bot)
-    local followTeammates = isEvil -- and bot:HasTrait("teamplayer") -- Only applies for traitors
+    local isFollowerRole = Follow.IsFollowerRole(bot)
+    local followTeammates = isFollowerRole -- and bot:HasTrait("teamplayer") -- Only applies for traitors
 
     ---@type CMemory
     local memory = bot.components.memory
@@ -57,11 +66,11 @@ function Follow.GetFollowTargets(bot)
         if other == bot then continue end -- shouldn't be possible but neither should a lot of things.
         if other:IsBot() then
             local otherFollowTarget = other.followTarget
-            if otherFollowTarget == bot then continue end -- don't follow bots that are following us. This will create a death spiral.
+            if otherFollowTarget == bot then continue end              -- don't follow bots that are following us. This will create a death spiral.
         end
-        if followTeammates and lib.IsEvil(other) then     -- we are following teammates and this player is evil (like ourselves).
+        if followTeammates and TTTBots.Roles.IsAllies(bot, other) then -- we are following teammates and this player is evil (like ourselves).
             table.insert(targets, other)
-        elseif not followTeammates then                   -- we are not following teammates so just add everyone.
+        elseif not followTeammates then                                -- we are not following teammates so just add everyone.
             table.insert(targets, other)
         end
     end

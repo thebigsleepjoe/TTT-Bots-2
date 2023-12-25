@@ -17,7 +17,8 @@ function TTTBots.RoleData.New(rolename)
     --- Get the name
     newRole.GetName, newRole.SetName = getSet("name", rolename)
 
-    --- Allies are people we know for sure are on our team.
+    --- Allies are people we know for sure are on our team. For traitors, you want to also set "traitor" as one of these, because
+    --- they know who each other are. This is particularly used for defending one another in combat.
     newRole.GetAllies, newRole.SetAllies = getSet("allies", {})
 
     --- Enemies are players we know immediately that they are enemies.
@@ -53,10 +54,29 @@ function TTTBots.RoleData.New(rolename)
     --- You must disable SetAutoSwitch for this to work. You should control your bot weapon with the behavior tree if your role is more nuanced.
     newRole.GetPreferredWeapon, newRole.SetPreferredWeapon = getSet("preferredWeapon", nil)
 
-    --- Set the team for this role.
-    newRole.GetTeam, newRole.SetTeam = getSet("team", TEAM_TERROR)
+    --- Get the team for this role. E.g., TEAM_INNOCENT, TEAM_INNOCENT, etc.
+    newRole.GetTeam, newRole.SetTeam = getSet("team", TEAM_INNOCENT)
+
+    --- Some roles are more likely to follow due to their nature. This is a boolean that determines if this role is more likely to follow.
+    --- This is particularly useful for traitors, because it tends to make them follow someone until they are alone.
+    newRole.GetIsFollower, newRole.SetIsFollower = getSet("follower", false)
+
+    --- If the bot can "look at the scoreboard" to see who is dead and alive. Functionally this just makes the bot know who is dead/alive at all times.
+    newRole.GetKnowsLifeStates, newRole.SetKnowsLifeStates = getSet("knowsLifeStates", false)
+
+    --- If the player appears as a police player. Useful for the 'defective' role, so bots trust them.
+    newRole.GetAppearsPolice, newRole.SetAppearsPolice = getSet("appearsPolice", false)
+
+    --- If the bot uses the suspicion system to determine who is good and bad.
+    newRole.GetUsesSuspicion, newRole.SetUsesSuspicion = getSet("appearsPolice", true)
 
     return newRole
+end
+
+---Basically just returns if team == TEAM_TRAITOR
+---@return boolean
+function TTTBots.RoleData:IsTraitor()
+    return self:GetTeam() == TEAM_TRAITOR
 end
 
 --- Try to register our allies automatically if we're in TTT2.

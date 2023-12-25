@@ -13,13 +13,15 @@ end
 
 --- Return a role by its name.
 ---@param name string
----@return RoleData|nil
-function TTTBots.Roles.GetRole(name) return TTTBots.Roles.m_roles[name] end
+---@return RoleData
+function TTTBots.Roles.GetRole(name)
+    return TTTBots.Roles.m_roles[name] or TTTBots.Roles.m_roles["default"]
+end
 
 ---Returns the RoleData of the player, else nil if it doesn't exist.
 ---@param ply Player
----@return RoleData|nil
-function TTTBots.Role.GetRoleFor(ply)
+---@return RoleData
+function TTTBots.Roles.GetRoleFor(ply)
     local roleString = ply:GetRoleStringRaw()
     return TTTBots.Roles.GetRole(roleString)
 end
@@ -33,12 +35,17 @@ function TTTBots.Roles.GetTeamMembers(player)
     -- If not then just error out.
 end
 
-function TTTBots.Roles.IsSameTeam(ply1, ply2)
-    -- TODO: Write this. Check if allies or if team value is equivalent
+function TTTBots.Roles.IsAllies(ply1, ply2)
+    -- TODO: Write this. Check if allies or if team value is equivalent -- can't just use InSameTeam
 end
 
 --- Registers the TTT default roles. traitor, detective, innocent
 function TTTBots.Roles.RegisterDefaultRoles()
+    -- A generic role to default back to if we can't find a role.
+    local default = TTTBots.RoleData.New("default")
+    default:SetTeam(TEAM_INNOCENT)
+    TTTBots.Roles.RegisterRole(default)
+
     local traitor = TTTBots.RoleData.New("traitor")
     traitor:SetDefusesC4(false)
     traitor:SetPlantsC4(true)
@@ -46,6 +53,7 @@ function TTTBots.Roles.RegisterDefaultRoles()
     traitor:SetCanCoordinate(true)
     traitor:SetKillsNonAllies(true)
     traitor:SetTeam(TEAM_TRAITOR)
+    traitor:SetUsesSuspicion(false)
     TTTBots.Roles.RegisterRole(traitor)
 
     local detective = TTTBots.RoleData.New("detective")
@@ -58,6 +66,13 @@ function TTTBots.Roles.RegisterDefaultRoles()
     innocent:SetDefusesC4(true)
     innocent:SetTeam(TEAM_INNOCENT)
     TTTBots.Roles.RegisterRole(innocent)
+end
+
+---Returns if the bot's team is that of a traitor. Not recommende for determining who is friendly, as this is only based on the team, and not the role's allies.
+---@param bot any
+---@return boolean
+function TTTBots.Roles.IsTraitor(bot)
+    return bot:GetTeam() == TEAM_TRAITOR
 end
 
 function TTTBots.Roles.GenerateRegisterForRole(customRole)

@@ -106,6 +106,16 @@ function Wander.GetRandomNav()
     return table.Random(navmesh.GetAllNavAreas())
 end
 
+---Return if the role can see all C4s inherently, or if it must have someone spot it first
+---@param bot Player
+---@return boolean
+function Wander.BotCanSeeAllC4(bot)
+    local role = TTTBots.Roles.GetRoleFor(bot)
+    local canPlant = role:GetPlantsC4()
+
+    return canPlant
+end
+
 --- Returns a random nav with preference to the current area
 function Wander.GetAnyRandomNav(bot, level)
     level = level or 0
@@ -114,8 +124,8 @@ function Wander.GetAnyRandomNav(bot, level)
 
     if level < 5 then
         -- Test if the area is near a known bomb
-        local isEvil = lib.IsEvil(bot)
-        local bombs = (isEvil and TTTBots.Match.AllArmedC4s) or TTTBots.Match.SpottedC4s
+        local omniscient = Wander.BotCanSeeAllC4(bot)
+        local bombs = (omniscient and TTTBots.Match.AllArmedC4s) or TTTBots.Match.SpottedC4s
 
         for bomb, _ in pairs(bombs) do
             if not IsValid(bomb) then continue end

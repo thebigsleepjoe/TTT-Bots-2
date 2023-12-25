@@ -228,20 +228,19 @@ end
 
 -- hook for GM:PlayerCanSeePlayersChat(text, taemOnly, listener, sender)
 hook.Add("PlayerCanSeePlayersChat", "TTTBots_PlayerCanSeePlayersChat", function(text, teamOnly, listener, sender)
-    if IsValid(sender) and sender:IsBot() and teamOnly then
-        if lib.IsPlayerAlive(sender) then
-            local isEvil = lib.IsEvil(sender)
-            if not isEvil then
-                sender:Say(text)
-                return false
-            end
-            if listener:IsInTeam(sender) then
-                return true
-            end
-        else
-            return false
-        end
+    if not (IsValid(sender) and sender:IsBot() and teamOnly) then
+        return
     end
+
+    if not lib.IsPlayerAlive(sender) then
+        return false
+    end
+
+    if listener:IsInTeam(sender) then
+        return true
+    end
+
+    return false
 end)
 
 

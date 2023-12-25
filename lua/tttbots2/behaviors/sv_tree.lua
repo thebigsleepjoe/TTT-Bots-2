@@ -20,6 +20,7 @@ include("tttbots2/behaviors/sv_usehealthstation.lua")
 
 local b = TTTBots.Behaviors
 
+---FIXME: Refactor this
 ---@type table<string, BehaviorTree>
 TTTBots.Behaviors.Trees = {
     Innocent = {

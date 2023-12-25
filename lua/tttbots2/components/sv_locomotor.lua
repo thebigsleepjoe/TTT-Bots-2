@@ -206,7 +206,7 @@ function BotLocomotor:OnNewTarget(target)
         [5] = 0,
     }
     local TRAITORS_REACT_QUICKER = lib.GetConVarBool("cheat_traitor_reactionspd")
-    if TRAITORS_REACT_QUICKER and lib.IsEvil(self.bot) then
+    if TRAITORS_REACT_QUICKER and self.bot:GetTeam() == TEAM_TRAITOR then
         REACTION_SPEED_BASE = REACTION_SPEED_BASE * 0.5
     end
     local DIFFICULTY_MULT = DIFFICULTY_MULTIPLIERS[DIFFICULTY] or 1
@@ -1604,9 +1604,7 @@ local plyMeta = FindMetaTable("Player")
 
 function plyMeta:SetAttackTarget(target)
     if self.attackTarget == target then return end
-    local plyIsEvil = lib.IsEvil(self)
-    local targIsEvil = lib.IsEvil(target)
-    if (plyIsEvil and targIsEvil) then return end -- don't attack traitors!
+    if (self:IsInTeam(target)) then return end
     self.attackTarget = target
     local loco = lib.GetComp(self, "locomotor")
     local personality = lib.GetComp(self, "personality")

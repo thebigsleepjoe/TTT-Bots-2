@@ -22,13 +22,18 @@ function PlantBomb.HasBomb(bot)
     return bot:HasWeapon("weapon_ttt_c4")
 end
 
+function PlantBomb.IsPlanterRole(bot)
+    local role = TTTBots.Roles.GetRoleFor(bot) ---@type RoleData
+    return role:GetPlantsC4()
+end
+
 --- Validate the behavior
 function PlantBomb.Validate(bot)
     if not lib.GetConVarBool("plant_c4") then return false end -- This behavior is disabled per the user's choice.
     local inRound = TTTBots.Match.IsRoundActive()
-    local isEvil = lib.IsEvil(bot)
+    local isPlanter = PlantBomb.IsPlanterRole(bot)
     local hasBomb = PlantBomb.HasBomb(bot)
-    return inRound and isEvil and hasBomb
+    return inRound and isPlanter and hasBomb
 end
 
 ---@type table<Vector, number> -- A list of spots that have been penalized for being impossible to plant at.
@@ -131,7 +136,7 @@ function PlantBomb.OnRunning(bot)
     if locomotor.status == locomotor.PATH_STATUSES.IMPOSSIBLE then
         penalizedBombSpots[spot] = (penalizedBombSpots[spot] or 0) + 3
         bot.bombFailCounter = (bot.bombFailCounter or 0) +
-        2                                                    -- Increment by 2 specifically to prevent the bot from trying to plant indefinitely.
+            2 -- Increment by 2 specifically to prevent the bot from trying to plant indefinitely.
         return STATUS.FAILURE
     end
 

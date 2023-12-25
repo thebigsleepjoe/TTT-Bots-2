@@ -118,18 +118,23 @@ end
 ---@param target Player
 ---@param reason string The reason (matching a key in SUSPICIONVALUES)
 function BotMorality:ChangeSuspicion(target, reason, mult)
+    local roleDisablesSuspicion = not TTTBots.Roles.GetRoleFor(self.bot):GetUsesSuspicion()
+    if roleDisablesSuspicion then return end
     if not mult then mult = 1 end
     if target == self.bot then return end                 -- Don't change suspicion on ourselves
     if TTTBots.Match.RoundActive == false then return end -- Don't change suspicion if the round isn't active, duh
-    if lib.IsEvil(self.bot) or lib.IsPolice(target) then return end
+    local targetIsPolice = TTTBots.Roles.GetRoleFor(target):GetAppearsPolice()
+    if targetIsPolice then
+        mult = mult * 0.3 -- Police are much less suspicious
+    end
 
     local susValue = self.SUSPICIONVALUES[reason] or ErrorNoHaltWithStack("Invalid suspicion reason: " .. reason)
     local increase = math.ceil(susValue * mult)
-    local sus = (self:GetSuspicion(target)) + (increase)
-    self.suspicions[target] = math.floor(sus)
+    local susFinal = ((self:GetSuspicion(target)) + (increase))
+    self.suspicions[target] = math.floor(susFinal)
 
     self:AnnounceIfThreshold(target)
-    self:SetAttackIfTargetEvil(target)
+    self:SetAttackIfTargetSus(target)
 
     -- print(string.format("%s's suspicion on %s has changed by %d", self.bot:Nick(), target:Nick(), increase))
 end
@@ -162,7 +167,7 @@ function BotMorality:AnnounceIfThreshold(target)
 end
 
 --- Set the bot's attack target to the given player if they seem evil.
-function BotMorality:SetAttackIfTargetEvil(target)
+function BotMorality:SetAttackIfTargetSus(target)
     if self.bot.attackTarget ~= nil then return end
     local sus = self:GetSuspicion(target)
     if sus >= self.Thresholds.KOS then
@@ -199,11 +204,11 @@ function BotMorality:GetRandomVictimFrom(playerlist)
 end
 
 --- Makes it so that traitor bots will attack random players nearby.
-function BotMorality:TraitorTargetTick()
+function BotMorality:SetRandomNearbyTarget()
     if not (self.tick % TTTBots.Tickrate == 0) then return end -- Run only once every second
     local roundStarted = TTTBots.Match.RoundActive
-    local isEvil = lib.IsEvil(self.bot)
-    if not (roundStarted and isEvil) then return end
+    local targetsRandoms = TTTBots.Roles.GetRoleFor(self.bot):GetKillsNonAllies()
+    if not (roundStarted and targetsRandoms) then return end
     if self.bot.attackTarget ~= nil then return end
     local delay = lib.GetConVarFloat("attack_delay")
     if TTTBots.Match.Time() <= delay then return end -- Don't attack randomly until the initial delay is over
@@ -249,7 +254,7 @@ function BotMorality:Think()
     self.tick = (self.bot.tick or 0)
     if not lib.IsPlayerAlive(self.bot) then return end
     self:TickSuspicions()
-    self:TraitorTargetTick()
+    self:SetRandomNearbyTarget()
     self:TickIfLastAlive()
 end
 
@@ -259,10 +264,9 @@ end
 ---@param healthRemaining number
 ---@param damageTaken number
 ---@return nil
-function BotMorality:OnWitnessHurtTraitor(victim, attacker, healthRemaining, damageTaken)
-    if not lib.IsEvil(victim) then return end
+function BotMorality:OnWitnessHurtIfAlly(victim, attacker, healthRemaining, damageTaken)
+    if not TTTBots.Roles.IsAllies(victim, attacker) then return end
 
-    -- The victim is evil and so are we. We should defend them if we don't have a target.
     if self.bot.attackTarget == nil then
         self.bot:SetAttackTarget(attacker)
     end
@@ -281,12 +285,12 @@ function BotMorality:OnWitnessKill(victim, weapon, attacker)
     -- For this function, we will allow the bots to technically cheat and know what role the victim was. They will not know what role the attacker is.
     -- This allows us to save time and resources in optimization and let players have a more fun experience, despite technically being a cheat.
     if not lib.IsPlayerAlive(self.bot) then return end
-    local vicIsEvil = lib.IsEvil(victim)
+    local vicIsTraitor = victim:GetTeam() == TEAM_TRAITOR
 
     -- change suspicion on the attacker by KillTraitor, KillTrusted, or Kill. Depending on role.
-    if vicIsEvil then
+    if vicIsTraitor then
         self:ChangeSuspicion(attacker, "KillTraitor")
-    elseif lib.IsPolice(victim) then
+    elseif TTTBots.Roles.GetRoleFor(victim):GetAppearsPolice() then
         self:ChangeSuspicion(attacker, "KillTrusted")
     else
         self:ChangeSuspicion(attacker, "Kill")
@@ -295,10 +299,10 @@ end
 
 function BotMorality:OnKOSCalled(caller, target)
     if not lib.IsPlayerAlive(self.bot) then return end
-    if lib.IsEvil(self.bot) then return end -- traitors do not care about KOS calls in this way
+    if not TTTBots.Roles.GetRoleFor(caller):GetUsesSuspicion() then return end
 
     local callerSus = self:GetSuspicion(caller)
-    local callerIsPolice = lib.IsPolice(caller)
+    local callerIsPolice = TTTBots.Roles.GetRoleFor(caller):GetAppearsPolice()
     local targetSus = self:GetSuspicion(target)
 
     local TRAITOR = self.Thresholds.KOS
@@ -345,10 +349,7 @@ end)
 
 --- When we witness someone getting hurt.
 function BotMorality:OnWitnessHurt(victim, attacker, healthRemaining, damageTaken)
-    if lib.IsEvil(self.bot) then -- We are evil, we usually don't care about this.
-        self:OnWitnessHurtTraitor(victim, attacker, healthRemaining, damageTaken)
-        return
-    end
+    self:OnWitnessHurtIfAlly(victim, attacker, healthRemaining, damageTaken)
     if attacker == self.bot then -- if we are the attacker, there is no sus to be thrown around.
         if victim == self.bot.attackTarget then
             local personality = lib.GetComp(self.bot, "personality")
@@ -387,8 +388,8 @@ function BotMorality:OnWitnessHurt(victim, attacker, healthRemaining, damageTake
     end
 
     local impact = (damageTaken / victim:GetMaxHealth()) * 3 --- Percent of max health lost * 3. 50% health lost =  6 sus
-    local victimIsPolice = lib.IsPolice(victim)
-    local attackerIsPolice = lib.IsPolice(attacker)
+    local victimIsPolice = TTTBots.Roles.GetRoleFor(victim):GetAppearsPolice()
+    local attackerIsPolice = TTTBots.Roles.GetRoleFor(attacker):GetAppearsPolice()
     local attackerSus = self:GetSuspicion(attacker)
     local victimSus = self:GetSuspicion(victim)
     if victimIsPolice or victimSus < BotMorality.Thresholds.Trust then
@@ -461,16 +462,15 @@ end)
 hook.Add("TTTBodyFound", "TTTBots.Components.Morality.BodyFound", function(ply, deadply, rag)
     if not (IsValid(ply) and ply:IsPlayer()) then return end
     if not (IsValid(deadply) and deadply:IsPlayer()) then return end
-    local deadplyIsEvil = lib.IsEvil(deadply)
-    local deadplyIsPolice = lib.IsPolice(deadply)
+    local corpseIsTraitor = deadply:GetTeam() ~= TEAM_INNOCENT
+    local corpseIsPolice = deadply:GetRoleStringRaw() == "detective"
 
     for i, bot in pairs(lib.GetAliveBots()) do
         local morality = bot.components and bot.components.morality
-        local isBotEvil = lib.IsEvil(bot)
-        if isBotEvil or not morality then continue end
-        if deadplyIsEvil then
+        if not morality or not TTTBots.Roles.GetRoleFor(bot):GetUsesSuspicion() then continue end
+        if corpseIsTraitor then
             morality:ChangeSuspicion(ply, "IdentifiedTraitor")
-        elseif deadplyIsPolice then
+        elseif corpseIsPolice then
             morality:ChangeSuspicion(ply, "IdentifiedTrusted")
         else
             morality:ChangeSuspicion(ply, "IdentifiedInnocent")
@@ -511,7 +511,7 @@ timer.Create("TTTBots.Components.Morality.PlayerCorpseTimer", 1, 0, function()
     end
 end)
 
--- Disguised player detection + TODO: held weapon detection (detect if holding traitor weapon)
+-- Disguised player detection
 timer.Create("TTTBots.Components.Morality.DisguisedPlayerDetection", 1, 0, function()
     if not TTTBots.Match.RoundActive then return end
     -- local disguised = TTTBots.Match.DisguisedPlayers -- it's more efficient go loop thru every player because we are going to detect traitor weps anyway
@@ -524,7 +524,7 @@ timer.Create("TTTBots.Components.Morality.DisguisedPlayerDetection", 1, 0, funct
             local witnessBots = lib.GetAllWitnesses(ply:EyePos(), true)
             for i, bot in pairs(witnessBots) do
                 if not IsValid(bot) then continue end
-                if lib.IsEvil(bot) then continue end
+                if not TTTBots.Roles.GetRoleFor(bot):GetUsesSuspicion() then continue end
                 local chatter = lib.GetComp(bot, "chatter")
                 if not chatter then continue end
                 -- set attack target if we do not have one already
@@ -535,91 +535,8 @@ timer.Create("TTTBots.Components.Morality.DisguisedPlayerDetection", 1, 0, funct
     end
 end)
 
--- Common sense: know that another player is a traitor given some conditions. Like if there is only a detective and ourselves left (and we're inno), we know the other guy is a traitor.
 timer.Create("TTTBots.Components.Morality.CommonSense", 1, 0, function()
     if not TTTBots.Match.IsRoundActive() then return end
-    local difficulty = lib.GetConVarInt("difficulty") -- [1,5]
-    -------------------------------------------
-    -- LAST LIVING INNO DETECTION
-    -------------------------------------------
-
-    local numAlive = 0
-    local numDetectives = 0
-    local numTraitors = 0
-    for i, bot in pairs(TTTBots.Bots) do
-        if not IsValid(bot) then continue end
-        if not lib.IsPlayerAlive(bot) then continue end
-        -- Firstly just reset each bot's target if they are dead:
-        if bot.attackTarget and not lib.IsPlayerAlive(bot.attackTarget) then
-            bot.attackTarget = nil
-        end
-
-        -- Count number of alive player and their roles
-        numAlive = numAlive + 1
-        if lib.IsPolice(bot) then
-            numDetectives = numDetectives + 1
-        elseif lib.IsEvil(bot) then
-            numTraitors = numTraitors + 1
-        end
-    end
-
-    if (numAlive >= 2) then
-        if (numTraitors == 1 and numAlive - (numTraitors + numDetectives) == 0) then -- If there are only detectives and 1 traitor alive, the detectives obviously should know who is evil.
-            for i, bot in pairs(TTTBots.Match.AlivePolice) do
-                bot:SetAttackTarget(TTTBots.Match.AliveTraitors[1])
-            end
-        elseif (numTraitors == 1 and numAlive == 3 and numDetectives == 1) then -- common case where 3 are left alive. the inno should know who the traitor is.
-            for i, bot in pairs(TTTBots.Match.AliveNonEvil) do
-                bot:SetAttackTarget(TTTBots.Match.AliveTraitors[1])
-            end
-        end
-    end
-    -------------------------------------------
-    -- IF LAST LIVING TRAITOR, OR WE KILLED JUST RECENTLY, KEEP ATTACKING
-    -------------------------------------------
-
-    local timePassed = TTTBots.Match.Time()
-    local curtime = CurTime()
-    for i, bot in pairs(TTTBots.Bots) do
-        if not IsValid(bot) then continue end
-        if not lib.IsPlayerAlive(bot) then continue end
-        local lastKillTime = bot.lastKillTime or 0
-        if (numTraitors == 1 and timePassed > 45) or lastKillTime > (curtime - 6) then
-            local isTraitor = lib.IsEvil(bot)
-            if isTraitor and bot.attackTarget == nil then
-                local possibleTargets = lib.GetAllVisible(bot:GetPos(), true)
-                if #possibleTargets > 0 then
-                    bot:SetAttackTarget(table.Random(possibleTargets))
-                end
-            end
-        end
-
-        -- The code below this point does not execute across traitors, or those with a target.
-        if bot.attackTarget ~= nil or lib.IsEvil(bot) then continue end
-        local visibleToMe = lib.GetAllVisible(bot:GetPos(), false)
-        for i, other in pairs(visibleToMe) do
-            -------------------------------------------
-            -- TEST IF WE SEE ANY RED HANDED PLAYERS
-            -------------------------------------------
-            if lib.IsPolice(other) then continue end
-            local redHandedTime = other.redHandedTime or 0
-            if redHandedTime > curtime then
-                bot:SetAttackTarget(other)
-            end
-            -------------------------------------------
-            -- TEST IF WE SEE ANY PLAYERS HOLDING TRAITOR WEPS
-            -------------------------------------------
-            if lib.IsHoldingTraitorWep(other) then
-                -- 1/2 per second chance on hard, 1/6 chance on easy
-                local chanceToSee = math.random(1, 7 - difficulty) == 1
-                local canSeeWithinFOV = chanceToSee and lib.CanSeeArc(bot, other:GetPos(), 80)
-                if canSeeWithinFOV then
-                    bot:SetAttackTarget(other)
-                    local chatter = lib.GetComp(bot, "chatter")
-                    if not chatter then continue end
-                    chatter:On("HoldingTraitorWeapon", { player = other:Nick() })
-                end
-            end
-        end
-    end
+    -- TODO: Deleted this code since it didn't do much anyway. It was overcomplicated and created lag spikes.
+    -- Common sense: make red-handed traitors kill anyone else nearby
 end)
