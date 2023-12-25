@@ -41,7 +41,7 @@ bot_sv_cvar("chatter_silly", "1",
     "Whether or not bots can say silly stuff randomly in chat. This is reserved for one-liners, and does not affect dialog.")
 bot_sv_cvar("chatter_dialogue", "1",
     "Whether or not bots can chitchat with each other in text chat.")
-bot_sv_cvar("chatter_typo_chance", "4",
+bot_sv_cvar("chatter_typo_chance", "2",
     "A percent chance, from 1-100, that each character in a bot's message will have a typo.")
 
 -- Gameplay-effecting cvars

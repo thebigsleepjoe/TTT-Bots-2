@@ -109,11 +109,11 @@ function Dialog.ExecuteDialog(dialog)
 
     local lastdline = dialog.lines[dialog.currentLine - 1]
     local lastParticipant = lastdline and dialog.participants[lastdline.participantId] ---@type Player|nil
-    local lastParticipantName = lastParticipant and lastParticipant:Nick() or "???"
+    local lastParticipantName = lastParticipant and lastParticipant:Nick() or ""
 
     local nextdline = dialog.lines[dialog.currentLine + 1]
     local nextParticipant = nextdline and dialog.participants[nextdline.participantId] ---@type Player|nil
-    local nextParticipantName = nextParticipant and nextParticipant:Nick() or "???"
+    local nextParticipantName = nextParticipant and nextParticipant:Nick() or ""
 
     local translatedLine = TTTBots.Locale.GetLocalizedLine("Dialog" .. dline.line, participant,
         { lastBot = lastParticipantName, nextBot = nextParticipantName, bot = participant:Nick() })
@@ -126,7 +126,7 @@ function Dialog.ExecuteDialog(dialog)
     local chatter = TTTBots.Lib.GetComp(participant, "chatter") ---@type CChatter
     if not chatter then
         Dialog.EndDialog(dialog)
-        print("no chatter on bot???`")
+        print("no chatter on bot`")
         return dialog
     end
     dialog.waiting = true

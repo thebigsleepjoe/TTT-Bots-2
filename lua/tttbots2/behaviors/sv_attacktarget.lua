@@ -428,12 +428,10 @@ end
 
 --- Called when the behavior returns a success state
 function Attack.OnSuccess(bot)
-    bot:Say("Killed that fool!")
 end
 
 --- Called when the behavior returns a failure state
 function Attack.OnFailure(bot)
-    bot:Say("Lost that fool!")
 end
 
 --- Called when the behavior ends

@@ -14,8 +14,16 @@ end
 --- Return a role by its name.
 ---@param name string
 ---@return RoleData
+---@return boolean - Whether or not the role is the default role.
 function TTTBots.Roles.GetRole(name)
-    return TTTBots.Roles.m_roles[name] or TTTBots.Roles.m_roles["default"]
+    local selected = TTTBots.Roles.m_roles[name]
+    local isDefault = false
+    if not selected then
+        selected = TTTBots.Roles.m_roles["innocent"]
+        isDefault = true
+    end
+
+    return selected, isDefault
 end
 
 ---Returns the RoleData of the player, else nil if it doesn't exist.
@@ -43,7 +51,7 @@ end
 ---@return boolean
 function TTTBots.Roles.IsAllies(ply1, ply2)
     if not (IsValid(ply1) and IsValid(ply2)) then return false end
-    if ply1:IsInTeam(ply2) then return true end
+    if ply1:IsInTeam(ply2) and ply2:Team() ~= TEAM_INNOCENT then return true end
     local roleData = TTTBots.Roles.GetRoleFor(ply1)
     return roleData:GetAllies()[ply2:GetRoleStringRaw()] or false
 end
@@ -93,24 +101,24 @@ end
 function TTTBots.Roles.GenerateRegisterForRole(roleString)
     -- If we are in this function, this is definitely TTT2. But check anyway :)))
     if not TTTBots.Lib.IsTTT2() then return end
-    local role = roles.GetByName(roleString)
-    if not role then return end
-    local baseRole = role.baserole
+    local roleObj = roles.GetByName(roleString)
+    if not roleObj then return end
+    local baseRole = roleObj.baserole and roles.GetByIndex(roleObj.baserole)
     if baseRole then
         local baseData = TTTBots.Roles.GetRole(baseRole.name)
         if baseData:GetName() ~= "default" then
             local copy = table.Copy(baseData)
             copy:SetName(roleString)
             TTTBots.Roles.RegisterRole(copy)
-            print(string.format("[TTT Bots] Auto-registered role '%s' based off of '%s'", roleString, baseRole.name))
+            print(string.format("[TTT Bots 2] Auto-registered role '%s' based off of '%s'", roleString, baseRole.name))
             return true
         end
     end
 
-    local roleTeam = role.defaultTeam
-    local isOmniscient = role.isOmniscientRole or false
+    local roleTeam = roleObj.defaultTeam
+    local isOmniscient = roleObj.isOmniscientRole or false
     -- local isPublicRole = role.isPublicRole or false     -- If the role is known to everyone. Unused here
-    local isPolicingRole = role.isPolicingRole or false -- if the role is a policing role
+    local isPolicingRole = roleObj.isPolicingRole or false -- if the role is a policing role
 
     local data = TTTBots.RoleData.New(roleString)
     data:SetTeam(roleTeam)
@@ -121,7 +129,9 @@ function TTTBots.Roles.GenerateRegisterForRole(roleString)
     data:SetKnowsLifeStates(isOmniscient)
     data:SetBTree(TTTBots.Behaviors.DefaultTreesByTeam[roleTeam] or TTTBots.Behaviors.DefaultTrees.innocent)
     data:SetKillsNonAllies(roleTeam == TEAM_TRAITOR)
+    print(string.format("[TTT Bots 2] Auto-registered role '%s' as a part of team ''", roleString, roleTeam))
     TTTBots.Roles.RegisterRole(data)
+    return true
 end
 
 --- Create a timer on 2-second intervals to auto-generate roles if round started and we find an unknown role
@@ -129,8 +139,8 @@ timer.Create("TTTBots.AutoRegisterRoles", 2, 0, function()
     for _, bot in pairs(TTTBots.Bots) do
         if not IsValid(bot) then continue end
         local roleString = bot:GetRoleStringRaw()
-        if not TTTBots.Roles.GetRole(roleString) then
-            print("[TTT Bots] trying to generate role " .. roleString)
+        local roleObj, isDefault = TTTBots.Roles.GetRole(roleString)
+        if isDefault then
             TTTBots.Roles.GenerateRegisterForRole(roleString)
         end
     end

@@ -53,6 +53,7 @@ TTTBots.Behaviors.DefaultTrees = {
 TTTBots.Behaviors.DefaultTreesByTeam = {
     [TEAM_TRAITOR] = TTTBots.Behaviors.DefaultTrees.traitor,
     [TEAM_INNOCENT] = TTTBots.Behaviors.DefaultTrees.innocent,
+    [TEAM_NONE] = TTTBots.Behaviors.DefaultTrees.innocent,
 }
 
 local STATUS = {

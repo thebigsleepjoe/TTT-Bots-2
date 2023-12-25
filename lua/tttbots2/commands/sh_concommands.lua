@@ -64,7 +64,7 @@ CreateSharedConCommand("ttt_bot_add", function(ply, _, args)
     for i = 1, number do
         local bot = Lib.CreateBot()
         if not bot then return end
-        print(string.format("%s created bot %s", GetNickOrDefault(ply), GetNickOrDefault(bot, "???")))
+        print(string.format("%s created bot %s", GetNickOrDefault(ply), GetNickOrDefault(bot, "")))
     end
 end)
 

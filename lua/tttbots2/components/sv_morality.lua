@@ -213,8 +213,8 @@ function BotMorality:SetRandomNearbyTarget()
     local delay = lib.GetConVarFloat("attack_delay")
     if TTTBots.Match.Time() <= delay then return end -- Don't attack randomly until the initial delay is over
 
-    local aggression = (self.bot:GetTraitMult("aggression")) * (self.bot.rage or 1)
-    local time_modifier = TTTBots.Match.SecondsPassed / 35 -- Increase chance to attack over time.
+    local aggression = math.max((self.bot:GetTraitMult("aggression")) * (self.bot.rage or 1), 0.3)
+    local time_modifier = TTTBots.Match.SecondsPassed / 30 -- Increase chance to attack over time.
 
     local maxTargets = math.max(2, math.ceil(aggression * 2 * time_modifier))
     local targets = lib.GetAllVisible(self.bot:EyePos(), true)
