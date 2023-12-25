@@ -1,11 +1,21 @@
 {
-	"title"		:	"TTT Bots 2.0",
-	"type"		:	"ServerContent",
-	"tags"		:	[ "servercontent", "realism" ],
-	"ignore"	:
-	[
+	"title": "TTT Bots 2.0",
+	"type": "ServerContent",
+	"tags": [
+		"roleplay",
+		"realism"
+	],
+	"ignore": [
 		"*.psd",
 		"*.vcproj",
-		"*.svn*"
+		"*.svn*",
+		"*.vmf",
+		"*.md",
+		"*.txt",
+		"*.wav",
+		"tttbots-banner2.png",
+		"icon.jpg",
+		".vscode/*",
+		".github/*"
 	]
 }
