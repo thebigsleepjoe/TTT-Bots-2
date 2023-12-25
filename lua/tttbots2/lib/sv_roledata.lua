@@ -78,8 +78,3 @@ end
 function TTTBots.RoleData:IsTraitor()
     return self:GetTeam() == TEAM_TRAITOR
 end
-
---- Try to register our allies automatically if we're in TTT2.
-function TTTBots.RoleData:RegisterAllies()
-    -- TODO: Find the ally roles of this role (check TEAM_ values) and register them.
-end
