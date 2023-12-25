@@ -286,7 +286,7 @@ function Attack.CalculateInaccuracy(bot, origin)
     local rage = (personality:GetRage() * 2) + 1 -- float [1,3]
 
     local inaccuarcy_reduction =
-        (bot:GetRoleStringRaw() == "traitor" and lib.GetConVarBool("ttt_bot_cheat_traitor_accuracy"))
+        (bot:GetRoleStringRaw() == "traitor" and lib.GetConVarBool("cheat_traitor_accuracy"))
         and 2 or 1
 
     local inaccuracy_mod = (pressure / difficulty) -- The more pressure we have, the more inaccurate we are; decreased by difficulty

@@ -117,14 +117,14 @@ function TTTBots.Behaviors.CallTreeOnBots()
         end
 
         if newState == STATUS.SUCCESS or newState == STATUS.FAILURE then
-            lastBehavior.OnEnd(bot)
+            if lastBehavior then lastBehavior.OnEnd(bot) end
             bot.lastBehavior = nil
         end
 
         if newState == STATUS.SUCCESS then
-            lastBehavior.OnSuccess(bot)
+            if lastBehavior then lastBehavior.OnSuccess(bot) end
         elseif newState == STATUS.FAILURE then
-            lastBehavior.OnFailure(bot)
+            if lastBehavior then lastBehavior.OnFailure(bot) end
         end
     end
 

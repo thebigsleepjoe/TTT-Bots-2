@@ -19,7 +19,7 @@ local Plans = TTTBots.Plans
 local ACTIONS = Plans.ACTIONS
 
 function FollowPlan.IsPlanFollowerRole(bot)
-    return TTTBots.Role.GetRoleFor(bot):GetCanCoordinate()
+    return TTTBots.Roles.GetRoleFor(bot):GetCanCoordinate()
 end
 
 --- Ignore plans if we aren't evil or have a conflicting personality trait.

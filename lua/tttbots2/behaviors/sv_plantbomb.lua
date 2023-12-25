@@ -80,7 +80,7 @@ function PlantBomb.FindPlantSpot(bot)
 
         -- 🤏🏽Penalize or reward based on distance to targets
         for _, ply in pairs(player.GetAll()) do
-            if not (lib.IsGood(ply) and lib.IsPlayerAlive(ply)) then continue end
+            if not (not TTTBots.Roles.IsAllies(bot, ply) and lib.IsPlayerAlive(ply)) then continue end
 
             --- We want to find spots in the 'goldilocks zone' -- not too close to targets, but not too far away either.
             local distToSpot = ply:GetPos():Distance(spot)

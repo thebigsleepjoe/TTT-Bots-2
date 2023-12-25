@@ -332,7 +332,7 @@ hook.Add("PlayerDeath", "TTTBots.Components.Morality.PlayerDeath", function(vict
         victim.components.morality:OnKilled(attacker)
     end
     if not victim:Visible(attacker) then return end -- This must be an indirect attack, like C4 or fire.
-    if lib.IsGood(victim) then                      -- This is technically a cheat, but it's a necessary one.
+    if victim:GetTeam() == TEAM_INNOCENT then       -- This is technically a cheat, but it's a necessary one.
         local ttt_bot_cheat_redhanded_time = lib.GetConVarInt("cheat_redhanded_time")
         attacker.redHandedTime = timestamp +
             ttt_bot_cheat_redhanded_time -- Only assign red handed time if it was a direct attack

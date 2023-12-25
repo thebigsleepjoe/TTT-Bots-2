@@ -936,7 +936,9 @@ end
 -- Prepends "ttt_bot_" to the name of the convar, and returns the boolean value of the convar.
 ---@realm shared
 function TTTBots.Lib.GetConVarBool(name)
-    return GetConVar("ttt_bot_" .. name):GetBool()
+    local cvar = GetConVar("ttt_bot_" .. name)
+    if not cvar then print(name) end
+    return cvar:GetBool()
 end
 
 -- Wrapper for "ttt_bot_" + name convars

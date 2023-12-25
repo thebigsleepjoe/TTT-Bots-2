@@ -42,6 +42,7 @@ end
 ---@param ply2 Player
 ---@return boolean
 function TTTBots.Roles.IsAllies(ply1, ply2)
+    if not (IsValid(ply1) and IsValid(ply2)) then return false end
     if ply1:IsInTeam(ply2) then return true end
     local roleData = TTTBots.Roles.GetRoleFor(ply1)
     return roleData:GetAllies()[ply2:GetRoleStringRaw()] or false
@@ -118,9 +119,21 @@ function TTTBots.Roles.GenerateRegisterForRole(roleString)
     data:SetCanHaveRadar(isPolicingRole or roleTeam == TEAM_TRAITOR)
     data:SetAllies({ [roleString] = true })
     data:SetKnowsLifeStates(isOmniscient)
-    data:SetBTree(TTTBots.Behaviors.DefaultTreesByTeam[roleTeam] or {})
+    data:SetBTree(TTTBots.Behaviors.DefaultTreesByTeam[roleTeam] or TTTBots.Behaviors.DefaultTrees.innocent)
     data:SetKillsNonAllies(roleTeam == TEAM_TRAITOR)
     TTTBots.Roles.RegisterRole(data)
 end
+
+--- Create a timer on 2-second intervals to auto-generate roles if round started and we find an unknown role
+timer.Create("TTTBots.AutoRegisterRoles", 2, 0, function()
+    for _, bot in pairs(TTTBots.Bots) do
+        if not IsValid(bot) then continue end
+        local roleString = bot:GetRoleStringRaw()
+        if not TTTBots.Roles.GetRole(roleString) then
+            print("[TTT Bots] trying to generate role " .. roleString)
+            TTTBots.Roles.GenerateRegisterForRole(roleString)
+        end
+    end
+end)
 
 TTTBots.Roles.RegisterDefaultRoles()
