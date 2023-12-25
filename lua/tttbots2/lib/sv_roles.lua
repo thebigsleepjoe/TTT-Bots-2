@@ -62,17 +62,20 @@ function TTTBots.Roles.RegisterDefaultRoles()
     traitor:SetKillsNonAllies(true)
     traitor:SetTeam(TEAM_TRAITOR)
     traitor:SetUsesSuspicion(false)
+    traitor:SetBTree(TTTBots.Behaviors.DefaultTrees.traitor)
     TTTBots.Roles.RegisterRole(traitor)
 
     local detective = TTTBots.RoleData.New("detective")
     detective:SetDefusesC4(true)
     detective:SetCanHaveRadar(true)
     detective:SetTeam(TEAM_INNOCENT)
+    detective:SetBTree(TTTBots.Behaviors.DefaultTrees.detective)
     TTTBots.Roles.RegisterRole(detective)
 
     local innocent = TTTBots.RoleData.New("innocent")
     innocent:SetDefusesC4(true)
     innocent:SetTeam(TEAM_INNOCENT)
+    innocent:SetBTree(TTTBots.Behaviors.DefaultTrees.innocent)
     TTTBots.Roles.RegisterRole(innocent)
 end
 
@@ -115,7 +118,7 @@ function TTTBots.Roles.GenerateRegisterForRole(roleString)
     data:SetCanHaveRadar(isPolicingRole or roleTeam == TEAM_TRAITOR)
     data:SetAllies({ [roleString] = true })
     data:SetKnowsLifeStates(isOmniscient)
-    -- data:SetBTree() -- TODO: Add a default behavior tree for this role.
+    data:SetBTree(TTTBots.Behaviors.DefaultTreesByTeam[roleTeam] or {})
     data:SetKillsNonAllies(roleTeam == TEAM_TRAITOR)
     TTTBots.Roles.RegisterRole(data)
 end
