@@ -7,7 +7,7 @@ TTTBots.Roles.m_roles = {}
 
 include("sv_roledata.lua")
 
-function TTTBots.Roles.RegisterRole(roleData, priority)
+function TTTBots.Roles.RegisterRole(roleData)
     TTTBots.Roles.m_roles[roleData:GetName()] = roleData
 end
 
@@ -29,6 +29,7 @@ end
 ---Returns the RoleData of the player, else nil if it doesn't exist.
 ---@param ply Player
 ---@return RoleData
+---@return boolean - Whether or not the role is the default role.
 function TTTBots.Roles.GetRoleFor(ply)
     local roleString = ply:GetRoleStringRaw()
     return TTTBots.Roles.GetRole(roleString)
