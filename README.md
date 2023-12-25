@@ -10,13 +10,13 @@ It is designed to be as modular as possible, allowing easy customization and exp
 3. *As a super admin,* either type `!about X` in chat or write `ttt_bot_add X` in the console.
 4. You're done!
 
-## Commands
-TODO: Link wiki
+## Usage and Commands
+An essential usage guide can be found [here](https://github.com/thebigsleepjoe/TTT-Bots-2/wiki/Basic-Usage-Guide). It will give you all the info you need for 90% of cases. A more in-depth set of guides are WIP.
 
 ## For developers
 TODO: Create a wiki article for devs
 
-## Vague to-do list:
+## Vague to-do list
 - Create some more bot maps as separate addons, but link them here.
 - Implement the !botmenu: blacklist/whitelist certain traits, change bot count, etc.
 - Have bots be able to emulate using the DNA scanner (??)]
