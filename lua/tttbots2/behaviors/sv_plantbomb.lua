@@ -50,7 +50,7 @@ function PlantBomb.FindPlantSpot(bot)
     -- We will use a weighting system for this.
     for _, spot in pairs(options) do
         weightedOptions[spot] = 0
-        local witnesses = lib.GetAllVisible(spot, true)
+        local witnesses = lib.GetAllVisible(spot, true, bot)
 
         -- 💣 Check for existing bombs near this spot
         local bombTooClose = false
@@ -144,7 +144,7 @@ function PlantBomb.OnRunning(bot)
         return STATUS.RUNNING
     end
     -- We are close enough to plant.
-    local witnesses = lib.GetAllVisible(spot, true)
+    local witnesses = lib.GetAllVisible(spot, true, bot)
     local currentTime = CurTime()
 
     if #witnesses > 0 then

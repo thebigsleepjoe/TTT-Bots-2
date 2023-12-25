@@ -112,6 +112,12 @@ CreateSharedConCommand("ttt_bot_reload", function(ply, _, args)
     RunConsoleCommand("ttt_roundrestart")
 end)
 
+CreateSharedConCommand("ttt_bot_print_roledata", function(ply, _, args)
+    if not IsPlayerSuperAdmin(ply) then return end -- cmd only works as server or SA
+    local roleData = TTTBots.Roles.GetRoles()
+    PrintTable(roleData)
+end)
+
 CreateSharedConCommand('ttt_bot_recache_spots', function(ply, _, args)
     if not IsPlayerSuperAdmin(ply) then return end -- cmd only works as server or SA
     TTTBots.Spots.CacheAllSpots()

@@ -217,7 +217,7 @@ function BotMorality:SetRandomNearbyTarget()
     local time_modifier = TTTBots.Match.SecondsPassed / 30 -- Increase chance to attack over time.
 
     local maxTargets = math.max(2, math.ceil(aggression * 2 * time_modifier))
-    local targets = lib.GetAllVisible(self.bot:EyePos(), true)
+    local targets = lib.GetAllVisible(self.bot:EyePos(), true, self.bot)
 
     if (#targets > maxTargets) or (#targets == 0) then return end -- Don't attack if there are too many targets
 
