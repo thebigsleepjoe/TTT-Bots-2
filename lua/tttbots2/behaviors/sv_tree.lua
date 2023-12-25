@@ -12,6 +12,10 @@ include("tttbots2/behaviors/sv_defuse.lua")
 include("tttbots2/behaviors/sv_plantbomb.lua")
 include("tttbots2/behaviors/sv_usehealthstation.lua")
 
+TEAM_TRAITOR = TEAM_TRAITOR or "traitors"
+TEAM_INNOCENT = TEAM_INNOCENT or "innocents"
+TEAM_NONE = TEAM_NONE or "none"
+
 local b = TTTBots.Behaviors
 
 TTTBots.Behaviors.DefaultTrees = {

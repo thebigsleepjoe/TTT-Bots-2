@@ -52,7 +52,7 @@ end
 ---@return boolean
 function TTTBots.Roles.IsAllies(ply1, ply2)
     if not (IsValid(ply1) and IsValid(ply2)) then return false end
-    if ply1:IsInTeam(ply2) and ply2:Team() ~= TEAM_INNOCENT then return true end
+    if ply1:GetTeam() == ply2:GetTeam() and ply2:GetTeam() ~= TEAM_INNOCENT then return true end
     local roleData = TTTBots.Roles.GetRoleFor(ply1)
     return roleData:GetAllies()[ply2:GetRoleStringRaw()] or false
 end
@@ -148,3 +148,18 @@ timer.Create("TTTBots.AutoRegisterRoles", 2, 0, function()
 end)
 
 TTTBots.Roles.RegisterDefaultRoles()
+
+
+if TTTBots.Lib.IsTTT2() then return end
+
+local plyMeta = FindMetaTable("Player")
+
+function plyMeta:GetTeam()
+    if self:IsTraitor() then return 'traitors' end
+    if self:IsDetective() then return 'detectives' end
+    return 'innocents'
+end
+
+function plyMeta:IsInTeam(ply1, ply2)
+    return ply1:Team() == ply2:Team()
+end

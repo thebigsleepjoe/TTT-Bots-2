@@ -219,6 +219,8 @@ function BotMorality:SetRandomNearbyTarget()
     local maxTargets = math.max(2, math.ceil(aggression * 2 * time_modifier))
     local targets = lib.GetAllVisible(self.bot:EyePos(), true, self.bot)
 
+    print("Trying to attack someone ", #targets)
+
     if (#targets > maxTargets) or (#targets == 0) then return end -- Don't attack if there are too many targets
 
     local base_chance = 4.5                                       -- X% chance to attack per second
