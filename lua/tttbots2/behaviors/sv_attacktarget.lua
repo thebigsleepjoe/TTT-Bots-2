@@ -373,7 +373,7 @@ end
 function Attack.ValidateTarget(bot)
     local target = bot.attackTarget
 
-    local hasTarget = target and true or false
+    local hasTarget = (target and target ~= NULL) and true or false
     local targetIsValid = target and target:IsValid() or false
     local targetIsAlive = target and target:Alive() or false
     local targetIsPlayer = target and target:IsPlayer() or false
