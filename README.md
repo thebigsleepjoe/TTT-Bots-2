@@ -1,3 +1,6 @@
+🎄🎁 The mod has been released on Steam. Merry Christmas! 
+
+Please leave any bug reports or feature requests in the Issues section.
 ![TTT Bots Header](tttbots-banner2.png)
 ## What is this?
 This is a player bot addon for the Trouble in Terrorist Town game mode in Garry's Mod.
