@@ -240,6 +240,7 @@ function TTTBots.Lib.GetAllWitnessesBasic(pos, playerTbl, ignorePly)
     local RANGE = TTTBots.Lib.BASIC_VIS_RANGE
     local witnesses = {}
     for i, ply in pairs(playerTbl) do
+        if ply == NULL or not IsValid(ply) then continue end
         if ply:GetPos():Distance(pos) <= RANGE then
             if ply == ignorePly then continue end
             local sawthat = ply:VisibleVec(pos)
