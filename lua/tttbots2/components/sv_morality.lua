@@ -207,7 +207,7 @@ end
 function BotMorality:SetRandomNearbyTarget()
     if not (self.tick % TTTBots.Tickrate == 0) then return end -- Run only once every second
     local roundStarted = TTTBots.Match.RoundActive
-    local targetsRandoms = TTTBots.Roles.GetRoleFor(self.bot):GetKillsNonAllies()
+    local targetsRandoms = TTTBots.Roles.GetRoleFor(self.bot):GetStartsFights()
     if not (roundStarted and targetsRandoms) then return end
     if self.bot.attackTarget ~= nil then return end
     local delay = lib.GetConVarFloat("attack_delay")

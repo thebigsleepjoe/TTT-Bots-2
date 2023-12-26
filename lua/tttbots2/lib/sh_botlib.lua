@@ -477,6 +477,47 @@ function TTTBots.Lib.GetSet(varname, default)
     return getFunc, setFunc
 end
 
+function TTTBots.Lib.IncludeDirectory(path)
+    path = path .. "/"
+
+    local files, directories = file.Find(path .. "*", "LUA")
+    local loadedLuaList = {}
+
+    for _, v in ipairs(files) do
+        if string.EndsWith(v, ".lua") then
+            local inclusion = include(path .. v)
+            if inclusion then -- If the added script returns true, then add it to the list
+                table.insert(loadedLuaList, v)
+            end
+        end
+    end
+
+    return loadedLuaList
+end
+
+function TTTBots.Lib.StringifyTable(tbl)
+    local result = {}
+    local isArray = true
+    local index = 1
+
+    for key, value in pairs(tbl) do
+        if isArray and (key ~= index or type(key) ~= "number") then
+            isArray = false
+        end
+
+        if isArray then
+            table.insert(result, tostring(value))
+            index = index + 1
+        else
+            local keyStr = type(key) == "string" and ("[" .. string.format("%q", key) .. "]") or
+                ("[" .. tostring(key) .. "]")
+            table.insert(result, keyStr .. " = " .. tostring(value))
+        end
+    end
+
+    return "{ " .. table.concat(result, ", ") .. " }"
+end
+
 ---@realm server
 function TTTBots.Lib.GetNavRegions(forceRecache)
     if not forceRecache and _cachedRegions.hasCached then
