@@ -1,16 +1,7 @@
 TTTBots.Behaviors = {}
 
-include("tttbots2/behaviors/sv_wander.lua")
-include("tttbots2/behaviors/sv_findweapon.lua")
-include("tttbots2/behaviors/sv_clearbreakables.lua")
-include("tttbots2/behaviors/sv_attacktarget.lua")
-include("tttbots2/behaviors/sv_investigatenoise.lua")
-include("tttbots2/behaviors/sv_investigatecorpse.lua")
-include("tttbots2/behaviors/sv_follow.lua")
-include("tttbots2/behaviors/sv_followplan.lua")
-include("tttbots2/behaviors/sv_defuse.lua")
-include("tttbots2/behaviors/sv_plantbomb.lua")
-include("tttbots2/behaviors/sv_usehealthstation.lua")
+TTTBots.Lib.IncludeDirectory("tttbots2/behaviors")
+
 
 TEAM_TRAITOR = TEAM_TRAITOR or "traitors"
 TEAM_INNOCENT = TEAM_INNOCENT or "innocents"
