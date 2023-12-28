@@ -62,6 +62,17 @@ function TTTBots.Roles.IsAllies(ply1, ply2)
     return allied1 or allied2
 end
 
+---Get a table of players that are not allies with ply1, and are alive.
+---@param ply1 Player
+---@return table<Player>
+function TTTBots.Roles.GetNonAllies(ply1)
+    local alive = TTTBots.Match.AlivePlayers
+    return TTTBots.Lib.FilterTable(alive, function(other)
+        if not (IsValid(other) and lib.IsPlayerAlive(other)) then return false end
+        return not TTTBots.Roles.IsAllies(ply1, other)
+    end)
+end
+
 ---Returns if the bot's team is that of a traitor. Not recommende for determining who is friendly, as this is only based on the team, and not the role's allies.
 ---@param bot any
 ---@return boolean
