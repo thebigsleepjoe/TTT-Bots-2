@@ -183,15 +183,15 @@ function BotInventory:GetWeaponInfo(wep)
     -- If it is melee
     info.is_melee = info.clip == -1
 
-    info.damage = wep.Primary and wep.Primary.Damage
-    info.rpm = math.ceil(wep.Primary and (1 / (wep.Primary.Delay or 1)) * 60)
-    info.numshots = wep.Primary and wep.Primary.NumShots
-    info.dps = math.ceil(info.damage * info.numshots * info.rpm * (1 / 60))
-    info.time_to_kill = math.ceil((100 / info.dps) * 100) / 100
+    info.damage = wep.Primary and wep.Primary.Damage or 1
+    info.rpm = math.ceil(wep.Primary and (1 / (wep.Primary.Delay or 1)) * 60) or 1
+    info.numshots = wep.Primary and wep.Primary.NumShots or 1
+    info.dps = math.ceil(info.damage * info.numshots * info.rpm * (1 / 60)) or 1
+    info.time_to_kill = (math.ceil((100 / info.dps) * 100) / 100) or 1
 
-    info.is_automatic = wep.Primary and wep.Primary.Automatic
+    info.is_automatic = (wep.Primary and wep.Primary.Automatic) or false
     -- we can infer if this is a sniper based off of the damage and if it's automatic
-    info.is_sniper = info.damage and info.damage > 40 and not info.is_automatic
+    info.is_sniper = (info.damage and info.damage > 40 and not info.is_automatic) or false
     return info
 end
 
