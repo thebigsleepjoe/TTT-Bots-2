@@ -184,7 +184,7 @@ function BotInventory:GetWeaponInfo(wep)
     info.is_melee = info.clip == -1
 
     info.damage = wep.Primary and wep.Primary.Damage
-    info.rpm = math.ceil(wep.Primary and (1 / wep.Primary.Delay) * 60)
+    info.rpm = math.ceil(wep.Primary and (1 / (wep.Primary.Delay or 1)) * 60)
     info.numshots = wep.Primary and wep.Primary.NumShots
     info.dps = math.ceil(info.damage * info.numshots * info.rpm * (1 / 60))
     info.time_to_kill = math.ceil((100 / info.dps) * 100) / 100
