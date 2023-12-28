@@ -1605,6 +1605,7 @@ local plyMeta = FindMetaTable("Player")
 function plyMeta:SetAttackTarget(target)
     if self.attackTarget == target then return end
     if (IsValid(target) and TTTBots.Roles.IsAllies(self, target)) then return end
+    if (hook.Run("TTTBotsCanAttack", self, target) == false) then return end
     self.attackTarget = target
     local loco = lib.GetComp(self, "locomotor")
     local personality = lib.GetComp(self, "personality")

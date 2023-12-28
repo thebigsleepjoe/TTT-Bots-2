@@ -80,6 +80,50 @@ function TTTBots.Lib.GetAlivePlayers()
     return alive
 end
 
+---Give a weight to how isolated 'other' is to us. This is used to determine who to Sidekick.
+---A higher isolation means the player is more isolated, and thus a better target for Sidekicking.
+---@param bot Player
+---@param other Player
+---@return number
+---@realm server
+function TTTBots.Lib.RateIsolation(bot, other)
+    if not IsValid(bot) or not IsValid(other) then return -math.huge end
+    local isolation = 0
+
+    local VISIBLE_FACTOR = -0.5    -- Penalty per visible player to other
+    local VISIBLE_ME_FACTOR = 0.5  -- Bonus if we can already see other
+    local DISTANCE_FACTOR = -0.001 -- Distance penalty per hammer unit to bot
+
+    local witnesses = TTTBots.Lib.GetAllWitnessesBasic(other:EyePos(), TTTBots.Roles.GetNonAllies(bot), bot)
+    isolation = isolation + (VISIBLE_FACTOR * table.Count(witnesses))
+    isolation = isolation + (DISTANCE_FACTOR * bot:GetPos():Distance(other:GetPos()))
+    isolation = isolation + (VISIBLE_ME_FACTOR * (bot:Visible(other) and 1 or 0))
+    isolation = isolation + (math.random(-3, 3) / 10) -- Add a bit of randomness to the isolation
+
+    return isolation
+end
+
+---Find the best target to Sidekick, and return it. This is a pretty expensive function, so don't call it too often.
+---@param bot Player
+---@return Player?
+---@return number
+---@realm server
+function TTTBots.Lib.FindIsolatedTarget(bot)
+    local nonAllies = TTTBots.Roles.GetNonAllies(bot)
+    local bestIsolation = -math.huge
+    local bestTarget = nil
+
+    for _, other in ipairs(nonAllies) do
+        local isolation = TTTBots.Lib.RateIsolation(bot, other)
+        if isolation > bestIsolation then
+            bestIsolation = isolation
+            bestTarget = other
+        end
+    end
+
+    return bestTarget, bestIsolation
+end
+
 ---Returns a table of living bots, according to the IsPlayerAlive cache.
 ---@return table<Player>
 ---@realm shared

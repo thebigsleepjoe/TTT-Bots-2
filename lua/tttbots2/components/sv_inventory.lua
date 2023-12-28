@@ -283,6 +283,27 @@ function BotInventory:Think()
     self:AutoManageInventory()
 end
 
+--- Return the jackal gun (weapon_ttt2_sidekickdeagle) if it has >0 shots. If not, then return nil.
+---@return WeaponInfo?
+function BotInventory:GetJackalGun()
+    local hasWeapon = self.bot:HasWeapon("weapon_ttt2_sidekickdeagle")
+    if not hasWeapon then return end
+    local wep = self.bot:GetWeapon("weapon_ttt2_sidekickdeagle")
+    if not IsValid(wep) then return end
+
+    return wep:Clip1() > 0 and wep or nil
+end
+
+--- Equip the Jackal's Sidekick Deagle if we have it. Returns true if we equipped it, false if we didn't.
+--- Doesn't error if we don't have it.
+---@return boolean
+function BotInventory:EquipJackalGun()
+    local gun = self:GetJackalGun()
+    if not gun then return false end
+    self.bot:SetActiveWeapon(gun)
+    return true
+end
+
 ---Returns the weapon info table for the weapon we are holding, or what the target is holding if any.
 ---@param target Player|nil
 ---@return WeaponInfo

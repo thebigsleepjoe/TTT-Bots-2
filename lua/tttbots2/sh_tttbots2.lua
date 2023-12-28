@@ -217,6 +217,7 @@ if SERVER then
 
         print("[TTT Bots 2] Initializing TTT Bots...")
         TTTBots.Reload()
+        hook.Run("TTTBotsInitialized", TTTBots)
     end
 
     initializeIfChecksPassed()
