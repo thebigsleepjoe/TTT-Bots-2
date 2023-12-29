@@ -534,8 +534,39 @@ timer.Create("TTTBots.Components.Morality.DisguisedPlayerDetection", 1, 0, funct
     end
 end)
 
-timer.Create("TTTBots.Components.Morality.CommonSense", 1, 0, function()
+---Keep killing any nearby non-allies if we're red-handed.
+---@param bot Player
+local function continueMassacre(bot)
+    local isRedHanded = bot.redHandedTime and (CurTime() < bot.redHandedTime)
+    local isKillerRole = TTTBots.Roles.GetRoleFor(bot):GetStartsFights()
+
+    if isRedHanded and isKillerRole then
+        local nonAllies = TTTBots.Roles.GetNonAllies(bot)
+        local closest = TTTBots.Lib.GetClosest(nonAllies, bot:GetPos())
+        if closest and closest != NULL then
+            bot:SetAttackTarget(closest)
+        end
+    end
+end
+
+local function preventAttackAlly(bot)
+    local attackTarget = bot.attackTarget
+    local isAllies = TTTBots.Roles.IsAllies(bot, attackTarget)
+    if isAllies then
+        bot:SetAttackTarget(nil)
+    end
+end
+
+local function commonSense(bot)
+    continueMassacre(bot)
+    preventAttackAlly(bot)
+end
+
+timer.Create("TTTBots.Components.Morality.CommonSense", 0.5, 0, function()
     if not TTTBots.Match.IsRoundActive() then return end
-    -- TODO: Deleted this code since it didn't do much anyway. It was overcomplicated and created lag spikes.
-    -- Common sense: make red-handed traitors kill anyone else nearby
+    for i, bot in pairs(TTTBots.Bots) do
+        if not bot or bot == NULL or not IsValid(bot) then continue end
+        if not lib.IsPlayerAlive(bot) then continue end
+        commonSense(bot)
+    end
 end)
