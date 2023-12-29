@@ -57,7 +57,9 @@ end
 ---@param target? Player
 ---@return boolean
 function CreateSidekick.ValidateTarget(bot, target)
-    return TTTBots.Behaviors.Stalk.ValidateTarget(bot, target) -- This mimics the same functionality.
+    local target = target or CreateSidekick.GetTarget(bot)
+    local valid = target and IsValid(target) and lib.IsPlayerAlive(target)
+    return valid
 end
 
 ---Since situations change quickly, we want to make sure we pick the best target for the situation when we can.
@@ -115,7 +117,7 @@ function CreateSidekick.OnRunning(bot)
     local targetPos = target:GetPos()
     local targetEyes = target:EyePos()
 
-    if not (bot:Visible(target) and math.random(1, TTTBots.Tickrate * 2) == 1) then
+    if not (math.random(1, TTTBots.Tickrate * 2) == 1 and bot:Visible(target)) then
         CreateSidekick.CheckForBetterTarget(bot)
         if CreateSidekick.GetTarget(bot) ~= target then return STATUS.RUNNING end
     end
@@ -136,8 +138,14 @@ function CreateSidekick.OnRunning(bot)
         if not equipped then return STATUS.RUNNING end
         local bodyPos = TTTBots.Behaviors.AttackTarget.GetTargetBodyPos(target)
         loco:LookAt(bodyPos)
-        loco:StartAttack()
-        return STATUS.SUCCESS
+        local eyeTrace = bot:GetEyeTrace()
+        if eyeTrace and eyeTrace.Entity == target then
+            loco:StartAttack()
+        end
+        return STATUS.RUNNING
+    else
+        inv:ResumeAutoSwitch()
+        loco:StopAttack()
     end
 
     return STATUS.RUNNING
@@ -160,6 +168,7 @@ function CreateSidekick.OnEnd(bot)
     local loco = lib.GetComp(bot, "locomotor") ---@type CLocomotor
     if not loco then return end
     loco:StopAttack()
+    bot:SetAttackTarget(nil)
     timer.Simple(1, function()
         if not IsValid(bot) then return end
         local inv = lib.GetComp(bot, "inventory") ---@type CInventory

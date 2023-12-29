@@ -364,6 +364,7 @@ function BotMorality:OnWitnessHurt(victim, attacker, healthRemaining, damageTake
             personality:OnPressureEvent("Hurt")
         end
     end
+    if self.bot == victim or self.bot == attacker and TTTBots.Roles.IsAllies(victim, attacker) then return end -- Don't build sus on ourselves or our allies
     -- If the target is disguised, we don't know who they are, so we can't build sus on them. Instead, ATTACK!
     if TTTBots.Match.IsPlayerDisguised(attacker) then
         if self.bot.attackTarget == nil then

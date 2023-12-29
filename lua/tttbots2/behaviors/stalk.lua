@@ -47,6 +47,8 @@ end
 function Stalk.SetTarget(bot, target, isolationScore)
     bot.StalkTarget = target or Stalk.FindTarget(bot)
     bot.StalkScore = isolationScore or Stalk.RateIsolation(bot, bot.StalkTarget)
+
+    print("Stalking", bot.StalkTarget, "with score", bot.StalkScore)
 end
 
 function Stalk.GetTarget(bot)
@@ -59,15 +61,16 @@ end
 ---@return boolean
 function Stalk.ValidateTarget(bot, target)
     local target = target or Stalk.GetTarget(bot)
-    return target and IsValid(target) and lib.IsPlayerAlive(target)
+    local valid = target and IsValid(target) and lib.IsPlayerAlive(target)
+    return valid
 end
 
 ---Should we start stalking? This is only useful for when we don't already have a target. To make the behavior more varied.
 ---@param bot Player
 ---@return boolean
 function Stalk.ShouldStartStalking(bot)
-    local chance = math.random(0, 100) <= 2
-    return TTTBots.Match.IsRoundActive() and chance
+    -- local chance = math.random(0, 100) <= 2
+    return TTTBots.Match.IsRoundActive() -- and chance
 end
 
 ---Since situations change quickly, we want to make sure we pick the best target for the situation when we can.
@@ -110,7 +113,7 @@ end
 ---@param bot Player
 ---@return BStatus
 function Stalk.OnRunning(bot)
-    Stalk.CheckForBetterTarget(bot)
+    -- Stalk.CheckForBetterTarget(bot)
     if not Stalk.ValidateTarget(bot) then return STATUS.FAILURE end
     local target = Stalk.GetTarget(bot)
     local targetPos = target:GetPos()
@@ -126,7 +129,7 @@ function Stalk.OnRunning(bot)
 
     local witnesses = lib.GetAllWitnessesBasic(targetPos, TTTBots.Roles.GetNonAllies(bot), bot)
     if table.Count(witnesses) <= 1 then
-        if math.random(1, TTTBots.Tickrate) == 1 then -- Just some extra randomness for fun!
+        if math.random(1, 3) == 1 then -- Just some extra randomness for fun!
             bot:SetAttackTarget(target)
             return STATUS.SUCCESS
         end
