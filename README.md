@@ -10,7 +10,7 @@ It is designed to be as modular as possible, allowing easy customization and exp
 ## How to use
 1. Download the latest version from the [Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=1256344426).
 2. Start a Peer-to-Peer or SRCDS with sufficient player slots on a map with a navmesh or one of the included maps.
-3. *As a super admin,* either type `!about X` in chat or write `ttt_bot_add X` in the console.
+3. *As a super admin,* either type `!addbot X` in chat or write `ttt_bot_add X` in the console.
 4. You're done!
 
 ## Usage and Commands
