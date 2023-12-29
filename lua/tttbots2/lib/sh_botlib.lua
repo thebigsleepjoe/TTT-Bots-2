@@ -80,13 +80,15 @@ function TTTBots.Lib.GetAlivePlayers()
     return alive
 end
 
----Give a weight to how isolated 'other' is to us. This is used to determine who to Sidekick.
----A higher isolation means the player is more isolated, and thus a better target for Sidekicking.
----@param bot Player
----@param other Player
----@return number
----@realm server
-function TTTBots.Lib.RateIsolation(bot, other)
+local isolationCache = {}
+
+-- Function to update the cache
+local function UpdateIsolationCache(bot, other)
+    if not IsValid(bot) or not IsValid(other) then
+        isolationCache[bot:UserID() .. "_" .. other:UserID()] = -math.huge
+        return -math.huge
+    end
+
     if not IsValid(bot) or not IsValid(other) then return -math.huge end
     local isolation = 0
 
@@ -100,7 +102,28 @@ function TTTBots.Lib.RateIsolation(bot, other)
     isolation = isolation + (VISIBLE_ME_FACTOR * (bot:Visible(other) and 1 or 0))
     isolation = isolation + (math.random(-3, 3) / 10) -- Add a bit of randomness to the isolation
 
+    -- Store the calculated isolation in the cache
+    isolationCache[bot:UserID() .. "_" .. other:UserID()] = isolation
+
     return isolation
+end
+-- Timer to clear the cache every 2 seconds
+timer.Create("ClearIsolationCache", 2, 0, function()
+    isolationCache = {}
+end)
+---Give a weight to how isolated 'other' is to us. This is used to determine who to Sidekick.
+---A higher isolation means the player is more isolated, and thus a better target for Sidekicking.
+---@param bot Player
+---@param other Player
+---@return number
+---@realm server
+function TTTBots.Lib.RateIsolation(bot, other)
+    local cacheKey = bot:UserID() .. "_" .. other:UserID()
+    if isolationCache[cacheKey] then
+        return isolationCache[cacheKey]
+    else
+        return UpdateIsolationCache(bot, other)
+    end
 end
 
 ---Find the best target to Sidekick, and return it. This is a pretty expensive function, so don't call it too often.
