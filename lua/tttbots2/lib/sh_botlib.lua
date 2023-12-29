@@ -85,11 +85,8 @@ local isolationCache = {}
 -- Function to update the cache
 local function UpdateIsolationCache(bot, other)
     if not IsValid(bot) or not IsValid(other) then
-        isolationCache[bot:UserID() .. "_" .. other:UserID()] = -math.huge
         return -math.huge
     end
-
-    if not IsValid(bot) or not IsValid(other) then return -math.huge end
     local isolation = 0
 
     local VISIBLE_FACTOR = -0.5    -- Penalty per visible player to other

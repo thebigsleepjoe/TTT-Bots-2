@@ -1,7 +1,10 @@
 if not TTTBots.Lib.IsTTT2() then return false end
 if not ROLE_SERIALKILLER then return false end
 
-local allyTeams = { TEAM_SERIALKILLER = true }
+local allyTeams = {
+    [TEAM_SERIALKILLER] = true,
+    [TEAM_JESTER] = true,
+}
 
 local Bhvr = TTTBots.Behaviors
 local bTree = {

@@ -110,11 +110,15 @@ end
 ---@param bot Player
 ---@return BStatus
 function CreateSidekick.OnRunning(bot)
-    CreateSidekick.CheckForBetterTarget(bot)
     if not CreateSidekick.ValidateTarget(bot) then return STATUS.FAILURE end
     local target = CreateSidekick.GetTarget(bot)
     local targetPos = target:GetPos()
     local targetEyes = target:EyePos()
+
+    if not (bot:Visible(target) and math.random(1, TTTBots.Tickrate * 2) == 1) then
+        CreateSidekick.CheckForBetterTarget(bot)
+        if CreateSidekick.GetTarget(bot) ~= target then return STATUS.RUNNING end
+    end
 
     local isClose = bot:Visible(target) and bot:GetPos():Distance(targetPos) <= 150
     local loco = lib.GetComp(bot, "locomotor") ---@type CLocomotor
