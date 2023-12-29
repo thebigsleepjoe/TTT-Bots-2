@@ -2,13 +2,14 @@
 name: Bug report
 about: Create a report to help us improve
 title: "[BUG] New bug report (please rename)"
-labels: bug
+labels: priority/med, type/bug
 assignees: thebigsleepjoe
 
 ---
+
 ## Game version/server type
 * SERVER TYPE (PICK ONE): P2P or SRCDS or ALL
-* WHICH TTT (PICK ONE): TTT or TTT2 or TTT/2
+* WHICH TTT (PICK ONE): TTT or TTT2 or BOTH
 * WHAT VERSION OF BOTS: Run the ttt_bot_version command to see the current version.
 
 ## Describe the bug
@@ -44,5 +45,4 @@ E.g., "There should not be any errors thrown," or "The bots shouldn't die after 
 Screenshots are always appreciated but not required (depending on the bug)
 
 ## Additional context
-Providing extra context, including a mod collection or simple mod list, can greatly assist in bug reporting.
-
+Providing extra context, including a mod collection or simple mod list, can hugely boost the speed at which your report gets addressed/resolved.
