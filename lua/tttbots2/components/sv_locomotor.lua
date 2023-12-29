@@ -9,7 +9,7 @@ local lib = TTTBots.Lib
 local BotLocomotor = TTTBots.Components.Locomotor
 
 -- Define constants
-local COMPLETION_DIST_HORIZONTAL = 24
+local COMPLETION_DIST_HORIZONTAL = 30
 local COMPLETION_DIST_VERTICAL = 48
 
 
