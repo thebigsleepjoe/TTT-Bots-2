@@ -115,6 +115,8 @@ end)
 ---@return number
 ---@realm server
 function TTTBots.Lib.RateIsolation(bot, other)
+    if not (bot and IsValid(bot)) then return -math.huge end
+    if not (other and IsValid(other)) then return -math.huge end
     local cacheKey = bot:UserID() .. "_" .. other:UserID()
     if isolationCache[cacheKey] then
         return isolationCache[cacheKey]

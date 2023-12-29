@@ -5,6 +5,9 @@ local allyTeams = {
     [TEAM_JESTER] = true,
     [TEAM_JACKAL] = true,
 }
+local allyRoles = {
+    [ROLE_SIDEKICK] = true
+}
 
 local Bhvr = TTTBots.Behaviors
 local bTree = {
@@ -24,6 +27,7 @@ jackal:SetUsesSuspicion(false)
 jackal:SetTeam(TEAM_JACKAL)
 jackal:SetBTree(bTree)
 jackal:SetAlliedTeams(allyTeams)
+jackal:SetAlliedRoles(allyRoles)
 TTTBots.Roles.RegisterRole(jackal)
 
 return true
