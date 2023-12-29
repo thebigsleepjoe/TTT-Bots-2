@@ -43,17 +43,36 @@ end
 ---@see Sidekick.ClearTarget
 ---@param bot Player
 ---@param target Player?
-function CreateSidekick.SetTarget(bot, target)
+function CreateSidekick.SetTarget(bot, target, isolationScore)
     bot.SidekickTarget = target or CreateSidekick.FindTarget(bot)
+    bot.SidekickScore = isolationScore or CreateSidekick.RateIsolation(bot, bot.SidekickTarget)
 end
 
 function CreateSidekick.GetTarget(bot)
     return bot.SidekickTarget
 end
 
-function CreateSidekick.ValidateTarget(bot)
-    local target = CreateSidekick.GetTarget(bot)
-    return target and IsValid(target) and lib.IsPlayerAlive(target)
+---validate if we can attack the bot's target, or the given target if applicable.
+---@param bot Player
+---@param target? Player
+---@return boolean
+function CreateSidekick.ValidateTarget(bot, target)
+    return TTTBots.Behaviors.Stalk.ValidateTarget(bot, target) -- This mimics the same functionality.
+end
+
+---Since situations change quickly, we want to make sure we pick the best target for the situation when we can.
+---@param bot Player
+function CreateSidekick.CheckForBetterTarget(bot)
+    local currentScore = bot.SidekickScore or -math.huge
+    local alternative, altScore = CreateSidekick.FindTarget(bot)
+
+    if not alternative then return end
+    if not CreateSidekick.ValidateTarget(bot, alternative) then return end
+
+    -- check for a difference of at least +1
+    if altScore and altScore - currentScore >= 1 then
+        CreateSidekick.SetTarget(bot, alternative, altScore)
+    end
 end
 
 ---Should we start Sidekicking? This is only useful for when we don't already have a target. To make the behavior more varied.
@@ -91,8 +110,9 @@ end
 ---@param bot Player
 ---@return BStatus
 function CreateSidekick.OnRunning(bot)
-    local target = CreateSidekick.GetTarget(bot)
+    CreateSidekick.CheckForBetterTarget(bot)
     if not CreateSidekick.ValidateTarget(bot) then return STATUS.FAILURE end
+    local target = CreateSidekick.GetTarget(bot)
     local targetPos = target:GetPos()
     local targetEyes = target:EyePos()
 
@@ -106,11 +126,13 @@ function CreateSidekick.OnRunning(bot)
     loco:SetGoal()
 
     local witnesses = lib.GetAllWitnessesBasic(targetPos, TTTBots.Roles.GetNonAllies(bot), bot)
-    if table.IsEmpty(witnesses) then
+    if table.Count(witnesses) <= 1 then
         inv:PauseAutoSwitch()
         local equipped = inv:EquipJackalGun()
         if not equipped then return STATUS.RUNNING end
-        bot.attackTarget = target
+        local bodyPos = TTTBots.Behaviors.AttackTarget.GetTargetBodyPos(target)
+        loco:LookAt(bodyPos)
+        loco:StartAttack()
         return STATUS.SUCCESS
     end
 
@@ -131,6 +153,9 @@ end
 ---@param bot Player
 function CreateSidekick.OnEnd(bot)
     CreateSidekick.ClearTarget(bot)
+    local loco = lib.GetComp(bot, "locomotor") ---@type CLocomotor
+    if not loco then return end
+    loco:StopAttack()
     timer.Simple(1, function()
         if not IsValid(bot) then return end
         local inv = lib.GetComp(bot, "inventory") ---@type CInventory

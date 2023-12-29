@@ -43,16 +43,22 @@ end
 ---@see Stalk.ClearTarget
 ---@param bot Player
 ---@param target Player?
-function Stalk.SetTarget(bot, target)
+---@param isolationScore number?
+function Stalk.SetTarget(bot, target, isolationScore)
     bot.StalkTarget = target or Stalk.FindTarget(bot)
+    bot.StalkScore = isolationScore or Stalk.RateIsolation(bot, bot.StalkTarget)
 end
 
 function Stalk.GetTarget(bot)
     return bot.StalkTarget
 end
 
-function Stalk.ValidateTarget(bot)
-    local target = Stalk.GetTarget(bot)
+---validate if we can attack the bot's target, or the given target if applicable.
+---@param bot Player
+---@param target? Player
+---@return boolean
+function Stalk.ValidateTarget(bot, target)
+    local target = target or Stalk.GetTarget(bot)
     return target and IsValid(target) and lib.IsPlayerAlive(target)
 end
 
@@ -62,6 +68,21 @@ end
 function Stalk.ShouldStartStalking(bot)
     local chance = math.random(0, 100) <= 2
     return TTTBots.Match.IsRoundActive() and chance
+end
+
+---Since situations change quickly, we want to make sure we pick the best target for the situation when we can.
+---@param bot Player
+function Stalk.CheckForBetterTarget(bot)
+    local currentScore = bot.StalkScore or -math.huge
+    local alternative, altScore = Stalk.FindTarget(bot)
+
+    if not alternative then return end
+    if not Stalk.ValidateTarget(bot, alternative) then return end
+
+    -- check for a difference of at least +1
+    if altScore and altScore - currentScore >= 1 then
+        Stalk.SetTarget(bot, alternative, altScore)
+    end
 end
 
 --- Validate the behavior before we can start it (or continue running)
@@ -89,8 +110,9 @@ end
 ---@param bot Player
 ---@return BStatus
 function Stalk.OnRunning(bot)
-    local target = Stalk.GetTarget(bot)
+    Stalk.CheckForBetterTarget(bot)
     if not Stalk.ValidateTarget(bot) then return STATUS.FAILURE end
+    local target = Stalk.GetTarget(bot)
     local targetPos = target:GetPos()
     local targetEyes = target:EyePos()
 
@@ -103,9 +125,9 @@ function Stalk.OnRunning(bot)
     loco:SetGoal()
 
     local witnesses = lib.GetAllWitnessesBasic(targetPos, TTTBots.Roles.GetNonAllies(bot), bot)
-    if table.IsEmpty(witnesses) then
+    if table.Count(witnesses) <= 1 then
         if math.random(1, TTTBots.Tickrate) == 1 then -- Just some extra randomness for fun!
-            bot.attackTarget = target
+            bot:SetAttackTarget(target)
             return STATUS.SUCCESS
         end
     end
