@@ -80,6 +80,72 @@ function TTTBots.Lib.GetAlivePlayers()
     return alive
 end
 
+local isolationCache = {}
+
+-- Function to update the cache
+local function UpdateIsolationCache(bot, other)
+    if not IsValid(bot) or not IsValid(other) then
+        return -math.huge
+    end
+    local isolation = 0
+
+    local VISIBLE_FACTOR = -0.5    -- Penalty per visible player to other
+    local VISIBLE_ME_FACTOR = 0.5  -- Bonus if we can already see other
+    local DISTANCE_FACTOR = -0.001 -- Distance penalty per hammer unit to bot
+
+    local witnesses = TTTBots.Lib.GetAllWitnessesBasic(other:EyePos(), TTTBots.Roles.GetNonAllies(bot), bot)
+    isolation = isolation + (VISIBLE_FACTOR * table.Count(witnesses))
+    isolation = isolation + (DISTANCE_FACTOR * bot:GetPos():Distance(other:GetPos()))
+    isolation = isolation + (VISIBLE_ME_FACTOR * (bot:Visible(other) and 1 or 0))
+    isolation = isolation + (math.random(-3, 3) / 10) -- Add a bit of randomness to the isolation
+
+    -- Store the calculated isolation in the cache
+    isolationCache[bot:UserID() .. "_" .. other:UserID()] = isolation
+
+    return isolation
+end
+-- Timer to clear the cache every 2 seconds
+timer.Create("ClearIsolationCache", 2, 0, function()
+    isolationCache = {}
+end)
+---Give a weight to how isolated 'other' is to us. This is used to determine who to Sidekick.
+---A higher isolation means the player is more isolated, and thus a better target for Sidekicking.
+---@param bot Player
+---@param other Player
+---@return number
+---@realm server
+function TTTBots.Lib.RateIsolation(bot, other)
+    if not (bot and IsValid(bot)) then return -math.huge end
+    if not (other and IsValid(other)) then return -math.huge end
+    local cacheKey = bot:UserID() .. "_" .. other:UserID()
+    if isolationCache[cacheKey] then
+        return isolationCache[cacheKey]
+    else
+        return UpdateIsolationCache(bot, other)
+    end
+end
+
+---Find the best target to Sidekick, and return it. This is a pretty expensive function, so don't call it too often.
+---@param bot Player
+---@return Player?
+---@return number
+---@realm server
+function TTTBots.Lib.FindIsolatedTarget(bot)
+    local nonAllies = TTTBots.Roles.GetNonAllies(bot)
+    local bestIsolation = -math.huge
+    local bestTarget = nil
+
+    for _, other in ipairs(nonAllies) do
+        local isolation = TTTBots.Lib.RateIsolation(bot, other)
+        if isolation > bestIsolation then
+            bestIsolation = isolation
+            bestTarget = other
+        end
+    end
+
+    return bestTarget, bestIsolation
+end
+
 ---Returns a table of living bots, according to the IsPlayerAlive cache.
 ---@return table<Player>
 ---@realm shared
@@ -240,6 +306,7 @@ function TTTBots.Lib.GetAllWitnessesBasic(pos, playerTbl, ignorePly)
     local RANGE = TTTBots.Lib.BASIC_VIS_RANGE
     local witnesses = {}
     for i, ply in pairs(playerTbl) do
+        if ply == NULL or not IsValid(ply) then continue end
         if ply:GetPos():Distance(pos) <= RANGE then
             if ply == ignorePly then continue end
             local sawthat = ply:VisibleVec(pos)
@@ -474,6 +541,47 @@ function TTTBots.Lib.GetSet(varname, default)
     end
 
     return getFunc, setFunc
+end
+
+function TTTBots.Lib.IncludeDirectory(path)
+    path = path .. "/"
+
+    local files, directories = file.Find(path .. "*", "LUA")
+    local loadedLuaList = {}
+
+    for _, v in ipairs(files) do
+        if string.EndsWith(v, ".lua") then
+            local inclusion = include(path .. v)
+            if inclusion then -- If the added script returns true, then add it to the list
+                table.insert(loadedLuaList, v)
+            end
+        end
+    end
+
+    return loadedLuaList
+end
+
+function TTTBots.Lib.StringifyTable(tbl)
+    local result = {}
+    local isArray = true
+    local index = 1
+
+    for key, value in pairs(tbl) do
+        if isArray and (key ~= index or type(key) ~= "number") then
+            isArray = false
+        end
+
+        if isArray then
+            table.insert(result, tostring(value))
+            index = index + 1
+        else
+            local keyStr = type(key) == "string" and ("[" .. string.format("%q", key) .. "]") or
+                ("[" .. tostring(key) .. "]")
+            table.insert(result, keyStr .. " = " .. tostring(value))
+        end
+    end
+
+    return "{ " .. table.concat(result, ", ") .. " }"
 end
 
 ---@realm server

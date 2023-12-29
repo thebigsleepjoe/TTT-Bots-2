@@ -207,7 +207,7 @@ end
 function BotMorality:SetRandomNearbyTarget()
     if not (self.tick % TTTBots.Tickrate == 0) then return end -- Run only once every second
     local roundStarted = TTTBots.Match.RoundActive
-    local targetsRandoms = TTTBots.Roles.GetRoleFor(self.bot):GetKillsNonAllies()
+    local targetsRandoms = TTTBots.Roles.GetRoleFor(self.bot):GetStartsFights()
     if not (roundStarted and targetsRandoms) then return end
     if self.bot.attackTarget ~= nil then return end
     local delay = lib.GetConVarFloat("attack_delay")
@@ -348,8 +348,9 @@ end)
 
 --- When we witness someone getting hurt.
 function BotMorality:OnWitnessHurt(victim, attacker, healthRemaining, damageTaken)
+    if damageTaken < 1 then return end -- Don't care.
     self:OnWitnessHurtIfAlly(victim, attacker, healthRemaining, damageTaken)
-    if attacker == self.bot then -- if we are the attacker, there is no sus to be thrown around.
+    if attacker == self.bot then       -- if we are the attacker, there is no sus to be thrown around.
         if victim == self.bot.attackTarget then
             local personality = lib.GetComp(self.bot, "personality")
             if not personality then return end
@@ -364,6 +365,7 @@ function BotMorality:OnWitnessHurt(victim, attacker, healthRemaining, damageTake
             personality:OnPressureEvent("Hurt")
         end
     end
+    if self.bot == victim or self.bot == attacker and TTTBots.Roles.IsAllies(victim, attacker) then return end -- Don't build sus on ourselves or our allies
     -- If the target is disguised, we don't know who they are, so we can't build sus on them. Instead, ATTACK!
     if TTTBots.Match.IsPlayerDisguised(attacker) then
         if self.bot.attackTarget == nil then
@@ -534,8 +536,39 @@ timer.Create("TTTBots.Components.Morality.DisguisedPlayerDetection", 1, 0, funct
     end
 end)
 
-timer.Create("TTTBots.Components.Morality.CommonSense", 1, 0, function()
+---Keep killing any nearby non-allies if we're red-handed.
+---@param bot Player
+local function continueMassacre(bot)
+    local isRedHanded = bot.redHandedTime and (CurTime() < bot.redHandedTime)
+    local isKillerRole = TTTBots.Roles.GetRoleFor(bot):GetStartsFights()
+
+    if isRedHanded and isKillerRole then
+        local nonAllies = TTTBots.Roles.GetNonAllies(bot)
+        local closest = TTTBots.Lib.GetClosest(nonAllies, bot:GetPos())
+        if closest and closest != NULL then
+            bot:SetAttackTarget(closest)
+        end
+    end
+end
+
+local function preventAttackAlly(bot)
+    local attackTarget = bot.attackTarget
+    local isAllies = TTTBots.Roles.IsAllies(bot, attackTarget)
+    if isAllies then
+        bot:SetAttackTarget(nil)
+    end
+end
+
+local function commonSense(bot)
+    continueMassacre(bot)
+    preventAttackAlly(bot)
+end
+
+timer.Create("TTTBots.Components.Morality.CommonSense", 0.5, 0, function()
     if not TTTBots.Match.IsRoundActive() then return end
-    -- TODO: Deleted this code since it didn't do much anyway. It was overcomplicated and created lag spikes.
-    -- Common sense: make red-handed traitors kill anyone else nearby
+    for i, bot in pairs(TTTBots.Bots) do
+        if not bot or bot == NULL or not IsValid(bot) then continue end
+        if not lib.IsPlayerAlive(bot) then continue end
+        commonSense(bot)
+    end
 end)

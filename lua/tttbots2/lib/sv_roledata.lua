@@ -6,8 +6,10 @@ local lib = TTTBots.Lib
 local isTTT2 = lib.IsTTT2() -- Only needs to be called once, as the script will refresh every mapchange/server reset.
 
 ---Creates a new RoleData object.
+---@param rolename string
+---@param roleteam? string A TEAM_ enum, or nil (defaults to TEAM_INNOCENT). This is usually a string, like 'jesters' or 'traitors'
 ---@return RoleData
-function TTTBots.RoleData.New(rolename)
+function TTTBots.RoleData.New(rolename, roleteam)
     ---@class RoleData
     local newRole = {}
     setmetatable(newRole, TTTBots.RoleData)
@@ -16,10 +18,6 @@ function TTTBots.RoleData.New(rolename)
 
     --- Get the name
     newRole.GetName, newRole.SetName = getSet("name", rolename)
-
-    --- Allies are people we know for sure are on our team. For traitors, you want to also set "traitor" as one of these, because
-    --- they know who each other are. This is particularly used for defending one another in combat.
-    newRole.GetAllies, newRole.SetAllies = getSet("allies", {})
 
     --- Enemies are players we know immediately that they are enemies.
     newRole.GetEnemies, newRole.SetEnemies = getSet("enemies", {})
@@ -44,7 +42,7 @@ function TTTBots.RoleData.New(rolename)
 
     --- Do we kill players that aren't on our team? Essentially, this disables/enables if the bot will
     --- "randomly" shoot at nearby non-allies. Particularly useful for traitors.
-    newRole.GetKillsNonAllies, newRole.SetKillsNonAllies = getSet("killsNonAllies", false)
+    newRole.GetStartsFights, newRole.SetStartsFights = getSet("killsNonAllies", false)
 
     --- Is auto-switch enabled/disabled? Auto-switch is what makes the bots automatically swap between weapons.
     --- This is useful if a role requires a specific weapon to be held.
@@ -55,7 +53,7 @@ function TTTBots.RoleData.New(rolename)
     newRole.GetPreferredWeapon, newRole.SetPreferredWeapon = getSet("preferredWeapon", nil)
 
     --- Get the team for this role. E.g., TEAM_INNOCENT, TEAM_INNOCENT, etc.
-    newRole.GetTeam, newRole.SetTeam = getSet("team", TEAM_INNOCENT)
+    newRole.GetTeam, newRole.SetTeam = getSet("team", roleteam or TEAM_INNOCENT)
 
     --- Some roles are more likely to follow due to their nature. This is a boolean that determines if this role is more likely to follow.
     --- This is particularly useful for traitors, because it tends to make them follow someone until they are alone.
@@ -69,6 +67,14 @@ function TTTBots.RoleData.New(rolename)
 
     --- If the bot uses the suspicion system to determine who is good and bad.
     newRole.GetUsesSuspicion, newRole.SetUsesSuspicion = getSet("appearsPolice", true)
+
+    --- Allies are people we know for sure are on our team. For traitors, you want to also set "traitor" as one of these, because
+    --- they know who each other are. This is particularly used for defending one another in combat.
+    newRole.GetAlliedRoles, newRole.SetAlliedRoles = getSet("allies", { [rolename] = true })
+
+    --- Allied teams are teams that are explicitly set as DO NOT ATTACK. This is helpful for allying jester towards traitors, for example. So they don't hurt each other.
+    --- This should only be used for teams that know who each other are inherently. Such as omniscient roles.
+    newRole.GetAlliedTeams, newRole.SetAlliedTeams = getSet("alliedTeams", { [newRole:GetTeam()] = true })
 
     return newRole
 end

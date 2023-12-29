@@ -183,15 +183,15 @@ function BotInventory:GetWeaponInfo(wep)
     -- If it is melee
     info.is_melee = info.clip == -1
 
-    info.damage = wep.Primary and wep.Primary.Damage
-    info.rpm = math.ceil(wep.Primary and (1 / wep.Primary.Delay) * 60)
-    info.numshots = wep.Primary and wep.Primary.NumShots
-    info.dps = math.ceil(info.damage * info.numshots * info.rpm * (1 / 60))
-    info.time_to_kill = math.ceil((100 / info.dps) * 100) / 100
+    info.damage = wep.Primary and wep.Primary.Damage or 1
+    info.rpm = math.ceil(wep.Primary and (1 / (wep.Primary.Delay or 1)) * 60) or 1
+    info.numshots = wep.Primary and wep.Primary.NumShots or 1
+    info.dps = math.ceil(info.damage * info.numshots * info.rpm * (1 / 60)) or 1
+    info.time_to_kill = (math.ceil((100 / info.dps) * 100) / 100) or 1
 
-    info.is_automatic = wep.Primary and wep.Primary.Automatic
+    info.is_automatic = (wep.Primary and wep.Primary.Automatic) or false
     -- we can infer if this is a sniper based off of the damage and if it's automatic
-    info.is_sniper = info.damage and info.damage > 40 and not info.is_automatic
+    info.is_sniper = (info.damage and info.damage > 40 and not info.is_automatic) or false
     return info
 end
 
@@ -281,6 +281,27 @@ function BotInventory:Think()
     -- Manage our own inventory, but only if we have not been paused
     if self.pauseAutoSwitch then return end
     self:AutoManageInventory()
+end
+
+--- Return the jackal gun (weapon_ttt2_sidekickdeagle) if it has >0 shots. If not, then return nil.
+---@return WeaponInfo?
+function BotInventory:GetJackalGun()
+    local hasWeapon = self.bot:HasWeapon("weapon_ttt2_sidekickdeagle")
+    if not hasWeapon then return end
+    local wep = self.bot:GetWeapon("weapon_ttt2_sidekickdeagle")
+    if not IsValid(wep) then return end
+
+    return wep:Clip1() > 0 and wep or nil
+end
+
+--- Equip the Jackal's Sidekick Deagle if we have it. Returns true if we equipped it, false if we didn't.
+--- Doesn't error if we don't have it.
+---@return boolean
+function BotInventory:EquipJackalGun()
+    local gun = self:GetJackalGun()
+    if not gun then return false end
+    self.bot:SetActiveWeapon(gun)
+    return true
 end
 
 ---Returns the weapon info table for the weapon we are holding, or what the target is holding if any.

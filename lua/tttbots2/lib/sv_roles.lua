@@ -52,41 +52,25 @@ end
 ---@return boolean
 function TTTBots.Roles.IsAllies(ply1, ply2)
     if not (IsValid(ply1) and IsValid(ply2)) then return false end
-    if ply1:GetTeam() == ply2:GetTeam() and ply2:GetTeam() ~= TEAM_INNOCENT then return true end
-    local roleData = TTTBots.Roles.GetRoleFor(ply1)
-    return roleData:GetAllies()[ply2:GetRoleStringRaw()] or false
+    local role1 = TTTBots.Roles.GetRoleFor(ply1)
+    local role2 = TTTBots.Roles.GetRoleFor(ply2)
+
+    local allied1 = role1:GetAlliedRoles()[role2:GetName()] or role1:GetAlliedTeams()[role2:GetTeam()] or false
+    local allied2 = role2:GetAlliedRoles()[role1:GetName()] or role2:GetAlliedTeams()[role1:GetTeam()] or false
+
+    -- Using 'or' here intentionally, as the mode does not currently support one-sided alliances.
+    return allied1 or allied2
 end
 
---- Registers the TTT default roles. traitor, detective, innocent
-function TTTBots.Roles.RegisterDefaultRoles()
-    -- A generic role to default back to if we can't find a role.
-    local default = TTTBots.RoleData.New("default")
-    default:SetTeam(TEAM_INNOCENT)
-    TTTBots.Roles.RegisterRole(default)
-
-    local traitor = TTTBots.RoleData.New("traitor")
-    traitor:SetDefusesC4(false)
-    traitor:SetPlantsC4(true)
-    traitor:SetCanHaveRadar(true)
-    traitor:SetCanCoordinate(true)
-    traitor:SetKillsNonAllies(true)
-    traitor:SetTeam(TEAM_TRAITOR)
-    traitor:SetUsesSuspicion(false)
-    traitor:SetBTree(TTTBots.Behaviors.DefaultTrees.traitor)
-    TTTBots.Roles.RegisterRole(traitor)
-
-    local detective = TTTBots.RoleData.New("detective")
-    detective:SetDefusesC4(true)
-    detective:SetCanHaveRadar(true)
-    detective:SetTeam(TEAM_INNOCENT)
-    detective:SetBTree(TTTBots.Behaviors.DefaultTrees.detective)
-    TTTBots.Roles.RegisterRole(detective)
-
-    local innocent = TTTBots.RoleData.New("innocent")
-    innocent:SetDefusesC4(true)
-    innocent:SetTeam(TEAM_INNOCENT)
-    innocent:SetBTree(TTTBots.Behaviors.DefaultTrees.innocent)
-    TTTBots.Roles.RegisterRole(innocent)
+---Get a table of players that are not allies with ply1, and are alive.
+---@param ply1 Player
+---@return table<Player>
+function TTTBots.Roles.GetNonAllies(ply1)
+    local alive = TTTBots.Match.AlivePlayers
+    return TTTBots.Lib.FilterTable(alive, function(other)
+        if not (IsValid(other) and lib.IsPlayerAlive(other)) then return false end
+        return not TTTBots.Roles.IsAllies(ply1, other)
+    end)
 end
 
 ---Returns if the bot's team is that of a traitor. Not recommende for determining who is friendly, as this is only based on the team, and not the role's allies.
@@ -126,11 +110,18 @@ function TTTBots.Roles.GenerateRegisterForRole(roleString)
     data:SetUsesSuspicion(not isOmniscient)
     data:SetCanCoordinate(roleTeam == TEAM_TRAITOR)
     data:SetCanHaveRadar(isPolicingRole or roleTeam == TEAM_TRAITOR)
-    data:SetAllies({ [roleString] = true })
+    data:SetAlliedRoles({ [roleString] = true })
     data:SetKnowsLifeStates(isOmniscient)
     data:SetBTree(TTTBots.Behaviors.DefaultTreesByTeam[roleTeam] or TTTBots.Behaviors.DefaultTrees.innocent)
-    data:SetKillsNonAllies(roleTeam == TEAM_TRAITOR)
-    print(string.format("[TTT Bots 2] Auto-registered role '%s' as a part of team ''", roleString, roleTeam))
+    data:SetStartsFights(roleTeam == TEAM_TRAITOR)
+    if roleString ~= 'none' then
+        local registeredManually = hook.Run("TTTBotsRoleRegistered", data)
+        print(string.format("[TTT Bots 2] Registered role '%s' as a part of team '%s'!", roleString, data:GetTeam()))
+        if not registeredManually then
+            print(
+                "[TTT Bots 2] The above role was not caught by any compatibility scripts! You may experience strange bot behavior for this role.")
+        end
+    end
     TTTBots.Roles.RegisterRole(data)
     return true
 end
@@ -147,8 +138,9 @@ timer.Create("TTTBots.AutoRegisterRoles", 2, 0, function()
     end
 end)
 
-TTTBots.Roles.RegisterDefaultRoles()
-
+local includedFilesTbl = TTTBots.Lib.IncludeDirectory("tttbots2/roles")
+local includedFilesStr = TTTBots.Lib.StringifyTable(includedFilesTbl)
+print("[TTT Bots 2] Registered officially supported roles: " .. string.gsub(includedFilesStr, ".lua", ""))
 
 if TTTBots.Lib.IsTTT2() then return end
 

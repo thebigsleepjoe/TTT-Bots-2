@@ -9,7 +9,7 @@ local lib = TTTBots.Lib
 local BotLocomotor = TTTBots.Components.Locomotor
 
 -- Define constants
-local COMPLETION_DIST_HORIZONTAL = 24
+local COMPLETION_DIST_HORIZONTAL = 30
 local COMPLETION_DIST_VERTICAL = 48
 
 
@@ -1605,6 +1605,7 @@ local plyMeta = FindMetaTable("Player")
 function plyMeta:SetAttackTarget(target)
     if self.attackTarget == target then return end
     if (IsValid(target) and TTTBots.Roles.IsAllies(self, target)) then return end
+    if (hook.Run("TTTBotsCanAttack", self, target) == false) then return end
     self.attackTarget = target
     local loco = lib.GetComp(self, "locomotor")
     local personality = lib.GetComp(self, "personality")
