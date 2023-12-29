@@ -15,6 +15,17 @@ It is designed to be as modular as possible, allowing easy customization and exp
 3. *As a super admin,* either type `!botadd X` in chat or write `ttt_bot_add X` in the console.
 4. You're done!
 
+## Role Support
+
+This add-on supports a wide range of roles. Here are some that have explicit compatibility:
+* Jester
+* Jackal
+* Sidekick
+* Hitman
+* Serial Killer
+
+The mod also auto-generates compatibility with custom roles, but it is imperfect.
+
 ## Usage and Commands
 A usage guide can be found [on my wiki](https://github.com/thebigsleepjoe/TTT-Bots-2/wiki/Basic-Usage-Guide). It will give you all the info you need for 90% of cases. A more in-depth set of guides are WIP.
 
