@@ -47,8 +47,6 @@ end
 function Stalk.SetTarget(bot, target, isolationScore)
     bot.StalkTarget = target or Stalk.FindTarget(bot)
     bot.StalkScore = isolationScore or Stalk.RateIsolation(bot, bot.StalkTarget)
-
-    print("Stalking", bot.StalkTarget, "with score", bot.StalkScore)
 end
 
 function Stalk.GetTarget(bot)
