@@ -348,8 +348,9 @@ end)
 
 --- When we witness someone getting hurt.
 function BotMorality:OnWitnessHurt(victim, attacker, healthRemaining, damageTaken)
+    if damageTaken < 1 then return end -- Don't care.
     self:OnWitnessHurtIfAlly(victim, attacker, healthRemaining, damageTaken)
-    if attacker == self.bot then -- if we are the attacker, there is no sus to be thrown around.
+    if attacker == self.bot then       -- if we are the attacker, there is no sus to be thrown around.
         if victim == self.bot.attackTarget then
             local personality = lib.GetComp(self.bot, "personality")
             if not personality then return end

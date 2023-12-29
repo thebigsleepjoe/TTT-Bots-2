@@ -6,7 +6,7 @@ local allyTeams = {
     [TEAM_JACKAL] = true,
 }
 local allyRoles = {
-    [ROLE_SIDEKICK] = true
+    sidekick = true
 }
 
 local Bhvr = TTTBots.Behaviors

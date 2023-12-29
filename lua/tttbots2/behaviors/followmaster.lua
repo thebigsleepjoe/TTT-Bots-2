@@ -70,6 +70,8 @@ function FollowMaster.OnRunning(bot)
         return STATUS.FAILURE
     end
 
+    if target.attackTarget then bot:SetAttackTarget(target.attackTarget) end
+
     local loco = bot.components.locomotor
     bot.masterFollowPoint = FollowMaster.GetFollowPoint(target)
 

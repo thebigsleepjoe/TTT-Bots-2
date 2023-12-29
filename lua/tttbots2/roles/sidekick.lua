@@ -5,6 +5,10 @@ local allyTeams = {
     [TEAM_JESTER] = true,
 }
 
+local allyRoles = {
+    jackal = true
+}
+
 local Bhvr = TTTBots.Behaviors
 local bTree = {
     Bhvr.ClearBreakables,
@@ -20,6 +24,7 @@ sidekick:SetCanCoordinate(false)
 sidekick:SetStartsFights(false)
 sidekick:SetUsesSuspicion(false)
 sidekick:SetTeam(TEAM_SIDEKICK)
+sidekick:SetAlliedTeams(allyTeams)
 sidekick:SetBTree(bTree)
 TTTBots.Roles.RegisterRole(sidekick)
 

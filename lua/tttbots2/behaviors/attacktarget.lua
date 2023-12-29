@@ -401,6 +401,11 @@ function Attack.ValidateTarget(bot)
     )
 end
 
+function Attack.IsTargetAlly(bot)
+    if not (IsValid(bot.attackTarget) and bot.attackTarget:IsPlayer()) then return false end
+    return TTTBots.Roles.IsAllies(bot, bot.attackTarget)
+end
+
 --- Called when the behavior's last state is running
 ---@param bot Player
 ---@return STATUS status
@@ -408,6 +413,7 @@ function Attack.OnRunning(bot)
     local target = bot.attackTarget
     -- We could probably do Attack.Validate but this is more explicit:
     if not Attack.ValidateTarget(bot) then return STATUS.FAILURE end -- Target is not valid
+    if Attack.IsTargetAlly(bot) then return STATUS.FAILURE end       -- Target is an ally. No attack!
     if target == bot then
         bot:SetAttackTarget(nil)
         return STATUS.FAILURE
