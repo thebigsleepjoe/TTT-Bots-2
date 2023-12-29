@@ -1576,6 +1576,7 @@ end)
 
 timer.Create("TTTBots.Locomotor.StuckTracker.Debug", 0.1, 0, function()
     if not lib.GetConVarBool("debug_stuckpositions") then return end
+    if not TTTBots.DebugServer then return end
     local drawText = TTTBots.DebugServer.DrawText -- (pos, text, color)
     local f = string.format
 

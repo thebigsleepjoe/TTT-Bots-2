@@ -1,6 +1,8 @@
 if not TTTBots.Lib.IsTTT2() then return false end
 if not ROLE_HITMAN then return false end
 
+TEAM_JESTER = TEAM_JESTER or 'jesters'
+
 local allyTeams = {
     [TEAM_TRAITOR] = true,
     [TEAM_JESTER] = true,
