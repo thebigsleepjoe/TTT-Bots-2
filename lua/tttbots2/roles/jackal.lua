@@ -18,7 +18,7 @@ local bTree = {
 local jackal = TTTBots.RoleData.New("jackal", TEAM_JACKAL)
 jackal:SetDefusesC4(false)
 jackal:SetCanCoordinate(false)
-jackal:SetStartsFights(true)
+jackal:SetStartsFights(false)
 jackal:SetTeam(TEAM_JACKAL)
 jackal:SetBTree(bTree)
 jackal:SetAlliedTeams(allyTeams)
