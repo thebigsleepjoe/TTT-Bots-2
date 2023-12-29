@@ -6,16 +6,16 @@ local allyTeams = {
     TEAM_JESTER = true,
 }
 
-local traitor = TTTBots.RoleData.New("traitor", TEAM_TRAITOR)
-traitor:SetDefusesC4(false)
-traitor:SetPlantsC4(false)
-traitor:SetCanHaveRadar(true)
-traitor:SetCanCoordinate(false)
-traitor:SetStartsFights(false)
-traitor:SetTeam(TEAM_TRAITOR)
-traitor:SetUsesSuspicion(false)
-traitor:SetBTree(TTTBots.Behaviors.DefaultTrees.traitor) -- TODO: Btree for hitman
-traitor:SetAlliedTeams(allyTeams)
-TTTBots.Roles.RegisterRole(traitor)
+local hitman = TTTBots.RoleData.New("hitman", TEAM_TRAITOR)
+hitman:SetDefusesC4(false)
+hitman:SetPlantsC4(false)
+hitman:SetCanHaveRadar(true)
+hitman:SetCanCoordinate(false)
+hitman:SetStartsFights(false)
+hitman:SetTeam(TEAM_TRAITOR)
+hitman:SetUsesSuspicion(false)
+hitman:SetBTree(TTTBots.Behaviors.DefaultTrees.traitor) -- TODO: Btree for hitman
+hitman:SetAlliedTeams(allyTeams)
+TTTBots.Roles.RegisterRole(hitman)
 
 return true
