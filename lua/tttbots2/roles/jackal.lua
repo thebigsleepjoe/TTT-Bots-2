@@ -16,6 +16,7 @@ local bTree = {
     Bhvr.ClearBreakables,
     Bhvr.CreateSidekick,
     Bhvr.AttackTarget,
+    Bhvr.FindWeapon,
     Bhvr.Stalk,
     Bhvr.Follow,
     Bhvr.Wander,

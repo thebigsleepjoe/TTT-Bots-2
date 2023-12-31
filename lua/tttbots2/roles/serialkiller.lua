@@ -12,6 +12,7 @@ local Bhvr = TTTBots.Behaviors
 local bTree = {
     Bhvr.ClearBreakables,
     Bhvr.AttackTarget,
+    Bhvr.FindWeapon,
     Bhvr.Stalk,
     Bhvr.Wander,
 }
