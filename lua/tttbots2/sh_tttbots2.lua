@@ -14,7 +14,7 @@ if not gamemodeCompatible() then return end
 
 -- Declare TTTBots table
 TTTBots = {
-    Version = "v1.11-roles",
+    Version = "v1.12-roles",
     Tickrate = 5, -- Ticks per second. Do not change unless you really know what you're doing.
     Lib = {},
     Chat = {}
@@ -36,7 +36,6 @@ local function includeServer()
     include("tttbots2/commands/sv_chatcommands.lua")
     include("tttbots2/lib/sv_dialog.lua")
     include("tttbots2/lib/sv_tree.lua")
-    include("tttbots2/locale/sv_chat_en.lua")
     include("tttbots2/lib/sv_buyables.lua")
     include("tttbots2/lib/sv_roles.lua")
 end

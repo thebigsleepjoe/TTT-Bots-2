@@ -32,9 +32,18 @@ function TTTBots.Locale.GetLocalizedString(name, ...)
     return str
 end
 
---- warning: do not move this include to the top of the file, it will cause an error. leave it below GetLocalizedString
-AddCSLuaFile("tttbots2/locale/sh_strings_en.lua")
-include("tttbots2/locale/sh_strings_en.lua")
+local f = string.format
+local supportedLangs = { "en", "fr" }
+for _, lang in pairs(supportedLangs) do
+    local directory = f("tttbots2/locale/%s/", lang)
+    local chatPath = f("%ssh_chats.lua", directory)
+    local stringsPath = f("%ssh_strings.lua", directory)
+
+    AddCSLuaFile(chatPath)
+    AddCSLuaFile(stringsPath)
+    include(chatPath)
+    include(stringsPath)
+end
 
 --- Add a line into the localized strings table, according to its language. Depending on the type of event, the line may contain parameters.
 --- An example is "Hi, my name is {{botname}}" -> "Hi, my name is Bob"
