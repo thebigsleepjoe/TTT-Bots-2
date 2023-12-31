@@ -1125,7 +1125,7 @@ end
 ---@param pct number
 ---@realm shared
 function TTTBots.Lib.CalculatePercentChance(pct)
-    return (math.random(1, 10000) / 100) <= pct
+    return (math.random(1, 100000) / 1000) <= pct
 end
 
 --- Returns a vector that is offset from the ground at either eye-level or crouch-level.

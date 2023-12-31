@@ -37,7 +37,7 @@ end
 
 --- Similar to IsFollower, but returns mathematical chance of deciding to follow a new person this tick.
 function Follow.GetFollowChance(bot)
-    local BASE_CHANCE = 0.34 -- X % chance per tick
+    local BASE_CHANCE = 0.1 -- X % chance per tick
     local debugging = false
     local chance = BASE_CHANCE * (Follow.IsFollowerPersonality(bot) and 2 or 1) * (Follow.IsFollowerRole(bot) and 2 or 1)
 
