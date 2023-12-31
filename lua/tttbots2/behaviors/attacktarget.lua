@@ -272,7 +272,7 @@ function Attack.Engage(bot, targetPos)
     loco:LookAt(inaccuracyTarget)
 end
 
-local INACCURACY_BASE = 7 --- The higher this is, the more inaccurate the bots will be.
+local INACCURACY_BASE = 14 --- The higher this is, the more inaccurate the bots will be.
 --- Calculate the inaccuracy of agent 'bot' according to a) its personality and b) diff setts
 ---@param bot Player The bot that is shooting.
 ---@param origin Vector The original aim point.
@@ -281,7 +281,8 @@ function Attack.CalculateInaccuracy(bot, origin)
     local difficulty = lib.GetConVarInt("difficulty") -- int [0,5]
     if not (difficulty or personality) then return Vector(0, 0, 0) end
 
-    local distFactor = (bot:GetPos():Distance(origin) / 16) ^ 1.5
+    local dist = bot:GetPos():Distance(origin)
+    local distFactor = math.max((dist / 64) ^ 1.5, 0.5)
     local pressure = personality:GetPressure()   -- float [0,1]
     local rage = (personality:GetRage() * 2) + 1 -- float [1,3]
 
@@ -295,7 +296,7 @@ function Attack.CalculateInaccuracy(bot, origin)
         * rage                                     -- The more rage we have, the more inaccurate we are
         / inaccuarcy_reduction                     -- Reduce aim difficulty if the cheat cvar is enabled
 
-    inaccuracy_mod = math.min(math.max(inaccuracy_mod, 0.1), 6)
+    inaccuracy_mod = math.max(inaccuracy_mod, 0.1)
 
     local rand = VectorRand() * inaccuracy_mod
     -- TTTBots.DebugServer.DrawCross(origin + rand, 8, Color(0, 255, 0), 0.1, bot:Nick() .. ".attack.inaccuracy")
@@ -374,6 +375,7 @@ function Attack.ValidateTarget(bot)
     local target = bot.attackTarget
 
     local hasTarget = (target and target ~= NULL) and true or false
+    if target == NULL or not IsValid(target) then return false end
     local targetIsValid = target and target:IsValid() or false
     local targetIsAlive = target and target:Alive() or false
     local targetIsPlayer = target and target:IsPlayer() or false
