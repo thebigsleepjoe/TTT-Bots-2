@@ -73,7 +73,7 @@ end
 function TTTBots.Buyables.RegisterBuyable(data)
     buyables[data.Name] = data
 
-    for _, roleString in pairs(buyables_role) do
+    for _, roleString in pairs(data.Roles) do
         TTTBots.Buyables.AddBuyableToRole(data, roleString)
     end
 
