@@ -140,6 +140,37 @@ function Wander.GetAnyRandomNav(bot, level)
     return area
 end
 
+---Finds a place to hide/snipe at. Returns if we found a spot and where it is (or nil)
+---@param bot Player
+---@return boolean foundSpot
+---@return Vector? pos pos or nil if we didn't find a spot
+function Wander.FindSpotFor(bot)
+    local personality = lib.GetComp(bot, "personality") ---@type CPersonality
+    if not personality then return false, nil end
+
+    local randomChance = math.random(1, 10) == 1
+
+    local isHidingRole = TTTBots.Roles.GetRoleFor(bot):GetCanHide()
+    local canHide = isHidingRole and (personality:GetTraitBool("hider") or randomChance)
+
+    local isSnipingRole = TTTBots.Roles.GetRoleFor(bot):GetCanSnipe()
+    local canSnipe = isSnipingRole and (personality:GetTraitBool("sniper") or randomChance)
+
+    local randomChanceTrait = math.random(1, Wander.CHANCE_TO_HIDE_IF_TRAIT) == 1
+
+    if (canHide or canSnipe) and randomChanceTrait then
+        local kindStr = (canHide and "hiding") or "sniper"
+        local spot = TTTBots.Spots.GetNearestSpotOfCategory(bot:GetPos(), kindStr)
+        if spot then
+            if Wander.Debug then
+                printf("Bot %s wandering to a %s spot", bot:Nick(), kindStr)
+            end
+            return true, spot + Vector(0, 0, 64)
+        end
+    end
+    return false, nil
+end
+
 function Wander.UpdateWanderGoal(bot)
     local targetArea
     local targetPos
@@ -185,25 +216,8 @@ function Wander.UpdateWanderGoal(bot)
     -- relevant personality traits: hider, sniper
     -- everyone can hide or go to a sniper spot, but the above traits do it more
     ---------------------------------------------
-    local canHide =
-        personality:GetTraitBool("hider")
-        or math.random(1, 10) == 1
-    local canSnipe =
-        personality:GetTraitBool("sniper")
-        or math.random(1, 10) == 1
-    local shouldSpot = math.random(1, Wander.CHANCE_TO_HIDE_IF_TRAIT) == 1
-
-    if (canHide or canSnipe) and shouldSpot then
-        isSpot = true
-        local kindStr = (canHide and "hiding") or "sniper"
-        local spot = TTTBots.Spots.GetNearestSpotOfCategory(bot:GetPos(), kindStr)
-        if spot then
-            targetPos = spot + Vector(0, 0, 64)
-            if Wander.Debug then
-                printf("Bot %s wandering to a %s spot", bot:Nick(), kindStr)
-            end
-        end
-    end
+    local isSpot, newPos = Wander.FindSpotFor(bot)
+    if newPos then targetPos = newPos end
 
     if not targetArea then
         targetArea = Wander.GetAnyRandomNav(bot)

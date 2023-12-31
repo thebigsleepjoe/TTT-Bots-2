@@ -76,6 +76,12 @@ function TTTBots.RoleData.New(rolename, roleteam)
     --- This should only be used for teams that know who each other are inherently. Such as omniscient roles.
     newRole.GetAlliedTeams, newRole.SetAlliedTeams = getSet("alliedTeams", { [newRole:GetTeam()] = true })
 
+    --- If the bot can navigate to hiding spots instead of wandering randomly (applies to Wander behavior)
+    newRole.GetCanHide, newRole.SetCanHide = getSet("canHide", false)
+
+    --- If the bot can navigate to sniper spots instead of wandering randomly (applies to Wander behavior)
+    newRole.GetCanSnipe, newRole.SetCanSnipe = getSet("canSnipe", true)
+
     return newRole
 end
 
