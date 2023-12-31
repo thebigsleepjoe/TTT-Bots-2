@@ -128,6 +128,8 @@ function BotMorality:ChangeSuspicion(target, reason, mult)
         mult = mult * 0.3 -- Police are much less suspicious
     end
 
+    mult = mult * (hook.Run("TTTBotsModifySuspicion", self.bot, target, reason, mult) or 1)
+
     local susValue = self.SUSPICIONVALUES[reason] or ErrorNoHaltWithStack("Invalid suspicion reason: " .. reason)
     local increase = math.ceil(susValue * mult)
     local susFinal = ((self:GetSuspicion(target)) + (increase))

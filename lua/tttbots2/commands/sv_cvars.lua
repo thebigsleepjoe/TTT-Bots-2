@@ -27,6 +27,8 @@ bot_sv_cvar("cheat_traitor_reactionspd", "1",
     "If set to 1, traitor bots will have a superior reaction speed. TTT2: Does not apply to custom traitor-ish roles.")
 bot_sv_cvar("cheat_traitor_accuracy", "1",
     "If set to 1, traitor bots will have double the accuracy of standard bots. TTT2: Does not apply to custom traitor-ish roles.")
+bot_sv_cvar("cheat_know_jester", "1",
+    "If set to 1, bots will automatically ''know'' who the jester is. They will still shoot at them if they're too annoying, but they inherently know to devalue their sus actions.")
 
 -- Chatter cvars
 bot_sv_cvar("chatter_lvl", "3",

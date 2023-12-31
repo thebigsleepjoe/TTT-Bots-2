@@ -15,4 +15,14 @@ jester:SetBTree(TTTBots.Behaviors.DefaultTrees.innocent)
 jester:SetAlliedTeams(allyTeams)
 TTTBots.Roles.RegisterRole(jester)
 
+-- TTTBotsModifySuspicion hook
+hook.Add("TTTBotsModifySuspicion", "TTTBots.jester.sus", function(bot, target, reason, mult)
+    local role = bot:GetRoleStringRaw()
+    if role == 'jester' then
+        if TTTBots.Lib.GetConVarBool("cheat_know_jester") then
+            return mult * 0.3
+        end
+    end
+end)
+
 return true
