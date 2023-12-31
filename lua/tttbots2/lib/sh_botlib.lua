@@ -326,7 +326,7 @@ end
 function TTTBots.Lib.GetAllWitnesses(pos, botsOnly)
     local witnesses = {}
     for _, ply in ipairs(botsOnly and TTTBots.Bots or player.GetAll()) do
-        if TTTBots.Lib.IsPlayerAlive(ply) then
+        if TTTBots.Lib.IsPlayerAlive(ply) and IsValid(ply) then
             local sawthat = TTTBots.Lib.CanSeeArc(ply, pos, 90)
             if sawthat then
                 table.insert(witnesses, ply)

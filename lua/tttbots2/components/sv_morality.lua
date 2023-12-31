@@ -441,6 +441,7 @@ hook.Add("EntityFireBullets", "TTTBots.Components.Morality.FireBullets", functio
             angleDiff = math.abs(angleDiff)
 
             morality:OnWitnessFireBullets(entity, data, angleDiff)
+            hook.Run("TTTBotsOnWitnessFireBullets", witness, entity, data, angleDiff)
         end
     end
 end)
@@ -456,6 +457,7 @@ hook.Add("PlayerHurt", "TTTBots.Components.Morality.PlayerHurt", function(victim
     for i, witness in pairs(witnesses) do
         if witness and witness.components then
             witness.components.morality:OnWitnessHurt(victim, attacker, healthRemaining, damageTaken)
+            hook.Run("TTTBotsOnWitnessHurt", witness, victim, attacker, healthRemaining, damageTaken)
         end
     end
 end)
@@ -515,10 +517,8 @@ end)
 -- Disguised player detection
 timer.Create("TTTBots.Components.Morality.DisguisedPlayerDetection", 1, 0, function()
     if not TTTBots.Match.RoundActive then return end
-    -- local disguised = TTTBots.Match.DisguisedPlayers -- it's more efficient go loop thru every player because we are going to detect traitor weps anyway
     local alivePlayers = TTTBots.Match.AlivePlayers
     for i, ply in pairs(alivePlayers) do
-        -- local isHoldingTraitorWeapon -- TODO: Implement this later
         local isDisguised = TTTBots.Match.IsPlayerDisguised(ply)
 
         if isDisguised then
