@@ -212,7 +212,7 @@ end
 --- Checks if there are currently any player slots available
 ---@return boolean
 ---@realm shared
-function TTTBots.Lib.CheckIfPlayerSlots()
+function TTTBots.Lib.HasPlayerSlots()
     return not (#player.GetAll() >= game.MaxPlayers())
 end
 
@@ -795,13 +795,31 @@ function TTTBots.Lib.BotCanReachPos(pos)
     return TTTBots.Lib.DistanceXY(nearestPoint, pos) <= 32
 end
 
+local notifiedSlots = false
+local notifiedNavmesh = false
+
 --- Create a bot, optionally with a name.
 ---@param name? string Optional, defaults to random name
 ---@return Player|false bot The bot, or false if there are no player slots
 ---@realm server
 function TTTBots.Lib.CreateBot(name)
-    if not TTTBots.Lib.CheckIfPlayerSlots() then
-        TTTBots.Chat.BroadcastInChat("Somebody tried to add a bot, but there are not enough player slots.")
+    local GLS = TTTBots.Locale.GetLocalizedString
+    if not TTTBots.Lib.HasPlayerSlots() then
+        if not notifiedSlots then
+            local msg = GLS("not.enough.slots")
+            TTTBots.Chat.BroadcastInChat(msg)
+            print(msg)
+            notifiedSlots = true
+        end
+        return false
+    end
+    if table.IsEmpty(navmesh.GetAllNavAreas()) then
+        if not notifiedNavmesh then
+            local msg = GLS("no.navmesh")
+            TTTBots.Chat.BroadcastInChat(msg)
+            print(msg)
+            notifiedNavmesh = true
+        end
         return false
     end
     name = name or TTTBots.Lib.GenerateName()

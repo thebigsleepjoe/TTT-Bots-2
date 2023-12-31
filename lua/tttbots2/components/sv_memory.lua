@@ -520,6 +520,8 @@ hook.Add("EntityEmitSound", "TTTBots.EntityEmitSound", function(data)
     local sn = data.SoundName
     local f = string.find
 
+    if not (IsValid(data.Entity)) then return end
+
     for k, v in pairs(TTTBots.Sound.DetectionInfo) do
         local keywords = v.Keywords
         for i, keyword in pairs(keywords) do
@@ -530,15 +532,15 @@ hook.Add("EntityEmitSound", "TTTBots.EntityEmitSound", function(data)
                         SoundName = k,
                         FoundKeyword = keyword,
                         Distance = v.Distance,
-                        Pos = data.Pos or (data.Entity and data.Entity:GetPos()),
+                        Pos = data.Pos or (data.Entity:GetPos()),
                         EntInfo = {
                             Entity = data.Entity,
-                            EntityIsPlayer = data.Entity and data.Entity:IsPlayer(),
-                            OwnerIsPlayer = data.Entity and data.Entity:GetOwner() and data.Entity:GetOwner():IsPlayer(),
-                            Class = data.Entity and data.Entity:GetClass(),
-                            Name = data.Entity and data.Entity:GetName(),
-                            Nick = data.Entity and data.Entity:IsPlayer() and data.Entity:Nick(),
-                            Owner = data.Entity and data.Entity:GetOwner(),
+                            EntityIsPlayer = data.Entity:IsPlayer(),
+                            OwnerIsPlayer = data.Entity:GetOwner() and data.Entity:GetOwner():IsPlayer(),
+                            Class = data.Entity:GetClass(),
+                            Name = data.Entity:GetName(),
+                            Nick = data.Entity:IsPlayer() and data.Entity:Nick(),
+                            Owner = data.Entity:GetOwner(),
                         }
                     },
                     data
