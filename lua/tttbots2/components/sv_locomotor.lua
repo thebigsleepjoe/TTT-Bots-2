@@ -20,6 +20,7 @@ function BotLocomotor:New(bot)
     })
     newLocomotor:Initialize(bot)
 
+
     local dbg = lib.GetConVarBool("debug_misc")
     if dbg then
         print("Initialized locomotor for bot " .. bot:Nick())
@@ -83,6 +84,8 @@ function BotLocomotor:Initialize(bot)
 
     self.GetClimbDir, self.SetClimbDir = getSet("ClimbDir", "none")
     self.GetDismount, self.SetDismount = getSet("Dismount", true)
+
+    self:EnableCanADS()
 end
 
 ---@package
@@ -539,6 +542,20 @@ function BotLocomotor:TestDoorTimer()
     return not self:GetSetTimedVariable("cantUseAgain", true, 1.2)
 end
 
+function BotLocomotor:UpdateADS()
+    local bot = self.bot
+    if IsValid(bot) and IsValid(bot.attackTarget) then
+        local target = bot.attackTarget
+        local shouldAim = bot:Visible(target)
+        local distToTarget = bot:GetPos():Distance(target:GetPos())
+        local pitchDiff, yawDiff = self:GetEyeAngleDiffTo(target:GetPos())
+        if distToTarget < 200 or yawDiff > 25 then shouldAim = false end
+        self:SetIsADS(shouldAim)
+    else
+        self:SetIsADS(false)
+    end
+end
+
 --- Tick periodically. Do not tick per GM:StartCommand
 function BotLocomotor:Think()
     self.tick = self.tick + 1
@@ -546,6 +563,7 @@ function BotLocomotor:Think()
     self.status = status
     self:UpdateMovement()                   -- Update the invisible angle that the bot moves at, and make it move.
     self:TickViewAngles()                   -- The real view angles
+    self:UpdateADS()
 end
 
 --- Gets nearby players then determines the best direction to strafe to avoid them.
@@ -601,6 +619,18 @@ function BotLocomotor:StopRepel()
     self.repelDir = nil
     self.repelStopTime = nil
     self.repelled = false
+end
+
+function BotLocomotor:CanADS()
+    return self.ads
+end
+
+function BotLocomotor:DisableCanADS()
+    self.ads = false
+end
+
+function BotLocomotor:EnableCanADS()
+    self.ads = true
 end
 
 --- Determine if we're "Cliffed" (i.e., on the edge of something)
@@ -1105,6 +1135,18 @@ function BotLocomotor:HandleFallingLook()
     end
 end
 
+--- Sets SetIronsights and SetZoom on the bot's active weapon to bool
+---@param bool boolean Whether or not to enable/disable the weapon's ironsights
+function BotLocomotor:SetIsADS(bool)
+    if not IsValid(self.bot) then return end
+    local wep = self.bot:GetActiveWeapon()
+    if not IsValid(wep) then return end
+    if not wep.SetIronsights then return end
+    wep:SetIronsights(bool)
+    if not wep.SetZoom then return end
+    wep:SetZoom(bool)
+end
+
 ---@package
 function BotLocomotor:SetRandomLookPlayer()
     if self.randomLookEntity or self.randomLookEntityStopTime then
@@ -1446,10 +1488,10 @@ function BotLocomotor:StartCommand(cmd) -- aka StartCmd
 
     --- 🔫 MANAGE ATTACKING OF THE BOT
     if ((self.reactionDelay or 0) < TIMESTAMP) then
-        if (self.attack and not self.attackReleaseTime) or                                       -- if we are attacking and we don't have an attack release time
-            (self.attack and self.attackReleaseTime and self.attackReleaseTime > TIMESTAMP) then -- or if we are attacking and we have an attack release time and it's not yet time to release:
+        local releaseTime = self.attackReleaseTime or TIMESTAMP + 1
+        if (self.attack and releaseTime > TIMESTAMP) then -- or if we are attacking and we have an attack release time and it's not yet time to release:
             -- stop attack from interrupting reload
-            local currentWep = self.bot.components.inventory:GetHeldWeaponInfo()
+            local currentWep = self.bot.components.inventory:GetHeldWeaponInfo() ---@type WeaponInfo
             local preventFire = (self.tick % TTTBots.Tickrate == 1) -- For compatibility with modded guns, sometimes we need to let go for a second to fire again.
             local needsReload = (currentWep and (currentWep.needs_reload)) or false
             if (
