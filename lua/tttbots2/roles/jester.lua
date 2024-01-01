@@ -6,12 +6,23 @@ local allyTeams = {
     [TEAM_TRAITOR] = true,
 }
 
+local Bhvr = TTTBots.Behaviors
+local bTree = {
+    Bhvr.ClearBreakables,
+    Bhvr.AttackTarget,
+    Bhvr.UseHealthStation,
+    Bhvr.FindWeapon,
+    Bhvr.Stalk,
+    Bhvr.InvestigateNoise,
+    Bhvr.Follow,
+    Bhvr.Wander,
+}
+
 local jester = TTTBots.RoleData.New("jester", TEAM_JESTER)
 jester:SetDefusesC4(false)
-jester:SetCanCoordinate(false)
 jester:SetStartsFights(true)
 jester:SetTeam(TEAM_JESTER)
-jester:SetBTree(TTTBots.Behaviors.DefaultTrees.innocent)
+jester:SetBTree(bTree)
 jester:SetAlliedTeams(allyTeams)
 TTTBots.Roles.RegisterRole(jester)
 
