@@ -132,16 +132,18 @@ function BotObstacleTracker:GetBlocking()
 end
 
 ---Get whether or not an entity is breakable. Warning: does not null-check.
----@param entity Entity
+---@param obj Entity
 ---@return boolean
-function BotObstacleTracker.IsBreakable(entity)
-    local vals = entity:GetKeyValues()
+function BotObstacleTracker.IsBreakable(obj)
+    local vals = obj:GetKeyValues()
     local health_min = 1
     local health_max = 300 -- Don't bother breaking something that has more than 300 health
-    return (vals.health and vals.health > health_min and vals.health < health_max) or false
-    -- table.insert(db_break, entity)
-    -- else
-    -- table.insert(db_unbreak, entity)
+    local minHealthDmg = obj:GetInternalVariable("minhealthdmg")
+
+    local healthThresh = (vals.health and vals.health > health_min and vals.health < health_max)
+    local minHealthThresh = minHealthDmg < health_max -- Check minhealthdmg per #33
+
+    return healthThresh and minHealthThresh or false
 end
 
 ----------------------------------------
