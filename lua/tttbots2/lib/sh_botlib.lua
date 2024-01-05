@@ -798,31 +798,7 @@ end
 local notifiedSlots = false
 local notifiedNavmesh = false
 
---- Create a bot, optionally with a name.
----@param name? string Optional, defaults to random name
----@return Player|false bot The bot, or false if there are no player slots
----@realm server
-function TTTBots.Lib.CreateBot(name)
-    local GLS = TTTBots.Locale.GetLocalizedString
-    if not TTTBots.Lib.HasPlayerSlots() then
-        if not notifiedSlots then
-            local msg = GLS("not.enough.slots")
-            TTTBots.Chat.BroadcastInChat(msg)
-            print(msg)
-            notifiedSlots = true
-        end
-        return false
-    end
-    if table.IsEmpty(navmesh.GetAllNavAreas()) then
-        if not notifiedNavmesh then
-            local msg = GLS("no.navmesh")
-            TTTBots.Chat.BroadcastInChat(msg)
-            print(msg)
-            notifiedNavmesh = true
-        end
-        return false
-    end
-    name = name or TTTBots.Lib.GenerateName()
+local function createPlayerBot(botname)
     local bot = player.CreateNextBot(name)
 
     bot.components = {
@@ -843,6 +819,66 @@ function TTTBots.Lib.CreateBot(name)
     end
 
     return bot
+end
+
+---Test if there is a navmesh and notify the server if not on first call.
+---@return boolean
+function TTTBots.Lib.TestNavmesh()
+    if table.IsEmpty(navmesh.GetAllNavAreas()) then
+        if not notifiedNavmesh then
+            local msg = TTTBots.Locale.GetLocalizedString("no.navmesh")
+            TTTBots.Chat.BroadcastInChat(msg)
+            print(msg)
+            notifiedNavmesh = true
+        end
+        return false
+    end
+
+    return true
+end
+
+---Test if there are player slots and notify the server if not on first call.
+---@return boolean
+function TTTBots.Lib.TestPlayerSlots()
+    if not TTTBots.Lib.HasPlayerSlots() then
+        if not notifiedSlots then
+            local msg = TTTBots.Locale.GetLocalizedString("not.enough.slots")
+            TTTBots.Chat.BroadcastInChat(msg)
+            print(msg)
+            notifiedSlots = true
+        end
+        return false
+    end
+
+    return true
+end
+
+--- Test if there are any players in the server to prevent issue #34
+---@return boolean
+function TTTBots.Lib.TestServerActive()
+    local numHumans = table.Count(player.GetHumans())
+
+    return numHumans > 0
+end
+
+--- Create a bot, optionally with a name.
+---@param name? string Optional, defaults to random name
+---@return Player? bot The bot, or false if there are no player slots
+---@realm server
+function TTTBots.Lib.CreateBot(name)
+    -- Test if the server can support bots.
+    if not TTTBots.Lib.TestPlayerSlots() then return end
+    if not TTTBots.Lib.TestNavmesh() then return end
+    if not TTTBots.Lib.TestServerActive() then return end
+
+    -- Start initializing the bot
+    name = name or TTTBots.Lib.GenerateName()
+    local failFunc = function()
+        print(TTTBots.Locale.GetLocalizedString("fail.create.bot"))
+    end
+    local success, bot = xpcall(createPlayerBot, failFunc, name)
+
+    return bot or nil
 end
 
 if SERVER then
