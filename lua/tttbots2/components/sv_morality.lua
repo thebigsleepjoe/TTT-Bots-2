@@ -136,7 +136,7 @@ function BotMorality:ChangeSuspicion(target, reason, mult)
     self:AnnounceIfThreshold(target)
     self:SetAttackIfTargetSus(target)
 
-    print(string.format("%s's suspicion on %s has changed by %d", self.bot:Nick(), target:Nick(), increase))
+    -- print(string.format("%s's suspicion on %s has changed by %d", self.bot:Nick(), target:Nick(), increase))
 end
 
 function BotMorality:GetSuspicion(target)
