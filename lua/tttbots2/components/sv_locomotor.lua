@@ -1643,6 +1643,7 @@ timer.Create("TTTBots.Locomotor.lookPosOverride.ForgetOverride", 1.0 / TTTBots.T
     end
 end)
 
+---@class Player
 local plyMeta = FindMetaTable("Player")
 
 function plyMeta:SetAttackTarget(target)
@@ -1655,4 +1656,9 @@ function plyMeta:SetAttackTarget(target)
     if not (loco and personality) then return end
     loco:OnNewTarget(target)
     personality:OnPressureEvent("NewTarget")
+end
+
+---@return CLocomotor
+function plyMeta:BotLocomotor()
+    return TTTBots.Lib.GetComp(self, "locomotor")
 end

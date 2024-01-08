@@ -472,3 +472,10 @@ function BotInventory:PrintInventory()
     printf(self:GetInventoryString())
     printf("===III=== End inventory ===III===")
 end
+
+---@class Player
+local plyMeta = FindMetaTable("Player")
+---@return CInventory
+function plyMeta:BotInventory()
+    return TTTBots.Lib.GetComp(self, "inventory")
+end

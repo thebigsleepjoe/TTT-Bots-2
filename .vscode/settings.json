@@ -25,6 +25,7 @@
         "ScrH",
         "hook",
         "CORPSE",
-        "PrintTable"
+        "PrintTable",
+        "SERVER"
     ]
 }

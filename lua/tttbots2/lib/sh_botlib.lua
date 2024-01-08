@@ -881,6 +881,42 @@ function TTTBots.Lib.CreateBot(name)
     return bot or nil
 end
 
+---Gets a table of revivable corpses (i.e., those that were not headshot).
+---@return table
+function TTTBots.Lib.GetRevivableCorpses()
+    local bodies = TTTBots.Match.Corpses
+    local wasHeadshot = CORPSE.WasHeadshot
+
+    local revivable = {}
+    for i, corpse in pairs(bodies) do
+        if not TTTBots.Lib.IsValidBody(corpse) then continue end
+        if wasHeadshot(corpse) then continue end
+
+        table.insert(revivable, corpse)
+    end
+
+    return revivable
+end
+
+---Get the first closest revivable corpse to the given bot. If filterAlly d: true) then it will only return corpses of the same team. Else nil.
+---@param bot Player
+---@param filterAlly? boolean
+---@return Player? player
+---@return any? ragdoll
+function TTTBots.Lib.GetClosestReviable(bot, filterAlly)
+    local options = TTTBots.Lib.GetRevivableCorpses()
+
+    for i, rag in pairs(options) do
+        if not TTTBots.Lib.IsValidBody(rag) then continue end
+        local deadply = player.GetBySteamID64(rag.sid64)
+        if not IsValid(deadply) then continue end
+        if filterAlly and TTTBots.Roles.IsAllies(bot, rag) then continue end
+        return deadply, rag
+    end
+
+    return nil -- No corpses found
+end
+
 if SERVER then
     hook.Add("PlayerInitialSpawn", "TTTBots.Lib.PlayerInitialSpawn.Chatter", function(bot)
         timer.Simple(math.pi, function()
