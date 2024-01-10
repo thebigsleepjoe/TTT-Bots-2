@@ -45,6 +45,13 @@ function Defib.HasDefib(bot)
     return false
 end
 
+function Defib.GetDefib(bot)
+    for i, class in pairs(Defib.WeaponClasses) do
+        local wep = bot:GetWeapon(class)
+        if IsValid(wep) then return wep end
+    end
+end
+
 function Defib.ValidateCorpse(bot, corpse)
     return lib.IsValidBody(corpse or bot.defibRag)
 end
@@ -79,7 +86,25 @@ function Defib.OnRunning(bot)
     local inventory, loco = bot:BotInventory(), bot:BotLocomotor()
     if not (inventory and loco) then return STATUS.FAILURE end
 
-    inventory:PauseAutoSwitch()
+    local defib = Defib.GetDefib(bot)
+    local target = bot.defibTarget
+    local rag = bot.defibRag
+    if not (IsValid(target) and IsValid(rag) and IsValid(defib)) then return STATUS.FAILURE end
+    local ragPos = rag:GetPos()
+
+    loco:SetGoal(ragPos)
+    loco:LookAt(ragPos)
+
+    if loco:IsCloseEnough(ragPos) then
+        inventory:PauseAutoSwitch()
+        bot:SetActiveWeapon(defib)
+        loco:StartAttack()
+    else
+        loco:StopAttack()
+        inventory:ResumeAutoSwitch()
+    end
+
+    return STATUS.RUNNING
 end
 
 function Defib.OnSuccess(bot) end
@@ -93,5 +118,6 @@ function Defib.OnEnd(bot)
     local inventory, loco = bot:BotInventory(), bot:BotLocomotor()
     if not (inventory and loco) then return end
 
+    loco:StopAttack()
     inventory:ResumeAutoSwitch()
 end
