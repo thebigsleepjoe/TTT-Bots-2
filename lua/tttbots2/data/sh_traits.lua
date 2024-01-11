@@ -43,7 +43,8 @@ TTTBots.Traits = {
             aggression = 0.8,     -- Less aggressive as traitor
             rageRate = 0.5,       -- Rage slower
             difficulty = -1,
-            hider = true
+            hider = true,
+            focus = 0.9, -- the gain/loss rate of focus when attacking
         }
     },
     bomber = {
@@ -79,6 +80,7 @@ TTTBots.Traits = {
             pressureRate = 2.5,
             inaccuracy = 2,
             difficulty = -4,
+            focus = 0.5, -- the gain/loss rate of focus when attacking
         }
     },
     goodaim = {
@@ -90,6 +92,7 @@ TTTBots.Traits = {
         effects = {
             pressureRate = 0.1,
             difficulty = 3,
+            focus = 1.5, -- the gain/loss rate of focus when attacking
         }
     },
     oblivious = {
@@ -106,6 +109,8 @@ TTTBots.Traits = {
             boredomRate = 1.25,     -- Boredom builds up faster
             difficulty = -2,
             investigateCorpse = 0.5,
+            focus = 0.8, -- the gain/loss rate of focus when attacking
+            hider = true,
         }
     },
     veryoblivious = {
@@ -125,6 +130,7 @@ TTTBots.Traits = {
             investigateCorpse = 0.2,
             hider = true,
             follower = true, -- likes to follow players
+            focus = 0.5,     -- the gain/loss rate of focus when attacking
         }
     },
     -- Good hearing, memory, and target acquisition than the average player.
@@ -139,6 +145,7 @@ TTTBots.Traits = {
             investigateNoise = 1.5, -- more likely to seek out noise
             difficulty = 2,
             investigateCorpse = 1.5,
+            focus = 1.2,
         }
     },
     veryobservant = {
@@ -154,6 +161,7 @@ TTTBots.Traits = {
             difficulty = 4,
             investigateCorpse = 2,
             sniper = true,
+            focus = 1.5,
         }
     },
     loner = {
@@ -245,6 +253,7 @@ TTTBots.Traits = {
             ignoreOrders = true,
             investigateCorpse = 0.4, -- less likely to investigate corpses, we're too busy sniping
             sniper = true,
+            focus = 2.0,             -- the gain/loss rate of focus when attacking
         }
     },
     assassin = { -- TODO: Implement this featuer.
@@ -428,6 +437,7 @@ TTTBots.Traits = {
         effects = {
             rageRate = 2.0,
             difficulty = -1,
+            focus = 0.8, -- the gain/loss rate of focus when attacking
         }
     },
     pacifist = {
@@ -449,7 +459,8 @@ TTTBots.Traits = {
         traitor_only = false,
         effects = {
             pressureRate = 0.1,
-            difficulty = 3
+            difficulty = 3,
+            focus = 1.5, -- the gain/loss rate of focus when attacking
         }
     },
     shaky = {
@@ -459,7 +470,8 @@ TTTBots.Traits = {
         traitor_only = false,
         effects = {
             pressureRate = 3.0,
-            difficulty = -3
+            difficulty = -3,
+            focus = 0.5, -- the gain/loss rate of focus when attacking
         }
     },
     bemused = {

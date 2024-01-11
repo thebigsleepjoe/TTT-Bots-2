@@ -33,6 +33,7 @@ Match.KOSCounter = {} ---@type table<Player, number>
 Match.KOSList = {} ---@type table<Player, table<Player>>
 Match.SpottedC4s = {} ---@type table<Entity, boolean> Armed C4 that has been spotted by the innocent bots at least once. key and value are the same entity
 Match.AllArmedC4s = {} ---@type table<Entity, boolean>
+Match.Smokes = {}
 
 function Match.Tick()
     if not Match.RoundActive then return end
@@ -131,6 +132,7 @@ function Match.ResetStats(roundActive)
     Match.SpottedC4s = {}
     Match.AllArmedC4s = {}
     Match.RoundID = TTTBots.Lib.GenerateID()
+    Match.Smokes = {}
 
     if SERVER then
         for i, v in pairs(TTTBots.Bots) do
@@ -230,6 +232,30 @@ function Match.BotsTrySpotC4()
     end
 end
 
+function Match.IsSmokeDataActive(data)
+    local timeNow = CurTime()
+    local startTime = data.startTime
+    local endTime = data.endTime
+    return not (timeNow > endTime or timeNow < startTime)
+end
+
+local SMOKE_DIST = 256
+function Match.IsPlyNearSmoke(ply)
+    local smokes = Match.Smokes
+    local plyPos = ply:GetPos()
+    for i, data in pairs(smokes) do
+        if not Match.IsSmokeDataActive(data) then continue end
+
+        local center = data.center
+        local dist = plyPos:Distance(center)
+        if dist < SMOKE_DIST then
+            return true
+        end
+    end
+
+    return false
+end
+
 timer.Create("TTTBots.Match.UpdateAlivePlayers", 0.34, 0, function()
     Match.UpdateAlivePlayers()
 end)
@@ -301,5 +327,19 @@ if SERVER then
         end
 
         Match.BotsTrySpotC4()
+    end)
+
+    hook.Add("EntityRemoved", "TTTBots.Match.UpdateSmokes", function(ent, fullUpdate)
+        if not IsValid(ent) then return end
+        local class = ent:GetClass()
+        if string.find(class, "smoke") and ent.was_thrown and ent.GetDetTime then
+            local data = {
+                startTime = ent:GetDetTime(),
+                endTime = ent:GetDetTime() + 30,
+                center = ent:GetPos(),
+                ent = ent
+            }
+            table.insert(Match.Smokes, data)
+        end
     end)
 end

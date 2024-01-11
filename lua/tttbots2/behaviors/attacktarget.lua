@@ -273,6 +273,7 @@ function Attack.Engage(bot, targetPos)
 end
 
 local INACCURACY_BASE = 14 --- The higher this is, the more inaccurate the bots will be.
+local INACCURACY_SMOKE = 5 --- The inaccuracy modifier when the bot or its target is in smoke.
 --- Calculate the inaccuracy of agent 'bot' according to a) its personality and b) diff setts
 ---@param bot Player The bot that is shooting.
 ---@param origin Vector The original aim point.
@@ -290,10 +291,17 @@ function Attack.CalculateInaccuracy(bot, origin)
         (bot:GetRoleStringRaw() == "traitor" and lib.GetConVarBool("cheat_traitor_accuracy"))
         and 2 or 1
 
+    local focus_factor = (1 - (bot.attackFocus or 0.01)) * 1.5
+
+    local smokeFn = TTTBots.Match.IsPlyNearSmoke
+    local isInSmoke = (smokeFn(bot) or smokeFn(bot.attackTarget)) and INACCURACY_SMOKE or 1
+
     local inaccuracy_mod = (pressure / difficulty) -- The more pressure we have, the more inaccurate we are; decreased by difficulty
         * distFactor                               -- The further away we are, the more inaccurate we are
         * INACCURACY_BASE                          -- Obviously, multiply by a constant to make it more inaccurate
         * rage                                     -- The more rage we have, the more inaccurate we are
+        * focus_factor                             -- The less focus we have, the more inaccurate we are
+        * isInSmoke                                -- If we are in smoke, we are more inaccurate
         / inaccuarcy_reduction                     -- Reduce aim difficulty if the cheat cvar is enabled
 
     inaccuracy_mod = math.max(inaccuracy_mod, 0.1)
@@ -448,3 +456,19 @@ function Attack.OnEnd(bot)
     bot.components.locomotor.stopLookingAround = false
     bot.components.locomotor:StopAttack()
 end
+
+local FOCUS_DECAY = 0.02
+function Attack.UpdateFocus(bot)
+    local factor = -FOCUS_DECAY
+    factor = factor * (bot.attackTarget ~= nil and -2.5 or 1)
+    factor = factor * (bot:GetTraitMult("focus") or 1)
+    bot.attackFocus = (bot.attackFocus or 0.1) + factor
+    bot.attackFocus = math.Clamp(bot.attackFocus, 0.1, 1)
+end
+
+timer.Create("TTTBots_AttackFocus", 1 / TTTBots.Tickrate, 0, function()
+    for _, bot in ipairs(TTTBots.Bots) do
+        if not IsValid(bot) then continue end
+        Attack.UpdateFocus(bot)
+    end
+end)
