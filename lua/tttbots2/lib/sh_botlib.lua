@@ -799,7 +799,7 @@ local notifiedSlots = false
 local notifiedNavmesh = false
 
 local function createPlayerBot(botname)
-    local bot = player.CreateNextBot(name)
+    local bot = player.CreateNextBot(botname)
 
     bot.components = {
         locomotor = TTTBots.Components.Locomotor:New(bot),
@@ -875,8 +875,10 @@ function TTTBots.Lib.CreateBot(name)
     name = name or TTTBots.Lib.GenerateName()
     local failFunc = function()
         print(TTTBots.Locale.GetLocalizedString("fail.create.bot"))
+        print("Below is the error:")
+        print(debug.traceback())
     end
-    local success, bot = xpcall(createPlayerBot, failFunc, name)
+    local success, bot = xpcall(function() createPlayerBot(name) end, failFunc, name)
 
     return bot or nil
 end
