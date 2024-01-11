@@ -71,7 +71,7 @@ function BotLocomotor:Initialize(bot)
 
     self.movePriorityVec = nil        -- Current movement priority vector, overrides movementVec if not nil
     self.movementVec = nil            -- Current movement position
-    self.moveInterpRate = 0           -- Current movement speed (rate of lerp)
+    self.moveInterpRate = 0.3         -- Current movement speed (rate of lerp)
     self.moveNormal = Vector(0, 0, 0) -- Current movement normal, functionally this is read-only.
 
     self.strafe = nil                 -- "left" or "right" or nil
@@ -1388,9 +1388,9 @@ function BotLocomotor:StartCommand(cmd) -- aka StartCmd
 
     --- 🏃 WALK TOWARDS NEXT POSITION ON PATH (OR IMMEDIATE PRIORITY GOAL), IF WE HAVE ONE
     if self:HasPath() and not self:GetPriorityGoal() then
-        self:InterpolateMovement(0.1, self.nextPos)
+        self:InterpolateMovement(self.moveInterpRate, self.nextPos)
     elseif self:GetPriorityGoal() then
-        self:InterpolateMovement(0.1, self:GetPriorityGoal())
+        self:InterpolateMovement(self.moveInterpRate, self:GetPriorityGoal())
         if DVLPR_PATHFINDING then TTTBots.DebugServer.DrawCross(self.movePriorityVec, 10, Color(0, 255, 255)) end
     end
 
@@ -1403,7 +1403,7 @@ function BotLocomotor:StartCommand(cmd) -- aka StartCmd
         if endTime < TIMESTAMP then
             self.repelled = false
         else
-            self:InterpolateMovement(0.15, repelPos) -- Much more emphasis on the repel than normal movement patterns.
+            self:InterpolateMovement(self.moveInterpRate * 1.5, repelPos) -- Much more emphasis on the repel than normal movement patterns.
         end
     end
 
