@@ -287,9 +287,9 @@ function Attack.CalculateInaccuracy(bot, origin)
     local pressure = personality:GetPressure()   -- float [0,1]
     local rage = (personality:GetRage() * 2) + 1 -- float [1,3]
 
-    local inaccuarcy_reduction =
+    local isTraitorFactor =
         (bot:GetRoleStringRaw() == "traitor" and lib.GetConVarBool("cheat_traitor_accuracy"))
-        and 2 or 1
+        and 0.5 or 1
 
     local focus_factor = (1 - (bot.attackFocus or 0.01)) * 1.5
 
@@ -302,7 +302,7 @@ function Attack.CalculateInaccuracy(bot, origin)
         * rage                                     -- The more rage we have, the more inaccurate we are
         * focus_factor                             -- The less focus we have, the more inaccurate we are
         * isInSmoke                                -- If we are in smoke, we are more inaccurate
-        / inaccuarcy_reduction                     -- Reduce aim difficulty if the cheat cvar is enabled
+        * isTraitorFactor                          -- Reduce aim difficulty if the cheat cvar is enabled
 
     inaccuracy_mod = math.max(inaccuracy_mod, 0.1)
 
