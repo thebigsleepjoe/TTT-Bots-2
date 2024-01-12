@@ -1,3 +1,5 @@
+<img src="https://forthebadge.com/images/badges/cc-by-sa.svg" height=30px> <img src="https://forthebadge.com/images/badges/works-on-my-machine.svg" height=30px> <img src="https://forthebadge.com/images/badges/built-with-love.svg" height=30px> 
+
 🎄🎁 The mod has been released on Steam. Merry Christmas! 
 
 Please leave any bug reports or feature requests in the Issues section. Thank you to the bug-reporters and contributor(s) that have helped this mod get to where it is!!
