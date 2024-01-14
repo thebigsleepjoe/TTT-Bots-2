@@ -37,28 +37,28 @@ local _prior = TTTBots.Behaviors.PriorityNodes
 TTTBots.Behaviors.DefaultTrees = {
     innocent = {
         _prior.FightBack,
-        _bh.Interact,
         _bh.Defuse,
+        _bh.Interact,
         _prior.Restore,
         _prior.Investigate,
         _prior.Patrol
     },
     traitor = {
         _prior.FightBack,
-        _bh.Interact,
         _bh.Defib,
         _bh.PlantBomb,
         _bh.InvestigateCorpse,
         _bh.FollowPlan,
+        _bh.Interact,
         _prior.Restore,
         _prior.Investigate,
         _prior.Patrol
     },
     detective = {
         _prior.FightBack,
-        _bh.Interact,
         _bh.Defib,
         _bh.Defuse,
+        _bh.Interact,
         _prior.Restore,
         _prior.Investigate,
         _prior.Patrol
