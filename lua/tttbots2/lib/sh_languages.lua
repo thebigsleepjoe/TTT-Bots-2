@@ -81,15 +81,25 @@ function TTTBots.Locale.FormatLine(line, params)
     return line
 end
 
+---Function to retrieve archetype-specific lines from the localized table
+---@param bot Player The bot entity
+---@param localizedTbl table The localized table containing event lines
+---@param forceDefault boolean Flag to force retrieving default archetype lines
+---@return table The archetype-specific lines from the localized table
 local function getArchetypalLines(bot, localizedTbl, forceDefault)
     local archetypeLocalized = {}
     local personality = bot.components.personality ---@type CPersonality
+
+    -- Iterate through the localized table entries
     for i, entry in pairs(localizedTbl) do
+        -- Check if the entry's archetype matches the bot's personality archetype or forceDefault flag
         if entry.archetype == (forceDefault and TTTBots.Archetypes.Default) or personality.archetype then
             table.insert(archetypeLocalized, entry)
         end
     end
-    if #archetypeLocalized == 0 and not forceDefault then -- add forceDefault check to prevent infinite recursion
+
+    -- If no archetype-specific lines found and forceDefault flag is not set, recursively call the function with forceDefault set to true
+    if #archetypeLocalized == 0 and not forceDefault then
         return getArchetypalLines(bot, localizedTbl, true)
     end
 
