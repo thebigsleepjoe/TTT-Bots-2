@@ -120,7 +120,7 @@ function Follow.Validate(bot)
     end
     if not TTTBots.Match.IsRoundActive() then return false end
     if bot.followTarget then return true end -- already following someone
-    local shouldFollow = lib.CalculatePercentChance(Follow.GetFollowChance(bot))
+    local shouldFollow = lib.TestPercent(Follow.GetFollowChance(bot))
     return shouldFollow and #Follow.GetFollowTargets(bot) > 0
 end
 

@@ -1195,10 +1195,17 @@ function TTTBots.Lib.Profiler(name, donotprint)
     end
 end
 
---- Get a random number between 1 and 100 and return true if it is less than pct.
+function TTTBots.Lib.GetHeadPos(other)
+    local boneIndex = other:LookupBone("ValveBiped.Bip01_Head1")
+    if not boneIndex then return other:EyePos() end
+
+    return other:GetBonePosition(boneIndex)
+end
+
+--- Get a random number between 1 and 100 and return true if it is less than pct. Supports decimals above 0.01.
 ---@param pct number
 ---@realm shared
-function TTTBots.Lib.CalculatePercentChance(pct)
+function TTTBots.Lib.TestPercent(pct)
     return (math.random(1, 100000) / 1000) <= pct
 end
 

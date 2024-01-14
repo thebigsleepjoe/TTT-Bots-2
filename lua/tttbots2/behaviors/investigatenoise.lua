@@ -90,7 +90,7 @@ function InvestigateNoise.ShouldInvestigateNoise(bot)
     local baseChance = lib.GetConVarInt("noise_investigate_chance")
     local pct = baseChance * mult
 
-    local passed = lib.CalculatePercentChance(pct)
+    local passed = lib.TestPercent(pct)
     return passed
 end
 

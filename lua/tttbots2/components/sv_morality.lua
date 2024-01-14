@@ -230,7 +230,7 @@ function BotMorality:SetRandomNearbyTarget()
         * time_modifier
         * (#targets == 1 and 5 or 1)
     )
-    if lib.CalculatePercentChance(chanceAttackPerSec) then
+    if lib.TestPercent(chanceAttackPerSec) then
         local target = BotMorality:GetRandomVictimFrom(targets)
         self.bot:SetAttackTarget(target)
     end
