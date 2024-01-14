@@ -211,7 +211,9 @@ function BotChatter:On(event_name, args, teamOnly)
     end
 
     local localizedString = TTTBots.Locale.GetLocalizedLine(event_name, self.bot, args)
+    local isCasual = personality:GetClosestArchetype() == "casual"
     if localizedString then
+        if isCasual then localizedString = string.lower(localizedString) end
         self:Say(localizedString, teamOnly, false, function()
             if event_name == "CallKOS" then
                 self:QuickRadio("quick_traitor", args.playerEnt)
@@ -283,3 +285,8 @@ timer.Create("TTTBots.Chatter.SillyChat", 20, 0, function()
     local eventName = lib.IsPlayerAlive(targetBot) and "SillyChat" or "SillyChatDead"
     chatter:On(eventName, { player = randomPlayer:Nick() })
 end)
+
+local plyMeta = FindMetaTable("Player")
+function plyMeta:GetChatter()
+    return lib.GetComp(self, "chatter")
+end
