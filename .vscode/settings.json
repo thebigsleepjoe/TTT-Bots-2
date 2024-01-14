@@ -26,6 +26,7 @@
         "hook",
         "CORPSE",
         "PrintTable",
-        "SERVER"
+        "SERVER",
+        "FindMetaTable"
     ]
 }

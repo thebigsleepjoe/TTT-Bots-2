@@ -1,6 +1,11 @@
 --[[
     This file defines a list of chats that bots will say upon a certain kind of event. It is designed for one-off chatter events, instead of back-and-forth conversation.
     For that, we will have a separate file, and likely use the Localized String system.
+
+    TRANSLATORS:
+    - ChatGPT
+    - GitHub Copilot
+    - ???
 ]]
 
 local P = {
@@ -384,6 +389,20 @@ local LoadLang = function()
     Line("Bon, je te suis maintenant.", A.Hothead)
     Line("Je vais suivre ce gosse.", A.Hothead)
     Line("Tu ferais mieux d'avoir de la place pour deux, {{player}}", A.Hothead)
+
+    RegisterCategory("PersonalSpace", P.IMPORTANT) -- Warning another player about their personal space
+    Line("Hey, {{player}}, tu es un peu trop proche.", A.Default)
+    Line("S'il te plaît, recule.", A.Default)
+    Line("S'il te plaît, recule {{player}}.", A.Default)
+    Line("Un peu d'espace, s'il te plaît ?", A.Default)
+    Line("Un peu de place ?", A.Default)
+    Line("Éloigne-toi un instant.", A.Default)
+    Line("Pourrais-tu me donner un peu d'espace, s'il te plaît ?", A.Default)
+    Line("Excuse-moi, {{player}}.", A.Default)
+    Line("J'ai besoin d'un peu d'air, {{player}}.", A.Default)
+    Line("Que veux-tu, {{player}} ?", A.Default)
+    Line("Je suis avec {{player}}.", A.Default)
+    Line("{{player}} agit de manière suspecte.", A.Default)
 
 
     -----------------------------------------------------------

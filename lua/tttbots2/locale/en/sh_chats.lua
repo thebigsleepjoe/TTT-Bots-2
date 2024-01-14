@@ -493,6 +493,19 @@ local LoadLang = function()
     Line("I'm gonna follow this kid.", A.Hothead)
     Line("You'd better have room for 2, {{player}}", A.Hothead)
 
+    RegisterCategory("PersonalSpace", P.IMPORTANT) -- Warning another player about their personal space
+    Line("Hey, {{player}}, you're a bit close.", A.Default)
+    Line("Please back off.", A.Default)
+    Line("Please back off {{player}}", A.Default)
+    Line("A little bit of space, please?", A.Default)
+    Line("Some room?", A.Default)
+    Line("Step away for a moment", A.Default)
+    Line("Could you please give me some space?", A.Default)
+    Line("Excuse me, {{player}}.", A.Default)
+    Line("I need some breathing room, {{player}}", A.Default)
+    Line("What do you want, {{player}}?", A.Default)
+    Line("I'm with {{player}}.", A.Default)
+    Line("{{player}} acts suspicious.", A.Default)
     -----------------------------------------------------------
     -- INVESTIGATIONS
     -----------------------------------------------------------
