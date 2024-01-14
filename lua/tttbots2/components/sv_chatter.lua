@@ -211,7 +211,7 @@ function BotChatter:On(event_name, args, teamOnly)
     end
 
     local localizedString = TTTBots.Locale.GetLocalizedLine(event_name, self.bot, args)
-    local isCasual = personality:GetClosestArchetype() == "casual"
+    local isCasual = personality:GetClosestArchetype() == TTTBots.Archetypes.Casual
     if localizedString then
         if isCasual then localizedString = string.lower(localizedString) end
         self:Say(localizedString, teamOnly, false, function()
