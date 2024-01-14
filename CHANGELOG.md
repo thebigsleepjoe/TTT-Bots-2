@@ -17,3 +17,5 @@
 * Fixed: Bots trying to break unbreakable obstructions. (#33)
 
 * Fixed: Bot accuracy not correctly scaling over distance.
+
+* Added/fixed many other things I'm forgetting.
