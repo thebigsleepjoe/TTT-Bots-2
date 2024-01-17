@@ -36,20 +36,19 @@ timer.Create("TTTBots.Lib.PopularNavsTimer", 1, 0, function()
         --     local txt = "(" .. sorted[i][2] .. "s) Popularity Rank #" .. i
         --     TTTBots.DebugServer.DrawText(pos, txt, 1, "popularnavs" .. i)
         -- end
-        for i,navTbl in pairs(TTTBots.Lib.GetTopNPopularNavs(3)) do
+        for i, navTbl in pairs(TTTBots.Lib.GetTopNPopularNavs(3)) do
             local nav = navmesh.GetNavAreaByID(navTbl[1])
             local pos = nav:GetCenter()
             local txt = "(" .. navTbl[2] .. "s) Popularity Rank #" .. i
             TTTBots.DebugServer.DrawText(pos, txt, 1.2, "popularnavs" .. i)
         end
 
-        for i,navTbl in pairs(TTTBots.Lib.GetTopNUnpopularNavs(3)) do
+        for i, navTbl in pairs(TTTBots.Lib.GetTopNUnpopularNavs(3)) do
             local nav = navmesh.GetNavAreaByID(navTbl[1])
             local pos = nav:GetCenter()
             local txt = "(" .. navTbl[2] .. "s) Unpopularity Rank #" .. i
             TTTBots.DebugServer.DrawText(pos, txt, 1.2, "unpopularnavs" .. i)
         end
-
     end
 end)
 
@@ -67,6 +66,7 @@ function TTTBots.Lib.GetTopNPopularNavs(n)
     return topN
 end
 
+--- The opposite of GetTopNPopularNavs
 function TTTBots.Lib.GetTopNUnpopularNavs(n)
     local sorted = TTTBots.Lib.GetPopularNavs()
     local topN = {}
@@ -82,4 +82,20 @@ function TTTBots.Lib.GetRandomPopularNav()
     local topN = TTTBots.Lib.GetTopNPopularNavs(8)
     local rand = math.random(1, #topN)
     return topN[rand][1]
+end
+
+local navMeta = FindMetaTable("CNavArea")
+
+
+---Get the popularity percentage [0,1] of this nav area compared to others. 1 = most, 0 = least
+---@return unknown
+function navMeta:GetPopularityPct()
+    local popNavs = TTTBots.Lib.GetPopularNavs()
+    local total = #popNavs
+
+    for i, navTbl in pairs(popNavs) do
+        if navTbl[1] == self:GetID() then
+            return i / total
+        end
+    end
 end
