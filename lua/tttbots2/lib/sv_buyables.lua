@@ -48,6 +48,7 @@ function TTTBots.Buyables.PurchaseBuyablesFor(bot)
     local purchased = {}
 
     for i, option in pairs(options) do
+        if option.Class and not TTTBots.Lib.WepClassExists(option.Class) then continue end -- for mod compat.
         if option.Price > creditAllowance then continue end
         if option.CanBuy and not option.CanBuy(bot) then continue end
         if option.RandomChance and math.random(1, option.RandomChance) ~= 1 then continue end
