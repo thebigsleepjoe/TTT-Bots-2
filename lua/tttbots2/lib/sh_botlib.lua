@@ -912,7 +912,7 @@ function TTTBots.Lib.GetClosestReviable(bot, filterAlly)
         if not TTTBots.Lib.IsValidBody(rag) then continue end
         local deadply = player.GetBySteamID64(rag.sid64)
         if not IsValid(deadply) then continue end
-        if filterAlly and TTTBots.Roles.IsAllies(bot, rag) then continue end
+        if filterAlly and TTTBots.Roles.IsAllies(bot, deadply) then continue end
         return deadply, rag
     end
 
@@ -1065,6 +1065,10 @@ function TTTBots.Lib.GetComp(bot, type)
         return bot.components[type]
     end
     return nil
+end
+
+function TTTBots.Lib.WepClassExists(classname)
+    return weapons.Get(classname) ~= nil
 end
 
 --- Functionally the same as navmesh.GetNavArea(pos), but includes ladder areas.
