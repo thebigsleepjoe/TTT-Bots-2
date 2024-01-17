@@ -581,7 +581,7 @@ local function personalSpace(bot)
             bot.personalSpaceTbl[other] = nil
         end
 
-        if bot.personalSpaceTbl[other] >= PS_INTERVAL then
+        if (bot.personalSpaceTbl[other] or 0) >= PS_INTERVAL then
             bot:GetMorality():ChangeSuspicion(other, "PersonalSpace")
             bot:GetChatter():On("PersonalSpace")
             bot.personalSpaceTbl[other] = nil
