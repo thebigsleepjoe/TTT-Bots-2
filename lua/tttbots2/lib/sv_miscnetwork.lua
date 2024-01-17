@@ -82,8 +82,7 @@ hook.Add("PlayerInitialSpawn", "TTTBots_PlayerInitialSpawn", function(ply)
     end
 end)
 
--- Client is requesting we sync the bot avatar numbers, we will send the table of bot avatar numbers to the client
-net.Receive("TTTBots_SyncAvatarNumbers", function(len, ply)
+local function syncClientAvatars(ply)
     validateAvatarCache()
     local avatars_nicks = {}
 
@@ -94,4 +93,12 @@ net.Receive("TTTBots_SyncAvatarNumbers", function(len, ply)
     net.Start("TTTBots_SyncAvatarNumbers")
     net.WriteTable(avatars_nicks)
     net.Send(ply)
+end
+
+-- Client is requesting we sync the bot avatar numbers, we will send the table of bot avatar numbers to the client
+net.Receive("TTTBots_SyncAvatarNumbers", function(len, ply)
+    syncClientAvatars(ply)
 end)
+
+hook.Add("PlayerDisconnected", "TTTBots.Network.PlayerDisconnected", syncClientAvatars)
+hook.Add("PlayerInitialSpawn", "TTTBots.Network.PlayerInitialSpawn", syncClientAvatars)

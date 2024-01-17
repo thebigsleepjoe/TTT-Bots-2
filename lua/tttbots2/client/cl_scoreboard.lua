@@ -232,5 +232,5 @@ net.Receive("TTTBots_SyncAvatarNumbers", function(len, ply)
     updateScoreboardPfps()
 end)
 
-timer.Create("TTTBots.Client.CacheBotAvatars", 2, 0, cacheBotAvatars)
 timer.Create("TTTBots.Client.SyncBotAvatars", 0.25, 0, updateScoreboardPfps)
+timer.Create("TTTBots.Client.CacheBotAvatars", 60, 0, cacheBotAvatars)
