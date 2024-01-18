@@ -24,7 +24,6 @@ function TTTBots.Chat.MessagePlayer(ply, message)
     ply:ChatPrint("[TTT Bots 2] " .. message)
 end
 
-if SERVER then include("tttbots2/commands/sv_cvars.lua") end -- This line is necessary to prevent errors from sh_botlib.lua
 local function includeServer()
     include("tttbots2/lib/sv_pathmanager.lua")
     include("tttbots2/lib/sv_debug.lua")
@@ -117,7 +116,7 @@ if SERVER then
                         component:Think()
                     end
 
-                    bot.tick = bot.components.locomotor.tick
+                    bot.tick = bot:BotLocomotor().tick
                     bot.timeInGame = (bot.timeInGame or 0) + (1 / TTTBots.Tickrate)
                 end
                 TTTBots.Lib.UpdateBotModels()
@@ -133,7 +132,7 @@ if SERVER then
         hook.Add("StartCommand", "TTTBots_StartCommand", function(ply, cmd)
             if ply:IsBot() then
                 local bot = ply
-                local locomotor = bot.components.locomotor
+                local locomotor = bot:BotLocomotor()
 
                 -- Update locomotor
                 locomotor:StartCommand(cmd)
