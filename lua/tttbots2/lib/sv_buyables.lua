@@ -9,13 +9,14 @@ local buyables_role = TTTBots.Buyables.m_buyables_role
 ---@field Class string - The class of this item.
 ---@field Price number - The price of this item, in credits. Bots are given an allowance of 2 credits.
 ---@field Priority number - The priority of this item. Higher numbers = higher priority. If two buyables have the same priority, the script will select one at random.
----@field OnBuy function|nil - (OPTIONAL) Called when the bot successfully buys this item.
----@field CanBuy function|nil - (OPTIONAL) Return false to prevent a bot from buying this item.
+---@field OnBuy function? - Called when the bot successfully buys this item.
+---@field CanBuy function? - Return false to prevent a bot from buying this item.
 ---@field Roles table<string> - A table of roles that can buy this item.
----@field RandomChance number|nil - (OPTIONAL) An integer from 1 to math.huge. Functionally the item will be selected if random(1, RandomChoice) == 1.
----@field ShouldAnnounce boolean|nil - (OPTIONAL) Should this create a chatter event?
----@field AnnounceTeam boolean|nil - (OPTIONAL) Is announcing team-only?
----@field BuyFunc function|nil - (OPTIONAL) A function called to "buy" the Class. By default, just calls function(ply) ply:Give(Class) end
+---@field RandomChance number? - An integer from 1 to math.huge. Functionally the item will be selected if random(1, RandomChoice) == 1.
+---@field ShouldAnnounce boolean? - Should this create a chatter event?
+---@field AnnounceTeam boolean? - Is announcing team-only?
+---@field BuyFunc function? - A function called to "buy" the Class. By default, just calls function(ply) ply:Give(Class) end
+---@field TTT2 boolean? - Is this TTT2 specific?
 
 
 --- Return a buyable item by its name.
@@ -48,6 +49,7 @@ function TTTBots.Buyables.PurchaseBuyablesFor(bot)
     local purchased = {}
 
     for i, option in pairs(options) do
+        if option.TTT2 and not TTTBots.Lib.IsTTT2() then continue end                      -- for mod compat.
         if option.Class and not TTTBots.Lib.WepClassExists(option.Class) then continue end -- for mod compat.
         if option.Price > creditAllowance then continue end
         if option.CanBuy and not option.CanBuy(bot) then continue end
