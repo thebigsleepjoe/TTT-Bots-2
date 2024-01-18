@@ -22,6 +22,8 @@ local STATUS = {
     FAILURE = 3,
 }
 
+local function printf(...) print(string.format(...)) end
+
 ---Get the closest revivable corpse to our bot
 ---@param bot any
 ---@param allyOnly boolean
@@ -31,10 +33,11 @@ function Defib.GetCorpse(bot, allyOnly)
     local closest, rag = TTTBots.Lib.GetClosestReviable(bot, allyOnly or true)
     if not closest then return end
 
-    local canSee = lib.CanSeeArc(bot, rag:GetPos() + Vector(0, 0, 16), 120)
-    if canSee then
-        return closest, rag
-    end
+    -- local canSee = lib.CanSeeArc(bot, rag:GetPos() + Vector(0, 0, 16), 120)
+    -- print(canSee)
+    -- if canSee then
+    return closest, rag
+    -- end
 end
 
 function Defib.HasDefib(bot)
@@ -81,6 +84,19 @@ function Defib.OnStart(bot)
     return STATUS.RUNNING
 end
 
+function Defib.GetSpinePos(rag)
+    local default = rag:GetPos()
+
+    local spineName = "ValveBiped.Bip01_Spine"
+    local spine = rag:LookupBone(spineName)
+
+    if spine then
+        return rag:GetBonePosition(spine)
+    end
+
+    return default
+end
+
 ---@param bot Player
 function Defib.OnRunning(bot)
     local inventory, loco = bot:BotInventory(), bot:BotLocomotor()
@@ -90,18 +106,27 @@ function Defib.OnRunning(bot)
     local target = bot.defibTarget
     local rag = bot.defibRag
     if not (IsValid(target) and IsValid(rag) and IsValid(defib)) then return STATUS.FAILURE end
-    local ragPos = rag:GetPos()
+    local ragPos = Defib.GetSpinePos(rag)
 
     loco:SetGoal(ragPos)
     loco:LookAt(ragPos)
 
     if loco:IsCloseEnough(ragPos) then
+        printf("%s defibbing %s", bot:Nick(), target:Nick())
         inventory:PauseAutoSwitch()
         bot:SetActiveWeapon(defib)
+        loco:SetGoal() -- reset goal to stop moving
         loco:StartAttack()
+        loco:PauseAttackCompat()
+        loco:Crouch(true)
+        loco:PauseRepel()
     else
+        printf("%s is too far from rag", bot:Nick())
         loco:StopAttack()
         inventory:ResumeAutoSwitch()
+        loco:ResumeAttackCompat()
+        loco:SetHalt(false)
+        loco:ResumeRepel()
     end
 
     return STATUS.RUNNING
@@ -119,5 +144,9 @@ function Defib.OnEnd(bot)
     if not (inventory and loco) then return end
 
     loco:StopAttack()
+    loco:ResumeAttackCompat()
+    loco:Crouch(false)
+    loco:SetHalt(false)
+    loco:ResumeRepel()
     inventory:ResumeAutoSwitch()
 end
