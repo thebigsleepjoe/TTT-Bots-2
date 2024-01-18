@@ -101,8 +101,9 @@ function TTTBots.Behaviors.GetFirstValid(tree, bot)
 end
 
 function TTTBots.Behaviors.CallTree(bot, tree)
+    if not IsValid(bot) or not (bot.components and bot:BotLocomotor()) then return end -- Prevent strange errors from happening on bot DC
     tree = tree or TTTBots.Behaviors.GetTreeFor(bot)
-    if not tree then return STATUS.FAILURE end
+    if not tree then return end
 
     local lastBehavior = bot.lastBehavior ---@type BBase?
     local lastState = bot.lastState ---@type BStatus?
@@ -116,17 +117,20 @@ function TTTBots.Behaviors.CallTree(bot, tree)
 
     local newState = STATUS.FAILURE
 
-    if not behavior then return STATUS.FAILURE end -- no valid behaviors
+    if not behavior then return end -- no valid behaviors
 
     if behaviorChanged then
+        -- clean up past bhvr and start new one
         if lastBehavior then lastBehavior.OnEnd(bot) end
         newState = behavior.OnStart(bot)
         bot.lastBehavior = behavior
     elseif behavior.Validate(bot) then
+        -- otherwise keep running the same one
         newState = behavior.OnRunning(bot)
     end
 
     if newState == STATUS.SUCCESS or newState == STATUS.FAILURE then
+        -- if our current behavior is done, do cleanup
         if lastBehavior then lastBehavior.OnEnd(bot) end
         bot.lastBehavior = nil
         bot.lastState = nil
@@ -139,54 +143,13 @@ function TTTBots.Behaviors.CallTree(bot, tree)
             behavior.OnEnd(bot)
         end
     else
+        -- otherwise set the lastState for the next tick
         bot.lastState = newState
     end
 end
 
----@deprecated This is currently being reworked.
 function TTTBots.Behaviors.CallTreeOnBots()
-    for _, bot in pairs(TTTBots.Bots) do
-        if not IsValid(bot) or not TTTBots.Lib.IsPlayerAlive(bot) then continue end
-        local tree = TTTBots.Behaviors.GetTreeFor(bot)
-        if not tree then continue end
-
-        local behaviorChanged
-        local lastBehavior = bot.lastBehavior
-        local interruptible = lastBehavior and lastBehavior.Interruptible or true
-        local newState = STATUS.FAILURE
-
-        if lastBehavior and lastBehavior.Validate(bot) then
-            newState = lastBehavior.OnRunning(bot)
-        end
-
-        -- get another behavior if the last one is done
-        if interruptible then
-            local behavior = TTTBots.Behaviors.GetFirstValid(tree, bot)
-            if behavior and lastBehavior ~= behavior then
-                if lastBehavior then
-                    lastBehavior.OnEnd(bot)
-                end
-                lastBehavior = behavior
-                bot.lastBehavior = behavior
-                behaviorChanged = true
-            end
-        end
-
-        if behaviorChanged then
-            newState = lastBehavior.OnStart(bot)
-        end
-
-        if newState == STATUS.SUCCESS or newState == STATUS.FAILURE then
-            if lastBehavior then lastBehavior.OnEnd(bot) end
-            bot.lastBehavior = nil
-        end
-
-        if newState == STATUS.SUCCESS then
-            if lastBehavior then lastBehavior.OnSuccess(bot) end
-        elseif newState == STATUS.FAILURE then
-            if lastBehavior then lastBehavior.OnFailure(bot) end
-        end
+    for _, bot in ipairs(TTTBots.Bots) do
+        TTTBots.Behaviors.CallTree(bot)
     end
-
-    return STATUS.FAILURE
 end
