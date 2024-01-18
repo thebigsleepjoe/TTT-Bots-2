@@ -181,7 +181,14 @@ function Interact.FindOther(bot)
 end
 
 function Interact.ValidateTarget(target)
-    return IsValid(target) and lib.IsPlayerAlive(target)
+    local valid = IsValid(target) and lib.IsPlayerAlive(target)
+    if not valid then return false end
+
+    local dist = bot:GetPos():DistToSqr(target:GetPos())
+    local TOOFAR = Interact.MaxDistance * Interact.MaxDistance * 1.5
+    if dist > TOOFAR then return false end
+
+    return true
 end
 
 function Interact.HasTarget(bot)
@@ -291,6 +298,5 @@ function Interact.OnEnd(bot)
     Interact.SetAnimation(bot, nil)
     bot.lastInteractionTime = CurTime()
     local loco = bot:BotLocomotor()
-    if not loco then return end
     Interact.StopActions(loco)
 end
