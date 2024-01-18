@@ -108,13 +108,13 @@ function InvestigateCorpse.OnRunning(bot)
     if not validation then
         return STATUS.FAILURE
     end
-    local loco = bot.components.locomotor
+    local loco = bot:BotLocomotor()
     loco:LookAt(bot.corpseTarget:GetPos())
     loco:SetGoal(bot.corpseTarget:GetPos())
 
     local distToBody = bot:GetPos():Distance(bot.corpseTarget:GetPos())
     if distToBody < 80 then
-        loco:Stop()
+        loco:StopMoving()
         CORPSE.ShowSearch(bot, bot.corpseTarget, false, false)
         CORPSE.SetFound(bot.corpseTarget, true)
         return STATUS.SUCCESS

@@ -41,7 +41,7 @@ function BotObstacleTracker:Enable()
 end
 
 function BotObstacleTracker:GetBlockingBreakable()
-    local normal = self.bot.components.locomotor.moveNormal
+    local normal = self.bot:BotLocomotor().moveNormal
     if not normal then
         return
     end

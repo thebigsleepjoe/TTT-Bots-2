@@ -280,9 +280,9 @@ function BotLocomotor:Crouch(bool) self.crouch = bool end
 
 function BotLocomotor:Jump(bool) self.jump = bool end
 
---- Order the bot to stop this tick.
+--- Order the bot to stop where it is.
 ---@param bool boolean
-function BotLocomotor:SetHalt(bool) self.dontmove = not bool end
+function BotLocomotor:SetHalt(bool) self.dontmove = bool end
 
 --- Sets the current look target. Use :LookAt to set this from outside of this component.
 ---@see LookAt
@@ -374,7 +374,7 @@ function BotLocomotor:GetGoal()
     return self.goalPos
 end
 
-function BotLocomotor:Stop()
+function BotLocomotor:StopMoving()
     self:SetGoal(nil)
     self:SetUse(false)
     self:Strafe(nil)
@@ -607,8 +607,20 @@ function BotLocomotor:GetNormalBetween(pos1, pos2)
     return dir
 end
 
+function BotLocomotor:PauseRepel()
+    self.pauseRepel = true
+end
+
+function BotLocomotor:ResumeRepel()
+    self.pauseRepel = false
+end
+
 ---@package
 function BotLocomotor:SetRepelForce(normal, duration)
+    if self.pauseRepel then
+        self:StopRepel()
+        return
+    end
     self.repelDir = normal
     self.repelStopTime = CurTime() + (duration or 1.0)
     self.repelled = true
@@ -1351,6 +1363,28 @@ function BotLocomotor:IsNearEndOfLadder()
     return (distTop < LADDER_THRESH_TOP or distBottom < LADDER_THRESH_BOTTOM) or false
 end
 
+--- Explciity disables "attack compatibility" until resumed -- this prevents the script from stopping an attack prematurely
+--- for compatibility with certain modded guns. This is specifically useful to pause for utility weapons.
+function BotLocomotor:PauseAttackCompat()
+    self.attackCompat = false
+end
+
+--- Resumes the attack compatibility mechanic.
+--- See PauseAttackCompat for more info.
+function BotLocomotor:ResumeAttackCompat()
+    self.attackCompat = true
+end
+
+---@see PauseAttackCompat
+---@see ResumeAttackCompat
+---@package
+function BotLocomotor:TestShouldPreventFire()
+    local attackCompat = self.attackCompat
+
+    if (attackCompat == false) then return false end -- explicit false-check so we don't have to define attackCompat in the first place
+    return (self.tick % TTTBots.Tickrate == 1)
+end
+
 ---Basically manages the locomotor of the locomotor
 ---@package
 function BotLocomotor:StartCommand(cmd) -- aka StartCmd
@@ -1492,7 +1526,7 @@ function BotLocomotor:StartCommand(cmd) -- aka StartCmd
         if (self.attack and releaseTime > TIMESTAMP) then -- or if we are attacking and we have an attack release time and it's not yet time to release:
             -- stop attack from interrupting reload
             local currentWep = self.bot.components.inventory:GetHeldWeaponInfo() ---@type WeaponInfo
-            local preventFire = (self.tick % TTTBots.Tickrate == 1) -- For compatibility with modded guns, sometimes we need to let go for a second to fire again.
+            local preventFire = self:TestShouldPreventFire() -- For compatibility with modded guns, sometimes we need to let go for a second to fire again.
             local needsReload = (currentWep and (currentWep.needs_reload)) or false
             if (
                     not preventFire
@@ -1633,8 +1667,8 @@ end)
 
 timer.Create("TTTBots.Locomotor.lookPosOverride.ForgetOverride", 1.0 / TTTBots.Tickrate, 0, function()
     for i, bot in pairs(TTTBots.Bots) do
-        if not (bot and bot.components and bot.components.locomotor) then continue end
-        local loco = bot.components.locomotor
+        if not (bot and bot.components and bot:BotLocomotor()) then continue end
+        local loco = bot:BotLocomotor()
         local endTime = loco.lookGoalStopTime
         if endTime and endTime < CurTime() then
             loco.lookGoal = nil

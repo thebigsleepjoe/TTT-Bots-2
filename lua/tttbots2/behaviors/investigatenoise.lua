@@ -55,7 +55,7 @@ function InvestigateNoise.OnStart(bot)
 end
 
 function InvestigateNoise.OnRunning(bot)
-    local loco = bot.components.locomotor
+    local loco = bot:BotLocomotor()
     local closestVisible = InvestigateNoise.FindClosestSound(bot, true)
     if closestVisible then
         loco:LookAt(closestVisible.pos + Vector(0, 0, 72))

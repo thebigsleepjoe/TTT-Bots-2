@@ -599,7 +599,7 @@ timer.Create("TTTBots.Components.Morality.CommonSense", 0.5, 0, function()
     if not TTTBots.Match.IsRoundActive() then return end
     for i, bot in pairs(TTTBots.Bots) do
         if not bot or bot == NULL or not IsValid(bot) then continue end
-        if not bot.components.chatter or not bot.components.locomotor then continue end
+        if not bot.components.chatter or not bot:BotLocomotor() then continue end
         if not lib.IsPlayerAlive(bot) then continue end
         commonSense(bot)
     end

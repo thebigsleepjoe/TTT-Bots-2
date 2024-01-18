@@ -156,7 +156,7 @@ function Follow.OnRunning(bot)
     --     return STATUS.SUCCESS
     -- end
 
-    local loco = bot.components.locomotor
+    local loco = bot:BotLocomotor()
     bot.botFollowPoint = Follow.GetFollowPoint(target)
 
     if bot.botFollowPoint == false then return STATUS.FAILURE end
@@ -181,5 +181,5 @@ function Follow.OnEnd(bot)
     bot.followTarget = nil
     bot.botFollowPoint = nil
     bot.followEndTime = nil
-    bot.components.locomotor:Stop()
+    bot:BotLocomotor():StopMoving()
 end

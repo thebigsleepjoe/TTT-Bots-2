@@ -19,6 +19,7 @@ local STATUS = {
 
 --- Validate the behavior
 function Breaker.Validate(bot)
+    if not IsValid(bot) then return false end
     local startPos = bot:EyePos()
     local endPos = startPos + (bot:GetAimVector() * 64)
     local traceResult = util.TraceLine({
@@ -55,7 +56,7 @@ function Breaker.OnRunning(bot)
     end
 
     ---@type CLocomotor
-    local loco = bot.components.locomotor
+    local loco = bot:BotLocomotor()
     ---@type CInventory
     local imgr = bot.components.inventory
     loco:LookAt(closest:GetPos(), 0.5)
@@ -68,19 +69,19 @@ end
 
 --- Called when the behavior returns a success state
 function Breaker.OnSuccess(bot)
-    local loco = bot.components.locomotor
+    local loco = bot:BotLocomotor()
     loco:StopAttack()
 end
 
 --- Called when the behavior returns a failure state
 function Breaker.OnFailure(bot)
-    local loco = bot.components.locomotor
+    local loco = bot:BotLocomotor()
     loco:StopAttack()
 end
 
 --- Called when the behavior ends, regardless of success or failure
 function Breaker.OnEnd(bot)
-    local loco = bot.components.locomotor
+    local loco = bot:BotLocomotor()
     bot.components.inventory:ResumeAutoSwitch()
     loco:StopAttack()
 end

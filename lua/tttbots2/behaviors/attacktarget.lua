@@ -43,7 +43,7 @@ function Attack.Seek(bot, targetPos)
     local target = bot.attackTarget
     local loco = lib.GetComp(bot, "locomotor")
     if not loco then return end
-    bot.components.locomotor.stopLookingAround = false
+    bot:BotLocomotor().stopLookingAround = false
     loco:StopAttack()
     -- If we can't see them, we need to move to them
     -- local targetPos = target:GetPos()
@@ -199,18 +199,18 @@ function Attack.Engage(bot, targetPos)
     if not weapon then return end
     local usingMelee = not weapon.is_gun
     ---@class CLocomotor
-    local loco = bot.components.locomotor
+    local loco = bot:BotLocomotor()
     loco.stopLookingAround = true
 
     local preventAttackBecauseMelee = false --- Used to prevent attacking when we are using a melee weapon and are too far away
     if bot.wasPathing and not usingMelee then
-        loco:Stop()
+        loco:StopMoving()
         bot.wasPathing = false
     elseif usingMelee then
         local distToTarget = bot:GetPos():Distance(target:GetPos())
         preventAttackBecauseMelee = distToTarget > 160
         if distToTarget < 70 then
-            loco:Stop()
+            loco:StopMoving()
             bot.wasPathing = false
         else
             loco:SetGoal(targetPos)
@@ -346,7 +346,7 @@ end
 function Attack.LookingCloseToTarget(bot, target)
     local targetPos = target:GetPos()
     ---@type CLocomotor
-    local locomotor = bot.components.locomotor
+    local locomotor = bot:BotLocomotor()
     local degDiff = math.abs(locomotor:GetEyeAngleDiffTo(targetPos))
 
     local THRESHOLD = 10
@@ -453,8 +453,8 @@ end
 --- Called when the behavior ends
 function Attack.OnEnd(bot)
     bot:SetAttackTarget(nil)
-    bot.components.locomotor.stopLookingAround = false
-    bot.components.locomotor:StopAttack()
+    bot:BotLocomotor().stopLookingAround = false
+    bot:BotLocomotor():StopAttack()
 end
 
 local FOCUS_DECAY = 0.02

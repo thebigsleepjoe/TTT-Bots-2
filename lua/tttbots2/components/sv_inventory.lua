@@ -217,7 +217,7 @@ function BotInventory:AutoManageInventory()
 
     local isAttacking = self.bot.attackTarget ~= nil
     -- local personality = self.bot.components.personality
-    local locomotor = self.bot.components.locomotor
+    local locomotor = self.bot:BotLocomotor()
 
     -- print(self:GetInventoryString())
     -- if primary then

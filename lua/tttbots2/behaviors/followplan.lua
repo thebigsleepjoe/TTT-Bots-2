@@ -174,7 +174,7 @@ local ACT_RUNNING_HASH = {
         -- path to the TargetObj (which is a Vec3) and stand there
         -- TODO: Implement properly and auto-attack enemy targets that we can see.
         local targetPos = job.TargetObj
-        bot.components.locomotor:SetGoal(targetPos)
+        bot:BotLocomotor():SetGoal(targetPos)
         return STATUS.RUNNING
     end,
     [ACTIONS.DEFUSE] = function(bot, job)
@@ -191,7 +191,7 @@ local ACT_RUNNING_HASH = {
         if bot == target then
             return STATUS.FAILURE
         end
-        bot.components.locomotor:SetGoal(targetPos)
+        bot:BotLocomotor():SetGoal(targetPos)
         return STATUS.RUNNING
     end,
     [ACTIONS.GATHER] = function(bot, job)
@@ -208,7 +208,7 @@ local ACT_RUNNING_HASH = {
                 bot.gatherWanderPos = randPos
             end
         end, TTTBots.Tickrate * 4)
-        bot.components.locomotor:SetGoal(bot.gatherWanderPos)
+        bot:BotLocomotor():SetGoal(bot.gatherWanderPos)
         return STATUS.RUNNING
     end,
     [ACTIONS.IGNORE] = function(bot, job)
@@ -223,7 +223,7 @@ local ACT_RUNNING_HASH = {
         -- walk directly to the TargetObj (vec3).
         -- TODO: Make this dynamically change the position so we actually roam.
         local targetPos = job.TargetObj
-        bot.components.locomotor:SetGoal(targetPos)
+        bot:BotLocomotor():SetGoal(targetPos)
         return STATUS.RUNNING
     end
 }
