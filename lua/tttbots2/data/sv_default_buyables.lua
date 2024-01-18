@@ -1,5 +1,16 @@
----@diagnostic disable: missing-fields
 local Registry = {}
+
+local function testPlyHasTrait(ply, trait, N)
+    local personality = TTTBots.Lib.GetComp(ply, "personality") ---@type CPersonality
+    if not personality then return false end
+    return (personality:GetTraitBool(trait)) or math.random(1, N) == 1
+end
+
+local function testPlyIsArchetype(ply, archetype, N)
+    local personality = TTTBots.Lib.GetComp(ply, "personality") ---@type CPersonality
+    if not personality then return false end
+    return (personality:GetClosestArchetype() == archetype) or math.random(1, N) == 1
+end
 
 ---@type Buyable
 Registry.C4 = {
@@ -11,9 +22,7 @@ Registry.C4 = {
     ShouldAnnounce = false,
     AnnounceTeam = false,
     CanBuy = function(ply)
-        local personality = TTTBots.Lib.GetComp(ply, "personality") ---@type CPersonality
-        if not personality then return false end
-        return (personality:GetTraitBool("planter")) or math.random(1, 3) == 1 -- Less likely to buy C4 if not a planter.
+        return testPlyHasTrait(ply, "planter", 6)
     end,
     Roles = { "traitor" },
 }
@@ -28,32 +37,53 @@ Registry.HealthStation = {
     ShouldAnnounce = false,
     AnnounceTeam = false,
     CanBuy = function(ply)
-        local personality = TTTBots.Lib.GetComp(ply, "personality") ---@type CPersonality
-        if not personality then return false end
-        return (personality:GetTraitBool("healer")) or
-            math.random(1, 3) ==
-            1 -- Less likely to buy health station if not a healer.
+        return testPlyHasTrait(ply, "healer", 3)
     end,
-    Roles = { "detective" },
+    Roles = { "detective", "survivalist" },
 }
 
 ---@type Buyable
 Registry.Defuser = {
-    Name = "Defuser",
-    Class = "weapon_ttt_defuser",
+    Name           = "Defuser",
+    Class          = "weapon_ttt_defuser",
+    Price          = 1,
+    Priority       = 1,
+    RandomChance   = 1, -- 1 since chance is calculated in CanBuy
+    ShouldAnnounce = false,
+    AnnounceTeam   = false,
+    CanBuy         = function(ply)
+        return testPlyHasTrait(ply, "defuser", 3)
+    end,
+    Roles          = { "detective" },
+}
+
+---@type Buyable
+Registry.Defib = {
+    Name = "Defibrillator",
+    Class = "weapon_ttt_defibrillator",
     Price = 1,
-    Priority = 1,
-    RandomChance = 1, -- 1 since chance is calculated in CanBuy
+    Priority = 2, -- higher priority because this is an objectively useful item
+    RandomChance = 1,
     ShouldAnnounce = false,
     AnnounceTeam = false,
     CanBuy = function(ply)
-        local personality = TTTBots.Lib.GetComp(ply, "personality") ---@type CPersonality
-        if not personality then return false end
-        return (personality:GetTraitBool("defuser")) or
-            math.random(1, 3) ==
-            1 -- Less likely to buy defuser if not a defuser.
+        return true
+        -- return testPlyHasArchetype(ply, TTTBots.Archetypes.Teamer, 3)
     end,
+    Roles = { "detective", "traitor", "survivalist" },
+}
+
+---@type Buyable
+Registry.Stungun = {
+    Name = "UMP Prototype",
+    Class = "weapon_ttt_stungun",
+    Price = 1,
+    Priority = 1,
+    RandomChance = 3,
+    ShouldAnnounce = false,
+    AnnounceTeam = false,
     Roles = { "detective" },
+    PrimaryWeapon = true,
 }
 
 for key, data in pairs(Registry) do
