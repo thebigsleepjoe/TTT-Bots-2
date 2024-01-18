@@ -27,6 +27,7 @@
         "CORPSE",
         "PrintTable",
         "SERVER",
-        "FindMetaTable"
-    ]
+        "FindMetaTable",
+        "weapons"
+    ],
 }
