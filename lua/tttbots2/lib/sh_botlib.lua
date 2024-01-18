@@ -912,7 +912,7 @@ function TTTBots.Lib.GetClosestReviable(bot, filterAlly)
         if not TTTBots.Lib.IsValidBody(rag) then continue end
         local deadply = player.GetBySteamID64(rag.sid64)
         if not IsValid(deadply) then continue end
-        if filterAlly and TTTBots.Roles.IsAllies(bot, deadply) then continue end
+        if filterAlly and not TTTBots.Roles.IsAllies(bot, deadply) then continue end
         return deadply, rag
     end
 
