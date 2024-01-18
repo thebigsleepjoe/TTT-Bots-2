@@ -17,7 +17,11 @@ local buyables_role = TTTBots.Buyables.m_buyables_role
 ---@field AnnounceTeam boolean? - Is announcing team-only?
 ---@field BuyFunc function? - A function called to "buy" the Class. By default, just calls function(ply) ply:Give(Class) end
 ---@field TTT2 boolean? - Is this TTT2 specific?
+---@field PrimaryWeapon boolean? - Should the bot use this over whatever other primaries they have? (affects autoswitch)
 
+--- A table of weapons that are preferred over primary weapons (PrimaryWeapon == true). Indexed by the weapon's classname.
+---@type table<string, boolean>
+TTTBots.Buyables.PrimaryWeapons = {}
 
 --- Return a buyable item by its name.
 ---@param name string - The name of the buyable item.
@@ -78,6 +82,10 @@ function TTTBots.Buyables.RegisterBuyable(data)
 
     for _, roleString in pairs(data.Roles) do
         TTTBots.Buyables.AddBuyableToRole(data, roleString)
+    end
+
+    if data.PrimaryWeapon then
+        TTTBots.Buyables.PrimaryWeapons[data.Class] = true
     end
 
     return true
