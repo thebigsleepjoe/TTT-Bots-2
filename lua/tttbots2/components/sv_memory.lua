@@ -108,19 +108,46 @@ function Memory:ResetMemory()
     self.playerKnownPositions = {}   -- List of where this bot last saw each player and how long ago
     self.PlayerLifeStates = {}       -- List of what this bot understands each bot's current life state to be
     self.UseRadar = shouldUseRadar() -- Whether or not this bot should use radar
+
+    self.m_genericmemory = { game = {}, round = {} }
+end
+
+hook.Add("TTTEndRound", "TTTBots.Memory.ClearRoundMemory", function()
+    for i, bot in pairs(TTTBots.Bots) do
+        if not (IsValid(bot) and bot:GetMemory()) then continue end
+        bot:GetMemory().m_genericmemory.round = {}
+    end
+end)
+
+---Set the state of memory with certain keyvalue pairs
+---@param state "game"|"round"
+---@param key any
+---@param value any
+function Memory:SetMemory(state, key, value)
+    self.m_genericmemory[state][key] = value
+end
+
+---Get the state of memory with certain keyvalue pairs, else default
+---@param state "game"|"round"
+---@param key any
+---@param default any
+---@return any
+function Memory:GetMemory(state, key, default)
+    return self.m_genericmemory[state][key] or default
 end
 
 function Memory:Initialize(bot)
     bot.components = bot.components or {}
     bot.components.memory = self
 
-    self:ResetMemory()
 
     self.bot = bot
     self.tick = 0
     ---@type table<table>
     self.recentSounds = {}
     self.forgetTime = FORGET.GetRememberTime(self.bot)
+
+    self:ResetMemory()
 end
 
 --- Simulates radar scanning the position of ply
