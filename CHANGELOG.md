@@ -41,3 +41,5 @@ This is a more technical explanation of the changes in this version, and contain
 * Reworked the behavior tree for modularity and consistency. You can nest priority nodes (tables sorted by numbers) inside of other priority nodes, allowing behaviors to be neatly grouped together. This improves consistency between role behaviors.
 
 * Buyables now test for mod presence before attempting to buy a weapon. There is also the option to define if a weapon is TTT2 specific, but this is optional.
+
+* Added easier support for setting temporary variables in the Memory component.

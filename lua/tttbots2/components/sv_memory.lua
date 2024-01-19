@@ -114,8 +114,8 @@ end
 
 hook.Add("TTTEndRound", "TTTBots.Memory.ClearRoundMemory", function()
     for i, bot in pairs(TTTBots.Bots) do
-        if not (IsValid(bot) and bot:GetMemory()) then continue end
-        bot:GetMemory().m_genericmemory.round = {}
+        if not (IsValid(bot) and bot:BotMemory()) then continue end
+        bot:BotMemory().m_genericmemory.round = {}
     end
 end)
 
@@ -579,3 +579,9 @@ hook.Add("EntityEmitSound", "TTTBots.EntityEmitSound", function(data)
 
     -- print("Unknown sound: " .. sn)
 end)
+
+
+local plyMeta = FindMetaTable("Player")
+function plyMeta:BotMemory()
+    return self.components and self.components.memory
+end
