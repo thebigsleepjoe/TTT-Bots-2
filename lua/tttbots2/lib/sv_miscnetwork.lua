@@ -55,7 +55,7 @@ local function assignBotAvatar(bot)
     local assignedImage
 
     if not pfps_humanlike then
-        local difficulty = personality:GetTraitAdditive("difficulty")
+        local difficulty = personality:GetDifficulty()
 
         if difficulty <= -4 then
             assignedImage = 1

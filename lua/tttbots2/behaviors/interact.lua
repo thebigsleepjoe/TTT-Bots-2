@@ -180,7 +180,11 @@ function Interact.FindOther(bot)
     return target, targetDist
 end
 
-function Interact.ValidateTarget(target)
+---Validate the target of bot
+---@param bot Player
+---@param target Player
+---@return boolean
+function Interact.ValidateTarget(bot, target)
     local valid = IsValid(target) and lib.IsPlayerAlive(target)
     if not valid then return false end
 
@@ -192,7 +196,7 @@ function Interact.ValidateTarget(target)
 end
 
 function Interact.HasTarget(bot)
-    return Interact.ValidateTarget(bot.interactTarget)
+    return Interact.ValidateTarget(bot, bot.interactTarget)
 end
 
 function Interact.TestChance(_bot)
@@ -210,7 +214,7 @@ function Interact.Validate(bot)
     if not Interact.TestChance(bot) then return false end -- can't get a new target bc failed random chance
 
     local target = Interact.FindOther(bot)
-    if not Interact.ValidateTarget(target) then return false end
+    if not Interact.ValidateTarget(bot, target) then return false end
     return true
 end
 
@@ -220,7 +224,7 @@ end
 function Interact.OnStart(bot)
     Interact.SetAnimation(bot, nil)
     local target = Interact.FindOther(bot)
-    if not Interact.ValidateTarget(target) then return STATUS.FAILURE end
+    if not Interact.ValidateTarget(bot, target) then return STATUS.FAILURE end
 
     bot.interactTarget = target
     Interact.SetAnimation(bot, table.Random(Interact.Animations))
@@ -255,7 +259,7 @@ function Interact.OnRunning(bot)
     local animation, keyframe, nextKeyframeTime = Interact.GetBotAnimation(bot)
     local target = bot.interactTarget
 
-    if not Interact.ValidateTarget(target) then
+    if not Interact.ValidateTarget(bot, target) then
         -- print("Target is no longer valid for " .. bot:Nick())
         return STATUS.FAILURE
     end

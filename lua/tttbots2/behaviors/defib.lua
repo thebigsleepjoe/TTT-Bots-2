@@ -55,11 +55,19 @@ function Defib.GetDefib(bot)
     end
 end
 
+---Revives a player from the dead, assuming the target is alive
+---@param bot Player
+---@param target Player
+function Defib.FullDefib(bot, target)
+
+end
+
 function Defib.ValidateCorpse(bot, corpse)
     return lib.IsValidBody(corpse or bot.defibRag)
 end
 
 function Defib.Validate(bot)
+    if not TTTBots.Match.IsRoundActive() then return false end
     if bot.preventDefib then return false end -- just an extra feature to prevent defibbing
 
     -- cant defib without defib
@@ -121,7 +129,6 @@ function Defib.OnRunning(bot)
         loco:Crouch(true)
         loco:PauseRepel()
     else
-        printf("%s is too far from rag", bot:Nick())
         loco:StopAttack()
         inventory:ResumeAutoSwitch()
         loco:ResumeAttackCompat()

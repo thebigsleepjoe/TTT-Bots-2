@@ -111,13 +111,16 @@ function Attack.GetTargetBodyPos(targetPly)
 end
 
 function Attack.ShouldLookAtBody(bot, weapon)
-    return weapon.is_shotgun or weapon.is_melee
+    local personality = bot:BotPersonality() ---@type CPersonality
+    local isBodyShotter = not (personality.isHeadshotter or false)
+    return isBodyShotter or (weapon.is_shotgun or weapon.is_melee)
 end
 
 --- Tells loco to strafe
 ---@param weapon WeaponInfo
 ---@param loco CLocomotor
 function Attack.StrafeIfNecessary(bot, weapon, loco)
+    if bot.canStrafe == false then return false end
     if not (bot.attackTarget and bot.attackTarget.GetPos) then return false end
 
     -- Do not strafe if we are on a cliff. We will fall off.
@@ -190,6 +193,15 @@ function Attack.HandleAttackMovement(bot, weapon, loco)
     Attack.ApproachIfNecessary(bot, weapon, loco)
 end
 
+function Attack.GetPreferredBodyTarget(bot, wep, target)
+    local body, head = Attack.GetTargetBodyPos(target), Attack.GetTargetHeadPos(target)
+    if Attack.ShouldLookAtBody(bot, wep) then
+        return body
+    end
+
+    return head
+end
+
 function Attack.Engage(bot, targetPos)
     local target = bot.attackTarget
     ---@class CInventory
@@ -248,12 +260,7 @@ function Attack.Engage(bot, targetPos)
         )
     end
 
-    local aimTarget
-    if Attack.ShouldLookAtBody(bot, weapon) then
-        aimTarget = Attack.GetTargetBodyPos(target)
-    else
-        aimTarget = Attack.GetTargetHeadPos(target)
-    end
+    local aimPoint = Attack.GetPreferredBodyTarget(bot, weapon, target)
 
     if not usingMelee then
         local barrel = Attack.TargetNextToBarrel(bot, target)
@@ -261,14 +268,14 @@ function Attack.Engage(bot, targetPos)
             and target:VisibleVec(barrel:GetPos())
             and bot:VisibleVec(barrel:GetPos())
         then
-            aimTarget = barrel:GetPos() + barrel:OBBCenter()
+            aimPoint = barrel:GetPos() + barrel:OBBCenter()
         end
     end
 
     Attack.HandleAttackMovement(bot, weapon, loco)
 
-    local predictedPoint = aimTarget + Attack.PredictMovement(target, 0.4)
-    local inaccuracyTarget = predictedPoint + Attack.CalculateInaccuracy(bot, aimTarget)
+    local predictedPoint = aimPoint + Attack.PredictMovement(target, 0.4)
+    local inaccuracyTarget = predictedPoint + Attack.CalculateInaccuracy(bot, aimPoint, target)
     loco:LookAt(inaccuracyTarget)
 end
 
@@ -277,7 +284,8 @@ local INACCURACY_SMOKE = 5 --- The inaccuracy modifier when the bot or its targe
 --- Calculate the inaccuracy of agent 'bot' according to a) its personality and b) diff setts
 ---@param bot Player The bot that is shooting.
 ---@param origin Vector The original aim point.
-function Attack.CalculateInaccuracy(bot, origin)
+---@param target Player The target that is being shot at.
+function Attack.CalculateInaccuracy(bot, origin, target)
     local personality = lib.GetComp(bot, "personality") ---@type CPersonality
     local difficulty = lib.GetConVarInt("difficulty") -- int [0,5]
     if not (difficulty or personality) then return Vector(0, 0, 0) end
@@ -293,6 +301,15 @@ function Attack.CalculateInaccuracy(bot, origin)
 
     local focus_factor = (1 - (bot.attackFocus or 0.01)) * 1.5
 
+    -- The factor of the other player's movement. If they're standing still, we are 2x as accurate.
+    local movement_factor = 1
+    if not (IsValid(target) and target:IsPlayer()) then
+        movement_factor = 0.5
+    else
+        local vel = target:GetVelocity():LengthSqr()
+        movement_factor = vel > 100 and 1.0 or 0.5
+    end
+
     local smokeFn = TTTBots.Match.IsPlyNearSmoke
     local isInSmoke = (smokeFn(bot) or smokeFn(bot.attackTarget)) and INACCURACY_SMOKE or 1
 
@@ -303,6 +320,7 @@ function Attack.CalculateInaccuracy(bot, origin)
         * focus_factor                             -- The less focus we have, the more inaccurate we are
         * isInSmoke                                -- If we are in smoke, we are more inaccurate
         * isTraitorFactor                          -- Reduce aim difficulty if the cheat cvar is enabled
+        * movement_factor                          -- Reduce aim difficulty if the target is immobile
 
     inaccuracy_mod = math.max(inaccuracy_mod, 0.1)
 

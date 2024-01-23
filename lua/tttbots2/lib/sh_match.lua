@@ -148,7 +148,7 @@ end
 function Match.GetBotDifficulty(bot)
     local personality = TTTBots.Lib.GetComp(bot, "personality") ---@type CPersonality
     if not personality then return -1 end
-    local diff = personality:GetTraitAdditive("difficulty")
+    local diff = personality:GetDifficulty()
     return diff
 end
 

@@ -176,7 +176,7 @@ end
 function BotChatter:On(event_name, args, teamOnly)
     local dvlpr = lib.GetConVarBool("debug_misc")
     if dvlpr then
-        print(string.format("Event %s called with %d args.", event_name, #args))
+        print(string.format("Event %s called with %d args.", event_name, args and #args))
     end
 
     if not self:CanSayEvent(event_name) then return false end

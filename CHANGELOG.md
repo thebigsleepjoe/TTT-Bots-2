@@ -18,6 +18,12 @@
 
 * Bots can use defibs to revive their teammates. Currently detectives will only revive other detectives, and traitors will only revive other traitors. This is to prevent the bots from accidentally reviving enemies.
 
+* Bots are less likely to target the head when shooting at a player. This is to prevent bots from getting crazy lucky headshots. Scales with difficulty, being far more common on hard.
+
+* Depending on difficulty, bots will be more or less likely to strafe in combat. On the easiest difficulty, bots will never strafe.
+
+* Bots will have much better accuracy against immobile players within a certain distance.
+
 ### Changes
 
 * Placed cvars on shared realm, so clients can see them.
