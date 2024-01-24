@@ -301,13 +301,13 @@ function Attack.CalculateInaccuracy(bot, origin, target)
 
     local focus_factor = (1 - (bot.attackFocus or 0.01)) * 1.5
 
-    -- The factor of the other player's movement. If they're standing still, we are 2x as accurate.
-    local movement_factor = 1
+    local targetMoveFactor = 1
+    local selfMoveFactor = bot:GetVelocity():LengthSqr() > 100 and 1.25 or 0.75
     if not (IsValid(target) and target:IsPlayer()) then
-        movement_factor = 0.5
+        targetMoveFactor = 0.5
     else
         local vel = target:GetVelocity():LengthSqr()
-        movement_factor = vel > 100 and 1.0 or 0.5
+        targetMoveFactor = vel > 100 and 1.0 or 0.5
     end
 
     local smokeFn = TTTBots.Match.IsPlyNearSmoke
@@ -320,7 +320,7 @@ function Attack.CalculateInaccuracy(bot, origin, target)
         * focus_factor                             -- The less focus we have, the more inaccurate we are
         * isInSmoke                                -- If we are in smoke, we are more inaccurate
         * isTraitorFactor                          -- Reduce aim difficulty if the cheat cvar is enabled
-        * movement_factor                          -- Reduce aim difficulty if the target is immobile
+        * targetMoveFactor                         -- Reduce aim difficulty if the target is immobile
 
     inaccuracy_mod = math.max(inaccuracy_mod, 0.1)
 
