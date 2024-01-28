@@ -909,6 +909,8 @@ function TTTBots.Lib.GetClosestRevivable(bot, filterAlly)
     local options = TTTBots.Lib.GetRevivableCorpses()
     local cTime = CurTime()
 
+    filterAlly = filterAlly or true -- Default filterAlly? to true
+
     for i, rag in pairs(options) do
         if not TTTBots.Lib.IsValidBody(rag) then continue end
         local deadply = player.GetBySteamID64(rag.sid64)

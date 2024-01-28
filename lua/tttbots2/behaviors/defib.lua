@@ -56,6 +56,7 @@ function Defib.GetDefib(bot)
 end
 
 local function failFunc(bot, target)
+    print("Defib failure")
     target.reviveCooldown = CurTime() + 30
     local defib = Defib.GetDefib(bot)
     if not IsValid(defib) then return end
@@ -124,6 +125,8 @@ function Defib.Validate(bot)
     -- one last valid check
     local cValid = Defib.ValidateCorpse(bot, rag)
     if not cValid then return false end
+
+    return true
 end
 
 function Defib.OnStart(bot)
@@ -168,7 +171,7 @@ function Defib.OnRunning(bot)
         loco:Crouch(true)
         loco:PauseRepel()
         if bot.defibStartTime == nil then
-            bot.defibStartTime = bot.defibStartTime
+            bot.defibStartTime = CurTime()
             print(bot:Nick() .. " trying to defib a teammate Calling startfunc!")
             startFunc(bot)
         end
@@ -187,9 +190,13 @@ function Defib.OnRunning(bot)
     return STATUS.RUNNING
 end
 
-function Defib.OnSuccess(bot) end
+function Defib.OnSuccess(bot)
+    print(bot:Nick() .. " successfully defibbed")
+end
 
-function Defib.OnFailure(bot) end
+function Defib.OnFailure(bot)
+    print(bot:Nick() .. " failed to defib")
+end
 
 --- Called when the behavior succeeds or fails. Useful for cleanup, as it is always called once the behavior is a) interrupted, or b) returns a success or failure state.
 ---@param bot Player

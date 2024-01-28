@@ -209,6 +209,7 @@ function BotInventory:GetAllWeaponInfo()
 end
 
 --- get the first special (buyable) primary we have (aka, a buyable we should use as a primary)
+---@return Weapon|nil wep The weapon object (not a wepinfo)
 function BotInventory:GetSpecialPrimary()
     local specialClasses = TTTBots.Buyables.PrimaryWeapons
 
@@ -231,6 +232,32 @@ function BotInventory:WepHasClip(wep)
     return (wep and IsValid(wep) and wep:Clip1() > 0) or false
 end
 
+---Get if the bots has no other weapons besides melee (false) or not (true)
+---@param attackMode boolean Set to true if you want to check the weapons have ammo in reserve, not just in the clip
+---@return boolean
+function BotInventory:HasNoWeaponAvailable(attackMode)
+    local toCheck = {
+        self:GetSpecialPrimary(),
+        self:GetPrimary(),
+        self:GetSecondary()
+    }
+
+    for i, v in pairs(toCheck) do
+        if not IsValid(v) then continue end
+        local wInfo = self:GetWeaponInfo(v)
+        local hasReserve = wInfo.has_bullets
+        local hasAmmo = wInfo.clip > 0
+
+        if attackMode then
+            if hasReserve and hasAmmo then return false end
+        else
+            if hasReserve then return false end
+        end
+    end
+
+    return true
+end
+
 --- Manage our own inventory by selecting the best weapon, queueing a reload if necessary, etc.
 function BotInventory:AutoManageInventory()
     local SLOWDOWN = math.floor(TTTBots.Tickrate / 2) -- about twice per second
@@ -240,28 +267,19 @@ function BotInventory:AutoManageInventory()
     local primary = self:GetWeaponInfo(self:GetPrimary())
     local secondary = self:GetWeaponInfo(self:GetSecondary())
 
-    local isAttacking = self.bot.attackTarget ~= nil
-
+    -- local isAttacking = self.bot.attackTarget ~= nil
 
     local hash = {
         [self.EquipSpecial] = special,
         [self.EquipPrimary] = primary,
         [self.EquipSecondary] = secondary,
-        [self.EquipMelee] = true,
+        [self.EquipMelee] = self:HasNoWeaponAvailable(false),
     }
 
     for func, wepInfo in pairs(hash) do
-        if wepInfo == true then
+        if wepInfo and (wepInfo == true or wepInfo.ammo > 0) then
             func(self)
             break
-        end -- Force equip this item.
-        if not wepInfo then continue end
-        -- equip the first weapon that has ammo, or equip higher priority one if we're not attacking
-        local hasAmmo = self:WepInfoHasClip(wepInfo)
-        if hasAmmo then
-            local _success = func(self)
-            break
-            -- if success then break end
         end
     end
 
