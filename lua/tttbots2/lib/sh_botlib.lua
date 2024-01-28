@@ -905,14 +905,16 @@ end
 ---@param filterAlly? boolean
 ---@return Player? player
 ---@return any? ragdoll
-function TTTBots.Lib.GetClosestReviable(bot, filterAlly)
+function TTTBots.Lib.GetClosestRevivable(bot, filterAlly)
     local options = TTTBots.Lib.GetRevivableCorpses()
+    local cTime = CurTime()
 
     for i, rag in pairs(options) do
         if not TTTBots.Lib.IsValidBody(rag) then continue end
         local deadply = player.GetBySteamID64(rag.sid64)
         if not IsValid(deadply) then continue end
         if filterAlly and not TTTBots.Roles.IsAllies(bot, deadply) then continue end
+        if (deadply.reviveCooldown or 0) > cTime then continue end
         return deadply, rag
     end
 

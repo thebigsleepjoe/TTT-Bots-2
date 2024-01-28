@@ -16,7 +16,7 @@
 
 * Bots can purchase UMP prototype (TODO: fully implement)
 
-* Bots can use defibs to revive their teammates. Currently detectives will only revive other detectives, and traitors will only revive other traitors. This is to prevent the bots from accidentally reviving enemies.
+* Bots can use defibs to revive their teammates. Bots will only revive explicit members of their team/role. This is to prevent the bots from accidentally reviving enemies. Detectives will not defib innocents.
 
 * Bots are less likely to target the head when shooting at a player. This is to prevent bots from getting crazy lucky headshots. Scales with difficulty, being far more common on hard.
 

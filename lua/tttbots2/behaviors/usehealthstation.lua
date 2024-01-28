@@ -7,7 +7,7 @@ local UseHealthStation = TTTBots.Behaviors.UseHealthStation
 UseHealthStation.Name = "Use Health Station"
 UseHealthStation.Description = "Use or place a health station"
 UseHealthStation.Interruptible = true
-UseHealthStation.UseRange = 64 --- The range at which we can use a health station
+UseHealthStation.UseRange = 50 --- The range at which we can use a health station
 
 UseHealthStation.TargetClass = "ttt_health_station"
 
