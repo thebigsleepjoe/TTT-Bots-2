@@ -878,7 +878,7 @@ function TTTBots.Lib.CreateBot(name)
         print("Below is the error:")
         print(debug.traceback())
     end
-    local success, bot = xpcall(function() createPlayerBot(name) end, failFunc, name)
+    local success, bot = xpcall(function() return createPlayerBot(name) end, failFunc, name)
 
     return bot or nil
 end
