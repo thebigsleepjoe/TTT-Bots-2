@@ -81,7 +81,7 @@ Registry.Stungun = {
     RandomChance = 1,
     ShouldAnnounce = false,
     AnnounceTeam = false,
-    Roles = { "detective" },
+    Roles = { "detective", "survivalist" },
     PrimaryWeapon = true,
 }
 

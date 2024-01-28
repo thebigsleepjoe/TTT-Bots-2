@@ -397,7 +397,7 @@ function TTTBots.Lib.UpdateQuota()
 end
 
 if SERVER then
-    local QUOTA_INTERVAL = 2.5 --- The period between adding/removing bots automatically. Used to prevent lag spikes, mostly.
+    local QUOTA_INTERVAL = 1 --- The period between adding/removing bots automatically. Used to prevent lag spikes, mostly.
     timer.Create("TTTBots.Lib.UpdateQuota", QUOTA_INTERVAL, 0, TTTBots.Lib.UpdateQuota)
 end
 
