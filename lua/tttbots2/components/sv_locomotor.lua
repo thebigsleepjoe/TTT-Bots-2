@@ -607,10 +607,12 @@ function BotLocomotor:GetNormalBetween(pos1, pos2)
     return dir
 end
 
+--- Pause all repel-related behaviors. AKA, stop moving away from nearby players.
 function BotLocomotor:PauseRepel()
     self.pauseRepel = true
 end
 
+--- Resume all repel-related behaviors.
 function BotLocomotor:ResumeRepel()
     self.pauseRepel = false
 end
