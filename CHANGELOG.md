@@ -2,33 +2,31 @@
 
 ## v1.2
 
-### Added
+### Added/Changed
 
-* Bots will nod, shake their head, and look players up and down when approached.
+* Bots will sometimes nod, shake their head, and look players up and down when approached.
 
 * Bots care about personal space and will get upset if you stay too close for too long. Builds some suspicion every 5 seconds if you're too close.
 
-* Bots will take into effect if you/they are in smoke by having considerably worse accuracy. This does not account for smokes inbetween you and the bot, only if you or they are within range of it.
-
-* Bot accuracy will slowly improve while shooting at the same target for a long time, named "focus." This prevents situations where bots are unable to hit a target that is standing still for several seconds. Accuracy will begin to decrease if out of combat, and is affected by bot personality traits.
-
-* Survivalist support (TODO: fully implement)
+* **TTT2** Survivalist support (TODO: fully implement)
 
 * Bots can purchase UMP prototype and utilize it properly.
 
-* Bots can use defibs to revive their teammates. Bots will only revive explicit members of their team/role. This is to prevent the bots from accidentally reviving enemies. Detectives will *generally* not defib innocents.
+* **TTT2** Bots can use defibs to revive their allies. [This addon](https://steamcommunity.com/sharedfiles/filedetails/?id=2115944312) is required for this to happen.
 
-* Bots are less likely to target the head when shooting at a player. This is to prevent bots from getting crazy lucky headshots. Scales with difficulty, being far more common on hard.
-
-* Depending on difficulty, bots will be more or less likely to strafe in combat. On the easiest difficulty, bots will never strafe.
-
-* Bots will have much better accuracy against immobile players within a certain distance.
-
-### Changes
+* Bots will be less likely to target the head or strafe on lower difficulties.
 
 * Placed cvars on shared realm, so clients can see them.
 
 * Rebalanced bot inventory management. Still not perfect, but better. Bots will prioritize special weapons (e.g. UMP prototype) over normal weapons.
+
+* Overall bot accuracy rebalance:
+  1. Worse accuracy when the bot is moving.
+  2. Worse accuracy when their target is moving.
+  3. Worse accuracy when the bot or its target is in smoke.
+  4. Better accuracy when the bot is stationary.
+  5. Better accuracy when shoothing stationary targets.
+  6. "Focus" system, where bots will increase in shooting accuracy when shooting at the same target for some time. Affected heavily by personality.
 
 ### Fixed
 
@@ -36,7 +34,7 @@
 
 * Bots trying to break unbreakable obstructions. (#33)
 
-* Bot inaccuracy not correctly scaling over distances.
+* Bot inaccuracy not correctly scaling over distances. It was hard-capped to a lower value than it should be.
 
 * Sending too many net msgs to syncronize bot avatars. (reported per @EntranceJew)
 
