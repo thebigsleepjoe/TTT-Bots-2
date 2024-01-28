@@ -67,8 +67,7 @@ Registry.Defib = {
     ShouldAnnounce = false,
     AnnounceTeam = false,
     CanBuy = function(ply)
-        return true
-        -- return testPlyHasArchetype(ply, TTTBots.Archetypes.Teamer, 3)
+        return testPlyIsArchetype(ply, TTTBots.Archetypes.Teamer, 3)
     end,
     Roles = { "detective", "traitor", "survivalist" },
 }
@@ -79,7 +78,7 @@ Registry.Stungun = {
     Class = "weapon_ttt_stungun",
     Price = 1,
     Priority = 1,
-    RandomChance = 3,
+    RandomChance = 1,
     ShouldAnnounce = false,
     AnnounceTeam = false,
     Roles = { "detective" },

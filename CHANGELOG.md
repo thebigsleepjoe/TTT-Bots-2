@@ -14,9 +14,9 @@
 
 * Survivalist support (TODO: fully implement)
 
-* Bots can purchase UMP prototype (TODO: fully implement)
+* Bots can purchase UMP prototype and utilize it properly.
 
-* Bots can use defibs to revive their teammates. Bots will only revive explicit members of their team/role. This is to prevent the bots from accidentally reviving enemies. Detectives will not defib innocents.
+* Bots can use defibs to revive their teammates. Bots will only revive explicit members of their team/role. This is to prevent the bots from accidentally reviving enemies. Detectives will *generally* not defib innocents.
 
 * Bots are less likely to target the head when shooting at a player. This is to prevent bots from getting crazy lucky headshots. Scales with difficulty, being far more common on hard.
 
@@ -28,6 +28,8 @@
 
 * Placed cvars on shared realm, so clients can see them.
 
+* Rebalanced bot inventory management. Still not perfect, but better. Bots will prioritize special weapons (e.g. UMP prototype) over normal weapons.
+
 ### Fixed
 
 * Retrying bug that threw errors on SRCDS servers. (#34)
@@ -36,7 +38,7 @@
 
 * Bot inaccuracy not correctly scaling over distances.
 
-* Sending too many net msgs to syncronize bot avatars -- reduced about 30x. (reported per @EntranceJew)
+* Sending too many net msgs to syncronize bot avatars. (reported per @EntranceJew)
 
 ### Developer Notes
 
