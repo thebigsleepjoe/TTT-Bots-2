@@ -55,7 +55,7 @@ function Attack.Seek(bot, targetPos)
 
     if lastKnownPos then
         loco:SetGoal(lastKnownPos)
-        loco:LookAt(lastKnownPos)
+        loco:LookAt(lastKnownPos + Vector(0, 0, 40)) -- around hip/abdomen level
     else
         -- We have not heard nor seen the target in a while, so we will wander around.
         lib.CallEveryNTicks(

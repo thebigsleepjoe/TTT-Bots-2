@@ -42,6 +42,8 @@
 
 * Sending too many net msgs to syncronize bot avatars. (reported per @EntranceJew)
 
+* Bots will place their crosshair closer to the stomach when they lose sight of their enemy.
+
 ### Developer Notes
 
 This is a more technical explanation of the changes in this version, and contains useful change info for developers.
