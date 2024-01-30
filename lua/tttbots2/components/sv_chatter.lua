@@ -287,6 +287,6 @@ timer.Create("TTTBots.Chatter.SillyChat", 20, 0, function()
 end)
 
 local plyMeta = FindMetaTable("Player")
-function plyMeta:GetChatter()
+function plyMeta:BotChatter()
     return lib.GetComp(self, "chatter")
 end
