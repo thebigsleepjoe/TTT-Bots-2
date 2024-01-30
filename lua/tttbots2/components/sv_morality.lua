@@ -583,16 +583,38 @@ local function personalSpace(bot)
 
         if (bot.personalSpaceTbl[other] or 0) >= PS_INTERVAL then
             bot:GetMorality():ChangeSuspicion(other, "PersonalSpace")
-            bot:GetChatter():On("PersonalSpace")
+            bot:BotChatter():On("PersonalSpace")
             bot.personalSpaceTbl[other] = nil
         end
     end
+end
+
+--- Look at the players around us and see if they are holding any T-weapons.
+local function noticeTraitorWeapons(bot)
+    if bot.attackTarget ~= nil then return end
+    if not TTTBots.Roles.GetRoleFor(bot):GetUsesSuspicion() then return end
+
+    local visible = TTTBots.Lib.GetAllWitnessesBasic(bot:EyePos(), TTTBots.Roles.GetNonAllies(bot))
+    local filtered = TTTBots.Lib.FilterTable(visible, function(other)
+        if TTTBots.Roles.GetRoleFor(other):GetAppearsPolice() then return false end -- We don't sus detectives.
+        local hasTWeapon = TTTBots.Lib.IsHoldingTraitorWep(other)
+        if not hasTWeapon then return false end
+        local iCanSee = TTTBots.Lib.CanSeeArc(bot, other:GetPos() + Vector(0, 0, 24), 90)
+        return iCanSee
+    end)
+
+    if table.IsEmpty(filtered) then return end
+
+    local firstEnemy = TTTBots.Lib.GetClosest(filtered, bot:GetPos())
+    bot:SetAttackTarget(firstEnemy)
+    bot:BotChatter():On("HoldingTraitorWeapon", { player = firstEnemy:Nick() })
 end
 
 local function commonSense(bot)
     continueMassacre(bot)
     preventAttackAlly(bot)
     personalSpace(bot)
+    noticeTraitorWeapons(bot)
 end
 
 timer.Create("TTTBots.Components.Morality.CommonSense", 0.5, 0, function()
