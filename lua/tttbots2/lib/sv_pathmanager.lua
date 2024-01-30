@@ -113,6 +113,47 @@ function ladderMeta:IsCrouch() return false end
 
 function ladderMeta:GetPortals() return {} end
 
+local ladderProximityCache = {}
+
+local function updateOrGetLadderProxCache(ladder)
+    local cacheEntry = ladderProximityCache[ladder]
+    if not (cacheEntry and cacheEntry.expires < CurTime()) then
+        local proxCache = {
+            expires = CurTime() + 3,
+            players = {},
+            nPlayers = 0,
+        }
+
+        for i, ply in pairs(TTTBots.Match.AlivePlayers) do
+            if not IsValid(ply) then continue end
+            if not TTTBots.Lib.IsPlayerAlive(ply) then continue end
+            local bottom = ladder:GetBottom()
+            local top = ladder:GetTop()
+            local distBottom = ply:GetPos():Distance(bottom)
+            local distTop = ply:GetPos():Distance(top)
+            local threshold = ladder:GetLength() / 2
+
+            if (distBottom < threshold) or (distTop < threshold) then
+                table.insert(proxCache.players, ply)
+                proxCache.nPlayers = proxCache.nPlayers + 1
+            end
+        end
+
+        ladderProximityCache[ladder] = proxCache
+
+        return proxCache
+    end
+    return cacheEntry
+end
+
+function ladderMeta:GetPlayersOn()
+    return updateOrGetLadderProxCache(self).players
+end
+
+function ladderMeta:GetNPlayersOn()
+    return updateOrGetLadderProxCache(self).nPlayers
+end
+
 local navMeta = FindMetaTable("CNavArea")
 
 --- Calls self:GetCorner( number cornerId ) for each corner (0 - 3)
@@ -136,18 +177,43 @@ function navMeta:GetPossibleStuckCost()
     return 0
 end
 
-function navMeta:GetPlayersInArea(filterTbl)
-    local players = {}
-    for i, ply in pairs(player.GetAll()) do
-        if filterTbl and table.HasValue(filterTbl, ply) then continue end
-        local closestPoint = self:GetClosestPointOnArea(ply:GetPos())
-        local threshold = self:GetSizeX() / 3
-        if (closestPoint:Distance(ply:GetPos()) < threshold) then
-            table.insert(players, ply)
-        end
-    end
+local navAreaProxCache = {}
 
-    return players
+local function updateOrGetNavProxCache(nav)
+    local cacheEntry = navAreaProxCache[nav]
+    if not (cacheEntry and cacheEntry.expires < CurTime()) then
+        local proxCache = {
+            expires = CurTime() + 5,
+            players = {},
+            nPlayers = 0,
+        }
+
+        for i, ply in pairs(TTTBots.Match.AlivePlayers) do
+            if not IsValid(ply) then continue end
+            if not TTTBots.Lib.IsPlayerAlive(ply) then continue end
+            local center = nav:GetCenter()
+            local threshold = nav:GetSizeX() * 2
+            if (center:DistToSqr(ply:GetPos()) < threshold) then
+                table.insert(proxCache.players, ply)
+                proxCache.nPlayers = proxCache.nPlayers + 1
+            end
+        end
+
+        navAreaProxCache[nav] = proxCache
+
+        return proxCache
+    end
+    return cacheEntry
+end
+
+function navMeta:GetPlayersInArea()
+    local proxCache = updateOrGetNavProxCache(self)
+    return proxCache.players
+end
+
+function navMeta:GetNPlayersInArea()
+    local proxCache = updateOrGetNavProxCache(self)
+    return proxCache.nPlayers
 end
 
 function navMeta:IsLadder()
@@ -259,15 +325,18 @@ local function get_penalties_between(area, neighbor)
     return 0
 end
 
-local function heuristic_cost_estimate(current, goal, playerFilter)
+local function heuristic_cost_estimate(current, goal)
     local avoidCost = math.huge
-    local perPlayerPenalty = 800 -- Deprioritize high-trafficked areas
+    local perPlayerPenalty = 200 -- Deprioritize high-trafficked areas
     -- Manhattan distance
     local h = math.abs(current:GetCenter().x - goal:GetCenter().x) + math.abs(current:GetCenter().y - goal:GetCenter().y)
 
     -- Add extra cost for ladders
     if current:IsLadder() then
-        return h -- Must return here because otherwise it will error with below methods
+        -- We really don't want bots to go up ladders with people on them.
+        local ladderOccupiedCost = current:GetNPlayersOn() * (perPlayerPenalty * 2)
+
+        return h + ladderOccupiedCost
     end
 
     -- Check if current and neighbor are underwater and add extra cost if true
@@ -275,9 +344,8 @@ local function heuristic_cost_estimate(current, goal, playerFilter)
         h = h + 50
     end
 
-    -- DISABLED for optimization
-    local nPlayers = 0 -- #current:GetPlayersInArea(playerFilter)
-    h = h + (nPlayers * perPlayerPenalty)
+    -- local nPlayers = current:GetNPlayersInArea()
+    -- h = h + (nPlayers * perPlayerPenalty)
 
     -- Never go into lava, or what we consider a "lava" area
     local isLava = current:HasAttributes(NAV_MESH_AVOID)
@@ -314,10 +382,10 @@ end
 --- Coroutine function that calculates paths
 --- Never call directly, do PathManager.RequestPath, and the path will be generated.
 ---@return boolean|table result false if no path found nor possible, else output a table of navareas
-function TTTBots.PathManager.Astar2(start, goal, playerFilter)
+function TTTBots.PathManager.Astar2(start, goal, _playerFilter)
     -- local P_Astar2 = TTTBots.Lib.Profiler("Astar2", true)
     local closedSet = {}
-    local openSet = { { area = start, cost = 0, fScore = heuristic_cost_estimate(start, goal, playerFilter) } }
+    local openSet = { { area = start, cost = 0, fScore = heuristic_cost_estimate(start, goal) } }
     local neighborsCounted = 0
     local totalNeighbors = navmesh.GetNavAreaCount()
     -- Coroutine
@@ -360,7 +428,7 @@ function TTTBots.PathManager.Astar2(start, goal, playerFilter)
                 neighborsCounted = neighborsCounted + 1
                 local tentative_gScore = current.cost + distance_between(current.area, neighbor) +
                     get_penalties_between(current.area, neighbor)
-                local tentative_fScore = tentative_gScore + heuristic_cost_estimate(neighbor, goal, playerFilter)
+                local tentative_fScore = tentative_gScore + heuristic_cost_estimate(neighbor, goal)
 
                 local neighborInOpenSet = false
                 local neighborIndex = 0

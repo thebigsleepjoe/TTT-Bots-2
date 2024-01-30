@@ -16,6 +16,8 @@
 
 * Bots can push you away with crowbars if you get too close. Some bots will do this much more often than others.
 
+* Bots will avoid ladders with people on them, assuming there is another reasonable route available
+
 ### Changes/Rebalances
 
 * Bots will be less likely to target the head or strafe on lower difficulties.
