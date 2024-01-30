@@ -44,6 +44,8 @@
 
 * Bots will place their crosshair closer to the stomach when they lose sight of their enemy.
 
+* No longer EthicalNotify if there are no bots in the game.
+
 ### Developer Notes
 
 This is a more technical explanation of the changes in this version, and contains useful change info for developers.

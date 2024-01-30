@@ -143,6 +143,7 @@ if SERVER then
         -- This is for ethical purposes and to prevent the mod breaching the Steam Workshop/Garry's Mod guidelines.
         -- The bot masking features should ONLY ever be used on a private server with consenting players, and this is why this notification exists.
         hook.Add("TTTBeginRound", "TTTBots_EthicalNotify", function()
+            if table.IsEmpty(TTTBots.Bots) then return end
             local msg = TTTBots.Locale.GetLocalizedString("bot.notice", #TTTBots.Bots)
             local notifyAnyway = Lib.GetConVarBool("notify_always")
 
