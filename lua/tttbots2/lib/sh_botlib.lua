@@ -942,6 +942,7 @@ function TTTBots.Lib.RemoveBot(reason)
     if #bots == 0 then return end
 
     for i, bot in pairs(bots) do
+        if not IsValid(bot) then continue end
         if not TTTBots.Lib.IsPlayerAlive(bot) or not TTTBots.Match.IsRoundActive() then
             bot:Kick(reason or "Removed by server")
             return true

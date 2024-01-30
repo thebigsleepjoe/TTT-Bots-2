@@ -14,6 +14,8 @@
 
 * **TTT2** Bots can use defibs to revive their allies. [This addon](https://steamcommunity.com/sharedfiles/filedetails/?id=2115944312) is required for this to happen.
 
+* Bots can push you away with crowbars if you get too close. Some bots will do this much more often than others.
+
 ### Changes/Rebalances
 
 * Bots will be less likely to target the head or strafe on lower difficulties.
@@ -57,3 +59,5 @@ This is a more technical explanation of the changes in this version, and contain
 * Buyables now test for mod presence before attempting to buy a weapon. There is also the option to define if a weapon is TTT2 specific, but this is optional.
 
 * Added easier support for setting temporary variables in the Memory component.
+
+* Locomotor now supports +attack2 for right click actions.

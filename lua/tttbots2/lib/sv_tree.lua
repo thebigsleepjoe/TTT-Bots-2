@@ -30,6 +30,10 @@ TTTBots.Behaviors.PriorityNodes = {
         _bh.Follow,
         _bh.Wander
     },
+    --- Minge around with others
+    Minge = {
+        _bh.MingeCrowbar,
+    }
 }
 
 local _prior = TTTBots.Behaviors.PriorityNodes
@@ -39,6 +43,7 @@ TTTBots.Behaviors.DefaultTrees = {
         _prior.FightBack,
         _bh.Defuse,
         _bh.Interact,
+        _prior.Minge,
         _prior.Restore,
         _prior.Investigate,
         _prior.Patrol
@@ -50,6 +55,7 @@ TTTBots.Behaviors.DefaultTrees = {
         _bh.InvestigateCorpse,
         _bh.FollowPlan,
         _bh.Interact,
+        _prior.Minge,
         _prior.Restore,
         _prior.Investigate,
         _prior.Patrol
@@ -59,6 +65,7 @@ TTTBots.Behaviors.DefaultTrees = {
         _bh.Defib,
         _bh.Defuse,
         _bh.Interact,
+        _prior.Minge,
         _prior.Restore,
         _prior.Investigate,
         _prior.Patrol

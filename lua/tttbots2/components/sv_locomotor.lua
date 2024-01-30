@@ -1322,6 +1322,10 @@ function BotLocomotor:StopAttack()
     self.attack = false
 end
 
+function BotLocomotor:StartAttack2() self.attack2 = true end
+
+function BotLocomotor:StopAttack2() self.attack2 = false end
+
 --- Sets self.reload to true, queuing a reload the next frame.
 function BotLocomotor:Reload()
     self.reload = true
@@ -1523,20 +1527,22 @@ function BotLocomotor:StartCommand(cmd) -- aka StartCmd
     end
 
     --- 🔫 MANAGE ATTACKING OF THE BOT
-    if ((self.reactionDelay or 0) < TIMESTAMP) then
-        local releaseTime = self.attackReleaseTime or TIMESTAMP + 1
-        if (self.attack and releaseTime > TIMESTAMP) then -- or if we are attacking and we have an attack release time and it's not yet time to release:
-            -- stop attack from interrupting reload
-            local currentWep = self.bot.components.inventory:GetHeldWeaponInfo() ---@type WeaponInfo
-            local preventFire = self:TestShouldPreventFire() -- For compatibility with modded guns, sometimes we need to let go for a second to fire again.
-            local needsReload = (currentWep and (currentWep.needs_reload)) or false
-            if (
-                    not preventFire
-                    and not needsReload
-                    or not currentWep
-                ) then
-                cmd:SetButtons(cmd:GetButtons() + IN_ATTACK)
-            end
+    if (
+            (self.reactionDelay or 0) < TIMESTAMP
+            and (self.attack or self.attack2)
+        ) then
+        -- stop attack from interrupting reload
+        local currentWep = self.bot.components.inventory:GetHeldWeaponInfo() ---@type WeaponInfo
+        local preventFire = self:TestShouldPreventFire() -- For compatibility with modded guns, sometimes we need to let go for a second to fire again.
+        local needsReload = (currentWep and currentWep.needs_reload) or false
+        if (
+                not preventFire
+                and not needsReload
+                or not currentWep
+            ) then
+            cmd:SetButtons(
+                cmd:GetButtons() + (self.attack and IN_ATTACK or 0) + (self.attack2 and IN_ATTACK2 or 0)
+            )
         end
     end
 
