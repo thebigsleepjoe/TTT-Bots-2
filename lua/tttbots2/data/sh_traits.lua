@@ -520,5 +520,25 @@ TTTBots.Traits = {
         effects = {
             defuser = true,
         }
+    },
+    minge = {
+        name = "minge",
+        description = "Loves to minge with props/corpses and crowbar-shove people",
+        conflicts = { "nominge" },
+        traitor_only = false,
+        archetype = A.Casual,
+        effects = {
+            mingeRate = 3.0,
+        }
+    },
+    nominge = {
+        name = "nominge",
+        description = "Will never toy around with props or corpses unless necessary.",
+        conflicts = { "minge" },
+        traitor_only = false,
+        archetype = A.Tryhard,
+        effects = {
+            mingeRate = 0.0,
+        }
     }
 }
