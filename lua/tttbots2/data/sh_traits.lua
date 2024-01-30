@@ -68,6 +68,7 @@ TTTBots.Traits = {
             suspicionMe = 1.5, -- make others build suspicion on us faster
             investigateCorpse = 0,
             follower = true,   -- likes to follow players
+            mingeRate = 1.5,
         }
     },
     badaim = {
@@ -110,6 +111,7 @@ TTTBots.Traits = {
             difficulty = -2,
             investigateCorpse = 0.5,
             focus = 0.8, -- the gain/loss rate of focus when attacking
+            mingeRate = 1.5,
             hider = true,
         }
     },
@@ -129,6 +131,7 @@ TTTBots.Traits = {
             difficulty = -4,
             investigateCorpse = 0.2,
             hider = true,
+            mingeRate = 2.0,
             follower = true, -- likes to follow players
             focus = 0.5,     -- the gain/loss rate of focus when attacking
         }
@@ -146,6 +149,7 @@ TTTBots.Traits = {
             difficulty = 2,
             investigateCorpse = 1.5,
             focus = 1.2,
+            mingeRate = 0.5,
         }
     },
     veryobservant = {
@@ -162,6 +166,7 @@ TTTBots.Traits = {
             investigateCorpse = 2,
             sniper = true,
             focus = 1.5,
+            mingeRate = 0.0,
         }
     },
     loner = {
@@ -177,6 +182,7 @@ TTTBots.Traits = {
             ignoreOrders = true, -- Ignore evil coordinator orders
             difficulty = 1,
             loner = true,        -- prefer unpopular nav areas
+            mingeRate = 0.75,
         }
     },
     lovescrowds = {
@@ -208,6 +214,7 @@ TTTBots.Traits = {
         archetype = A.Teamer,
         effects = {
             follower = true,
+            mingeRate = 0.75,
         }
     },
     rdmer = {
@@ -220,6 +227,7 @@ TTTBots.Traits = {
             boredomRate = 2.0, -- Boredom builds up faster
             rdmer = true,
             follower = true,   -- likes to follow players
+            mingeRate = 2.5,
         }
     },
     victim = {
@@ -373,6 +381,7 @@ TTTBots.Traits = {
             pressureRate = 0.2,  -- Pressure builds up slower
             difficulty = -8,
             investigateCorpse = 0,
+            mingeRate = 2.0,
             follower = true, -- likes to follow players
         }
     },
@@ -529,6 +538,8 @@ TTTBots.Traits = {
         archetype = A.Casual,
         effects = {
             mingeRate = 3.0,
+            followerAlways = true, -- always wants to follow someone
+            follower = true,       -- likes to follow players
         }
     },
     nominge = {

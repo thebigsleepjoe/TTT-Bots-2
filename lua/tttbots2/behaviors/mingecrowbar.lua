@@ -10,7 +10,7 @@ local MingeCrowbar = TTTBots.Behaviors.MingeCrowbar
 MingeCrowbar.Name = "MingeCrowbar"
 MingeCrowbar.Description = "Minge (mostly push-related) with the crowbar."
 MingeCrowbar.Interruptible = true
-MingeCrowbar.MeanTimeBetween = 30.0
+MingeCrowbar.MeanTimeBetween = 60.0
 
 ---@enum BStatus
 local STATUS = {
