@@ -11,15 +11,16 @@ local allyRoles = {
     sidekick = true
 }
 
-local Bhvr = TTTBots.Behaviors
+local _bh = TTTBots.Behaviors
+local _prior = TTTBots.Behaviors.PriorityNodes
 local bTree = {
-    Bhvr.ClearBreakables,
-    Bhvr.CreateSidekick,
-    Bhvr.AttackTarget,
-    Bhvr.FindWeapon,
-    Bhvr.Stalk,
-    Bhvr.Follow,
-    Bhvr.Wander,
+    _prior.FightBack,
+    _bh.CreateSidekick,
+    _prior.Restore,
+    _prior.Minge,
+    _bh.Stalk,
+    _prior.Investigate,
+    _prior.Patrol
 }
 
 local jackal = TTTBots.RoleData.New("jackal", TEAM_JACKAL)

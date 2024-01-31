@@ -36,6 +36,8 @@
 
 * Decreased time between quote management updates (2.5s -> 1s)
 
+* Improved behavior consistency between custom roles
+
 ### Fixed
 
 * Retrying bug that threw errors on SRCDS servers. (#34)

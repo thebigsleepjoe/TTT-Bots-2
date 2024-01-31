@@ -6,16 +6,15 @@ local allyTeams = {
     [TEAM_TRAITOR] = true,
 }
 
-local Bhvr = TTTBots.Behaviors
+local _bh = TTTBots.Behaviors
+local _prior = TTTBots.Behaviors.PriorityNodes
 local bTree = {
-    Bhvr.ClearBreakables,
-    Bhvr.AttackTarget,
-    Bhvr.UseHealthStation,
-    Bhvr.FindWeapon,
-    Bhvr.Stalk,
-    Bhvr.InvestigateNoise,
-    Bhvr.Follow,
-    Bhvr.Wander,
+    _prior.FightBack,
+    _prior.Restore,
+    _bh.Stalk,
+    _prior.Minge,
+    _prior.Investigate,
+    _prior.Patrol
 }
 
 local jester = TTTBots.RoleData.New("jester", TEAM_JESTER)

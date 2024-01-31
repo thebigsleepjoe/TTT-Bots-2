@@ -8,13 +8,14 @@ local allyTeams = {
     [TEAM_JESTER] = true,
 }
 
-local Bhvr = TTTBots.Behaviors
+local _bh = TTTBots.Behaviors
+local _prior = TTTBots.Behaviors.PriorityNodes
 local bTree = {
-    Bhvr.ClearBreakables,
-    Bhvr.AttackTarget,
-    Bhvr.FindWeapon,
-    Bhvr.Stalk,
-    Bhvr.Wander,
+    _prior.FightBack,
+    _prior.Restore,
+    _bh.Stalk,
+    _prior.Minge,
+    _prior.Patrol
 }
 
 local serialkiller = TTTBots.RoleData.New("serialkiller", TEAM_SERIALKILLER)
