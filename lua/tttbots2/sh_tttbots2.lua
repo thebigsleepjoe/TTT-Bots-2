@@ -49,6 +49,7 @@ local function includeClient()
     includeClientFile("tttbots2/client/cl_debug3d.lua")
     includeClientFile("tttbots2/client/cl_debugui.lua")
     includeClientFile("tttbots2/client/cl_scoreboard.lua")
+    includeClientFile("tttbots2/client/cl_botmenu.lua")
 end
 
 --- Places the file in the AddCSLuaFile if server, otherwise loads it if we're a client. Includes the file either way.
@@ -81,6 +82,7 @@ if SERVER then
     util.AddNetworkString("TTTBots_RequestData")
     util.AddNetworkString("TTTBots_SyncAvatarNumbers")
     util.AddNetworkString("TTTBots_RequestConCommand")
+    util.AddNetworkString("TTTBots_RequestCvarUpdate")
 
     local hasNavmesh = function() return navmesh.GetNavAreaCount() > 0 end
     local alreadyAddedResources = false

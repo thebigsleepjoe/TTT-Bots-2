@@ -22,6 +22,7 @@ loc("too.many.regions",
 loc("not.enough.slots", "[WARNING] There are not enough player slots to add another bot.")
 loc("not.enough.slots.n", "[WARNING] There are not enough player slots to add %s bots.")
 loc("consider.kicking", "[WARNING] Please consider kicking some bots, or create a server with more slots.")
+
 loc("bot.added", "[NOTICE] '%s' added a bot.")
 loc("bot.kicked", "[NOTICE] '%s' kicked a bot (%s).")
 loc("bot.kicked.reason", "Kicked by server administrator '%s'")
@@ -58,3 +59,14 @@ loc("help.botdifficulty",
 loc("help.bothelp", "Shows this menu.")
 loc("no.kickname", "You must provide a bot name to kick.")
 loc("bot.not.found", "No bot matches the name '%s'")
+
+-- Botmenu
+loc('dashboard', 'Dashboard')
+loc('current.bots', 'Current Bots')
+loc('build.a.bot', 'Build-a-Bot')
+loc('bot.names', 'Bot Names')
+loc('traits', 'Traits')
+loc('buyables', 'Buyables')
+loc('mod.language', 'Mod Language | Examples are "en" or "fr"')
+loc('quota.num', 'Quota Number | The # of bots to keep in the game. 0 = off')
+loc('quota.mode', 'Quota Mode | Always have an "exact" X bots, or "fill" to X slots')

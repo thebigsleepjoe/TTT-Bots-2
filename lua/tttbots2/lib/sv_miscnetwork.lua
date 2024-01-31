@@ -100,5 +100,14 @@ net.Receive("TTTBots_SyncAvatarNumbers", function(len, ply)
     syncClientAvatars(ply)
 end)
 
+net.Receive("TTTBots_RequestCvarUpdate", function(len, ply)
+    if not IsValid(ply) or not ply:IsSuperAdmin() then return end
+
+    local cvar = net.ReadString()
+    local value = net.ReadString()
+
+    RunConsoleCommand(cvar, value)
+end)
+
 hook.Add("PlayerDisconnected", "TTTBots.Network.PlayerDisconnected", syncClientAvatars)
 hook.Add("PlayerInitialSpawn", "TTTBots.Network.PlayerInitialSpawn", syncClientAvatars)

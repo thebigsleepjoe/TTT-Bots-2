@@ -21,7 +21,7 @@ end
 ---@return string|nil string returns string if line exists, nil if it doesn't
 function TTTBots.Locale.GetLocalizedString(name, ...)
     local lang = GetConVar("ttt_bot_language"):GetString()
-    local str = TTTBots.Locale[lang] and TTTBots.Locale[lang][name] or ("ERR: no lang '" .. lang .. "'")
+    local str = TTTBots.Locale[lang] and TTTBots.Locale[lang][name] or TTTBots.Locale["en"][name] or "<No translation>"
 
     -- check if we have any varargs before formatting
     if ... then
