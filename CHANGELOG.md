@@ -18,6 +18,8 @@
 
 * Bots will avoid ladders with people on them, assuming there is another reasonable route available
 
+* Bots will back away from people that are trying to melee them
+
 ### Changes/Rebalances
 
 * Bots will be less likely to target the head or strafe on lower difficulties.

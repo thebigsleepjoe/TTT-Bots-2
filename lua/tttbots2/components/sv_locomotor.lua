@@ -363,6 +363,14 @@ function BotLocomotor:GetForceForward()
     return self:VerifyForwardTimeout()
 end
 
+function BotLocomotor:SetForceBackward(value)
+    self.forceBackward = value
+end
+
+function BotLocomotor:GetForceBackward()
+    return self.forceBackward
+end
+
 function BotLocomotor:GetGoal()
     -- BotLocomotor:GetXYDist(a, b)
     if self.goalPos == nil then return nil end
@@ -1498,6 +1506,7 @@ function BotLocomotor:StartCommand(cmd) -- aka StartCmd
         or (strafeStr == "right" and 400)
         or 0
     local forceForward = self:GetForceForward() or self.repelled
+    local forceBackward = self:GetForceBackward()
     local dbgStrafe = lib.GetConVarBool("debug_strafe")
     if dbgStrafe then
         if strafeStr ~= nil then
@@ -1514,9 +1523,14 @@ function BotLocomotor:StartCommand(cmd) -- aka StartCmd
     end
 
     --- 🏃 MANAGE MOVEMENT SIDE/FORWARD
-    local forward = self.movementVec == nil and 0 or 400
+    local hasMoveVec = self.movementVec ~= nil
     cmd:SetSideMove(side)
-    cmd:SetForwardMove((not forceForward and forward) or 400)
+    local forwardDir = (
+        ((hasMoveVec or forceForward) and 400)
+        or (forceBackward and -400)
+        or 0
+    )
+    cmd:SetForwardMove(forwardDir)
 
     --- 🚪 MANAGE BOT DOOR HANDLING
     if self:GetUsing() and self:TestDoorTimer() then

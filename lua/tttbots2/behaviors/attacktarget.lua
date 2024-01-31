@@ -204,23 +204,20 @@ end
 
 function Attack.Engage(bot, targetPos)
     local target = bot.attackTarget
-    ---@class CInventory
-    local inv = bot.components.inventory
-    ---@type WeaponInfo
-    local weapon = inv:GetHeldWeaponInfo()
+    local inv = bot.components.inventory ---@type CInventory
+    local weapon = inv:GetHeldWeaponInfo() ---@type WeaponInfo
     if not weapon then return end
     local usingMelee = not weapon.is_gun
-    ---@class CLocomotor
-    local loco = bot:BotLocomotor()
+    local loco = bot:BotLocomotor() ---@type CLocomotor
     loco.stopLookingAround = true
 
-    local preventAttackBecauseMelee = false --- Used to prevent attacking when we are using a melee weapon and are too far away
+    local tooFarToAttack = false --- Used to prevent attacking when we are using a melee weapon and are too far away
+    local distToTarget = bot:GetPos():Distance(target:GetPos())
     if bot.wasPathing and not usingMelee then
         loco:StopMoving()
         bot.wasPathing = false
     elseif usingMelee then
-        local distToTarget = bot:GetPos():Distance(target:GetPos())
-        preventAttackBecauseMelee = distToTarget > 160
+        tooFarToAttack = distToTarget > 160
         if distToTarget < 70 then
             loco:StopMoving()
             bot.wasPathing = false
@@ -230,7 +227,14 @@ function Attack.Engage(bot, targetPos)
         end
     end
 
-    if not preventAttackBecauseMelee then
+    -- Backpedal away if there is a bad guy near us.
+    if not usingMelee and distToTarget < 100 then
+        loco:SetForceBackward(true)
+    else
+        loco:SetForceBackward(false)
+    end
+
+    if not tooFarToAttack then
         if (Attack.LookingCloseToTarget(bot, target)) then
             if not Attack.WillShootingTeamkill(bot, target) then -- make sure we aren't about to teamkill by mistake!!
                 loco:StartAttack()
