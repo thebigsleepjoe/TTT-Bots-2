@@ -25,7 +25,7 @@ local STATUS = {
     FAILURE = 3,
 }
 
-local intensity = 12
+local intensity = 20
 
 ---@class KeyFrame
 ---@field target string
