@@ -121,6 +121,7 @@ end
 function Attack.StrafeIfNecessary(bot, weapon, loco)
     if bot.canStrafe == false then return false end
     if not (bot.attackTarget and bot.attackTarget.GetPos) then return false end
+    if weapon.is_melee then return false end
 
     -- Do not strafe if we are on a cliff. We will fall off.
     local isCliffed = loco:IsCliffed()
