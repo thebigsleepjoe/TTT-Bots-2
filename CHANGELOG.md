@@ -40,7 +40,7 @@
 
 * Decreased time between quote management updates (2.5s -> 1s)
 
-* Improved behavior consistency between custom roles
+* Improved behavior consistency between custom roles by unifying behavior trees (i.e., clumped together common sequences into priority nodes)
 
 * Bots won't be repelled from one another when at a health station
 
