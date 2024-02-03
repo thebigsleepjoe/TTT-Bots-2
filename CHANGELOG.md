@@ -42,6 +42,8 @@
 
 * Improved behavior consistency between custom roles
 
+* Bots won't be repelled from one another when at a health station
+
 ### Fixed
 
 * Retrying bug that threw errors on SRCDS servers. (#34)
