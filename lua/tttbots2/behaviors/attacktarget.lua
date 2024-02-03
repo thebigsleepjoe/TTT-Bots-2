@@ -282,7 +282,7 @@ function Attack.Engage(bot, targetPos)
     loco:LookAt(inaccuracyTarget)
 end
 
-local INACCURACY_BASE = 14 --- The higher this is, the more inaccurate the bots will be.
+local INACCURACY_BASE = 9  --- The higher this is, the more inaccurate the bots will be.
 local INACCURACY_SMOKE = 5 --- The inaccuracy modifier when the bot or its target is in smoke.
 --- Calculate the inaccuracy of agent 'bot' according to a) its personality and b) diff setts
 ---@param bot Player The bot that is shooting.
