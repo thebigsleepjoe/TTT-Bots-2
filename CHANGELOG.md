@@ -60,7 +60,7 @@
 
 * Bots with a melee will no longer slow themselves down by stafing while approaching.
 
-* Jackal will start fights to prevent stalling rounds.
+* **TTT2** Jackal will start fights to prevent stalling rounds.
 
 ### Developer Notes
 
