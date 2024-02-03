@@ -293,6 +293,24 @@ function BotInventory:AutoManageInventory()
     end
 end
 
+--- Reload the currently held weapon if it has less ammo in the 1st clip than its maximum, if it also has ammo in reserve.
+---@return boolean reloading If we are reloading
+function BotInventory:ReloadIfNecessary()
+    local heldWep = self:GetHeldWeaponInfo(self.bot)
+    if not (heldWep and heldWep.is_gun) then return false end
+
+    local reload = heldWep.should_reload
+
+    if reload then
+        local loco = self.bot:BotLocomotor() ---@type CLocomotor
+        loco:StopAttack()
+        loco:StopAttack2()
+        loco:Reload()
+    end
+
+    return reload
+end
+
 --- Gives the bot weapon_ttt_c4 if he doesn't have it already.
 function BotInventory:GiveC4()
     local hasC4 = false
@@ -323,6 +341,10 @@ function BotInventory:Think()
         self:PrintInventory()
     end
     self.tick = self.tick + 1
+
+    if not IsValid(self.bot.attackTarget) then
+        self:ReloadIfNecessary()
+    end
 
     -- Manage our own inventory, but only if we have not been paused
     if self.pauseAutoSwitch then return end

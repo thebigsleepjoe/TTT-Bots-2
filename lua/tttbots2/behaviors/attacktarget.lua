@@ -41,13 +41,12 @@ end
 
 function Attack.Seek(bot, targetPos)
     local target = bot.attackTarget
-    local loco = lib.GetComp(bot, "locomotor")
-    if not loco then return end
+    local loco = bot:BotLocomotor() ---@type CLocomotor
+    local inv = bot:BotInventory() ---@type CInventory
+    if not (loco and inv) then return end
     bot:BotLocomotor().stopLookingAround = false
     loco:StopAttack()
-    -- If we can't see them, we need to move to them
-    -- local targetPos = target:GetPos()
-    --loco:SetGoal(targetPos)
+    inv:ReloadIfNecessary()
 
     ---@type CMemory
     local memory = bot.components.memory

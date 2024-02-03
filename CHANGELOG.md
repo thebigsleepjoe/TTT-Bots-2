@@ -20,6 +20,8 @@
 
 * Bots will back away from people that are trying to melee them
 
+* Bots will reload outside of combat more often, and reload when they can't see their enemy.
+
 ### Changes/Rebalances
 
 * Bots will be less likely to target the head or strafe on lower difficulties.
