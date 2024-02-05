@@ -146,8 +146,9 @@ function BotChatter:Say(text, teamOnly, ignoreDeath, callback)
     local cps = lib.GetConVarFloat("chatter_cps")
     local delay = (string.len(text) / cps) * (math.random(75, 150) / 100)
     self.typing = true
-    -- remove "[BOT] " occurences from the text
+    -- remove "[BOT] " and "[bot] " occurences from the text
     text = string.gsub(text, "%[BOT%] ", "")
+    text = string.gsub(text, "%[bot%] ", "")
     text = self:TypoText(text)
     timer.Simple(delay, function()
         if self.bot == NULL or not IsValid(self.bot) then return end
