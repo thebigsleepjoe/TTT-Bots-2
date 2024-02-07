@@ -42,10 +42,10 @@ TTTBots.Behaviors.DefaultTrees = {
     innocent = {
         _prior.FightBack,
         _bh.Defuse,
-        _bh.Interact,
-        _prior.Minge,
         _prior.Restore,
+        _bh.Interact,
         _prior.Investigate,
+        _prior.Minge,
         _prior.Patrol
     },
     traitor = {
@@ -53,10 +53,10 @@ TTTBots.Behaviors.DefaultTrees = {
         _bh.Defib,
         _bh.PlantBomb,
         _bh.InvestigateCorpse,
+        _prior.Restore,
         _bh.FollowPlan,
         _bh.Interact,
         _prior.Minge,
-        _prior.Restore,
         _prior.Investigate,
         _prior.Patrol
     },
@@ -64,9 +64,9 @@ TTTBots.Behaviors.DefaultTrees = {
         _prior.FightBack,
         _bh.Defib,
         _bh.Defuse,
+        _prior.Restore,
         _bh.Interact,
         _prior.Minge,
-        _prior.Restore,
         _prior.Investigate,
         _prior.Patrol
     }
