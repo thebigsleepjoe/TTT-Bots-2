@@ -10,7 +10,8 @@ local MingeCrowbar = TTTBots.Behaviors.MingeCrowbar
 MingeCrowbar.Name = "MingeCrowbar"
 MingeCrowbar.Description = "Minge (mostly push-related) with the crowbar."
 MingeCrowbar.Interruptible = true
-MingeCrowbar.MeanTimeBetween = 60.0
+MingeCrowbar.MinTimeBetween = 60.0
+MingeCrowbar.SkipChance = 3 -- 1 in X change of skipping even if cooldown
 
 ---@enum BStatus
 local STATUS = {
@@ -46,14 +47,19 @@ function MingeCrowbar.CanStartMinge(bot)
 
     if nextMingeTime > CurTime() then return false end
 
-    return MingeCrowbar.GetMingeTarget(bot) ~= nil
+    if MingeCrowbar.GetMingeTarget(bot) == nil then return false end
+
+    local chance = math.random(1, MingeCrowbar.SkipChance)
+    if chance ~= 1 then return false end
+
+    return true
 end
 
 function MingeCrowbar.SetMingeTimer(bot)
     local personality = bot:BotPersonality() ---@type CPersonality
     local rate = personality:GetTraitMult("mingeRate") or 1.0
 
-    bot.nextMingeTime = CurTime() + (MingeCrowbar.MeanTimeBetween / rate)
+    bot.nextMingeTime = CurTime() + (MingeCrowbar.MinTimeBetween / rate)
 end
 
 --- Validate the behavior before we can start it (or continue running)
