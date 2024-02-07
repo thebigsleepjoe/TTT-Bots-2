@@ -161,7 +161,11 @@ function Defib.OnRunning(bot)
     loco:SetGoal(ragPos)
     loco:LookAt(ragPos)
 
-    if loco:IsCloseEnough(ragPos) then
+    local dist = bot:GetPos():Distance(ragPos)
+
+    if dist < 40 then
+        local numWitnesses = #lib.GetAllWitnessesBasic(bot:GetPos(), TTTBots.Roles.GetNonAllies(bot))
+        if numWitnesses > 1 then return STATUS.RUNNING end
         inventory:PauseAutoSwitch()
         bot:SetActiveWeapon(defib)
         loco:SetGoal() -- reset goal to stop moving
