@@ -161,6 +161,7 @@ function Memory:UpdateRadar(ply)
 end
 
 function Memory:HandleUnseenPlayer(ply)
+    if not IsValid(ply) then return end
     -- Update radar if applicable
     self:UpdateRadar(ply)
 
