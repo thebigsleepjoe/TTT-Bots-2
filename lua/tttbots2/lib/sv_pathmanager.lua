@@ -1,7 +1,7 @@
 TTTBots.PathManager = {}
 TTTBots.PathManager.cullSeconds = 5
 TTTBots.PathManager.maxCachedPaths = 200
-TTTBots.PathManager.completeRange = 32 -- 32 = half player height
+TTTBots.PathManager.completeRange = 28 -- 32 = half player height
 
 -- Define constants
 local LADDER_FORWARD_TOP = 14
