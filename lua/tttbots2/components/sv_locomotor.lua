@@ -371,24 +371,8 @@ function BotLocomotor:GetForceBackward()
     return self.forceBackward
 end
 
-local goalPosCache = nil
-local lastGPUpdateTime = 0
-
 function BotLocomotor:GetGoal()
-    local currentTime = CurTime()
-    if currentTime - lastGPUpdateTime >= 1 then
-        if self.goalPos == nil then
-            goalPosCache = nil
-        else
-            local distTo = self:GetXYDist(self.bot:GetPos(), self.goalPos)
-            if distTo < 32 then
-                self.goalPos = nil
-            end
-            goalPosCache = self.goalPos
-        end
-        lastGPUpdateTime = currentTime
-    end
-    return goalPosCache
+    return self.goalPos
 end
 
 function BotLocomotor:StopMoving()
@@ -813,6 +797,16 @@ function BotLocomotor:MoveDirectlyIfClose(goal)
     end
 end
 
+function BotLocomotor:ValidateGoalProx()
+    local goal = self:GetGoal()
+
+    if not IsValid(goal) then return end
+
+    if self:IsCloseEnough(goal) then
+        self:SetGoal(nil)
+    end
+end
+
 --- Manage the movement; do not use CMoveData, use the bot's movement functions and fields instead.
 ---@package
 function BotLocomotor:UpdateMovement()
@@ -822,6 +816,7 @@ function BotLocomotor:UpdateMovement()
     self:StopPriorityMovement()
     self.isTryingPath = false
     self:SetCliffed()
+    self:ValidateGoalProx()
     if self.dontmove then return end
 
     self:SetDismount(self:ShouldDismountLadder())
