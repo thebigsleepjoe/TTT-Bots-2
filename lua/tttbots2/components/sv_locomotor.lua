@@ -371,15 +371,24 @@ function BotLocomotor:GetForceBackward()
     return self.forceBackward
 end
 
-function BotLocomotor:GetGoal()
-    -- BotLocomotor:GetXYDist(a, b)
-    if self.goalPos == nil then return nil end
+local goalPosCache = nil
+local lastGPUpdateTime = 0
 
-    local distTo = self:GetXYDist(self.bot:GetPos(), self.goalPos)
-    if distTo < 32 then
-        self.goalPos = nil
+function BotLocomotor:GetGoal()
+    local currentTime = CurTime()
+    if currentTime - lastGPUpdateTime >= 1 then
+        if self.goalPos == nil then
+            goalPosCache = nil
+        else
+            local distTo = self:GetXYDist(self.bot:GetPos(), self.goalPos)
+            if distTo < 32 then
+                self.goalPos = nil
+            end
+            goalPosCache = self.goalPos
+        end
+        lastGPUpdateTime = currentTime
     end
-    return self.goalPos
+    return goalPosCache
 end
 
 function BotLocomotor:StopMoving()

@@ -70,14 +70,22 @@ end
 ---Returns a table of living players, according to the IsPlayerAlive cache.
 ---@return table<Player>
 ---@realm shared
+
+local aliveCache = {}
+local lastUpdateTime = 0
+
 function TTTBots.Lib.GetAlivePlayers()
-    local alive = {}
-    for _, ply in ipairs(player.GetAll()) do
-        if TTTBots.Lib.IsPlayerAlive(ply) then
-            table.insert(alive, ply)
+    local currentTime = CurTime()
+    if currentTime - lastUpdateTime >= 1 then
+        aliveCache = {}
+        for _, ply in ipairs(player.GetAll()) do
+            if TTTBots.Lib.IsPlayerAlive(ply) then
+                table.insert(aliveCache, ply)
+            end
         end
+        lastUpdateTime = currentTime
     end
-    return alive
+    return aliveCache
 end
 
 local isolationCache = {}
