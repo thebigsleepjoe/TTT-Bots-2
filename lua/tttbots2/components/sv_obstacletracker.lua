@@ -41,7 +41,7 @@ function BotObstacleTracker:Enable()
 end
 
 function BotObstacleTracker:GetBlockingBreakable()
-    local normal = self.bot.components.locomotor.moveNormal
+    local normal = self.bot:BotLocomotor().moveNormal
     if not normal then
         return
     end
@@ -131,6 +131,21 @@ function BotObstacleTracker:GetBlocking()
     return self.blocking
 end
 
+---Get whether or not an entity is breakable. Warning: does not null-check.
+---@param obj Entity
+---@return boolean
+function BotObstacleTracker.IsBreakable(obj)
+    local vals = obj:GetKeyValues()
+    local health_min = 1
+    local health_max = 300 -- Don't bother breaking something that has more than 300 health
+    local minHealthDmg = obj:GetInternalVariable("minhealthdmg")
+
+    local healthThresh = (vals.health and vals.health > health_min and vals.health < health_max)
+    local minHealthThresh = minHealthDmg < health_max -- Check minhealthdmg per #33
+
+    return healthThresh and minHealthThresh or false
+end
+
 ----------------------------------------
 -- STATIC METHODS / FIELDS
 ----------------------------------------
@@ -142,7 +157,6 @@ timer.Create("TTTBots.Components.ObstacleTracker_Breakables", 1.5, 0, function()
     local db_break = {}
     local db_unbreak = {}
 
-    local dbg = lib.GetConVarBool("debug_obstacles")
 
     -- for i, v in pairs(ents.GetAll()) do
     --     print(v:GetClass())
@@ -162,14 +176,11 @@ timer.Create("TTTBots.Components.ObstacleTracker_Breakables", 1.5, 0, function()
     table.Add(phys, ents.FindByClass("func_physbox"))
 
     for _, entity in pairs(phys) do
-        local vals = entity:GetKeyValues()
-        if vals.health and vals.health > 1 then
-            table.insert(db_break, entity)
-        else
-            table.insert(db_unbreak, entity)
-        end
+        local isBreakable = BotObstacleTracker.IsBreakable(entity)
+        table.insert(isBreakable and db_break or db_unbreak, entity)
     end
 
+    local dbg = lib.GetConVarBool("debug_obstacles")
     if dbg then
         print(#db_break .. " breakables, " .. #db_unbreak .. " unbreakables.")
     end

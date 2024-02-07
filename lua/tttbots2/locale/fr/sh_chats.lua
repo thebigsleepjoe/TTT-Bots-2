@@ -1,6 +1,11 @@
 --[[
     This file defines a list of chats that bots will say upon a certain kind of event. It is designed for one-off chatter events, instead of back-and-forth conversation.
     For that, we will have a separate file, and likely use the Localized String system.
+
+    TRANSLATORS:
+    - ChatGPT
+    - GitHub Copilot
+    - ???
 ]]
 
 local P = {
@@ -82,6 +87,57 @@ local LoadLang = function()
     Line("Je pars m'entraîner. Ciao.", A.Tryhard)
     Line("je vais jouer à aimlabs salut", A.Tryhard)
     Line("Je vais me perfectionner ailleurs. Tchao.", A.Tryhard)
+
+    RegisterCategory("DisconnectRage", P.CRITICAL)
+    Line("Zut à vous tous.", A.Default)
+    Line("J'en ai assez de tout ça !", A.Default)
+    Line("C'est juste trop. Je me casse !", A.Default)
+    Line("Sérieusement ?! J'en ai marre de ces bêtises.", A.Default)
+    Line("C'en est assez.", A.Default)
+    Line("C'est la goutte d'eau. Salut.", A.Default)
+
+    Line("argh, marre de ça", A.Casual)
+    Line("J'en ai fini, les gars. Paix.", A.Casual)
+    Line("Non. Je peux même pas.", A.Casual)
+    Line("Ça n'en vaut pas la peine, chef.", A.Casual)
+    Line("Je me tire. C'est nul.", A.Casual)
+
+    Line("Quelle perte de temps pathétique.", A.Bad)
+    Line("Vous êtes tous les pires. À plus tard.", A.Bad)
+    Line("Bon débarras. Je me casse.", A.Bad)
+    Line("Je ne peux pas supporter ces ordures. Salut.", A.Bad)
+    Line("Ce jeu est une blague. À plus tard, losers.", A.Bad)
+
+    Line("Pourquoi le jeu est difficile ? Je pars.", A.Dumb)
+    Line("C'est trop dur. Bye bye.", A.Dumb)
+    Line("Moi fâché. Moi partir.", A.Dumb)
+    Line("Le jeu me donne mal à la tête. Salut.", A.Dumb)
+    Line("Pourquoi tout le monde est méchant ? Moi partir.", A.Dumb)
+
+    Line("Zut à vous tous !", A.Hothead)
+    Line("Je ne peux plus vous supporter, idiots !", A.Hothead)
+    Line("J'en ai fini avec ces conneries. Paix !", A.Hothead)
+    Line("Tout le monde ici est nul. Je me tire.", A.Hothead)
+    Line("Je jure, vous tous... Je me tire !", A.Hothead)
+
+    Line("Désolé tout le monde, j'ai besoin de me calmer. Salut.", A.Nice)
+    Line("Je suis un peu frustré. Je dois m'éloigner. Prenez soin de vous.", A.Nice)
+    Line("Je pense que j'ai besoin d'une pause. À plus tard, tout le monde !", A.Nice)
+    Line("Je me sens submergé. À la prochaine.", A.Nice)
+    Line("Désolé, ce n'est pas mon jour. À plus tard, tout le monde !", A.Nice)
+
+    Line("Je pars maintenant.", A.Stoic)
+    Line("Ça n'en vaut pas la peine.", A.Stoic)
+    Line("Je vais partir.", A.Stoic)
+    Line("Il vaut mieux que je parte.", A.Stoic)
+    Line("Je ne vois pas l'intérêt de continuer. Au revoir.", A.Stoic)
+
+    Line("Équipe, on se regroupe plus tard. Je me tire.", A.Teamer)
+    Line("J'ai besoin de vraie compétition. C'est une blague.", A.Tryhard)
+    Line("Pathétique. Je pars pour un meilleur jeu.", A.Tryhard)
+    Line("Je ne peux pas progresser avec ces déchets. À plus tard.", A.Tryhard)
+    Line("Perte de mes compétences. Je me tire.", A.Tryhard)
+    Line("Ça n'en vaut pas la peine. Salut losers.", A.Tryhard)
 
     RegisterCategory("ServerConnected", P.NORMAL)
     Line("Je suis de retour !", A.Default)
@@ -384,6 +440,20 @@ local LoadLang = function()
     Line("Bon, je te suis maintenant.", A.Hothead)
     Line("Je vais suivre ce gosse.", A.Hothead)
     Line("Tu ferais mieux d'avoir de la place pour deux, {{player}}", A.Hothead)
+
+    RegisterCategory("PersonalSpace", P.IMPORTANT) -- Warning another player about their personal space
+    Line("Hey, {{player}}, tu es un peu trop proche.", A.Default)
+    Line("S'il te plaît, recule.", A.Default)
+    Line("S'il te plaît, recule {{player}}.", A.Default)
+    Line("Un peu d'espace, s'il te plaît ?", A.Default)
+    Line("Un peu de place ?", A.Default)
+    Line("Éloigne-toi un instant.", A.Default)
+    Line("Pourrais-tu me donner un peu d'espace, s'il te plaît ?", A.Default)
+    Line("Excuse-moi, {{player}}.", A.Default)
+    Line("J'ai besoin d'un peu d'air, {{player}}.", A.Default)
+    Line("Que veux-tu, {{player}} ?", A.Default)
+    Line("Je suis avec {{player}}.", A.Default)
+    Line("{{player}} agit de manière suspecte.", A.Default)
 
 
     -----------------------------------------------------------

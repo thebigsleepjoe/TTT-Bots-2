@@ -1,5 +1,5 @@
 ---@class CInventory : CBase
-TTTBots.Components.Inventory = TTTBots.Components.Inventory or {}
+TTTBots.Components.Inventory = {}
 
 local lib = TTTBots.Lib
 ---@class CInventory : CBase
@@ -105,13 +105,16 @@ local ammoTypes = {
 
 
 
+---TODO: Cache me!
 ---Returns the WeaponInfo table of the given entity
 ---@param wep Weapon
 ---@return WeaponInfo
 function BotInventory:GetWeaponInfo(wep)
     if wep == nil or wep == NULL or not IsValid(wep) then return end
 
-    local info = {}
+    local info = {
+        __tostring = function(obj) return BotInventory:GetWepInfoText(obj) end
+    }
     -- Class of the weapon
     info.class = wep:GetClass()
     -- Ammo in the clip
@@ -192,6 +195,7 @@ function BotInventory:GetWeaponInfo(wep)
     info.is_automatic = (wep.Primary and wep.Primary.Automatic) or false
     -- we can infer if this is a sniper based off of the damage and if it's automatic
     info.is_sniper = (info.damage and info.damage > 40 and not info.is_automatic) or false
+
     return info
 end
 
@@ -205,46 +209,107 @@ function BotInventory:GetAllWeaponInfo()
     return weapon_info
 end
 
+--- get the first special (buyable) primary we have (aka, a buyable we should use as a primary)
+---@return Weapon|nil wep The weapon object (not a wepinfo)
+function BotInventory:GetSpecialPrimary()
+    local specialClasses = TTTBots.Buyables.PrimaryWeapons
+
+    for class, _ in pairs(specialClasses) do
+        local wep = self.bot:GetWeapon(class)
+        if IsValid(wep) then
+            return wep
+        end
+    end
+end
+
+---Return true if the bot has a valid WeaponInfo wep and it has > 0 bullets in the clip. Tests for nil.
+---@param wepInfo WeaponInfo?
+---@return boolean
+function BotInventory:WepInfoHasClip(wepInfo)
+    return (wepInfo and wepInfo.has_bullets and wepInfo.clip > 0) or false
+end
+
+function BotInventory:WepHasClip(wep)
+    return (wep and IsValid(wep) and wep:Clip1() > 0) or false
+end
+
+---Get if the bots has no other weapons besides melee (false) or not (true)
+---@param attackMode boolean Set to true if you want to check the weapons have ammo in reserve, not just in the clip
+---@return boolean
+function BotInventory:HasNoWeaponAvailable(attackMode)
+    local toCheck = {
+        self:GetSpecialPrimary(),
+        self:GetPrimary(),
+        self:GetSecondary()
+    }
+
+    for i, v in pairs(toCheck) do
+        if not IsValid(v) then continue end
+        local wInfo = self:GetWeaponInfo(v)
+        local hasReserve = wInfo.has_bullets
+        local hasAmmo = wInfo.clip > 0
+
+        if attackMode then
+            if hasReserve and hasAmmo then return false end
+        else
+            if hasReserve then return false end
+        end
+    end
+
+    return true
+end
+
 --- Manage our own inventory by selecting the best weapon, queueing a reload if necessary, etc.
 function BotInventory:AutoManageInventory()
     local SLOWDOWN = math.floor(TTTBots.Tickrate / 2) -- about twice per second
     if self.tick % SLOWDOWN ~= 0 or self.disabled then return end
 
+    local special = self:GetWeaponInfo(self:GetSpecialPrimary())
     local primary = self:GetWeaponInfo(self:GetPrimary())
     local secondary = self:GetWeaponInfo(self:GetSecondary())
-    if not (primary and primary.is_gun) then primary = nil end
-    if not (secondary and secondary.is_gun) then secondary = nil end
 
-    local isAttacking = self.bot.attackTarget ~= nil
-    -- local personality = self.bot.components.personality
-    local locomotor = self.bot.components.locomotor
+    -- local isAttacking = self.bot.attackTarget ~= nil
 
-    -- print(self:GetInventoryString())
-    -- if primary then
-    --     PrintTable(primary)
-    -- end
+    local hash = {
+        [self.EquipSpecial] = special,
+        [self.EquipPrimary] = primary,
+        [self.EquipSecondary] = secondary,
+        [self.EquipMelee] = self:HasNoWeaponAvailable(false),
+    }
 
-    if not primary and not secondary then
-        self:EquipMelee()
-        return
-    end
-
-    if primary and (primary.has_bullets or primary.clip > 0) then
-        self:EquipPrimary()
-    elseif secondary and (secondary.has_bullets or secondary.clip > 0) then
-        self:EquipSecondary()
-    else
-        self:EquipMelee()
-        return
+    for func, wepInfo in pairs(hash) do
+        if wepInfo and (wepInfo == true or wepInfo.ammo > 0) then
+            func(self)
+            break
+        end
     end
 
     local current = self:GetHeldWeaponInfo()
     if not (current and current.is_gun) then return end
 
+    local locomotor = self.bot:BotLocomotor()
     if current.needs_reload then
         locomotor:StopAttack()
         locomotor:Reload()
     end
+end
+
+--- Reload the currently held weapon if it has less ammo in the 1st clip than its maximum, if it also has ammo in reserve.
+---@return boolean reloading If we are reloading
+function BotInventory:ReloadIfNecessary()
+    local heldWep = self:GetHeldWeaponInfo(self.bot)
+    if not (heldWep and heldWep.is_gun) then return false end
+
+    local reload = heldWep.should_reload
+
+    if reload then
+        local loco = self.bot:BotLocomotor() ---@type CLocomotor
+        loco:StopAttack()
+        loco:StopAttack2()
+        loco:Reload()
+    end
+
+    return reload
 end
 
 --- Gives the bot weapon_ttt_c4 if he doesn't have it already.
@@ -277,6 +342,10 @@ function BotInventory:Think()
         self:PrintInventory()
     end
     self.tick = self.tick + 1
+
+    if not IsValid(self.bot.attackTarget) then
+        self:ReloadIfNecessary()
+    end
 
     -- Manage our own inventory, but only if we have not been paused
     if self.pauseAutoSwitch then return end
@@ -422,6 +491,13 @@ function BotInventory:Equip(wep)
     return (found ~= nil)
 end
 
+function BotInventory:EquipSpecial()
+    local firstSpecial = self:GetSpecialPrimary()
+    if not (firstSpecial and IsValid(firstSpecial)) then return false end
+    self.bot:SelectWeapon(firstSpecial)
+    return true
+end
+
 function BotInventory:EquipPrimary()
     return self:Equip("primary")
 end
@@ -471,4 +547,11 @@ function BotInventory:PrintInventory()
     printf("===III=== Inventory for bot %s ===III===", self.bot:Nick())
     printf(self:GetInventoryString())
     printf("===III=== End inventory ===III===")
+end
+
+---@class Player
+local plyMeta = FindMetaTable("Player")
+---@return CInventory
+function plyMeta:BotInventory()
+    return TTTBots.Lib.GetComp(self, "inventory")
 end

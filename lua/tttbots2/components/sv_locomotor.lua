@@ -20,6 +20,7 @@ function BotLocomotor:New(bot)
     })
     newLocomotor:Initialize(bot)
 
+
     local dbg = lib.GetConVarBool("debug_misc")
     if dbg then
         print("Initialized locomotor for bot " .. bot:Nick())
@@ -70,7 +71,7 @@ function BotLocomotor:Initialize(bot)
 
     self.movePriorityVec = nil        -- Current movement priority vector, overrides movementVec if not nil
     self.movementVec = nil            -- Current movement position
-    self.moveInterpRate = 0           -- Current movement speed (rate of lerp)
+    self.moveInterpRate = 0.3         -- Current movement speed (rate of lerp)
     self.moveNormal = Vector(0, 0, 0) -- Current movement normal, functionally this is read-only.
 
     self.strafe = nil                 -- "left" or "right" or nil
@@ -83,6 +84,8 @@ function BotLocomotor:Initialize(bot)
 
     self.GetClimbDir, self.SetClimbDir = getSet("ClimbDir", "none")
     self.GetDismount, self.SetDismount = getSet("Dismount", true)
+
+    self:EnableCanADS()
 end
 
 ---@package
@@ -277,9 +280,9 @@ function BotLocomotor:Crouch(bool) self.crouch = bool end
 
 function BotLocomotor:Jump(bool) self.jump = bool end
 
---- Order the bot to stop this tick.
+--- Order the bot to stop where it is.
 ---@param bool boolean
-function BotLocomotor:SetHalt(bool) self.dontmove = not bool end
+function BotLocomotor:SetHalt(bool) self.dontmove = bool end
 
 --- Sets the current look target. Use :LookAt to set this from outside of this component.
 ---@see LookAt
@@ -360,18 +363,19 @@ function BotLocomotor:GetForceForward()
     return self:VerifyForwardTimeout()
 end
 
-function BotLocomotor:GetGoal()
-    -- BotLocomotor:GetXYDist(a, b)
-    if self.goalPos == nil then return nil end
+function BotLocomotor:SetForceBackward(value)
+    self.forceBackward = value
+end
 
-    local distTo = self:GetXYDist(self.bot:GetPos(), self.goalPos)
-    if distTo < 32 then
-        self.goalPos = nil
-    end
+function BotLocomotor:GetForceBackward()
+    return self.forceBackward
+end
+
+function BotLocomotor:GetGoal()
     return self.goalPos
 end
 
-function BotLocomotor:Stop()
+function BotLocomotor:StopMoving()
     self:SetGoal(nil)
     self:SetUse(false)
     self:Strafe(nil)
@@ -539,6 +543,20 @@ function BotLocomotor:TestDoorTimer()
     return not self:GetSetTimedVariable("cantUseAgain", true, 1.2)
 end
 
+function BotLocomotor:UpdateADS()
+    local bot = self.bot
+    if IsValid(bot) and IsValid(bot.attackTarget) then
+        local target = bot.attackTarget
+        local shouldAim = bot:Visible(target)
+        local distToTarget = bot:GetPos():Distance(target:GetPos())
+        local pitchDiff, yawDiff = self:GetEyeAngleDiffTo(target:GetPos())
+        if distToTarget < 200 or yawDiff > 25 then shouldAim = false end
+        self:SetIsADS(shouldAim)
+    else
+        self:SetIsADS(false)
+    end
+end
+
 --- Tick periodically. Do not tick per GM:StartCommand
 function BotLocomotor:Think()
     self.tick = self.tick + 1
@@ -546,6 +564,7 @@ function BotLocomotor:Think()
     self.status = status
     self:UpdateMovement()                   -- Update the invisible angle that the bot moves at, and make it move.
     self:TickViewAngles()                   -- The real view angles
+    self:UpdateADS()
 end
 
 --- Gets nearby players then determines the best direction to strafe to avoid them.
@@ -589,8 +608,22 @@ function BotLocomotor:GetNormalBetween(pos1, pos2)
     return dir
 end
 
+--- Pause all repel-related behaviors. AKA, stop moving away from nearby players.
+function BotLocomotor:PauseRepel()
+    self.pauseRepel = true
+end
+
+--- Resume all repel-related behaviors.
+function BotLocomotor:ResumeRepel()
+    self.pauseRepel = false
+end
+
 ---@package
 function BotLocomotor:SetRepelForce(normal, duration)
+    if self.pauseRepel then
+        self:StopRepel()
+        return
+    end
     self.repelDir = normal
     self.repelStopTime = CurTime() + (duration or 1.0)
     self.repelled = true
@@ -601,6 +634,18 @@ function BotLocomotor:StopRepel()
     self.repelDir = nil
     self.repelStopTime = nil
     self.repelled = false
+end
+
+function BotLocomotor:CanADS()
+    return self.ads
+end
+
+function BotLocomotor:DisableCanADS()
+    self.ads = false
+end
+
+function BotLocomotor:EnableCanADS()
+    self.ads = true
 end
 
 --- Determine if we're "Cliffed" (i.e., on the edge of something)
@@ -752,6 +797,16 @@ function BotLocomotor:MoveDirectlyIfClose(goal)
     end
 end
 
+function BotLocomotor:ValidateGoalProx()
+    local goal = self:GetGoal()
+
+    if not IsValid(goal) then return end
+
+    if self:IsCloseEnough(goal) then
+        self:SetGoal(nil)
+    end
+end
+
 --- Manage the movement; do not use CMoveData, use the bot's movement functions and fields instead.
 ---@package
 function BotLocomotor:UpdateMovement()
@@ -761,6 +816,7 @@ function BotLocomotor:UpdateMovement()
     self:StopPriorityMovement()
     self.isTryingPath = false
     self:SetCliffed()
+    self:ValidateGoalProx()
     if self.dontmove then return end
 
     self:SetDismount(self:ShouldDismountLadder())
@@ -1105,6 +1161,18 @@ function BotLocomotor:HandleFallingLook()
     end
 end
 
+--- Sets SetIronsights and SetZoom on the bot's active weapon to bool
+---@param bool boolean Whether or not to enable/disable the weapon's ironsights
+function BotLocomotor:SetIsADS(bool)
+    if not IsValid(self.bot) then return end
+    local wep = self.bot:GetActiveWeapon()
+    if not IsValid(wep) then return end
+    if not wep.SetIronsights then return end
+    wep:SetIronsights(bool)
+    if not wep.SetZoom then return end
+    wep:SetZoom(bool)
+end
+
 ---@package
 function BotLocomotor:SetRandomLookPlayer()
     if self.randomLookEntity or self.randomLookEntityStopTime then
@@ -1266,6 +1334,10 @@ function BotLocomotor:StopAttack()
     self.attack = false
 end
 
+function BotLocomotor:StartAttack2() self.attack2 = true end
+
+function BotLocomotor:StopAttack2() self.attack2 = false end
+
 --- Sets self.reload to true, queuing a reload the next frame.
 function BotLocomotor:Reload()
     self.reload = true
@@ -1309,6 +1381,28 @@ function BotLocomotor:IsNearEndOfLadder()
     return (distTop < LADDER_THRESH_TOP or distBottom < LADDER_THRESH_BOTTOM) or false
 end
 
+--- Explciity disables "attack compatibility" until resumed -- this prevents the script from stopping an attack prematurely
+--- for compatibility with certain modded guns. This is specifically useful to pause for utility weapons.
+function BotLocomotor:PauseAttackCompat()
+    self.attackCompat = false
+end
+
+--- Resumes the attack compatibility mechanic.
+--- See PauseAttackCompat for more info.
+function BotLocomotor:ResumeAttackCompat()
+    self.attackCompat = true
+end
+
+---@see PauseAttackCompat
+---@see ResumeAttackCompat
+---@package
+function BotLocomotor:TestShouldPreventFire()
+    local attackCompat = self.attackCompat
+
+    if (attackCompat == false) then return false end -- explicit false-check so we don't have to define attackCompat in the first place
+    return (self.tick % TTTBots.Tickrate == 1)
+end
+
 ---Basically manages the locomotor of the locomotor
 ---@package
 function BotLocomotor:StartCommand(cmd) -- aka StartCmd
@@ -1346,9 +1440,9 @@ function BotLocomotor:StartCommand(cmd) -- aka StartCmd
 
     --- 🏃 WALK TOWARDS NEXT POSITION ON PATH (OR IMMEDIATE PRIORITY GOAL), IF WE HAVE ONE
     if self:HasPath() and not self:GetPriorityGoal() then
-        self:InterpolateMovement(0.1, self.nextPos)
+        self:InterpolateMovement(self.moveInterpRate, self.nextPos)
     elseif self:GetPriorityGoal() then
-        self:InterpolateMovement(0.1, self:GetPriorityGoal())
+        self:InterpolateMovement(self.moveInterpRate, self:GetPriorityGoal())
         if DVLPR_PATHFINDING then TTTBots.DebugServer.DrawCross(self.movePriorityVec, 10, Color(0, 255, 255)) end
     end
 
@@ -1361,7 +1455,7 @@ function BotLocomotor:StartCommand(cmd) -- aka StartCmd
         if endTime < TIMESTAMP then
             self.repelled = false
         else
-            self:InterpolateMovement(0.15, repelPos) -- Much more emphasis on the repel than normal movement patterns.
+            self:InterpolateMovement(self.moveInterpRate * 1.5, repelPos) -- Much more emphasis on the repel than normal movement patterns.
         end
     end
 
@@ -1416,6 +1510,7 @@ function BotLocomotor:StartCommand(cmd) -- aka StartCmd
         or (strafeStr == "right" and 400)
         or 0
     local forceForward = self:GetForceForward() or self.repelled
+    local forceBackward = self:GetForceBackward()
     local dbgStrafe = lib.GetConVarBool("debug_strafe")
     if dbgStrafe then
         if strafeStr ~= nil then
@@ -1432,9 +1527,14 @@ function BotLocomotor:StartCommand(cmd) -- aka StartCmd
     end
 
     --- 🏃 MANAGE MOVEMENT SIDE/FORWARD
-    local forward = self.movementVec == nil and 0 or 400
+    local hasMoveVec = self.movementVec ~= nil
     cmd:SetSideMove(side)
-    cmd:SetForwardMove((not forceForward and forward) or 400)
+    local forwardDir = (
+        ((hasMoveVec or forceForward) and 400)
+        or (forceBackward and -400)
+        or 0
+    )
+    cmd:SetForwardMove(forwardDir)
 
     --- 🚪 MANAGE BOT DOOR HANDLING
     if self:GetUsing() and self:TestDoorTimer() then
@@ -1445,20 +1545,22 @@ function BotLocomotor:StartCommand(cmd) -- aka StartCmd
     end
 
     --- 🔫 MANAGE ATTACKING OF THE BOT
-    if ((self.reactionDelay or 0) < TIMESTAMP) then
-        if (self.attack and not self.attackReleaseTime) or                                       -- if we are attacking and we don't have an attack release time
-            (self.attack and self.attackReleaseTime and self.attackReleaseTime > TIMESTAMP) then -- or if we are attacking and we have an attack release time and it's not yet time to release:
-            -- stop attack from interrupting reload
-            local currentWep = self.bot.components.inventory:GetHeldWeaponInfo()
-            local preventFire = (self.tick % TTTBots.Tickrate == 1) -- For compatibility with modded guns, sometimes we need to let go for a second to fire again.
-            local needsReload = (currentWep and (currentWep.needs_reload)) or false
-            if (
-                    not preventFire
-                    and not needsReload
-                    or not currentWep
-                ) then
-                cmd:SetButtons(cmd:GetButtons() + IN_ATTACK)
-            end
+    if (
+            (self.reactionDelay or 0) < TIMESTAMP
+            and (self.attack or self.attack2)
+        ) then
+        -- stop attack from interrupting reload
+        local currentWep = self.bot.components.inventory:GetHeldWeaponInfo() ---@type WeaponInfo
+        local preventFire = self:TestShouldPreventFire() -- For compatibility with modded guns, sometimes we need to let go for a second to fire again.
+        local needsReload = (currentWep and currentWep.needs_reload) or false
+        if (
+                not preventFire
+                and not needsReload
+                or not currentWep
+            ) then
+            cmd:SetButtons(
+                cmd:GetButtons() + (self.attack and IN_ATTACK or 0) + (self.attack2 and IN_ATTACK2 or 0)
+            )
         end
     end
 
@@ -1591,8 +1693,8 @@ end)
 
 timer.Create("TTTBots.Locomotor.lookPosOverride.ForgetOverride", 1.0 / TTTBots.Tickrate, 0, function()
     for i, bot in pairs(TTTBots.Bots) do
-        if not (bot and bot.components and bot.components.locomotor) then continue end
-        local loco = bot.components.locomotor
+        if not (bot and bot.components and bot:BotLocomotor()) then continue end
+        local loco = bot:BotLocomotor()
         local endTime = loco.lookGoalStopTime
         if endTime and endTime < CurTime() then
             loco.lookGoal = nil
@@ -1601,6 +1703,7 @@ timer.Create("TTTBots.Locomotor.lookPosOverride.ForgetOverride", 1.0 / TTTBots.T
     end
 end)
 
+---@class Player
 local plyMeta = FindMetaTable("Player")
 
 function plyMeta:SetAttackTarget(target)
@@ -1613,4 +1716,9 @@ function plyMeta:SetAttackTarget(target)
     if not (loco and personality) then return end
     loco:OnNewTarget(target)
     personality:OnPressureEvent("NewTarget")
+end
+
+---@return CLocomotor
+function plyMeta:BotLocomotor()
+    return TTTBots.Lib.GetComp(self, "locomotor")
 end

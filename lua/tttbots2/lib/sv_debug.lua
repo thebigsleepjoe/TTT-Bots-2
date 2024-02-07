@@ -58,9 +58,9 @@ net.Receive("TTTBots_RequestData", function(len, ply)
     local botData = {} -- todo
 
     for i, bot in pairs(TTTBots.Bots) do
-        if not (bot and bot.components and bot.components.locomotor) then continue end
+        if not (bot and bot.components and bot:BotLocomotor()) then continue end
         ---@type CLocomotor
-        local locomotor = bot.components.locomotor
+        local locomotor = bot:BotLocomotor()
         ---@type CMemory
         local memory = bot.components.memory
         ---@type CPersonality
@@ -184,7 +184,7 @@ end
 ---@deprecated
 function TTTBots.DebugServer.DrawCurrentPathFor(bot)
     ErrorNoHaltWithStack("Unsupported draw call; drawing anyway.")
-    local pathinfo = bot.components.locomotor.pathinfo
+    local pathinfo = bot:BotLocomotor().pathinfo
     if not pathinfo or not pathinfo.path then return end
 
     local path = pathinfo.path

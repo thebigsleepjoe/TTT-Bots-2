@@ -55,7 +55,7 @@ local function assignBotAvatar(bot)
     local assignedImage
 
     if not pfps_humanlike then
-        local difficulty = personality:GetTraitAdditive("difficulty")
+        local difficulty = personality:GetDifficulty()
 
         if difficulty <= -4 then
             assignedImage = 1
@@ -82,8 +82,7 @@ hook.Add("PlayerInitialSpawn", "TTTBots_PlayerInitialSpawn", function(ply)
     end
 end)
 
--- Client is requesting we sync the bot avatar numbers, we will send the table of bot avatar numbers to the client
-net.Receive("TTTBots_SyncAvatarNumbers", function(len, ply)
+local function syncClientAvatars(ply)
     validateAvatarCache()
     local avatars_nicks = {}
 
@@ -94,4 +93,21 @@ net.Receive("TTTBots_SyncAvatarNumbers", function(len, ply)
     net.Start("TTTBots_SyncAvatarNumbers")
     net.WriteTable(avatars_nicks)
     net.Send(ply)
+end
+
+-- Client is requesting we sync the bot avatar numbers, we will send the table of bot avatar numbers to the client
+net.Receive("TTTBots_SyncAvatarNumbers", function(len, ply)
+    syncClientAvatars(ply)
 end)
+
+net.Receive("TTTBots_RequestCvarUpdate", function(len, ply)
+    if not IsValid(ply) or not ply:IsSuperAdmin() then return end
+
+    local cvar = net.ReadString()
+    local value = net.ReadString()
+
+    RunConsoleCommand(cvar, value)
+end)
+
+hook.Add("PlayerDisconnected", "TTTBots.Network.PlayerDisconnected", syncClientAvatars)
+hook.Add("PlayerInitialSpawn", "TTTBots.Network.PlayerInitialSpawn", syncClientAvatars)

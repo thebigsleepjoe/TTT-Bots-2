@@ -178,6 +178,8 @@ end)
 
 local avatarCache = {} -- A cache of avatars <string nick, number avatarNumber>
 
+
+--- Iterates through our avatar cache to update the scoreboard pfps
 local function updateScoreboardPfps()
     local pnl = GAMEMODE:GetScoreboardPanel()
     local pfps_humanlike = GetConVar("ttt_bot_pfps_humanlike"):GetBool()
@@ -196,7 +198,7 @@ local function updateScoreboardPfps()
                 local avatarNumber = avatarCache[player:Nick()]
                 if not avatarNumber then continue end
                 if avatar.IsFakeAvatar or row.hasFakeAvatar then continue end
-                print("Created avatar for bot " .. player:Nick() .. " (" .. avatarNumber .. ")")
+                -- print("Created avatar for bot " .. player:Nick() .. " (" .. avatarNumber .. ")")
 
                 avatar = vgui.Create("DImage", row)
                 avatar:SetSize(24, 24)
@@ -217,14 +219,24 @@ local function updateScoreboardPfps()
     end
 end
 
-local function cacheBotAvatars()
-    local ttt_bot_pfps = GetConVar("ttt_bot_pfps"):GetBool()
-    if not ttt_bot_pfps then return end
-    local pnl = GAMEMODE:GetScoreboardPanel()
-    if not IsValid(pnl) then return end
-
+local function sendSyncRequest()
     net.Start("TTTBots_SyncAvatarNumbers")
     net.SendToServer()
+end
+
+--- Iterates through the bot-player list and sends the sync message to the server if we are missing anyone.
+local function auditAvatarCache()
+    local bots = player.GetBots()
+
+    for i, bot in pairs(bots) do
+        if not IsValid(bot) then continue end
+        local nick = bot:Nick()
+        if not avatarCache[nick] then
+            -- print("[TTT Bots 2] Missing avatar for bot " .. nick .. ", requesting...")
+            sendSyncRequest()
+            return
+        end
+    end
 end
 
 net.Receive("TTTBots_SyncAvatarNumbers", function(len, ply)
@@ -232,5 +244,5 @@ net.Receive("TTTBots_SyncAvatarNumbers", function(len, ply)
     updateScoreboardPfps()
 end)
 
-timer.Create("TTTBots.Client.CacheBotAvatars", 2, 0, cacheBotAvatars)
-timer.Create("TTTBots.Client.SyncBotAvatars", 0.25, 0, updateScoreboardPfps)
+timer.Create("TTTBots.Client.UpdateScoreboard", 0.25, 0, updateScoreboardPfps)
+timer.Create("TTTBots.Client.AuditAvatarCache", 3, 0, auditAvatarCache)

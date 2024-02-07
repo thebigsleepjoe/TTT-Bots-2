@@ -22,6 +22,7 @@ loc("too.many.regions",
 loc("not.enough.slots", "[WARNING] There are not enough player slots to add another bot.")
 loc("not.enough.slots.n", "[WARNING] There are not enough player slots to add %s bots.")
 loc("consider.kicking", "[WARNING] Please consider kicking some bots, or create a server with more slots.")
+
 loc("bot.added", "[NOTICE] '%s' added a bot.")
 loc("bot.kicked", "[NOTICE] '%s' kicked a bot (%s).")
 loc("bot.kicked.reason", "Kicked by server administrator '%s'")
@@ -29,6 +30,8 @@ loc("bot.kicked.all", "[NOTICE] '%s' kicked all bots.")
 loc("bot.rr", "[NOTICE] '%s' restarted the round and added %s bots.")
 loc("bot.quota.changed", "[NOTICE] %s adjusted the bot quota to %d bots.")
 loc("bot.notice", "[NOTICE] You are playing a match with %d TTT bots in the server.")
+loc("fail.create.bot",
+    "A bot could not be created. Please verify you are in a server (P2P or SRCDS) with sufficient player slots.")
 
 loc("difficulty.1", "Very Easy")
 loc("difficulty.2", "Easy")
@@ -56,3 +59,15 @@ loc("help.botdifficulty",
 loc("help.bothelp", "Shows this menu.")
 loc("no.kickname", "You must provide a bot name to kick.")
 loc("bot.not.found", "No bot matches the name '%s'")
+
+-- Botmenu
+loc('dashboard', 'Dashboard')
+loc('current.bots', 'Current Bots')
+loc('build.a.bot', 'Build-a-Bot')
+loc('bot.names', 'Bot Names')
+loc('traits', 'Traits')
+loc('buyables', 'Buyables')
+loc('add', 'Add')
+loc('add.name', 'Name')
+loc('remove.selected', 'Remove Selected')
+loc('name', "Name")

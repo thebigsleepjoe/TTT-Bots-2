@@ -72,7 +72,7 @@ function FollowMaster.OnRunning(bot)
 
     if target.attackTarget then bot:SetAttackTarget(target.attackTarget) end
 
-    local loco = bot.components.locomotor
+    local loco = bot:BotLocomotor()
     bot.masterFollowPoint = FollowMaster.GetFollowPoint(target)
 
     if bot.masterFollowPoint == false then return STATUS.FAILURE end
@@ -95,5 +95,5 @@ end
 function FollowMaster.OnEnd(bot)
     bot.followMaster = nil
     bot.masterFollowPoint = nil
-    bot.components.locomotor:Stop()
+    bot:BotLocomotor():StopMoving()
 end

@@ -75,6 +75,7 @@ end)
 CreateSharedConCommand("ttt_bot_kickall", function(ply, _, args)
     if not IsPlayerSuperAdmin(ply) then return end -- cmd only works as server or SA
     for _, bot in pairs(TTTBots.Bots) do
+        if not IsValid(bot) then continue end
         bot:Kick("Kicked by " .. (GetNickOrDefault(ply)) .. " using ttt_bot_kickall")
     end
 end)

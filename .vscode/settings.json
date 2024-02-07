@@ -25,6 +25,9 @@
         "ScrH",
         "hook",
         "CORPSE",
-        "PrintTable"
-    ]
+        "PrintTable",
+        "SERVER",
+        "FindMetaTable",
+        "weapons"
+    ],
 }

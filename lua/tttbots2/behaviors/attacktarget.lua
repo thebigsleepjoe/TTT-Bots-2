@@ -41,13 +41,12 @@ end
 
 function Attack.Seek(bot, targetPos)
     local target = bot.attackTarget
-    local loco = lib.GetComp(bot, "locomotor")
-    if not loco then return end
-    bot.components.locomotor.stopLookingAround = false
+    local loco = bot:BotLocomotor() ---@type CLocomotor
+    local inv = bot:BotInventory() ---@type CInventory
+    if not (loco and inv) then return end
+    bot:BotLocomotor().stopLookingAround = false
     loco:StopAttack()
-    -- If we can't see them, we need to move to them
-    -- local targetPos = target:GetPos()
-    --loco:SetGoal(targetPos)
+    inv:ReloadIfNecessary()
 
     ---@type CMemory
     local memory = bot.components.memory
@@ -55,7 +54,7 @@ function Attack.Seek(bot, targetPos)
 
     if lastKnownPos then
         loco:SetGoal(lastKnownPos)
-        loco:LookAt(lastKnownPos)
+        loco:LookAt(lastKnownPos + Vector(0, 0, 40)) -- around hip/abdomen level
     else
         -- We have not heard nor seen the target in a while, so we will wander around.
         lib.CallEveryNTicks(
@@ -111,14 +110,18 @@ function Attack.GetTargetBodyPos(targetPly)
 end
 
 function Attack.ShouldLookAtBody(bot, weapon)
-    return weapon.is_shotgun or weapon.is_melee
+    local personality = bot:BotPersonality() ---@type CPersonality
+    local isBodyShotter = not (personality.isHeadshotter or false)
+    return isBodyShotter or (weapon.is_shotgun or weapon.is_melee)
 end
 
 --- Tells loco to strafe
 ---@param weapon WeaponInfo
 ---@param loco CLocomotor
 function Attack.StrafeIfNecessary(bot, weapon, loco)
+    if bot.canStrafe == false then return false end
     if not (bot.attackTarget and bot.attackTarget.GetPos) then return false end
+    if weapon.is_melee then return false end
 
     -- Do not strafe if we are on a cliff. We will fall off.
     local isCliffed = loco:IsCliffed()
@@ -190,27 +193,33 @@ function Attack.HandleAttackMovement(bot, weapon, loco)
     Attack.ApproachIfNecessary(bot, weapon, loco)
 end
 
+function Attack.GetPreferredBodyTarget(bot, wep, target)
+    local body, head = Attack.GetTargetBodyPos(target), Attack.GetTargetHeadPos(target)
+    if Attack.ShouldLookAtBody(bot, wep) then
+        return body
+    end
+
+    return head
+end
+
 function Attack.Engage(bot, targetPos)
     local target = bot.attackTarget
-    ---@class CInventory
-    local inv = bot.components.inventory
-    ---@type WeaponInfo
-    local weapon = inv:GetHeldWeaponInfo()
+    local inv = bot.components.inventory ---@type CInventory
+    local weapon = inv:GetHeldWeaponInfo() ---@type WeaponInfo
     if not weapon then return end
     local usingMelee = not weapon.is_gun
-    ---@class CLocomotor
-    local loco = bot.components.locomotor
+    local loco = bot:BotLocomotor() ---@type CLocomotor
     loco.stopLookingAround = true
 
-    local preventAttackBecauseMelee = false --- Used to prevent attacking when we are using a melee weapon and are too far away
+    local tooFarToAttack = false --- Used to prevent attacking when we are using a melee weapon and are too far away
+    local distToTarget = bot:GetPos():Distance(target:GetPos())
     if bot.wasPathing and not usingMelee then
-        loco:Stop()
+        loco:StopMoving()
         bot.wasPathing = false
     elseif usingMelee then
-        local distToTarget = bot:GetPos():Distance(target:GetPos())
-        preventAttackBecauseMelee = distToTarget > 160
+        tooFarToAttack = distToTarget > 160
         if distToTarget < 70 then
-            loco:Stop()
+            loco:StopMoving()
             bot.wasPathing = false
         else
             loco:SetGoal(targetPos)
@@ -218,7 +227,14 @@ function Attack.Engage(bot, targetPos)
         end
     end
 
-    if not preventAttackBecauseMelee then
+    -- Backpedal away if there is a bad guy near us.
+    if not usingMelee and distToTarget < 100 then
+        loco:SetForceBackward(true)
+    else
+        loco:SetForceBackward(false)
+    end
+
+    if not tooFarToAttack then
         if (Attack.LookingCloseToTarget(bot, target)) then
             if not Attack.WillShootingTeamkill(bot, target) then -- make sure we aren't about to teamkill by mistake!!
                 loco:StartAttack()
@@ -248,12 +264,7 @@ function Attack.Engage(bot, targetPos)
         )
     end
 
-    local aimTarget
-    if Attack.ShouldLookAtBody(bot, weapon) then
-        aimTarget = Attack.GetTargetBodyPos(target)
-    else
-        aimTarget = Attack.GetTargetHeadPos(target)
-    end
+    local aimPoint = Attack.GetPreferredBodyTarget(bot, weapon, target)
 
     if not usingMelee then
         local barrel = Attack.TargetNextToBarrel(bot, target)
@@ -261,41 +272,61 @@ function Attack.Engage(bot, targetPos)
             and target:VisibleVec(barrel:GetPos())
             and bot:VisibleVec(barrel:GetPos())
         then
-            aimTarget = barrel:GetPos() + barrel:OBBCenter()
+            aimPoint = barrel:GetPos() + barrel:OBBCenter()
         end
     end
 
     Attack.HandleAttackMovement(bot, weapon, loco)
 
-    local predictedPoint = aimTarget + Attack.PredictMovement(target, 0.4)
-    local inaccuracyTarget = predictedPoint + Attack.CalculateInaccuracy(bot, aimTarget)
+    local predictedPoint = aimPoint + Attack.PredictMovement(target, 0.4)
+    local inaccuracyTarget = predictedPoint + Attack.CalculateInaccuracy(bot, aimPoint, target)
     loco:LookAt(inaccuracyTarget)
 end
 
-local INACCURACY_BASE = 7 --- The higher this is, the more inaccurate the bots will be.
+local INACCURACY_BASE = 9  --- The higher this is, the more inaccurate the bots will be.
+local INACCURACY_SMOKE = 5 --- The inaccuracy modifier when the bot or its target is in smoke.
 --- Calculate the inaccuracy of agent 'bot' according to a) its personality and b) diff setts
 ---@param bot Player The bot that is shooting.
 ---@param origin Vector The original aim point.
-function Attack.CalculateInaccuracy(bot, origin)
+---@param target Player The target that is being shot at.
+function Attack.CalculateInaccuracy(bot, origin, target)
     local personality = lib.GetComp(bot, "personality") ---@type CPersonality
     local difficulty = lib.GetConVarInt("difficulty") -- int [0,5]
     if not (difficulty or personality) then return Vector(0, 0, 0) end
 
-    local distFactor = (bot:GetPos():Distance(origin) / 16) ^ 1.5
+    local dist = bot:GetPos():Distance(origin)
+    local distFactor = math.max((dist / 64) ^ 1.5, 0.5)
     local pressure = personality:GetPressure()   -- float [0,1]
     local rage = (personality:GetRage() * 2) + 1 -- float [1,3]
 
-    local inaccuarcy_reduction =
+    local isTraitorFactor =
         (bot:GetRoleStringRaw() == "traitor" and lib.GetConVarBool("cheat_traitor_accuracy"))
-        and 2 or 1
+        and 0.5 or 1
+
+    local focus_factor = (1 - (bot.attackFocus or 0.01)) * 1.5
+
+    local targetMoveFactor = 1
+    local selfMoveFactor = bot:GetVelocity():LengthSqr() > 100 and 1.25 or 0.75
+    if not (IsValid(target) and target:IsPlayer()) then
+        targetMoveFactor = 0.5
+    else
+        local vel = target:GetVelocity():LengthSqr()
+        targetMoveFactor = vel > 100 and 1.0 or 0.5
+    end
+
+    local smokeFn = TTTBots.Match.IsPlyNearSmoke
+    local isInSmoke = (smokeFn(bot) or smokeFn(bot.attackTarget)) and INACCURACY_SMOKE or 1
 
     local inaccuracy_mod = (pressure / difficulty) -- The more pressure we have, the more inaccurate we are; decreased by difficulty
         * distFactor                               -- The further away we are, the more inaccurate we are
         * INACCURACY_BASE                          -- Obviously, multiply by a constant to make it more inaccurate
         * rage                                     -- The more rage we have, the more inaccurate we are
-        / inaccuarcy_reduction                     -- Reduce aim difficulty if the cheat cvar is enabled
+        * focus_factor                             -- The less focus we have, the more inaccurate we are
+        * isInSmoke                                -- If we are in smoke, we are more inaccurate
+        * isTraitorFactor                          -- Reduce aim difficulty if the cheat cvar is enabled
+        * targetMoveFactor                         -- Reduce aim difficulty if the target is immobile
 
-    inaccuracy_mod = math.min(math.max(inaccuracy_mod, 0.1), 6)
+    inaccuracy_mod = math.max(inaccuracy_mod, 0.1)
 
     local rand = VectorRand() * inaccuracy_mod
     -- TTTBots.DebugServer.DrawCross(origin + rand, 8, Color(0, 255, 0), 0.1, bot:Nick() .. ".attack.inaccuracy")
@@ -337,7 +368,7 @@ end
 function Attack.LookingCloseToTarget(bot, target)
     local targetPos = target:GetPos()
     ---@type CLocomotor
-    local locomotor = bot.components.locomotor
+    local locomotor = bot:BotLocomotor()
     local degDiff = math.abs(locomotor:GetEyeAngleDiffTo(targetPos))
 
     local THRESHOLD = 10
@@ -374,6 +405,7 @@ function Attack.ValidateTarget(bot)
     local target = bot.attackTarget
 
     local hasTarget = (target and target ~= NULL) and true or false
+    if target == NULL or not IsValid(target) then return false end
     local targetIsValid = target and target:IsValid() or false
     local targetIsAlive = target and target:Alive() or false
     local targetIsPlayer = target and target:IsPlayer() or false
@@ -443,6 +475,22 @@ end
 --- Called when the behavior ends
 function Attack.OnEnd(bot)
     bot:SetAttackTarget(nil)
-    bot.components.locomotor.stopLookingAround = false
-    bot.components.locomotor:StopAttack()
+    bot:BotLocomotor().stopLookingAround = false
+    bot:BotLocomotor():StopAttack()
 end
+
+local FOCUS_DECAY = 0.02
+function Attack.UpdateFocus(bot)
+    local factor = -FOCUS_DECAY
+    factor = factor * (bot.attackTarget ~= nil and -2.5 or 1)
+    factor = factor * (bot:GetTraitMult("focus") or 1)
+    bot.attackFocus = (bot.attackFocus or 0.1) + factor
+    bot.attackFocus = math.Clamp(bot.attackFocus, 0.1, 1)
+end
+
+timer.Create("TTTBots_AttackFocus", 1 / TTTBots.Tickrate, 0, function()
+    for _, bot in ipairs(TTTBots.Bots) do
+        if not IsValid(bot) then continue end
+        Attack.UpdateFocus(bot)
+    end
+end)

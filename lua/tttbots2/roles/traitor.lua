@@ -13,6 +13,7 @@ traitor:SetTeam(TEAM_TRAITOR)
 traitor:SetUsesSuspicion(false)
 traitor:SetBTree(TTTBots.Behaviors.DefaultTrees.traitor)
 traitor:SetAlliedTeams(allyTeams)
+traitor:SetCanSnipe(true)
 TTTBots.Roles.RegisterRole(traitor)
 
 return true

@@ -70,14 +70,22 @@ end
 ---Returns a table of living players, according to the IsPlayerAlive cache.
 ---@return table<Player>
 ---@realm shared
+
+local aliveCache = {}
+local lastUpdateTime = 0
+
 function TTTBots.Lib.GetAlivePlayers()
-    local alive = {}
-    for _, ply in ipairs(player.GetAll()) do
-        if TTTBots.Lib.IsPlayerAlive(ply) then
-            table.insert(alive, ply)
+    local currentTime = CurTime()
+    if currentTime - lastUpdateTime >= 1 then
+        aliveCache = {}
+        for _, ply in ipairs(player.GetAll()) do
+            if TTTBots.Lib.IsPlayerAlive(ply) then
+                table.insert(aliveCache, ply)
+            end
         end
+        lastUpdateTime = currentTime
     end
-    return alive
+    return aliveCache
 end
 
 local isolationCache = {}
@@ -326,7 +334,7 @@ end
 function TTTBots.Lib.GetAllWitnesses(pos, botsOnly)
     local witnesses = {}
     for _, ply in ipairs(botsOnly and TTTBots.Bots or player.GetAll()) do
-        if TTTBots.Lib.IsPlayerAlive(ply) then
+        if TTTBots.Lib.IsPlayerAlive(ply) and IsValid(ply) then
             local sawthat = TTTBots.Lib.CanSeeArc(ply, pos, 90)
             if sawthat then
                 table.insert(witnesses, ply)
@@ -397,7 +405,7 @@ function TTTBots.Lib.UpdateQuota()
 end
 
 if SERVER then
-    local QUOTA_INTERVAL = 2.5 --- The period between adding/removing bots automatically. Used to prevent lag spikes, mostly.
+    local QUOTA_INTERVAL = 1 --- The period between adding/removing bots automatically. Used to prevent lag spikes, mostly.
     timer.Create("TTTBots.Lib.UpdateQuota", QUOTA_INTERVAL, 0, TTTBots.Lib.UpdateQuota)
 end
 
@@ -798,32 +806,8 @@ end
 local notifiedSlots = false
 local notifiedNavmesh = false
 
---- Create a bot, optionally with a name.
----@param name? string Optional, defaults to random name
----@return Player|false bot The bot, or false if there are no player slots
----@realm server
-function TTTBots.Lib.CreateBot(name)
-    local GLS = TTTBots.Locale.GetLocalizedString
-    if not TTTBots.Lib.HasPlayerSlots() then
-        if not notifiedSlots then
-            local msg = GLS("not.enough.slots")
-            TTTBots.Chat.BroadcastInChat(msg)
-            print(msg)
-            notifiedSlots = true
-        end
-        return false
-    end
-    if table.IsEmpty(navmesh.GetAllNavAreas()) then
-        if not notifiedNavmesh then
-            local msg = GLS("no.navmesh")
-            TTTBots.Chat.BroadcastInChat(msg)
-            print(msg)
-            notifiedNavmesh = true
-        end
-        return false
-    end
-    name = name or TTTBots.Lib.GenerateName()
-    local bot = player.CreateNextBot(name)
+local function createPlayerBot(botname)
+    local bot = player.CreateNextBot(botname)
 
     bot.components = {
         locomotor = TTTBots.Components.Locomotor:New(bot),
@@ -845,6 +829,108 @@ function TTTBots.Lib.CreateBot(name)
     return bot
 end
 
+---Test if there is a navmesh and notify the server if not on first call.
+---@return boolean
+function TTTBots.Lib.TestNavmesh()
+    if table.IsEmpty(navmesh.GetAllNavAreas()) then
+        if not notifiedNavmesh then
+            local msg = TTTBots.Locale.GetLocalizedString("no.navmesh")
+            TTTBots.Chat.BroadcastInChat(msg)
+            print(msg)
+            notifiedNavmesh = true
+        end
+        return false
+    end
+
+    return true
+end
+
+---Test if there are player slots and notify the server if not on first call.
+---@return boolean
+function TTTBots.Lib.TestPlayerSlots()
+    if not TTTBots.Lib.HasPlayerSlots() then
+        if not notifiedSlots then
+            local msg = TTTBots.Locale.GetLocalizedString("not.enough.slots")
+            TTTBots.Chat.BroadcastInChat(msg)
+            print(msg)
+            notifiedSlots = true
+        end
+        return false
+    end
+
+    return true
+end
+
+--- Test if there are any players in the server to prevent issue #34
+---@return boolean
+function TTTBots.Lib.TestServerActive()
+    local numHumans = table.Count(player.GetHumans())
+
+    return numHumans > 0
+end
+
+--- Create a bot, optionally with a name.
+---@param name? string Optional, defaults to random name
+---@return Player? bot The bot, or false if there are no player slots
+---@realm server
+function TTTBots.Lib.CreateBot(name)
+    -- Test if the server can support bots.
+    if not TTTBots.Lib.TestPlayerSlots() then return end
+    if not TTTBots.Lib.TestNavmesh() then return end
+    if not TTTBots.Lib.TestServerActive() then return end
+
+    -- Start initializing the bot
+    name = name or TTTBots.Lib.GenerateName()
+    local failFunc = function()
+        print(TTTBots.Locale.GetLocalizedString("fail.create.bot"))
+        print("Below is the error:")
+        print(debug.traceback())
+    end
+    local success, bot = xpcall(function() return createPlayerBot(name) end, failFunc, name)
+
+    return bot or nil
+end
+
+---Gets a table of revivable corpses (i.e., those that were not headshot).
+---@return table
+function TTTBots.Lib.GetRevivableCorpses()
+    local bodies = TTTBots.Match.Corpses
+    local wasHeadshot = CORPSE.WasHeadshot
+
+    local revivable = {}
+    for i, corpse in pairs(bodies) do
+        if not TTTBots.Lib.IsValidBody(corpse) then continue end
+        if wasHeadshot(corpse) then continue end
+
+        table.insert(revivable, corpse)
+    end
+
+    return revivable
+end
+
+---Get the first closest revivable corpse to the given bot. If filterAlly d: true) then it will only return corpses of the same team. Else nil.
+---@param bot Player
+---@param filterAlly? boolean
+---@return Player? player
+---@return any? ragdoll
+function TTTBots.Lib.GetClosestRevivable(bot, filterAlly)
+    local options = TTTBots.Lib.GetRevivableCorpses()
+    local cTime = CurTime()
+
+    filterAlly = filterAlly or true -- Default filterAlly? to true
+
+    for i, rag in pairs(options) do
+        if not TTTBots.Lib.IsValidBody(rag) then continue end
+        local deadply = player.GetBySteamID64(rag.sid64)
+        if not IsValid(deadply) then continue end
+        if filterAlly and not TTTBots.Roles.IsAllies(bot, deadply) then continue end
+        if (deadply.reviveCooldown or 0) > cTime then continue end
+        return deadply, rag
+    end
+
+    return nil -- No corpses found
+end
+
 if SERVER then
     hook.Add("PlayerInitialSpawn", "TTTBots.Lib.PlayerInitialSpawn.Chatter", function(bot)
         timer.Simple(math.pi, function()
@@ -864,6 +950,7 @@ function TTTBots.Lib.RemoveBot(reason)
     if #bots == 0 then return end
 
     for i, bot in pairs(bots) do
+        if not IsValid(bot) then continue end
         if not TTTBots.Lib.IsPlayerAlive(bot) or not TTTBots.Match.IsRoundActive() then
             bot:Kick(reason or "Removed by server")
             return true
@@ -991,6 +1078,10 @@ function TTTBots.Lib.GetComp(bot, type)
         return bot.components[type]
     end
     return nil
+end
+
+function TTTBots.Lib.WepClassExists(classname)
+    return weapons.Get(classname) ~= nil
 end
 
 --- Functionally the same as navmesh.GetNavArea(pos), but includes ladder areas.
@@ -1121,11 +1212,18 @@ function TTTBots.Lib.Profiler(name, donotprint)
     end
 end
 
---- Get a random number between 1 and 100 and return true if it is less than pct.
+function TTTBots.Lib.GetHeadPos(other)
+    local boneIndex = other:LookupBone("ValveBiped.Bip01_Head1")
+    if not boneIndex then return other:EyePos() end
+
+    return other:GetBonePosition(boneIndex)
+end
+
+--- Get a random number between 1 and 100 and return true if it is less than pct. Supports decimals above 0.01.
 ---@param pct number
 ---@realm shared
-function TTTBots.Lib.CalculatePercentChance(pct)
-    return (math.random(1, 10000) / 100) <= pct
+function TTTBots.Lib.TestPercent(pct)
+    return (math.random(1, 100000) / 1000) <= pct
 end
 
 --- Returns a vector that is offset from the ground at either eye-level or crouch-level.

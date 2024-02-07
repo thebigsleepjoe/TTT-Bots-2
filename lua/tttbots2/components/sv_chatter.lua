@@ -146,8 +146,9 @@ function BotChatter:Say(text, teamOnly, ignoreDeath, callback)
     local cps = lib.GetConVarFloat("chatter_cps")
     local delay = (string.len(text) / cps) * (math.random(75, 150) / 100)
     self.typing = true
-    -- remove "[BOT] " occurences from the text
+    -- remove "[BOT] " and "[bot] " occurences from the text
     text = string.gsub(text, "%[BOT%] ", "")
+    text = string.gsub(text, "%[bot%] ", "")
     text = self:TypoText(text)
     timer.Simple(delay, function()
         if self.bot == NULL or not IsValid(self.bot) then return end
@@ -176,7 +177,7 @@ end
 function BotChatter:On(event_name, args, teamOnly)
     local dvlpr = lib.GetConVarBool("debug_misc")
     if dvlpr then
-        print(string.format("Event %s called with %d args.", event_name, #args))
+        print(string.format("Event %s called with %d args.", event_name, args and #args))
     end
 
     if not self:CanSayEvent(event_name) then return false end
@@ -211,7 +212,9 @@ function BotChatter:On(event_name, args, teamOnly)
     end
 
     local localizedString = TTTBots.Locale.GetLocalizedLine(event_name, self.bot, args)
+    local isCasual = personality:GetClosestArchetype() == TTTBots.Archetypes.Casual
     if localizedString then
+        if isCasual then localizedString = string.lower(localizedString) end
         self:Say(localizedString, teamOnly, false, function()
             if event_name == "CallKOS" then
                 self:QuickRadio("quick_traitor", args.playerEnt)
@@ -283,3 +286,8 @@ timer.Create("TTTBots.Chatter.SillyChat", 20, 0, function()
     local eventName = lib.IsPlayerAlive(targetBot) and "SillyChat" or "SillyChatDead"
     chatter:On(eventName, { player = randomPlayer:Nick() })
 end)
+
+local plyMeta = FindMetaTable("Player")
+function plyMeta:BotChatter()
+    return lib.GetComp(self, "chatter")
+end

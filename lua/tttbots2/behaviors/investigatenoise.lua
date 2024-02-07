@@ -55,7 +55,7 @@ function InvestigateNoise.OnStart(bot)
 end
 
 function InvestigateNoise.OnRunning(bot)
-    local loco = bot.components.locomotor
+    local loco = bot:BotLocomotor()
     local closestVisible = InvestigateNoise.FindClosestSound(bot, true)
     if closestVisible then
         loco:LookAt(closestVisible.pos + Vector(0, 0, 72))
@@ -90,7 +90,7 @@ function InvestigateNoise.ShouldInvestigateNoise(bot)
     local baseChance = lib.GetConVarInt("noise_investigate_chance")
     local pct = baseChance * mult
 
-    local passed = lib.CalculatePercentChance(pct)
+    local passed = lib.TestPercent(pct)
     return passed
 end
 

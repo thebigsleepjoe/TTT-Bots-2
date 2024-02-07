@@ -32,6 +32,8 @@ loc("bot.kicked.all", "[AVIS] '%s' a expulsé tous les bots.")
 loc("bot.rr", "[AVIS] '%s' a redémarré la manche et ajouté %s bots.")
 loc("bot.quota.changed", "[AVIS] %s a ajusté le quota de bots à %d bots.")
 loc("bot.notice", "[AVIS] Vous jouez un match avec %d bots TTT sur le serveur.")
+loc("fail.create.bot",
+    "Un bot n'a pas pu être créé. Veuillez vérifier que vous êtes sur un serveur (P2P ou SRCDS) disposant de suffisamment d'emplacements pour les joueurs.")
 
 loc("difficulty.1", "Très Facile")
 loc("difficulty.2", "Facile")

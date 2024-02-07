@@ -7,7 +7,7 @@ local UseHealthStation = TTTBots.Behaviors.UseHealthStation
 UseHealthStation.Name = "Use Health Station"
 UseHealthStation.Description = "Use or place a health station"
 UseHealthStation.Interruptible = true
-UseHealthStation.UseRange = 64 --- The range at which we can use a health station
+UseHealthStation.UseRange = 50 --- The range at which we can use a health station
 
 UseHealthStation.TargetClass = "ttt_health_station"
 
@@ -105,6 +105,7 @@ function UseHealthStation.OnRunning(bot)
     local station = bot.targetStation
     local locomotor = lib.GetComp(bot, "locomotor") ---@type CLocomotor
     locomotor:SetGoal(station:GetPos())
+    locomotor:PauseRepel()
     local distToStation = bot:GetPos():Distance(station:GetPos())
 
     if distToStation < 300 then
@@ -129,6 +130,7 @@ function UseHealthStation.OnEnd(bot)
     local inventory = lib.GetComp(bot, "inventory") ---@type CInventory
     inventory:ResumeAutoSwitch()
     locomotor:StopAttack()
+    locomotor:ResumeRepel()
 end
 
 timer.Create("TTTBots.Behaviors.UseHealthStation.UseNearbyStations", 0.5, 0, function()

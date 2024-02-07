@@ -33,10 +33,16 @@ function BotPersonality:Initialize(bot)
     self.HIS = (self.gender == "male" and "his") or "hers"
     self.HE = (self.gender == "male" and "he") or "her"
 
-    ---@deprecated not implemented yet
-    self.preferSwitchToSecondary = math.random(1, 100) < 50 -- prefer to switch to secondary weapon instead of reloading
-    ---@deprecated not implemented yet
-    self.preferOnlySecondary = math.random(1, 100) < 10     -- Prefer ONLY using secondary unless no secondary or no ammo
+
+    local gameDiff = lib.GetConVarInt("difficulty")
+
+    -- These are different to normal traits, as I want them to be more common and specific to the current difficulty
+    self.isHeadshotter = math.random(1, math.floor(15 / gameDiff)) == 1 -- 1 in 15 chance on easy, 1 in 5 chance on hard
+    self.isStrafer = math.random(1, gameDiff) ~= 1                      -- never on easy, 4 in 5 chance on hardest
+
+    -- just some shorthands
+    bot.canHeadshot = self.isHeadshotter
+    bot.canStrafe = self.isStrafer
 
     local traits_enabled = lib.GetConVarBool("personalities")
     self.traits = (traits_enabled and self:GetNoConflictTraits(4)) or
@@ -53,6 +59,10 @@ function BotPersonality:Initialize(bot)
 
     self.bot = bot
 end
+
+function BotPersonality:IsStrafer() return self.isStrafer or false end
+
+function BotPersonality:IsHeadshotter() return self.isHeadshotter or false end
 
 function BotPersonality:GetStatRateFor(name)
     return self[name .. "Rate"] or 1
@@ -437,9 +447,15 @@ end
 
 function plyMeta:GetDifficulty()
     if self.calcDifficulty ~= nil then return self.calcDifficulty end
-    if not (self and self.components and self.components.personality) then return 0 end
-    local diff = self.components.personality:GetTraitAdditive("difficulty")
-    self.calcDifficulty = diff
+    local personality = plyMeta:BotPersonality()
+    if not personality then return 0 end
+
+    local diff = personality:GetTraitAdditive("difficulty")
+
+    local strafeFactor = personality.isStrafer and 2 or 0
+    local headshotFactor = personality.isHeadshotter and 3 or 0
+
+    self.calcDifficulty = diff + strafeFactor + headshotFactor
     return diff
 end
 
@@ -533,3 +549,8 @@ timer.Create("TTTBots.Personality.RDM", 2.5, 0, function()
         end
     end
 end)
+
+---@return CPersonality
+function plyMeta:BotPersonality()
+    return self.components and self.components.personality
+end

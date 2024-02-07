@@ -37,7 +37,7 @@ end
 
 --- Similar to IsFollower, but returns mathematical chance of deciding to follow a new person this tick.
 function Follow.GetFollowChance(bot)
-    local BASE_CHANCE = 0.34 -- X % chance per tick
+    local BASE_CHANCE = 0.1 -- X % chance per tick
     local debugging = false
     local chance = BASE_CHANCE * (Follow.IsFollowerPersonality(bot) and 2 or 1) * (Follow.IsFollowerRole(bot) and 2 or 1)
 
@@ -120,7 +120,7 @@ function Follow.Validate(bot)
     end
     if not TTTBots.Match.IsRoundActive() then return false end
     if bot.followTarget then return true end -- already following someone
-    local shouldFollow = lib.CalculatePercentChance(Follow.GetFollowChance(bot))
+    local shouldFollow = lib.TestPercent(Follow.GetFollowChance(bot))
     return shouldFollow and #Follow.GetFollowTargets(bot) > 0
 end
 
@@ -156,7 +156,7 @@ function Follow.OnRunning(bot)
     --     return STATUS.SUCCESS
     -- end
 
-    local loco = bot.components.locomotor
+    local loco = bot:BotLocomotor()
     bot.botFollowPoint = Follow.GetFollowPoint(target)
 
     if bot.botFollowPoint == false then return STATUS.FAILURE end
@@ -181,5 +181,5 @@ function Follow.OnEnd(bot)
     bot.followTarget = nil
     bot.botFollowPoint = nil
     bot.followEndTime = nil
-    bot.components.locomotor:Stop()
+    bot:BotLocomotor():StopMoving()
 end

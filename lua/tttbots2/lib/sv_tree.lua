@@ -7,42 +7,68 @@ TEAM_TRAITOR = TEAM_TRAITOR or "traitors"
 TEAM_INNOCENT = TEAM_INNOCENT or "innocents"
 TEAM_NONE = TEAM_NONE or "none"
 
-local b = TTTBots.Behaviors
+local _bh = TTTBots.Behaviors
+
+TTTBots.Behaviors.PriorityNodes = {
+    --- Fight back vs the environment (blocking props) or other players.
+    FightBack = {
+        _bh.ClearBreakables,
+        _bh.AttackTarget
+    },
+    --- Restore values, like health, ammo, etc.
+    Restore = {
+        _bh.FindWeapon,
+        _bh.UseHealthStation
+    },
+    --- Investigate corpses/noises.
+    Investigate = {
+        _bh.InvestigateCorpse,
+        _bh.InvestigateNoise
+    },
+    --- Patrolling stuffs
+    Patrol = {
+        _bh.Follow,
+        _bh.Wander
+    },
+    --- Minge around with others
+    Minge = {
+        _bh.MingeCrowbar,
+    }
+}
+
+local _prior = TTTBots.Behaviors.PriorityNodes
 
 TTTBots.Behaviors.DefaultTrees = {
     innocent = {
-        b.ClearBreakables,
-        b.AttackTarget,
-        b.Defuse,
-        b.InvestigateCorpse,
-        b.FindWeapon,
-        b.InvestigateNoise,
-        b.UseHealthStation,
-        b.Follow,
-        b.Wander,
+        _prior.FightBack,
+        _bh.Defuse,
+        _prior.Restore,
+        _bh.Interact,
+        _prior.Investigate,
+        _prior.Minge,
+        _prior.Patrol
     },
     traitor = {
-        b.ClearBreakables,
-        b.AttackTarget,
-        b.PlantBomb,
-        b.InvestigateCorpse,
-        b.FindWeapon,
-        b.FollowPlan,
-        b.InvestigateNoise,
-        b.UseHealthStation,
-        b.Follow,
-        b.Wander,
+        _prior.FightBack,
+        _bh.Defib,
+        _bh.PlantBomb,
+        _bh.InvestigateCorpse,
+        _prior.Restore,
+        _bh.FollowPlan,
+        _bh.Interact,
+        _prior.Minge,
+        _prior.Investigate,
+        _prior.Patrol
     },
     detective = {
-        b.ClearBreakables,
-        b.AttackTarget,
-        b.Defuse,
-        b.InvestigateCorpse,
-        b.FindWeapon,
-        b.InvestigateNoise,
-        b.UseHealthStation,
-        b.Follow,
-        b.Wander,
+        _prior.FightBack,
+        _bh.Defib,
+        _bh.Defuse,
+        _prior.Restore,
+        _bh.Interact,
+        _prior.Minge,
+        _prior.Investigate,
+        _prior.Patrol
     }
 }
 TTTBots.Behaviors.DefaultTreesByTeam = {
@@ -69,60 +95,68 @@ end
 ---@return BBase|false
 function TTTBots.Behaviors.GetFirstValid(tree, bot)
     for _, behavior in ipairs(tree) do
-        if behavior.Validate(bot) then
-            return behavior
+        local bh = behavior
+        if type(behavior) == "table" and not behavior.Validate then
+            bh = TTTBots.Behaviors.GetFirstValid(behavior, bot)
+        end
+        if bh and bh.Validate(bot) then
+            return bh
         end
     end
 
     return false
 end
 
-function TTTBots.Behaviors.CallTreeOnBots()
-    for _, bot in pairs(TTTBots.Bots) do
-        if not IsValid(bot) or not TTTBots.Lib.IsPlayerAlive(bot) then continue end
-        local tree = TTTBots.Behaviors.GetTreeFor(bot)
-        if not tree then continue end
+function TTTBots.Behaviors.CallTree(bot, tree)
+    if not IsValid(bot) or not (bot.components and bot:BotLocomotor()) then return end -- Prevent strange errors from happening on bot DC
+    tree = tree or TTTBots.Behaviors.GetTreeFor(bot)
+    if not tree then return end
 
-        local behaviorChanged
-        local lastBehavior = bot.lastBehavior
-        local interruptible = lastBehavior and lastBehavior.Interruptible or true
-        local newState = STATUS.FAILURE
+    local lastBehavior = bot.lastBehavior ---@type BBase?
+    local lastState = bot.lastState ---@type BStatus?
+    local canInterrupt =
+        not lastBehavior
+        or lastState ~= STATUS.RUNNING
+        or lastBehavior.Interruptible
 
-        if lastBehavior and lastBehavior.Validate(bot) then
-            newState = lastBehavior.OnRunning(bot)
-        end
+    local behavior = canInterrupt and TTTBots.Behaviors.GetFirstValid(tree, bot) or lastBehavior
+    local behaviorChanged = lastBehavior ~= behavior
 
-        if interruptible then
-            for _, behavior in ipairs(tree) do
-                if behavior.Validate(bot) then
-                    if lastBehavior ~= behavior then
-                        if lastBehavior then
-                            lastBehavior.OnEnd(bot)
-                        end
-                        lastBehavior = behavior
-                        bot.lastBehavior = behavior
-                        behaviorChanged = true
-                    end
-                    break
-                end
-            end
-        end
+    local newState = STATUS.FAILURE
 
-        if behaviorChanged then
-            newState = lastBehavior.OnStart(bot)
-        end
+    if not behavior then return end -- no valid behaviors
 
-        if newState == STATUS.SUCCESS or newState == STATUS.FAILURE then
-            if lastBehavior then lastBehavior.OnEnd(bot) end
-            bot.lastBehavior = nil
-        end
-
-        if newState == STATUS.SUCCESS then
-            if lastBehavior then lastBehavior.OnSuccess(bot) end
-        elseif newState == STATUS.FAILURE then
-            if lastBehavior then lastBehavior.OnFailure(bot) end
-        end
+    if behaviorChanged then
+        -- clean up past bhvr and start new one
+        if lastBehavior then lastBehavior.OnEnd(bot) end
+        newState = behavior.OnStart(bot)
+        bot.lastBehavior = behavior
+    elseif behavior.Validate(bot) then
+        -- otherwise keep running the same one
+        newState = behavior.OnRunning(bot)
     end
 
-    return STATUS.FAILURE
+    if newState == STATUS.SUCCESS or newState == STATUS.FAILURE then
+        -- if our current behavior is done, do cleanup
+        if lastBehavior then lastBehavior.OnEnd(bot) end
+        bot.lastBehavior = nil
+        bot.lastState = nil
+
+        if newState == STATUS.SUCCESS then
+            behavior.OnSuccess(bot)
+            behavior.OnEnd(bot)
+        elseif newState == STATUS.FAILURE then
+            behavior.OnFailure(bot)
+            behavior.OnEnd(bot)
+        end
+    else
+        -- otherwise set the lastState for the next tick
+        bot.lastState = newState
+    end
+end
+
+function TTTBots.Behaviors.CallTreeOnBots()
+    for _, bot in ipairs(TTTBots.Bots) do
+        TTTBots.Behaviors.CallTree(bot)
+    end
 end

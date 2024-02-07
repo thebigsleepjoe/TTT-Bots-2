@@ -12,48 +12,33 @@ local BotMorality = TTTBots.Components.Morality
 --- A scale of suspicious events to apply to a player's suspicion value. Scale is normally -10 to 10.
 BotMorality.SUSPICIONVALUES = {
     -- Killing another player
-    Kill = 9,          -- This player killed someone in front of us
-    KillTrusted = 10,  -- This player killed a Trusted in front of us
-    KillTraitor = -10, -- This player killed a traitor in front of us
-
-    -- Hurt a player
-    Hurt = 4,          -- This player hurt someone in front of us
-    HurtMe = 10,       -- This player hurt us
-    HurtTrusted = 10,  -- This player hurt a Trusted in front of us
-    HurtByTrusted = 4, -- This player was hurt by a Trusted
-    HurtByEvil = -2,   -- This player was hurt by a traitor
-
-    -- KOS-related events
-    KOSByTrusted = 10, -- KOS called on this player by trusted innocent
-    KOSByTraitor = -5, -- KOS called on this player by known traitor
-    KOSByOther = 5,    -- KOS called on this player
-    AffirmingKOS = -3, -- KOS called on a player we think is a traitor (rare, but possible)
-
-    -- Role-specific weapons
-    TraitorWeapon = 10, -- This player has a traitor weapon
-
-    -- Corpse-related events
+    Kill = 9,                -- This player killed someone in front of us
+    KillTrusted = 10,        -- This player killed a Trusted in front of us
+    KillTraitor = -10,       -- This player killed a traitor in front of us
+    Hurt = 4,                -- This player hurt someone in front of us
+    HurtMe = 10,             -- This player hurt us
+    HurtTrusted = 10,        -- This player hurt a Trusted in front of us
+    HurtByTrusted = 4,       -- This player was hurt by a Trusted
+    HurtByEvil = -2,         -- This player was hurt by a traitor
+    KOSByTrusted = 10,       -- KOS called on this player by trusted innocent
+    KOSByTraitor = -5,       -- KOS called on this player by known traitor
+    KOSByOther = 5,          -- KOS called on this player
+    AffirmingKOS = -3,       -- KOS called on a player we think is a traitor (rare, but possible)
+    TraitorWeapon = 10,      -- This player has a traitor weapon
     NearUnidentified = 2,    -- This player is near an unidentified body and hasn't identified it in more than 5 seconds
     IdentifiedTraitor = -3,  -- This player has identified a traitor's corpse
     IdentifiedInnocent = -2, -- This player has identified an innocent's corpse
     IdentifiedTrusted = -2,  -- This player has identified a Trusted's corpse
-
-    -- Interacting with C4
-    DefuseC4 = -7, -- This player is defusing C4
-    PlantC4 = 10,  -- This player is throwing down C4
-
-    -- Following a player
-    FollowingMe = 3, -- This player has been following me for more than 10 seconds
-
-    -- Shooting at a player
-    ShotAtMe = 7,      -- This player has been shooting at me
-    ShotAt = 5,        -- This player has been shooting at someone
-    ShotAtTrusted = 6, -- This player has been shooting at a Trusted
-
-    -- Throwing a grenade
-    ThrowDiscombob = 2, -- This player has thrown a discombobulator
-    ThrowIncin = 8,     -- This player has thrown an incendiary grenade
-    ThrowSmoke = 3,     -- This player has thrown a smoke grenade
+    DefuseC4 = -7,           -- This player is defusing C4
+    PlantC4 = 10,            -- This player is throwing down C4
+    FollowingMe = 3,         -- This player has been following me for more than 10 seconds
+    ShotAtMe = 7,            -- This player has been shooting at me
+    ShotAt = 5,              -- This player has been shooting at someone
+    ShotAtTrusted = 6,       -- This player has been shooting at a Trusted
+    ThrowDiscombob = 2,      -- This player has thrown a discombobulator
+    ThrowIncin = 8,          -- This player has thrown an incendiary grenade
+    ThrowSmoke = 3,          -- This player has thrown a smoke grenade
+    PersonalSpace = 2,       -- This player is standing too close to me for too long
 }
 
 BotMorality.SuspicionDescriptions = {
@@ -127,6 +112,8 @@ function BotMorality:ChangeSuspicion(target, reason, mult)
     if targetIsPolice then
         mult = mult * 0.3 -- Police are much less suspicious
     end
+
+    mult = mult * (hook.Run("TTTBotsModifySuspicion", self.bot, target, reason, mult) or 1)
 
     local susValue = self.SUSPICIONVALUES[reason] or ErrorNoHaltWithStack("Invalid suspicion reason: " .. reason)
     local increase = math.ceil(susValue * mult)
@@ -228,7 +215,7 @@ function BotMorality:SetRandomNearbyTarget()
         * time_modifier
         * (#targets == 1 and 5 or 1)
     )
-    if lib.CalculatePercentChance(chanceAttackPerSec) then
+    if lib.TestPercent(chanceAttackPerSec) then
         local target = BotMorality:GetRandomVictimFrom(targets)
         self.bot:SetAttackTarget(target)
     end
@@ -441,6 +428,7 @@ hook.Add("EntityFireBullets", "TTTBots.Components.Morality.FireBullets", functio
             angleDiff = math.abs(angleDiff)
 
             morality:OnWitnessFireBullets(entity, data, angleDiff)
+            hook.Run("TTTBotsOnWitnessFireBullets", witness, entity, data, angleDiff)
         end
     end
 end)
@@ -456,6 +444,7 @@ hook.Add("PlayerHurt", "TTTBots.Components.Morality.PlayerHurt", function(victim
     for i, witness in pairs(witnesses) do
         if witness and witness.components then
             witness.components.morality:OnWitnessHurt(victim, attacker, healthRemaining, damageTaken)
+            hook.Run("TTTBotsOnWitnessHurt", witness, victim, attacker, healthRemaining, damageTaken)
         end
     end
 end)
@@ -515,10 +504,8 @@ end)
 -- Disguised player detection
 timer.Create("TTTBots.Components.Morality.DisguisedPlayerDetection", 1, 0, function()
     if not TTTBots.Match.RoundActive then return end
-    -- local disguised = TTTBots.Match.DisguisedPlayers -- it's more efficient go loop thru every player because we are going to detect traitor weps anyway
     local alivePlayers = TTTBots.Match.AlivePlayers
     for i, ply in pairs(alivePlayers) do
-        -- local isHoldingTraitorWeapon -- TODO: Implement this later
         local isDisguised = TTTBots.Match.IsPlayerDisguised(ply)
 
         if isDisguised then
@@ -559,16 +546,88 @@ local function preventAttackAlly(bot)
     end
 end
 
+local PS_RADIUS = 100
+local PS_INTERVAL = 5 -- time before we start caring about personal space
+local function personalSpace(bot)
+    bot.personalSpaceTbl = bot.personalSpaceTbl or {}
+    local ticked = {}
+    if not TTTBots.Roles.GetRoleFor(bot):GetUsesSuspicion() then return end
+    if IsValid(bot.attackTarget) then return end -- don't care about personal space if we're attacking someone
+
+    local withinPSpace = lib.FilterTable(TTTBots.Match.AlivePlayers, function(other)
+        if other == bot then return false end
+        if not IsValid(other) then return false end
+        if not lib.IsPlayerAlive(other) then return false end
+        if not bot:Visible(other) then return false end
+        if TTTBots.Roles.IsAllies(bot, other) then return false end -- don't care about allies
+
+        local dist = bot:GetPos():Distance(other:GetPos())
+        if dist > PS_RADIUS then return false end
+
+        return true
+    end)
+
+    for i, other in pairs(withinPSpace) do
+        bot.personalSpaceTbl[other] = (bot.personalSpaceTbl[other] or 0) + 0.5
+        ticked[other] = true
+    end
+
+    for other, time in pairs(bot.personalSpaceTbl) do
+        if not ticked[other] then
+            bot.personalSpaceTbl[other] = math.max(time - 0.5, 0)
+        end
+
+        if bot.personalSpaceTbl[other] or 0 <= 0 then
+            bot.personalSpaceTbl[other] = nil
+        end
+
+        if (bot.personalSpaceTbl[other] or 0) >= PS_INTERVAL then
+            bot:GetMorality():ChangeSuspicion(other, "PersonalSpace")
+            bot:BotChatter():On("PersonalSpace")
+            bot.personalSpaceTbl[other] = nil
+        end
+    end
+end
+
+--- Look at the players around us and see if they are holding any T-weapons.
+local function noticeTraitorWeapons(bot)
+    if bot.attackTarget ~= nil then return end
+    if not TTTBots.Roles.GetRoleFor(bot):GetUsesSuspicion() then return end
+
+    local visible = TTTBots.Lib.GetAllWitnessesBasic(bot:EyePos(), TTTBots.Roles.GetNonAllies(bot))
+    local filtered = TTTBots.Lib.FilterTable(visible, function(other)
+        if TTTBots.Roles.GetRoleFor(other):GetAppearsPolice() then return false end -- We don't sus detectives.
+        local hasTWeapon = TTTBots.Lib.IsHoldingTraitorWep(other)
+        if not hasTWeapon then return false end
+        local iCanSee = TTTBots.Lib.CanSeeArc(bot, other:GetPos() + Vector(0, 0, 24), 90)
+        return iCanSee
+    end)
+
+    if table.IsEmpty(filtered) then return end
+
+    local firstEnemy = TTTBots.Lib.GetClosest(filtered, bot:GetPos())
+    bot:SetAttackTarget(firstEnemy)
+    bot:BotChatter():On("HoldingTraitorWeapon", { player = firstEnemy:Nick() })
+end
+
 local function commonSense(bot)
     continueMassacre(bot)
     preventAttackAlly(bot)
+    personalSpace(bot)
+    noticeTraitorWeapons(bot)
 end
 
 timer.Create("TTTBots.Components.Morality.CommonSense", 0.5, 0, function()
     if not TTTBots.Match.IsRoundActive() then return end
     for i, bot in pairs(TTTBots.Bots) do
         if not bot or bot == NULL or not IsValid(bot) then continue end
+        if not bot.components.chatter or not bot:BotLocomotor() then continue end
         if not lib.IsPlayerAlive(bot) then continue end
         commonSense(bot)
     end
 end)
+
+local plyMeta = FindMetaTable("Player")
+function plyMeta:GetMorality()
+    return self.components and self.components.morality
+end

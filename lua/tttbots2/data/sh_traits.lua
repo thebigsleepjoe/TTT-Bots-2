@@ -43,7 +43,8 @@ TTTBots.Traits = {
             aggression = 0.8,     -- Less aggressive as traitor
             rageRate = 0.5,       -- Rage slower
             difficulty = -1,
-            hider = true
+            hider = true,
+            focus = 0.9, -- the gain/loss rate of focus when attacking
         }
     },
     bomber = {
@@ -67,6 +68,7 @@ TTTBots.Traits = {
             suspicionMe = 1.5, -- make others build suspicion on us faster
             investigateCorpse = 0,
             follower = true,   -- likes to follow players
+            mingeRate = 1.5,
         }
     },
     badaim = {
@@ -79,6 +81,7 @@ TTTBots.Traits = {
             pressureRate = 2.5,
             inaccuracy = 2,
             difficulty = -4,
+            focus = 0.5, -- the gain/loss rate of focus when attacking
         }
     },
     goodaim = {
@@ -90,6 +93,7 @@ TTTBots.Traits = {
         effects = {
             pressureRate = 0.1,
             difficulty = 3,
+            focus = 1.5, -- the gain/loss rate of focus when attacking
         }
     },
     oblivious = {
@@ -106,6 +110,9 @@ TTTBots.Traits = {
             boredomRate = 1.25,     -- Boredom builds up faster
             difficulty = -2,
             investigateCorpse = 0.5,
+            focus = 0.8, -- the gain/loss rate of focus when attacking
+            mingeRate = 1.5,
+            hider = true,
         }
     },
     veryoblivious = {
@@ -124,7 +131,9 @@ TTTBots.Traits = {
             difficulty = -4,
             investigateCorpse = 0.2,
             hider = true,
+            mingeRate = 2.0,
             follower = true, -- likes to follow players
+            focus = 0.5,     -- the gain/loss rate of focus when attacking
         }
     },
     -- Good hearing, memory, and target acquisition than the average player.
@@ -139,6 +148,8 @@ TTTBots.Traits = {
             investigateNoise = 1.5, -- more likely to seek out noise
             difficulty = 2,
             investigateCorpse = 1.5,
+            focus = 1.2,
+            mingeRate = 0.5,
         }
     },
     veryobservant = {
@@ -154,6 +165,8 @@ TTTBots.Traits = {
             difficulty = 4,
             investigateCorpse = 2,
             sniper = true,
+            focus = 1.5,
+            mingeRate = 0.0,
         }
     },
     loner = {
@@ -169,6 +182,7 @@ TTTBots.Traits = {
             ignoreOrders = true, -- Ignore evil coordinator orders
             difficulty = 1,
             loner = true,        -- prefer unpopular nav areas
+            mingeRate = 0.75,
         }
     },
     lovescrowds = {
@@ -200,6 +214,7 @@ TTTBots.Traits = {
         archetype = A.Teamer,
         effects = {
             follower = true,
+            mingeRate = 0.75,
         }
     },
     rdmer = {
@@ -212,6 +227,7 @@ TTTBots.Traits = {
             boredomRate = 2.0, -- Boredom builds up faster
             rdmer = true,
             follower = true,   -- likes to follow players
+            mingeRate = 2.5,
         }
     },
     victim = {
@@ -245,6 +261,7 @@ TTTBots.Traits = {
             ignoreOrders = true,
             investigateCorpse = 0.4, -- less likely to investigate corpses, we're too busy sniping
             sniper = true,
+            focus = 2.0,             -- the gain/loss rate of focus when attacking
         }
     },
     assassin = { -- TODO: Implement this featuer.
@@ -364,6 +381,7 @@ TTTBots.Traits = {
             pressureRate = 0.2,  -- Pressure builds up slower
             difficulty = -8,
             investigateCorpse = 0,
+            mingeRate = 2.0,
             follower = true, -- likes to follow players
         }
     },
@@ -428,6 +446,7 @@ TTTBots.Traits = {
         effects = {
             rageRate = 2.0,
             difficulty = -1,
+            focus = 0.8, -- the gain/loss rate of focus when attacking
         }
     },
     pacifist = {
@@ -449,7 +468,8 @@ TTTBots.Traits = {
         traitor_only = false,
         effects = {
             pressureRate = 0.1,
-            difficulty = 3
+            difficulty = 3,
+            focus = 1.5, -- the gain/loss rate of focus when attacking
         }
     },
     shaky = {
@@ -459,7 +479,8 @@ TTTBots.Traits = {
         traitor_only = false,
         effects = {
             pressureRate = 3.0,
-            difficulty = -3
+            difficulty = -3,
+            focus = 0.5, -- the gain/loss rate of focus when attacking
         }
     },
     bemused = {
@@ -507,6 +528,28 @@ TTTBots.Traits = {
         archetype = A.Teamer,
         effects = {
             defuser = true,
+        }
+    },
+    minge = {
+        name = "minge",
+        description = "Loves to minge with props/corpses and crowbar-shove people",
+        conflicts = { "nominge" },
+        traitor_only = false,
+        archetype = A.Casual,
+        effects = {
+            mingeRate = 3.0,
+            followerAlways = true, -- always wants to follow someone
+            follower = true,       -- likes to follow players
+        }
+    },
+    nominge = {
+        name = "nominge",
+        description = "Will never toy around with props or corpses unless necessary.",
+        conflicts = { "minge" },
+        traitor_only = false,
+        archetype = A.Tryhard,
+        effects = {
+            mingeRate = 0.0,
         }
     }
 }
