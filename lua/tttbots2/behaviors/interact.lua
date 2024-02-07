@@ -16,7 +16,7 @@ Interact.Interruptible = true
 
 Interact.MinTimeBetween = 8 -- Minimum seconds between all interactions.
 Interact.MaxDistance = 200  -- Maximum distance before an interaction is considered
-Interact.BaseChancePct = 10 -- Base chance of interacting with a player within our range, considered per tick
+Interact.BaseChancePct = 6  -- Base chance of interacting with a player within our range, considered per tick
 
 ---@enum BStatus
 local STATUS = {
