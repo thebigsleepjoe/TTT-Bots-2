@@ -105,6 +105,7 @@ local ammoTypes = {
 
 
 
+---TODO: Cache me!
 ---Returns the WeaponInfo table of the given entity
 ---@param wep Weapon
 ---@return WeaponInfo
