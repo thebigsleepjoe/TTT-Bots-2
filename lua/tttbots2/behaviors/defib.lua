@@ -165,7 +165,7 @@ function Defib.OnRunning(bot)
 
     if dist < 40 then
         local numWitnesses = #lib.GetAllWitnessesBasic(bot:GetPos(), TTTBots.Roles.GetNonAllies(bot))
-        if numWitnesses > 1 then return STATUS.RUNNING end
+        if numWitnesses > 1 and bot.defibStartTime == nil then return STATUS.RUNNING end
         inventory:PauseAutoSwitch()
         bot:SetActiveWeapon(defib)
         loco:SetGoal() -- reset goal to stop moving
