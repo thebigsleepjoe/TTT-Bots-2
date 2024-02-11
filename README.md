@@ -23,6 +23,7 @@ This add-on supports a wide range of roles. Here are some that have explicit com
 * Sidekick
 * Hitman
 * Serial Killer
+* Survivalist
 
 The mod also auto-generates compatibility with custom roles, but it is imperfect.
 
