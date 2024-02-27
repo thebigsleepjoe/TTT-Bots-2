@@ -264,6 +264,25 @@ function BotInventory:AutoManageInventory()
     local SLOWDOWN = math.floor(TTTBots.Tickrate / 2) -- about twice per second
     if self.tick % SLOWDOWN ~= 0 or self.disabled then return end
 
+    local forcedClass = lib.GetConVarString('debug_forceweapon')
+    if forcedClass ~= "" then
+        if not self.bot:HasWeapon(forcedClass) then
+            self.bot:Give(forcedClass)
+        end
+        self.bot:SelectWeapon(forcedClass)
+
+        local held = self:GetHeldWeaponInfo()
+        if not held then return end
+        if not held.needs_reload then return end
+
+        local loco = self.bot:BotLocomotor()
+
+        if not loco then return end
+        loco:Reload()
+
+        return
+    end
+
     local special = self:GetWeaponInfo(self:GetSpecialPrimary())
     local primary = self:GetWeaponInfo(self:GetPrimary())
     local secondary = self:GetWeaponInfo(self:GetSecondary())

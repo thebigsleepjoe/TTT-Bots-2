@@ -128,6 +128,8 @@ bot_sh_cvar("debug_strafe", "0",
 bot_sh_cvar('debug_navpopularity', '0',
     '[May console spam. Development use only] Enables debug drawing for nav popularity. Requires "developer 1" first.')
 
+bot_sh_cvar('debug_forceweapon', '', 'Forces bots to use a specific weapon. Gives it to them if they do not have it.')
+
 -- Personality cvars
 bot_sh_cvar("boredom", "1",
     "Enables boredom. Bots will leave the server if they get too bored. If RDM is enabled, then some bots will be more likely RDM when (very) bored")
