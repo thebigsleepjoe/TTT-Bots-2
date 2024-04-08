@@ -31,3 +31,21 @@
 ---@field lastBarrel Entity? The last explosive barrel we detected in our search.
 ---@field attackFocus number The focus of the bot's attack. Dictates accuracy, decreases with time.
 ---@field components Components The components of the bot.
+
+------------------------------------
+-- Reminder: this code is NEVER run, and never should be. It's just for typing.
+------------------------------------
+
+---Retrieve a random element from a table.
+---@param tbl table
+function table.Random(tbl)
+    return tbl[math.random(#tbl)]
+end
+
+---Determines if tbl has the given value in the table.
+---@param tbl table
+---@param value any
+---@return boolean
+function table.HasValue(tbl, value)
+    return false
+end

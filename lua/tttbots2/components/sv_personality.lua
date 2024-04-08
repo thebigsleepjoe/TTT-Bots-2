@@ -411,7 +411,7 @@ function plyMeta:GetTraitBool(attribute, falseHasPriority)
         if falseHasPriority and (val == false) then -- check if val is explicitly false
             return false
         else
-            total = total or val
+            total = total or (val ~= nil and true)
         end
     end
     return total
