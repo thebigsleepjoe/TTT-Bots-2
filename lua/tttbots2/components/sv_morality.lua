@@ -246,7 +246,7 @@ end
 
 ---Called by OnWitnessHurt, but only if we (the owning bot) is a traitor.
 ---@param victim Player
----@param attacker Entity
+---@param attacker Player
 ---@param healthRemaining number
 ---@param damageTaken number
 ---@return nil
@@ -524,7 +524,7 @@ timer.Create("TTTBots.Components.Morality.DisguisedPlayerDetection", 1, 0, funct
 end)
 
 ---Keep killing any nearby non-allies if we're red-handed.
----@param bot Player
+---@param bot Bot
 local function continueMassacre(bot)
     local isRedHanded = bot.redHandedTime and (CurTime() < bot.redHandedTime)
     local isKillerRole = TTTBots.Roles.GetRoleFor(bot):GetStartsFights()
@@ -532,7 +532,7 @@ local function continueMassacre(bot)
     if isRedHanded and isKillerRole then
         local nonAllies = TTTBots.Roles.GetNonAllies(bot)
         local closest = TTTBots.Lib.GetClosest(nonAllies, bot:GetPos())
-        if closest and closest != NULL then
+        if closest and closest ~= NULL then
             bot:SetAttackTarget(closest)
         end
     end
@@ -606,6 +606,7 @@ local function noticeTraitorWeapons(bot)
     if table.IsEmpty(filtered) then return end
 
     local firstEnemy = TTTBots.Lib.GetClosest(filtered, bot:GetPos())
+    if not firstEnemy then return end
     bot:SetAttackTarget(firstEnemy)
     bot:BotChatter():On("HoldingTraitorWeapon", { player = firstEnemy:Nick() })
 end
