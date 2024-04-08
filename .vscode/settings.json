@@ -28,6 +28,13 @@
         "PrintTable",
         "SERVER",
         "FindMetaTable",
-        "weapons"
+        "weapons",
+        "TOP",
+        "LEFT",
+        "RIGHT",
+        "GetConVar",
+        "LocalPlayer",
+        "debugoverlay",
+        "VectorRand"
     ],
 }
