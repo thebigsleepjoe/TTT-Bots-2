@@ -49,3 +49,7 @@ end
 function table.HasValue(tbl, value)
     return false
 end
+
+---@param tbl table
+---@return boolean
+function table.IsEmpty(tbl) return false end
