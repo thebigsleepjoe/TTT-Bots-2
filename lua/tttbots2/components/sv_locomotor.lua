@@ -78,6 +78,8 @@ function BotLocomotor:Initialize(bot)
     self.strafeTimeout = 0            -- The next tick our strafe will time out on, which is when it will be set to nil.
     self.forceForward = false         -- If true, then the bot will always move forward
 
+    self.stopLookingAround = false    -- If true, then the bot will stop looking around
+
     self.crouch = false
     self.jump = false
     self.dontmove = false
