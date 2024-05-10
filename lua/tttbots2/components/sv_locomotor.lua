@@ -1,11 +1,11 @@
 --[[
 This component is how the bot gets to something. It does not create the paths, it just follows them.
 ]]
----@class CLocomotor : CBase
+---@class CLocomotor : Component
 TTTBots.Components.Locomotor = {}
 
 local lib = TTTBots.Lib
----@class CLocomotor : CBase
+---@class CLocomotor : Component
 local BotLocomotor = TTTBots.Components.Locomotor
 
 -- Define constants

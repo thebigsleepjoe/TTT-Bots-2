@@ -2,19 +2,19 @@
 --- You can read it and copy it to create your own components.
 ---@meta
 
----@class CBase
+---@class Component
 TTTBots.Components.Base = TTTBots.Components.Base or {}
 
 local lib = TTTBots.Lib
----@class CBase
-local CBase = TTTBots.Components.Base
+---@class Component
+local Component = TTTBots.Components.Base
 
 ---@param bot Bot
----@return CBase
-function CBase:New(bot)
+---@return Component
+function Component:New(bot)
     local newBase = {}
     setmetatable(newBase, {
-        __index = function(t, k) return CBase[k] end,
+        __index = function(t, k) return Component[k] end,
     })
     newBase:Initialize(bot)
 
@@ -28,7 +28,7 @@ end
 
 --- Called once at instantiation.
 ---@param bot Bot
-function CBase:Initialize(bot)
+function Component:Initialize(bot)
     bot.components = bot.components or {}
     bot.components.Base = self
     self.componentID = string.format("Base (%s)", lib.GenerateID()) -- Component ID, used for debugging
@@ -36,5 +36,5 @@ function CBase:Initialize(bot)
 end
 
 --- Called every tick.
-function CBase:Think()
+function Component:Think()
 end

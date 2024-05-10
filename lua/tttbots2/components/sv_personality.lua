@@ -1,8 +1,8 @@
----@class CPersonality : CBase
+---@class CPersonality : Component
 TTTBots.Components.Personality = {}
 
 local lib = TTTBots.Lib
----@class CPersonality : CBase
+---@class CPersonality : Component
 local BotPersonality = TTTBots.Components.Personality
 
 BotPersonality.Traits = TTTBots.Traits

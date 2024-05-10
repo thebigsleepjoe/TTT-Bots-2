@@ -38,12 +38,14 @@ local function selectRandomHumanlike(bot)
     return selectedNumber
 end
 
+---@param bot Bot
 local function assignBotAvatar(bot)
+    if not bot.initialized then return end
     validateAvatarCache()
 
     -- local avatarNumber = math.random(1, 281)
     -- avatars[bot] = avatarNumber
-    local personality = TTTBots.Lib.GetComp(bot, "personality") ---@type CPersonality
+    local personality = bot:BotPersonality()
     if not personality then
         timer.Simple(1, function()
             assignBotAvatar(bot)
