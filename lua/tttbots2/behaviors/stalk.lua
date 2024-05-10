@@ -20,7 +20,7 @@ local STATUS = {
 
 ---Give a weight to how isolated 'other' is to us. This is used to determine who to stalk.
 ---A higher isolation means the player is more isolated, and thus a better target for stalking.
----@param bot Player
+---@param bot Bot
 ---@param other Player
 ---@return number
 function Stalk.RateIsolation(bot, other)
@@ -28,7 +28,7 @@ function Stalk.RateIsolation(bot, other)
 end
 
 ---Find the best target to stalk, and return it. This is a pretty expensive function, so don't call it too often.
----@param bot Player
+---@param bot Bot
 ---@return Player?
 ---@return number
 function Stalk.FindTarget(bot)
@@ -41,7 +41,7 @@ end
 
 ---Sets the target to target, or if target is nil, then it will find a new target. If you want to clear the target, then see Stalk.ClearTarget.
 ---@see Stalk.ClearTarget
----@param bot Player
+---@param bot Bot
 ---@param target Player?
 ---@param isolationScore number?
 function Stalk.SetTarget(bot, target, isolationScore)
@@ -54,7 +54,7 @@ function Stalk.GetTarget(bot)
 end
 
 ---validate if we can attack the bot's target, or the given target if applicable.
----@param bot Player
+---@param bot Bot
 ---@param target? Player
 ---@return boolean
 function Stalk.ValidateTarget(bot, target)
@@ -64,7 +64,7 @@ function Stalk.ValidateTarget(bot, target)
 end
 
 ---Should we start stalking? This is only useful for when we don't already have a target. To make the behavior more varied.
----@param bot Player
+---@param bot Bot
 ---@return boolean
 function Stalk.ShouldStartStalking(bot)
     -- local chance = math.random(0, 100) <= 2
@@ -72,7 +72,7 @@ function Stalk.ShouldStartStalking(bot)
 end
 
 ---Since situations change quickly, we want to make sure we pick the best target for the situation when we can.
----@param bot Player
+---@param bot Bot
 function Stalk.CheckForBetterTarget(bot)
     local currentScore = bot.StalkScore or -math.huge
     local alternative, altScore = Stalk.FindTarget(bot)
@@ -88,7 +88,7 @@ end
 
 --- Validate the behavior before we can start it (or continue running)
 --- Returning false when the behavior was just running will still call OnEnd.
----@param bot Player
+---@param bot Bot
 ---@return boolean
 function Stalk.Validate(bot)
     if not IsValid(bot) then return false end
@@ -97,7 +97,7 @@ function Stalk.Validate(bot)
 end
 
 --- Called when the behavior is started. Useful for instantiating one-time variables per cycle. Return STATUS.RUNNING to continue running.
----@param bot Player
+---@param bot Bot
 ---@return BStatus
 function Stalk.OnStart(bot)
     if not Stalk.ValidateTarget(bot) then
@@ -108,7 +108,7 @@ function Stalk.OnStart(bot)
 end
 
 --- Called when OnStart or OnRunning returns STATUS.RUNNING. Return STATUS.RUNNING to continue running.
----@param bot Player
+---@param bot Bot
 ---@return BStatus
 function Stalk.OnRunning(bot)
     -- Stalk.CheckForBetterTarget(bot)
@@ -137,17 +137,17 @@ function Stalk.OnRunning(bot)
 end
 
 --- Called when the behavior returns a success state. Only called on success, however.
----@param bot Player
+---@param bot Bot
 function Stalk.OnSuccess(bot)
 end
 
 --- Called when the behavior returns a failure state. Only called on failure, however.
----@param bot Player
+---@param bot Bot
 function Stalk.OnFailure(bot)
 end
 
 --- Called when the behavior succeeds or fails. Useful for cleanup, as it is always called once the behavior is a) interrupted, or b) returns a success or failure state.
----@param bot Player
+---@param bot Bot
 function Stalk.OnEnd(bot)
     Stalk.ClearTarget(bot)
 end

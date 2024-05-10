@@ -40,7 +40,7 @@ end
 local penalizedBombSpots = {}
 
 ---Gets the best spot to plant a bomb around the bot.
----@param bot Player
+---@param bot Bot
 ---@return Vector|nil
 function PlantBomb.FindPlantSpot(bot)
     local options = TTTBots.Spots.GetSpotsInCategory("bomb")

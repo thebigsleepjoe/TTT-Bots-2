@@ -38,7 +38,7 @@ function FollowPlan.GetJobState(bot)
 end
 
 --- Grabs an available job from the PlanCoordinator and assigns it to the bot.
----@param bot Player the bot to assign a job to
+---@param bot Bot the bot to assign a job to
 ---@return boolean|table false if no job was assigned, otherwise the job
 function FollowPlan.AssignNextAvailableJob(bot)
     bot.Job = nil
@@ -98,7 +98,7 @@ function FollowPlan.ValidateJob(bot, job)
 end
 
 --- Finds a new job if one isn't already set. Doesn't impact anything if the bot is doing a job already; otherwise, assigns a job using AssignNextAvailableJob
----@param bot Player the bot to assign a job to
+---@param bot Bot the bot to assign a job to
 ---@return boolean|table false if no job was assigned, otherwise the job
 function FollowPlan.FindNewJobIfAvailable(bot)
     local job = FollowPlan.GetBotJob(bot)

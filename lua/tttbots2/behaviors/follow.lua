@@ -15,7 +15,7 @@ local STATUS = {
 }
 
 --- Return if whether or not the bot is a follower per their personality. That is, if they are a traitor or have a following trait.
----@param bot Player
+---@param bot Bot
 ---@return boolean
 function Follow.IsFollowerPersonality(bot)
     local personality = lib.GetComp(bot, "personality") ---@type CPersonality
