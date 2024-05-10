@@ -9,7 +9,7 @@ local lib = TTTBots.Lib
 ---@class CBase
 local CBase = TTTBots.Components.Base
 
----@param bot Player
+---@param bot Bot
 ---@return CBase
 function CBase:New(bot)
     local newBase = {}
@@ -27,7 +27,7 @@ function CBase:New(bot)
 end
 
 --- Called once at instantiation.
----@param bot Player
+---@param bot Bot
 function CBase:Initialize(bot)
     bot.components = bot.components or {}
     bot.components.Base = self

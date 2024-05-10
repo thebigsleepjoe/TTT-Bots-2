@@ -69,7 +69,7 @@ end
 local getWeaponForCache = nil
 local GWFC_EXPIRY = 1
 --- Find a **primary** weapon on the ground nearest to **bot**
----@param bot Player
+---@param bot Bot
 ---@return Entity
 function FindWeapon.GetWeaponFor(bot)
     if getWeaponForCache and (getWeaponForCache.time + GWFC_EXPIRY) > CurTime() then

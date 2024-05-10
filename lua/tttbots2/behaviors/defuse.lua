@@ -22,7 +22,7 @@ local STATUS = {
 
 
 ---Returns true if a bot is able to defuse C4 per their role data.
----@param bot Player
+---@param bot Bot
 ---@return boolean
 function Defuse.IsBotEligableRole(bot)
     local role = TTTBots.Roles.GetRoleFor(bot) ---@type RoleData
@@ -31,7 +31,7 @@ function Defuse.IsBotEligableRole(bot)
 end
 
 ---Return whether or not a bot is elligible to defuse a C4 (does not factor in if there is one nearby)
----@param bot Player
+---@param bot Bot
 ---@return boolean
 function Defuse.IsEligible(bot)
     if not lib.IsPlayerAlive(bot) then return false end
@@ -53,7 +53,7 @@ function Defuse.IsEligible(bot)
 end
 
 ---Returns the first visible C4 that has been spotted
----@param bot Player
+---@param bot Bot
 ---@return Entity|nil C4
 function Defuse.GetVisibleC4(bot)
     local allC4 = TTTBots.Match.AllArmedC4s
@@ -102,7 +102,7 @@ function Defuse.GetTimeUntilExplode(c4)
 end
 
 ---Wrapper function to defuse a C4; called internally by Defuse.TryDefuse
----@param bot Player
+---@param bot Bot
 ---@param c4 Entity
 ---@param isSuccess boolean If true then actually defuses, otherwise KABOOM!
 function Defuse.DefuseC4(bot, c4, isSuccess)
