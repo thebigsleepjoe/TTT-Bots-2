@@ -69,7 +69,7 @@ function TTTBots.Locale.AddLine(event_name, line, lang, archetype)
 end
 
 --- Format a line with parameters
----@param line string The line to format
+---@param line string? The line to format
 ---@param params table<string, string> A table of parameters to replace in the line
 ---@return string line The formatted line
 function TTTBots.Locale.FormatLine(line, params)
@@ -82,9 +82,9 @@ function TTTBots.Locale.FormatLine(line, params)
 end
 
 ---Function to retrieve archetype-specific lines from the localized table
----@param bot Player The bot entity
+---@param bot Bot The bot entity
 ---@param localizedTbl table The localized table containing event lines
----@param forceDefault boolean Flag to force retrieving default archetype lines
+---@param forceDefault? boolean Flag to force retrieving default archetype lines
 ---@return table The archetype-specific lines from the localized table
 local function getArchetypalLines(bot, localizedTbl, forceDefault)
     local archetypeLocalized = {}
@@ -109,7 +109,7 @@ end
 --- Gets a random valid line from the given event name and language. After 20 attempts, it will return nil.
 ---@param event_name string
 ---@param lang string
----@param bot Player
+---@param bot Bot
 ---@param attemptN number|nil
 ---@return string|nil
 function TTTBots.Locale.GetLine(event_name, lang, bot, attemptN)
