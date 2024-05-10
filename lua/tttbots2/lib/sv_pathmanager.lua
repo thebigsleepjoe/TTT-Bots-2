@@ -519,18 +519,14 @@ end
 ---@param startPos any Vector (or CNavArea if isAreas==true)
 ---@param finishPos any Vector (or CNavArea if isAreas==true)
 ---@param isAreas boolean
----@return string pathID, boolean|table<CNavArea> path, string status
+---@return string pathID, boolean|PathInfo path, string status
 function TTTBots.PathManager.RequestPath(owner, startPos, finishPos, isAreas)
     if not startPos or not finishPos then
         error(
             "No startPos and/or finishPos, keep your functions safe from this error.")
     end
-    if not TTTBots.Lib.IsPlayerAlive(owner) then
-        -- print("Tried generating path for owner " .. tostring(owner) .. " but they are dead.")
-        -- error(
-        --     "The bot you are generating a path for is dead. Your path generation should be made safer.")
-        return
-    end
+
+    assert(TTTBots.Lib.IsPlayerAlive(owner), "Owner must be a living player.")
 
     local startArea = (isAreas and startPos) or
         TTTBots.Lib.GetNearestNavArea(startPos)  --navmesh.GetNearestNavArea(startPos)

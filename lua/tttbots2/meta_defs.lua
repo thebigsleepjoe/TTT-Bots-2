@@ -33,6 +33,9 @@
 ---@field components Components The components of the bot.
 ---@field redHandedTime number The time the bot was last seen committing a crime.
 
+---@class CNavArea
+---@class CNavLadder
+
 ------------------------------------
 -- Reminder: this code is NEVER run, and never should be. It's just for typing.
 ------------------------------------
@@ -54,3 +57,7 @@ end
 ---@param tbl table
 ---@return boolean
 function table.IsEmpty(tbl) return false end
+
+---@param tbl table
+---@return number
+function table.Count(tbl) return 0 end

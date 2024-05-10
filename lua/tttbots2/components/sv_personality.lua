@@ -366,6 +366,7 @@ function BotPersonality:GetTraitBool(attribute, falseHasPriority)
     return self.bot:GetTraitBool(attribute, falseHasPriority)
 end
 
+---@class Player
 local plyMeta = FindMetaTable("Player")
 
 function plyMeta:GetPersonalityTraits()
@@ -445,10 +446,12 @@ function plyMeta:HasTraitIn(hashtable)
     return false
 end
 
+---Get the difficulty of the bot. Returns nil if bot isn't fully initialized.
+---@return number? difficulty The calculated bot difficulty
 function plyMeta:GetDifficulty()
     if self.calcDifficulty ~= nil then return self.calcDifficulty end
     local personality = plyMeta:BotPersonality()
-    if not personality then return 0 end
+    if not personality then return nil end
 
     local diff = personality:GetTraitAdditive("difficulty")
 
