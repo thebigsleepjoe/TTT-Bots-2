@@ -58,6 +58,11 @@ IN_USE = 32768 --- https://wiki.facepunch.com/gmod/Enums/IN
 ---@field y number
 ---@field z number
 
+---@class Angle
+---@field p number Pitch
+---@field y number Yaw
+---@field r number Roll
+
 ---@class Entity
 ---@field GetPos fun(self: Entity): Vector
 ---@field OBBCenter fun(self: Entity): Vector Object Bounding Box center of the Entity's model.
@@ -65,6 +70,7 @@ IN_USE = 32768 --- https://wiki.facepunch.com/gmod/Enums/IN
 ---@field Visible fun(self: Entity, ent: Entity): boolean Can we see the Entity?
 ---@field VisibleVec fun(self: Entity, vec: Vector): boolean Can we see the Vector?
 ---@field EyePos fun(self: Entity): Vector The position of the Entity's eyes.
+---@field EyeAngles fun(self: Entity): Angle The angles of the Entity's eyes.
 ---@field GetClass fun(self: Entity): string The class of the Entity.
 ---@field GetAimVector fun(self: Entity): Vector The aim vector of the Entity.
 ---@field GetNWBool fun(self: Entity, key: string, default: boolean): boolean Get a networked boolean.
@@ -101,6 +107,7 @@ IN_USE = 32768 --- https://wiki.facepunch.com/gmod/Enums/IN
 ---@field avatarN number The avatar number assigned to the bot. (SERVER)
 ---@field initialized boolean If TTT Bots has initialized this bot.
 ---@field grudge Player? The player the bot has a grudge against, if any.
+---@field tick integer The current tick counter of the bot.
 
 ---@class CNavArea
 ---@field GetVisibleAreas fun(self: CNavArea): table<CNavArea> Get all areas visible from this area.
