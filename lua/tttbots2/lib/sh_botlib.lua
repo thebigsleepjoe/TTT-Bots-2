@@ -1073,6 +1073,7 @@ function TTTBots.Lib.VoluntaryDisconnect(bot, reason)
 end
 
 --- return the component 'type' of the bot, or nil if doesn't have one
+---@deprecated
 ---@param bot Bot
 ---@param type string
 ---@return Component Component
