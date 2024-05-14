@@ -100,6 +100,7 @@ IN_USE = 32768 --- https://wiki.facepunch.com/gmod/Enums/IN
 ---@field redHandedTime number The time the bot was last seen committing a crime.
 ---@field avatarN number The avatar number assigned to the bot. (SERVER)
 ---@field initialized boolean If TTT Bots has initialized this bot.
+---@field grudge Player? The player the bot has a grudge against, if any.
 
 ---@class CNavArea
 ---@field GetVisibleAreas fun(self: CNavArea): table<CNavArea> Get all areas visible from this area.

@@ -370,16 +370,15 @@ end
 local plyMeta = FindMetaTable("Player")
 
 function plyMeta:GetPersonalityTraits()
-    if self.components and self.components.personality then
-        return self.components.personality:GetTraits()
-    end
+    local personality = self:BotPersonality()
+    return personality:GetTraits()
 end
 
 ---Get the average trait multiplier for a given personality attribute. This could be hearing, fov, etc.
 ---@param attribute string
 ---@return number
 function plyMeta:GetTraitMult(attribute)
-    local traits = self.components.personality:GetTraitData()
+    local traits = self:BotPersonality():GetTraitData()
     local total = 1
     if not traits then return total end
     for i, trait in pairs(traits) do
@@ -389,7 +388,7 @@ function plyMeta:GetTraitMult(attribute)
 end
 
 function plyMeta:GetTraitAdditive(attribute)
-    local traits = self.components.personality:GetTraitData()
+    local traits = self:BotPersonality():GetTraitData()
     local total = 0
     if not traits then return total end
     for i, trait in pairs(traits) do
@@ -403,7 +402,7 @@ end
 ---@param falseHasPriority boolean|nil Defaults to true. Should we escape early if we have a trait that conflicts with this attribute (aka is false)?
 function plyMeta:GetTraitBool(attribute, falseHasPriority)
     if falseHasPriority == nil then falseHasPriority = true end
-    local traits = self.components.personality:GetTraitData()
+    local traits = self:BotPersonality():GetTraitData()
     local total = false
     if not traits then return total end
     for i, trait in pairs(traits) do
@@ -422,14 +421,13 @@ end
 ---@param trait_name string
 ---@return boolean hasTrait
 function plyMeta:HasTrait(trait_name)
-    if self.components and self.components.personality then
-        local traits = self.components.personality:GetTraits()
-        for _, trait in ipairs(traits) do
-            if trait == trait_name then
-                return true
-            end
+    local traits = self:BotPersonality():GetTraits()
+    for _, trait in ipairs(traits) do
+        if trait == trait_name then
+            return true
         end
     end
+
     return false
 end
 
@@ -437,7 +435,7 @@ end
 ---@param hashtable table<string, boolean>
 ---@return boolean hasTrait
 function plyMeta:HasTraitIn(hashtable)
-    local traits = self.components.personality:GetTraits()
+    local traits = self:BotPersonality():GetTraits()
     for _, trait in ipairs(traits) do
         if hashtable[trait] then
             return true
@@ -532,8 +530,9 @@ timer.Create("TTTBots.Personality.RDM", 2.5, 0, function()
     if not TTTBots.Match.IsRoundActive() then return end
     if not lib.GetConVarBool("rdm") then return end
     for i, bot in pairs(TTTBots.Bots) do
+        ---@cast bot Bot
         if not lib.IsPlayerAlive(bot) then continue end -- skip if bot not loaded
-        local personality = lib.GetComp(bot, "personality") ---@type CPersonality
+        local personality = bot:BotPersonality()
         if not personality then continue end            -- skip if bot not loaded
         if bot.attackTarget ~= nil then continue end    -- no rdm if we're already attacking someone
 
@@ -555,5 +554,6 @@ end)
 
 ---@return CPersonality
 function plyMeta:BotPersonality()
-    return self.components and self.components.personality
+    ---@cast self Bot
+    return self.components.personality
 end
