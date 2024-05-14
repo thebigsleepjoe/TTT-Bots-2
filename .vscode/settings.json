@@ -53,6 +53,8 @@
         "TEAM_SERIALKILLER",
         "ROLE_SIDEKICK",
         "TEAM_SIDEKICK",
-        "ROLE_SURVIVALIST"
+        "ROLE_SURVIVALIST",
+        "NAV_MESH_CROUCH",
+        "NAV_MESH_AVOID"
     ],
 }
