@@ -43,6 +43,16 @@
         "ErrorNoHaltWithStack",
         "NULL",
         "MASK_SOLID",
-        "MASK_ALL"
+        "MASK_ALL",
+        "ROLE_HITMAN",
+        "ROLE_JACKAL",
+        "TEAM_JACKAL",
+        "ROLE_JESTER",
+        "ROLE_NONE",
+        "ROLE_SERIALKILLER",
+        "TEAM_SERIALKILLER",
+        "ROLE_SIDEKICK",
+        "TEAM_SIDEKICK",
+        "ROLE_SURVIVALIST"
     ],
 }
