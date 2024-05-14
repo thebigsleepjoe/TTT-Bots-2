@@ -60,6 +60,7 @@
         "FCVAR_ARCHIVE",
         "FCVAR_NOTIFY",
         "FCVAR_REPLICATED",
-        "FCVAR_LUA_SERVER"
+        "FCVAR_LUA_SERVER",
+        "GAMEMODE"
     ],
 }
