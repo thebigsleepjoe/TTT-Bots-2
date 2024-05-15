@@ -205,7 +205,7 @@ end
 function Attack.Engage(bot, targetPos)
     local target = bot.attackTarget
     local inv = bot.components.inventory ---@type CInventory
-    local weapon = inv:GetHeldWeaponInfo() ---@type WeaponInfo
+    local weapon = inv:GetHeldWeaponInfo()
     if not weapon then return end
     local usingMelee = not weapon.is_gun
     local loco = bot:BotLocomotor() ---@type CLocomotor
@@ -290,7 +290,7 @@ local INACCURACY_SMOKE = 5 --- The inaccuracy modifier when the bot or its targe
 ---@param origin Vector The original aim point.
 ---@param target Player The target that is being shot at.
 function Attack.CalculateInaccuracy(bot, origin, target)
-    local personality = lib.GetComp(bot, "personality") ---@type CPersonality
+    local personality = bot:BotPersonality()
     local difficulty = lib.GetConVarInt("difficulty") -- int [0,5]
     if not (difficulty or personality) then return Vector(0, 0, 0) end
 
