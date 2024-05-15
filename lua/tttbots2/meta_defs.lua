@@ -63,6 +63,9 @@ IN_USE = 32768 --- https://wiki.facepunch.com/gmod/Enums/IN
 ---@field y number Yaw
 ---@field r number Roll
 
+---@class TraceResult
+---@field Entity Entity?
+
 ---@class Entity
 ---@field GetPos fun(self: Entity): Vector
 ---@field OBBCenter fun(self: Entity): Vector Object Bounding Box center of the Entity's model.
@@ -71,6 +74,7 @@ IN_USE = 32768 --- https://wiki.facepunch.com/gmod/Enums/IN
 ---@field VisibleVec fun(self: Entity, vec: Vector): boolean Can we see the Vector?
 ---@field EyePos fun(self: Entity): Vector The position of the Entity's eyes.
 ---@field EyeAngles fun(self: Entity): Angle The angles of the Entity's eyes.
+---@field GetEyeTrace fun(self: Entity): TraceResult The eye trace of the Entity
 ---@field GetClass fun(self: Entity): string The class of the Entity.
 ---@field GetAimVector fun(self: Entity): Vector The aim vector of the Entity.
 ---@field GetNWBool fun(self: Entity, key: string, default: boolean): boolean Get a networked boolean.
