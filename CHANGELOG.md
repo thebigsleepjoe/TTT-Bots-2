@@ -2,9 +2,11 @@
 
 ## v1.2-meta
 
-This version brings mostly nominal changes. I.e., mostly chore tasks which do not effect gameplay. Technical debt is no joke.
+This version brings mostly nominal changes. I.e., mostly chore tasks which do not effect gameplay. This is to overcome some technical debt and drastically increase long-term maintainability using LuaLS annotations.
 
-This means more features can be developed quicker. The next version will be a feature release.
+This means more features can be developed quicker. The next actual version will likely be a feature release.
+
+This build will probably not be going to steam due to it having minimal gameplay changes.
 
 ### Fixed
 
@@ -16,7 +18,7 @@ This means more features can be developed quicker. The next version will be a fe
 * Added a large number of class definitions and improved commenting across the entire codebase.
 * There are no longer linting errors present using LuaLS. Which is saying a lot, as there were probably a hundred or so before these changes.
 * Changed `Player:GetMorality` --> `Player:BotMorality` for consistency.
-
+* BStatus is now a public enum, and can be found by querying the TTTBots global for the STATUS field (`TTTBots.STATUS`)
 
 ## v1.2
 
