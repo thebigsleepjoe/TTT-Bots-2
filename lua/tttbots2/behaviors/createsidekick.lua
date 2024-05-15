@@ -165,13 +165,13 @@ end
 ---@param bot Bot
 function CreateSidekick.OnEnd(bot)
     CreateSidekick.ClearTarget(bot)
-    local loco = lib.GetComp(bot, "locomotor") ---@type CLocomotor
+    local loco = bot:BotLocomotor()
     if not loco then return end
     loco:StopAttack()
     bot:SetAttackTarget(nil)
     timer.Simple(1, function()
         if not IsValid(bot) then return end
-        local inv = lib.GetComp(bot, "inventory") ---@type CInventory
+        local inv = bot:BotInventory()
         if not (inv) then return end
         inv:ResumeAutoSwitch()
     end)
