@@ -11,7 +11,7 @@ CreateSidekick.Name = "Sidekick"
 CreateSidekick.Description = "Sidekick a player (or random player) and ultimately kill them."
 CreateSidekick.Interruptible = true
 
----@enum BStatus
+---@type BStatus
 local STATUS = {
     RUNNING = 1,
     SUCCESS = 2,
