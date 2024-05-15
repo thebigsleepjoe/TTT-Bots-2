@@ -14,7 +14,7 @@ BehaviorBase.Name = "Base"
 BehaviorBase.Description = "Change me"
 BehaviorBase.Interruptible = true
 
----@enum BStatus
+---@type BStatus
 local STATUS = {
     RUNNING = 1,
     SUCCESS = 2,

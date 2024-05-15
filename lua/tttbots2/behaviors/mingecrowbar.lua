@@ -13,7 +13,7 @@ MingeCrowbar.Interruptible = true
 MingeCrowbar.MinTimeBetween = 60.0
 MingeCrowbar.SkipChance = 3 -- 1 in X change of skipping even if cooldown
 
----@enum BStatus
+---@type BStatus
 local STATUS = {
     RUNNING = 1,
     SUCCESS = 2,
