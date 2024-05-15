@@ -1,11 +1,19 @@
 TTTBots.Behaviors = {}
 
+---@enum BStatus
+TTTBots.STATUS = {
+    RUNNING = 1,
+    SUCCESS = 2,
+    FAILURE = 3,
+}
+
 TTTBots.Lib.IncludeDirectory("tttbots2/behaviors")
 
 
 TEAM_TRAITOR = TEAM_TRAITOR or "traitors"
 TEAM_INNOCENT = TEAM_INNOCENT or "innocents"
 TEAM_NONE = TEAM_NONE or "none"
+
 
 local _bh = TTTBots.Behaviors
 
@@ -77,11 +85,7 @@ TTTBots.Behaviors.DefaultTreesByTeam = {
     [TEAM_NONE] = TTTBots.Behaviors.DefaultTrees.innocent,
 }
 
-local STATUS = {
-    RUNNING = 1,
-    SUCCESS = 2,
-    FAILURE = 3,
-}
+local STATUS = TTTBots.STATUS
 
 --- Returns the highest priority tree that has a callback which returned true on this bot.
 ---@param ply Player

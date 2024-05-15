@@ -11,11 +11,7 @@ Breaker.Name = "ClearBreakables"
 Breaker.Description = "Clear breakables near to the player"
 Breaker.Interruptible = true
 
-local STATUS = {
-    RUNNING = 1,
-    SUCCESS = 2,
-    FAILURE = 3,
-}
+local STATUS = TTTBots.STATUS
 
 --- Validate the behavior
 function Breaker.Validate(bot)

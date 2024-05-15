@@ -18,12 +18,8 @@ Interact.MinTimeBetween = 8 -- Minimum seconds between all interactions.
 Interact.MaxDistance = 200  -- Maximum distance before an interaction is considered
 Interact.BaseChancePct = 6  -- Base chance of interacting with a player within our range, considered per tick
 
----@type BStatus
-local STATUS = {
-    RUNNING = 1,
-    SUCCESS = 2,
-    FAILURE = 3,
-}
+
+local STATUS = TTTBots.STATUS
 
 local intensity = 20
 

@@ -11,11 +11,7 @@ UseHealthStation.UseRange = 50 --- The range at which we can use a health statio
 
 UseHealthStation.TargetClass = "ttt_health_station"
 
-local STATUS = {
-    RUNNING = 1,
-    SUCCESS = 2,
-    FAILURE = 3,
-}
+local STATUS = TTTBots.STATUS
 
 function UseHealthStation.HasHealthStation(bot)
     if not lib.GetConVarBool("plant_health") then return false end -- This behavior is disabled per the user's choice.

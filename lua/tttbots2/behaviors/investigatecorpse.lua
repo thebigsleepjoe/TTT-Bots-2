@@ -9,11 +9,7 @@ InvestigateCorpse.Name = "InvestigateCorpse"
 InvestigateCorpse.Description = "Investigate the corpse of a fallen player"
 InvestigateCorpse.Interruptible = true
 
-local STATUS = {
-    RUNNING = 1,
-    SUCCESS = 2,
-    FAILURE = 3,
-}
+local STATUS = TTTBots.STATUS
 
 ---@deprecated deprecated until distance check, technically works tho
 function InvestigateCorpse.GetVisibleCorpses(bot)
