@@ -8,11 +8,7 @@ FindWeapon.Name = "FindWeapon"
 FindWeapon.Description = "Wanders around the map"
 FindWeapon.Interruptible = true
 
-local STATUS = {
-    RUNNING = 1,
-    SUCCESS = 2,
-    FAILURE = 3,
-}
+local STATUS = TTTBots.STATUS
 
 function FindWeapon.HasPrimary(bot)
     local im = bot.components.inventory

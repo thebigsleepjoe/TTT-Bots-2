@@ -135,11 +135,6 @@ IN_USE = 32768 --- https://wiki.facepunch.com/gmod/Enums/IN
 ---@field timeLost number How many man-seconds have been lost here.
 ---@field cnavarea CNavArea The nav area the stuck spot is in.
 
----@class BStatus
----@field RUNNING integer
----@field SUCCESS integer
----@field FAILURE integer
-
 ------------------------------------
 -- Global functions
 -- Reminder: this code is NEVER run, and never should be. It's just for typing.

@@ -16,11 +16,7 @@ Attack.Description = "Attacking target"
 Attack.Interruptible = true
 
 ---@enum STATUS
-local STATUS = {
-    RUNNING = 1,
-    SUCCESS = 2,
-    FAILURE = 3,
-}
+local STATUS = TTTBots.STATUS
 
 ---@enum ATTACKMODE
 local ATTACKMODE = {

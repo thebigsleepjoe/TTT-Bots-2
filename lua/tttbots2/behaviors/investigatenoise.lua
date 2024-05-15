@@ -13,11 +13,7 @@ InvestigateNoise.INVESTIGATE_CATEGORIES = {
     Explosion = true
 }
 
-local STATUS = {
-    RUNNING = 1,
-    SUCCESS = 2,
-    FAILURE = 3,
-}
+local STATUS = TTTBots.STATUS
 
 function InvestigateNoise.GetInterestingSounds(bot)
     ---@type CMemory

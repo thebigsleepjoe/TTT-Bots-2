@@ -11,12 +11,8 @@ CreateSidekick.Name = "Sidekick"
 CreateSidekick.Description = "Sidekick a player (or random player) and ultimately kill them."
 CreateSidekick.Interruptible = true
 
----@type BStatus
-local STATUS = {
-    RUNNING = 1,
-    SUCCESS = 2,
-    FAILURE = 3,
-}
+
+local STATUS = TTTBots.STATUS
 
 ---Give a weight to how isolated 'other' is to us. This is used to determine who to Sidekick.
 ---A higher isolation means the player is more isolated, and thus a better target for Sidekicking.

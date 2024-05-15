@@ -8,11 +8,7 @@ Follow.Name = "Follow"
 Follow.Description = "Follow a player non-descreetly."
 Follow.Interruptible = true
 
-local STATUS = {
-    RUNNING = 1,
-    SUCCESS = 2,
-    FAILURE = 3,
-}
+local STATUS = TTTBots.STATUS
 
 --- Return if whether or not the bot is a follower per their personality. That is, if they are a traitor or have a following trait.
 ---@param bot Bot

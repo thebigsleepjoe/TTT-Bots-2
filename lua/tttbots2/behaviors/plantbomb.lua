@@ -12,11 +12,7 @@ PlantBomb.Interruptible = true
 
 PlantBomb.PLANT_RANGE = 80 --- Distance to the site to which we can plant the bomb
 
-local STATUS = {
-    RUNNING = 1,
-    SUCCESS = 2,
-    FAILURE = 3,
-}
+local STATUS = TTTBots.STATUS
 
 function PlantBomb.HasBomb(bot)
     return bot:HasWeapon("weapon_ttt_c4")

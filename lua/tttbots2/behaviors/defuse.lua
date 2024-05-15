@@ -14,11 +14,7 @@ Defuse.DEFUSE_WIN_CHANCE = 3   --- 1 in X chance of a successful defuse
 Defuse.DEFUSE_TRY_CHANCE = 30  --- 1 in X chance of attempting to defuse (per tick) if other conditions not met
 Defuse.DEFUSE_TIME_DELAY = 1.5 --- Seconds to wait before defusing (when within range!)
 
-local STATUS = {
-    RUNNING = 1,
-    SUCCESS = 2,
-    FAILURE = 3,
-}
+local STATUS = TTTBots.STATUS
 
 
 ---Returns true if a bot is able to defuse C4 per their role data.
