@@ -61,6 +61,7 @@
         "FCVAR_NOTIFY",
         "FCVAR_REPLICATED",
         "FCVAR_LUA_SERVER",
-        "GAMEMODE"
+        "GAMEMODE",
+        "REVIVAL_BLOCK_NONE"
     ],
 }
