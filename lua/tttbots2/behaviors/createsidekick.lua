@@ -39,6 +39,10 @@ function CreateSidekick.ClearTarget(bot)
     bot.SidekickTarget = nil
 end
 
+---@class Bot
+---@field SidekickTarget Player?
+---@field SidekickScore number?
+
 ---Sets the target to target, or if target is nil, then it will find a new target. If you want to clear the target, then see Sidekick.ClearTarget.
 ---@see Sidekick.ClearTarget
 ---@param bot Bot
@@ -92,7 +96,7 @@ end
 function CreateSidekick.Validate(bot)
     if not IsValid(bot) then return false end
     if bot.attackTarget ~= nil then return false end          -- Do not Sidekick if we're killing someone already.
-    local inv = lib.GetComp(bot, "inventory") ---@type CInventory
+    local inv = bot:BotInventory()
     if not (inv and inv:GetJackalGun()) then return false end -- Do not Sidekick if we don't have a jackal gun.
     return CreateSidekick.ValidateTarget(bot) or CreateSidekick.ShouldStartSidekicking(bot)
 end
@@ -123,8 +127,8 @@ function CreateSidekick.OnRunning(bot)
     end
 
     local isClose = bot:Visible(target) and bot:GetPos():Distance(targetPos) <= 150
-    local loco = lib.GetComp(bot, "locomotor") ---@type CLocomotor
-    local inv = lib.GetComp(bot, "inventory") ---@type CInventory
+    local loco = bot:BotLocomotor()
+    local inv = bot:BotInventory()
     if not (loco and inv) then return STATUS.FAILURE end
     loco:SetGoal(targetPos)
     if not isClose then return STATUS.RUNNING end
