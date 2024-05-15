@@ -92,6 +92,8 @@ IN_USE = 32768 --- https://wiki.facepunch.com/gmod/Enums/IN
 ---@field GetPrintName fun(self: Weapon): string The print name of the weapon.
 
 ---@class Player : Entity
+---@field lastBarrelCheck number? The last time we checked for any nearby explosive barrels.
+---@field lastBarrel Entity? The last explosive barrel we detected in our search.
 ---@field GetRoleStringRaw fun(self: Entity): string
 ---@field GetVelocity fun(self: Entity): Vector
 ---@field Nick fun(self: Entity): string
@@ -108,6 +110,7 @@ IN_USE = 32768 --- https://wiki.facepunch.com/gmod/Enums/IN
 ---@field initialized boolean If TTT Bots has initialized this bot.
 ---@field grudge Player? The player the bot has a grudge against, if any.
 ---@field tick integer The current tick counter of the bot.
+---@field attackBehaviorMode integer The attack behavior mode of the bot.
 
 ---@class CNavArea
 ---@field GetVisibleAreas fun(self: CNavArea): table<CNavArea> Get all areas visible from this area.
