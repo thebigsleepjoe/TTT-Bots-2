@@ -78,7 +78,7 @@ function UseHealthStation.OnStart(bot)
 end
 
 function UseHealthStation.PlaceHealthStation(bot)
-    local locomotor = lib.GetComp(bot, "locomotor") ---@type CLocomotor
+    local locomotor = bot:BotLocomotor()
     bot:SelectWeapon("weapon_ttt_health_station")
     locomotor:StartAttack()
 end
@@ -99,7 +99,7 @@ function UseHealthStation.OnRunning(bot)
     end
 
     local station = bot.targetStation
-    local locomotor = lib.GetComp(bot, "locomotor") ---@type CLocomotor
+    local locomotor = bot:BotLocomotor()
     locomotor:SetGoal(station:GetPos())
     locomotor:PauseRepel()
     local distToStation = bot:GetPos():Distance(station:GetPos())
@@ -122,7 +122,7 @@ end
 --- Called when the behavior ends
 function UseHealthStation.OnEnd(bot)
     bot.targetStation = nil
-    local locomotor = lib.GetComp(bot, "locomotor") ---@type CLocomotor
+    local locomotor = bot:BotLocomotor()
     local inventory = lib.GetComp(bot, "inventory") ---@type CInventory
     inventory:ResumeAutoSwitch()
     locomotor:StopAttack()
