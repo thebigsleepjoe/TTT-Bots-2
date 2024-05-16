@@ -45,7 +45,7 @@ end
 function InvestigateCorpse.GetShouldInvestigateCorpses(bot)
     local BASE_PCT = 75
     local MIN_PCT = 5
-    local personality = lib.GetComp(bot, "personality") ---@type CPersonality
+    local personality = bot:BotPersonality()
     if not personality then return false end
     local mult = personality:GetTraitMult("investigateCorpse")
     return lib.TestPercent(
