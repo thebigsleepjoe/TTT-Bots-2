@@ -78,6 +78,7 @@ IN_USE = 32768 --- https://wiki.facepunch.com/gmod/Enums/IN
 ---@field GetClass fun(self: Entity): string The class of the Entity.
 ---@field GetAimVector fun(self: Entity): Vector The aim vector of the Entity.
 ---@field GetNWBool fun(self: Entity, key: string, default: boolean): boolean Get a networked boolean.
+---@field GetOwner fun(self: Entity): Entity? Get the owner of the Entity.
 
 ---@class C4 : Entity
 ---@field Disarm fun(self: C4, ply: Player) Disarm the C4.
