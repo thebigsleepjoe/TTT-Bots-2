@@ -14,6 +14,9 @@ PlantBomb.PLANT_RANGE = 80 --- Distance to the site to which we can plant the bo
 
 local STATUS = TTTBots.STATUS
 
+---@class Bot
+---@field bombFailCounter number The number of times the bot has failed to plant a bomb.
+
 function PlantBomb.HasBomb(bot)
     return bot:HasWeapon("weapon_ttt_c4")
 end
@@ -113,7 +116,7 @@ function PlantBomb.OnStart(bot)
         print("No spot to plant bomb;", spot)
         return STATUS.FAILURE
     end
-    local inventory = lib.GetComp(bot, "inventory") ---@type CInventory
+    local inventory = bot:BotInventory()
     inventory:PauseAutoSwitch()
 
     bot.bombPlantSpot = spot
@@ -193,7 +196,7 @@ end
 function PlantBomb.OnEnd(bot)
     bot.bombPlantSpot = nil
     local locomotor = bot:BotLocomotor()
-    local inventory = lib.GetComp(bot, "inventory") ---@type CInventory
+    local inventory = bot:BotInventory()
     inventory:ResumeAutoSwitch()
     locomotor:StopAttack()
     PlantBomb.ArmNearbyBomb(bot)
