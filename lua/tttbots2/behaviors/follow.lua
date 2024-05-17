@@ -74,32 +74,6 @@ function Follow.GetFollowTargets(bot)
     return targets
 end
 
----gets the visible navs to the ent's nearest nav
----@deprecated Still works, but don't use.
----@param target Entity
----@return table<CNavArea>
-function Follow.GetVisibleNavs(target)
-    local targetNav = navmesh.GetNearestNavArea(target:GetPos())
-    if not targetNav then return {} end
-
-    local visibleNavs = targetNav:GetVisibleAreas()
-
-    return visibleNavs
-end
-
---- This is a long f*cking function name that gets a random visible point on the navmesh to the target.
----@deprecated Still works, but don't use.
----@param target Player
----@return Vector|nil
-function Follow.GetRandomVisiblePointOnNavmeshTo(target)
-    local visibleNavs = Follow.GetVisibleNavs(target)
-    if #visibleNavs <= 1 then return nil end -- no visible navs
-
-    local rand = table.Random(visibleNavs)
-    local point = rand:GetRandomPoint()
-    return point
-end
-
 --- Get a random point in the list of CNavAreas
 ---@param navList table<CNavArea>
 ---@return Vector
