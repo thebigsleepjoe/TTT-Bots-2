@@ -67,7 +67,7 @@ end
 --- Called when the behavior is started
 function UseHealthStation.OnStart(bot)
     if UseHealthStation.HasHealthStation(bot) then
-        local inventory = lib.GetComp(bot, "inventory") ---@type CInventory
+        local inventory = bot:BotInventory()
         inventory:PauseAutoSwitch()
         return STATUS.RUNNING
     end
@@ -123,7 +123,7 @@ end
 function UseHealthStation.OnEnd(bot)
     bot.targetStation = nil
     local locomotor = bot:BotLocomotor()
-    local inventory = lib.GetComp(bot, "inventory") ---@type CInventory
+    local inventory = bot:BotInventory()
     inventory:ResumeAutoSwitch()
     locomotor:StopAttack()
     locomotor:ResumeRepel()
