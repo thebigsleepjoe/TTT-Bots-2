@@ -3,10 +3,14 @@ description: Report a bug with the TTT Bots
 title: "[Bug]: <Enter bug title here>"
 labels: ["bug"]
 body:
+  - type: markdown
+    attributes:
+      value: "* = mandatory"
+
   - type: dropdown
     id: game_version_server_type
     attributes:
-      label: "Game version/server type"
+      label: "Game version/server type *"
       description: "Select the server type and TTT version"
       options:
         - label: "Server Type"
@@ -26,14 +30,25 @@ body:
   - type: textarea
     id: describe_the_bug
     attributes:
-      label: "Describe the bug"
+      label: "Describe the bug *"
       description: "A clear and concise description of what the bug is."
+      placeholder: "Describe the issue you encountered..."
 
   - type: textarea
     id: stack_trace_error
     attributes:
       label: "Stack trace/error"
       description: "The error, if any."
+      placeholder: |
+        ```
+        [ttt bots 2] addons/ttt bots 2 electric boogaloo/lua/tttbots2/lib/botlib.lua:893: attempt to index a nil value
+          1. GetConVarBool - addons/ttt bots 2 electric boogaloo/lua/tttbots2/lib/botlib.lua:893
+           2. fn - addons/ttt bots 2 electric boogaloo/lua/autorun/server/tttbots-main.lua:112
+            3. Run - lua/ulib/shared/hook.lua:109
+             4. unknown - gamemodes/terrortown/gamemode/server/sv_main.lua:1211
+
+        Timer Failed! [prep2begin][@gamemodes/terrortown/gamemode/server/sv_main.lua (line 1013)]
+        ```
       render: shell
     validations:
       required: false
@@ -41,7 +56,7 @@ body:
   - type: textarea
     id: reproducing_the_bug
     attributes:
-      label: "Reproducing the bug"
+      label: "Reproducing the bug *"
       description: "Steps to reproduce the behavior:"
       placeholder: |
         1. Go to '...'
@@ -52,7 +67,7 @@ body:
   - type: textarea
     id: expected_behavior
     attributes:
-      label: "Expected behavior"
+      label: "Expected behavior *"
       description: "A clear and concise description of what you expected to happen."
       placeholder: "E.g., 'There should not be any errors thrown,' or 'The bots shouldn't die after sending a chat message.'"
 
