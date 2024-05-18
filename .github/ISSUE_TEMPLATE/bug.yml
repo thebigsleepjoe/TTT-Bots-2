@@ -5,7 +5,7 @@ labels: ["bug"]
 body:
   - type: markdown
     attributes:
-      value: "* = mandatory"
+      value: "\* = mandatory"
 
   - type: dropdown
     id: game_version_server_type
@@ -40,7 +40,8 @@ body:
       label: "Stack trace/error"
       description: "The error, if any."
       placeholder: |
-        ```
+        Example:
+        
         [ttt bots 2] addons/ttt bots 2 electric boogaloo/lua/tttbots2/lib/botlib.lua:893: attempt to index a nil value
           1. GetConVarBool - addons/ttt bots 2 electric boogaloo/lua/tttbots2/lib/botlib.lua:893
            2. fn - addons/ttt bots 2 electric boogaloo/lua/autorun/server/tttbots-main.lua:112
@@ -48,7 +49,6 @@ body:
              4. unknown - gamemodes/terrortown/gamemode/server/sv_main.lua:1211
 
         Timer Failed! [prep2begin][@gamemodes/terrortown/gamemode/server/sv_main.lua (line 1013)]
-        ```
       render: shell
     validations:
       required: false
