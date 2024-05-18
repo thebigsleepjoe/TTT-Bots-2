@@ -1,14 +1,12 @@
 name: Bug report
 description: Report a bug with the TTT Bots
-title: "[BUG] Please rename me"
-labels: ["bug", "triage"]
+title: "[Bug]: <Enter bug title here>"
+labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: |
         Thank you for taking the time to submit an issue! Please fill the below forms to the best of your ability.
-
-        PLEASE RENAME THE ISSUE!!!
 
         If your bug is related to support for another add-on (which is not already supported by TTT Bots), please create a feature request instead.
 
@@ -115,5 +113,10 @@ body:
     id: credit-preferences
     attributes:
       label: GitHub Username Credit (NOT REQUIRED)
-      description: "If you would like, please enter an*APPROPRIATE** username below to be eventually added to the TTT Bot contributors name list. This allows bots to be randomly created with your name."
+      description: |
+        Please enter ONE appropriate username below (preferably yours) to be added to the TTT Bot contributors name list.
+
+        Note: This process is NOT automatic, so it may take some time before your name is added. I reserve the right to reject any names, and offer zero warranty.
+
+        Leave blank if you'd rather not have bots named after you.
       placeholder: "E.g., 'example_user'"
