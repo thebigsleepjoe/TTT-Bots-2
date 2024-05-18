@@ -1,8 +1,8 @@
 ---
-name: Bug report OLD
-about: Create a report to help us improve
+name: Bug report (Old version)
+about: Old, non-form version of the bug report template.
 title: "[BUG] New bug report (please rename)"
-labels: priority/med, type/bug
+labels: ["bug", "triage"]
 assignees: thebigsleepjoe
 
 ---
