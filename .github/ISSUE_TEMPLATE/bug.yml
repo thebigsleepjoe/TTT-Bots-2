@@ -1,21 +1,21 @@
 name: Bug report
 description: Report a bug with the TTT Bots
-title: "[Bug]: <Enter bug title here>"
-labels: ["bug"]
+title: "[BUG] Please rename me"
+labels: ["bug", "triage"]
 body:
   - type: markdown
     attributes:
       value: |
         Thank you for taking the time to submit an issue! Please fill the below forms to the best of your ability.
 
+        PLEASE RENAME THE ISSUE!!!
+
         If your bug is related to support for another add-on (which is not already supported by TTT Bots), please create a feature request instead.
-        
-        Note: Asterisk = required
 
   - type: dropdown
     id: server_type
     attributes:
-      label: "Server hosting type *"
+      label: "Server hosting type"
       description: "How is the server being hosted? If you are unsure, pick P2P."
       options:
         - "P2P"
@@ -27,7 +27,7 @@ body:
   - type: dropdown
     id: ttt_type
     attributes:
-      label: "TTT Type *"
+      label: "TTT Type"
       description: "Please select the version of TTT you are using. If you are unsure, just select TTT."
       options:
         - "TTT"
@@ -39,7 +39,7 @@ body:
   - type: input
     id: bot_version
     attributes:
-      label: "Version of Bots *"
+      label: "Version of Bots"
       description: "Run the ttt_bot_version command to see the current version."
       placeholder: "E.g., v1.0.0"
     validations:
@@ -48,7 +48,7 @@ body:
   - type: textarea
     id: describe_the_bug
     attributes:
-      label: "Describe the bug *"
+      label: "Describe the bug"
       description: "A clear and concise description of what the bug is."
       placeholder: "Describe the issue you encountered..."
     validations:
@@ -76,7 +76,7 @@ body:
   - type: textarea
     id: reproducing_the_bug
     attributes:
-      label: "Reproducing the bug *"
+      label: "Reproducing the bug"
       description: "Steps to reproduce the behavior:"
       placeholder: |
         1. Go to '...'
@@ -89,7 +89,7 @@ body:
   - type: textarea
     id: expected_behavior
     attributes:
-      label: "Expected behavior *"
+      label: "Expected behavior"
       description: "A clear and concise description of what you expected to happen."
       placeholder: "E.g., 'There should not be any errors thrown,' or 'The bots shouldn't die after sending a chat message.'"
     validations:
@@ -115,5 +115,5 @@ body:
     id: credit-preferences
     attributes:
       label: GitHub Username Credit (NOT REQUIRED)
-      description: "If you would like, please enter an **APPROPRIATE** username below to be eventually added to the TTT Bot contributors name list. This allows bots to be randomly created with your name."
+      description: "If you would like, please enter an*APPROPRIATE** username below to be eventually added to the TTT Bot contributors name list. This allows bots to be randomly created with your name."
       placeholder: "E.g., 'example_user'"
