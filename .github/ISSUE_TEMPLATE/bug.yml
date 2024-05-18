@@ -5,27 +5,45 @@ labels: ["bug"]
 body:
   - type: markdown
     attributes:
-      value: "\* = mandatory"
+      value: |
+        Thank you for taking the time to submit an issue! Please fill the below forms to the best of your ability.
+
+        If your bug is related to support for another add-on (which is not already supported by TTT Bots), please create a feature request instead.
+        
+        Note: Asterisk = required
 
   - type: dropdown
-    id: game_version_server_type
+    id: server_type
     attributes:
-      label: "Game version/server type *"
-      description: "Select the server type and TTT version"
+      label: "Server hosting type *"
+      description: "How is the server being hosted? If you are unsure, pick P2P."
       options:
-        - label: "Server Type"
-          options:
-            - "P2P"
-            - "SRCDS"
-            - "ALL"
-        - label: "Which TTT"
-          options:
-            - "TTT"
-            - "TTT2"
-            - "BOTH"
-        - label: "Version of Bots"
-          options:
-            - "Run the ttt_bot_version command to see the current version."
+        - "P2P"
+        - "SRCDS"
+        - "ALL"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: ttt_type
+    attributes:
+      label: "TTT Type *"
+      description: "Please select the version of TTT you are using. If you are unsure, just select TTT."
+      options:
+        - "TTT"
+        - "TTT2"
+        - "BOTH"
+    validations:
+      required: true
+
+  - type: input
+    id: bot_version
+    attributes:
+      label: "Version of Bots *"
+      description: "Run the ttt_bot_version command to see the current version."
+      placeholder: "E.g., v1.0.0"
+    validations:
+      required: true
 
   - type: textarea
     id: describe_the_bug
@@ -33,6 +51,8 @@ body:
       label: "Describe the bug *"
       description: "A clear and concise description of what the bug is."
       placeholder: "Describe the issue you encountered..."
+    validations:
+      required: true
 
   - type: textarea
     id: stack_trace_error
@@ -63,6 +83,8 @@ body:
         2. Click on '....'
         3. Scroll down to '....'
         4. See error
+    validations:
+      required: true
 
   - type: textarea
     id: expected_behavior
@@ -70,6 +92,8 @@ body:
       label: "Expected behavior *"
       description: "A clear and concise description of what you expected to happen."
       placeholder: "E.g., 'There should not be any errors thrown,' or 'The bots shouldn't die after sending a chat message.'"
+    validations:
+      required: true
 
   - type: textarea
     id: screenshots
@@ -86,3 +110,10 @@ body:
       description: "Providing extra context, including a mod collection or simple mod list, can hugely boost the speed at which your report gets addressed/resolved."
     validations:
       required: false
+
+  - type: input
+    id: credit-preferences
+    attributes:
+      label: GitHub Username Credit (NOT REQUIRED)
+      description: "If you would like, please enter an **APPROPRIATE** username below to be eventually added to the TTT Bot contributors name list. This allows bots to be randomly created with your name."
+      placeholder: "E.g., 'example_user'"
