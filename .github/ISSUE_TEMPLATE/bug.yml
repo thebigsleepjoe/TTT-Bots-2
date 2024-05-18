@@ -1,5 +1,5 @@
-name: Bug report
-description: Report a bug with the TTT Bots
+name: Bug report (form)
+description: Use me! Report a bug with the TTT Bots
 title: "[Bug]: <Enter bug title here>"
 labels: ["bug"]
 body:
