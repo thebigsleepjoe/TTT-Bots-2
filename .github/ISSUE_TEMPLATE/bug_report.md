@@ -1,5 +1,5 @@
 ---
-name: Bug report
+name: Bug report OLD
 about: Create a report to help us improve
 title: "[BUG] New bug report (please rename)"
 labels: priority/med, type/bug
