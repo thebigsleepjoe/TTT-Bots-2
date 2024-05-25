@@ -94,21 +94,15 @@ IN_USE = 32768 --- https://wiki.facepunch.com/gmod/Enums/IN
 ---@field GetPrimaryAmmoType fun(self: Weapon): number The primary ammo type.
 ---@field GetHoldType fun(self: Weapon): string The hold type of the weapon.
 ---@field GetPrintName fun(self: Weapon): string The print name of the weapon.
----@field PlaySound fun(self: Weapon, sound: string) Play a sound on the weapon.
----@field StopSound fun(self: Weapon, sound: string) Stop a sound on the weapon.
----@field Remove fun(self: Weapon) Remove the weapon from the game.
 
 ---@class Player : Entity
 ---@field lastBarrelCheck number? The last time we checked for any nearby explosive barrels.
 ---@field lastBarrel Entity? The last explosive barrel we detected in our search.
----@field GetRoleStringRaw fun(self: Player): string
----@field GetVelocity fun(self: Player): Vector
----@field Nick fun(self: Player): string
----@field UserID fun(self: Player): string
----@field GetActiveWeapon fun(self: Player): Weapon the held wep of the player
----@field Revive fun(self: Player, delay: number, onRevive: fun()?, doCheck: fun()?, needsCorpse: boolean?, blockRound: number, onFail: fun()?, spawnPos: Vector?, spawnAng: Angle?): boolean Revive the player from the ragdoll.
----@field SetActiveWeapon fun(self: Player, wep: Weapon): boolean Set the active weapon of the player.
----@field GetWeapon fun(self: Player, class: string)
+---@field GetRoleStringRaw fun(self: Entity): string
+---@field GetVelocity fun(self: Entity): Vector
+---@field Nick fun(self: Entity): string
+---@field UserID fun(self: Entity): string
+---@field GetActiveWeapon fun(self: Entity): Weapon the held wep of the player
 
 ---@class Bot : Player
 ---@field lastBarrelCheck number? The last time we checked for any nearby explosive barrels.
