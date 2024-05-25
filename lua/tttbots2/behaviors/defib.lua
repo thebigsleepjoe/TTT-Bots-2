@@ -84,7 +84,7 @@ local function successFunc(bot)
     end)
 end
 ---Revives a player from the dead, assuming the target is alive
----@param bot Bot
+---@param bot Player
 ---@param target Player
 function Defib.FullDefib(bot, target)
     target:Revive(
@@ -147,7 +147,7 @@ function Defib.GetSpinePos(rag)
     return default
 end
 
----@param bot Bot
+---@param bot Player
 function Defib.OnRunning(bot)
     local inventory, loco = bot:BotInventory(), bot:BotLocomotor()
     if not (inventory and loco) then return STATUS.FAILURE end
@@ -198,7 +198,7 @@ function Defib.OnFailure(bot)
 end
 
 --- Called when the behavior succeeds or fails. Useful for cleanup, as it is always called once the behavior is a) interrupted, or b) returns a success or failure state.
----@param bot Bot
+---@param bot Player
 function Defib.OnEnd(bot)
     bot.defibTarget, bot.defibRag = nil, nil
     bot.defibStartTime = nil

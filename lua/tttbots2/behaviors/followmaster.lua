@@ -15,7 +15,7 @@ local STATUS = {
 }
 
 ---Find a random master to follow.
----@param bot Bot
+---@param bot Player
 ---@return Player?
 function FollowMaster.FindMaster(bot)
     local myRole = bot:GetRoleStringRaw()

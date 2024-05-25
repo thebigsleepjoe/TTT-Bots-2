@@ -148,7 +148,7 @@ function Attack.ShouldApproachWith(bot, weapon)
 end
 
 --- Tests if the target is next to an explosive barrel, if so, returns the barrel.
----@param bot Bot
+---@param bot Player
 ---@param target Player
 ---@return Entity|nil barrel
 function Attack.TargetNextToBarrel(bot, target)
@@ -286,7 +286,7 @@ end
 local INACCURACY_BASE = 9  --- The higher this is, the more inaccurate the bots will be.
 local INACCURACY_SMOKE = 5 --- The inaccuracy modifier when the bot or its target is in smoke.
 --- Calculate the inaccuracy of agent 'bot' according to a) its personality and b) diff setts
----@param bot Bot The bot that is shooting.
+---@param bot Player The bot that is shooting.
 ---@param origin Vector The original aim point.
 ---@param target Player The target that is being shot at.
 function Attack.CalculateInaccuracy(bot, origin, target)
@@ -399,7 +399,7 @@ function Attack.RunningAttackLogic(bot)
 end
 
 --- Validates if the target is extant and alive. True if valid.
----@param bot Bot
+---@param bot Player
 ---@return boolean isValid
 function Attack.ValidateTarget(bot)
     local target = bot.attackTarget
@@ -439,7 +439,7 @@ function Attack.IsTargetAlly(bot)
 end
 
 --- Called when the behavior's last state is running
----@param bot Bot
+---@param bot Player
 ---@return STATUS status
 function Attack.OnRunning(bot)
     local target = bot.attackTarget

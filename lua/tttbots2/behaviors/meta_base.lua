@@ -23,36 +23,36 @@ local STATUS = {
 
 --- Validate the behavior before we can start it (or continue running)
 --- Returning false when the behavior was just running will still call OnEnd.
----@param bot Bot
+---@param bot Player
 ---@return boolean
 function BehaviorBase.Validate(bot)
     return true
 end
 
 --- Called when the behavior is started. Useful for instantiating one-time variables per cycle. Return STATUS.RUNNING to continue running.
----@param bot Bot
+---@param bot Player
 ---@return BStatus
 function BehaviorBase.OnStart(bot)
     return STATUS.RUNNING
 end
 
 --- Called when OnStart or OnRunning returns STATUS.RUNNING. Return STATUS.RUNNING to continue running.
----@param bot Bot
+---@param bot Player
 ---@return BStatus
 function BehaviorBase.OnRunning(bot)
 end
 
 --- Called when the behavior returns a success state. Only called on success, however.
----@param bot Bot
+---@param bot Player
 function BehaviorBase.OnSuccess(bot)
 end
 
 --- Called when the behavior returns a failure state. Only called on failure, however.
----@param bot Bot
+---@param bot Player
 function BehaviorBase.OnFailure(bot)
 end
 
 --- Called when the behavior succeeds or fails. Useful for cleanup, as it is always called once the behavior is a) interrupted, or b) returns a success or failure state.
----@param bot Bot
+---@param bot Player
 function BehaviorBase.OnEnd(bot)
 end

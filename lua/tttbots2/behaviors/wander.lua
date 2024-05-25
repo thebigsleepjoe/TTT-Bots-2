@@ -51,7 +51,7 @@ function Wander.OnRunning(bot)
 end
 
 ---Make the bot stare at the nearest player. Useful for when the bot is standing still.
----@param bot Bot
+---@param bot Player
 ---@param locomotor CLocomotor
 function Wander.StareAtNearbyPlayers(bot, locomotor)
     local players = lib.GetAllVisible(bot:GetPos(), false)
@@ -107,7 +107,7 @@ function Wander.GetRandomNav()
 end
 
 ---Return if the role can see all C4s inherently, or if it must have someone spot it first
----@param bot Bot
+---@param bot Player
 ---@return boolean
 function Wander.BotCanSeeAllC4(bot)
     local role = TTTBots.Roles.GetRoleFor(bot)
@@ -141,7 +141,7 @@ function Wander.GetAnyRandomNav(bot, level)
 end
 
 ---Finds a place to hide/snipe at. Returns if we found a spot and where it is (or nil)
----@param bot Bot
+---@param bot Player
 ---@return boolean foundSpot
 ---@return Vector? pos pos or nil if we didn't find a spot
 function Wander.FindSpotFor(bot)

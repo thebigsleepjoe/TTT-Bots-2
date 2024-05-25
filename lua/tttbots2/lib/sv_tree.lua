@@ -91,7 +91,7 @@ end
 
 --- Return the first behavior in the given tree that is valid for the given bot. If none, then returns false.
 ---@param tree table<BBase>
----@param bot Bot
+---@param bot Player
 ---@return BBase|false
 function TTTBots.Behaviors.GetFirstValid(tree, bot)
     for _, behavior in ipairs(tree) do

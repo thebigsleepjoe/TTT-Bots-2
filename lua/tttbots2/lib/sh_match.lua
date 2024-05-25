@@ -142,7 +142,7 @@ function Match.ResetStats(roundActive)
 end
 
 ---Gets the difficulty scoring of the given bot. Returns -1 if the bot is not a TTTBot.
----@param bot Bot
+---@param bot Player
 ---@return number difficulty
 ---@realm server
 function Match.GetBotDifficulty(bot)
@@ -201,7 +201,7 @@ function Match.IsPlayerDisguised(ply)
 end
 
 ---Event called when an innocent bot spots a C4.
----@param bot Bot
+---@param bot Player
 ---@param c4 Entity
 ---@realm server
 function Match.OnBotSpotC4(bot, c4)
