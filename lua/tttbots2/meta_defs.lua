@@ -180,13 +180,3 @@ function math.Clamp(val, min, max) return 0 end
 ---@param to Vector
 ---@return Vector
 function LerpVector(frac, from, to) return Vector(0, 0, 0) end
-
----Removes the needle from the haystack by its value.
----@param haystack table
----@param needle any
-function table.RemoveByValue(haystack, needle) end
-
----Performs a copy on the given table, returning a new table.
----@param tbl table
----@return table
-function table.Copy(tbl) return {} end
