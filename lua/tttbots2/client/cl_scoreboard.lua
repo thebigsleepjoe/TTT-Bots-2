@@ -179,6 +179,18 @@ end)
 local avatarCache = {} -- A cache of avatars <string nick, number avatarNumber>
 
 
+---Find the proper picture path for the given avatar number, depending on the current game settings.
+---@param number integer
+---@return string path
+local function resolveAvatarPath(number)
+    local pfps_humanlike = GetConVar("ttt_bot_pfps_humanlike"):GetBool()
+    local path = string.format("materials/avatars/%d.png", number)
+    if pfps_humanlike then
+        path = string.format("materials/avatars/humanlike/%d.jpg", number)
+    end
+    return path
+end
+
 --- Iterates through our avatar cache to update the scoreboard pfps
 local function updateScoreboardPfps()
     local pnl = GAMEMODE:GetScoreboardPanel()
@@ -208,10 +220,7 @@ local function updateScoreboardPfps()
                 avatar.IsFakeAvatar = true
                 row.hasFakeAvatar = true
 
-                local path = string.format("materials/avatars/%d.png", avatarNumber)
-                if pfps_humanlike then
-                    path = string.format("materials/avatars/humanlike/%d.jpg", avatarNumber)
-                end
+                local path = resolveAvatarPath(avatarNumber)
                 avatar:SetImage(path)
                 --avatar:SetAvatar("BotAvatar (" .. avatarNumber .. ").jpg")
             end
@@ -246,3 +255,32 @@ end)
 
 timer.Create("TTTBots.Client.UpdateScoreboard", 0.25, 0, updateScoreboardPfps)
 timer.Create("TTTBots.Client.AuditAvatarCache", 3, 0, auditAvatarCache)
+
+hook.Add("TTT2FetchAvatar", "TTTBots.Client.FetchAvatar", function(id64, size)
+    print("Fetching avatar for " .. id64)
+    local bot = nil
+    for i,v in pairs(player.GetBots()) do
+        if v:SteamID64() == id64 then
+            bot = v
+            break
+        end
+    end
+
+    if not bot then return end -- Couldn't find the player, so skip.
+
+    local number = avatarCache[bot:Nick()]
+
+    if not number then
+        print("[TTT Bots 2] Missing avatar for bot " .. bot:Nick() .. ", requesting...")
+        timer.Simple(5, function()
+            if not (bot and bot:IsValid()) then return end -- This bot was probably removed...
+            draw.DropCacheAvatar(id64, size)
+        end)
+        return nil
+    end
+
+    print("[TTT Bots 2] Fetching avatar for bot " .. bot:Nick() .. " (" .. number .. ")")
+    return file.Read(resolveAvatarPath(number), "GAME")
+end)
+
+print("refresh")
