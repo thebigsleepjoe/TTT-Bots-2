@@ -395,7 +395,6 @@ function TTTBots.Lib.UpdateQuota()
         if not (bot and bot ~= NULL and IsValid(bot)) then continue end
         if (TTTBots.Lib.IsPlayerAlive(bot) and TTTBots.Match.IsRoundActive()) then continue end -- Do not kick bots that are alive during a round
         local botDifficulty = bot:GetDifficulty()
-        if not botDifficulty then continue end                                                  -- Bot hasn't been initialized, give it a moment
         -- If the bot's difficulty is too high or too low compared to the expected difficulty
         if botDifficulty < DIFF_MIN or botDifficulty > DIFF_MAX then
             print("Removing bot of difficulty", botDifficulty, DIFF_MIN, DIFF_MAX)

@@ -41,8 +41,6 @@
         "engine",
         "resource",
         "ErrorNoHaltWithStack",
-        "NULL",
-        "MASK_SOLID",
-        "MASK_ALL"
+        "NULL"
     ],
 }
