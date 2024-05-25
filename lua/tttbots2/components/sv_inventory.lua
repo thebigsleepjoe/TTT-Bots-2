@@ -126,7 +126,10 @@ end
 ---@param wep Weapon
 ---@return WeaponInfo
 function BotInventory:GetWeaponInfo(wep)
-    assert(wep and wep ~= NULL and IsValid(wep), "GetWeaponInfo: wep is not valid")
+    if not (wep and IsValid(wep)) then
+        ErrorNoHaltWithStack("Invalid weapon object passed to GetWeaponInfo")
+        error("Invalid weapon object passed to GetWeaponInfo")
+    end
 
     local cache = cacheValidate(wep)
     if cache then return cache end
@@ -323,7 +326,7 @@ function BotInventory:AutoManageInventory()
     }
 
     for func, wepInfo in pairs(hash) do
-        if wepInfo and (wepInfo == true or wepInfo.ammo > 0) then
+        if wepInfo == true or (type(wepInfo) == "table" and wepInfo.ammo or 0) > 0 then
             func(self)
             break
         end
@@ -423,7 +426,11 @@ end
 ---@return WeaponInfo?
 function BotInventory:GetHeldWeaponInfo(target)
     if not target then
-        return self:GetWeaponInfo(self.bot:GetActiveWeapon())
+        local wep = self.bot:GetActiveWeapon()
+
+        if not (wep and IsValid(wep)) then return nil end
+
+        return self:GetWeaponInfo(wep)
     end
 
     local wep = target:GetActiveWeapon()

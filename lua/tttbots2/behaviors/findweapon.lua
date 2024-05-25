@@ -19,12 +19,13 @@ end
 --- Cache for GetWeaponsNear'
 ---@class GetWeaponsNearCache
 ---@field weapons table<Weapon>
----@field time number
+---@field time number?
 local GetWeaponsNearCache = {}
 local GWNC_EXPIRY = 2
 
 function FindWeapon.GetWeaponsNear(bot, radius)
-    if GetWeaponsNearCache and GetWeaponsNearCache.time + GWNC_EXPIRY > CurTime() then
+    local cacheTime = GetWeaponsNearCache and GetWeaponsNearCache.time or -math.huge
+    if cacheTime + GWNC_EXPIRY > CurTime() then
         return GetWeaponsNearCache.weapons
     end
     local im = bot.components.inventory
@@ -63,14 +64,15 @@ end
 --- Cache the result of GetWeaponFor;
 ---@class GetWeaponForCache
 ---@field ent Weapon? the weapon/ent
----@field time number the time the cache was created
+---@field time number? the time the cache was created
 local GetWeaponForCache = {}
 local GWFC_EXPIRY = 1
 --- Find a **primary** weapon on the ground nearest to **bot**
 ---@param bot Bot
 ---@return Weapon?
 function FindWeapon.GetWeaponFor(bot)
-    if GetWeaponForCache and (GetWeaponForCache.time + GWFC_EXPIRY) > CurTime() then
+    local cacheTime = GetWeaponForCache and GetWeaponForCache.time or -math.huge
+    if (cacheTime + GWFC_EXPIRY) > CurTime() then
         return GetWeaponForCache.ent
     end
     -- Return the nearest weapon to bot:GetPos()
@@ -143,7 +145,7 @@ function FindWeapon.OnRunning(bot)
     local debugPrint = false
 
     local pastTarget = bot.findweapon.target
-    if pastTarget and pastTarget:GetOwner() == bot then return STATUS.SUCCESS end
+    if pastTarget and IsValid(pastTarget) and pastTarget:GetOwner() == bot then return STATUS.SUCCESS end
 
     bot.findweapon.target = (FindWeapon.ValidateTarget(bot) and bot.findweapon.target) or FindWeapon.GetWeaponFor(bot)
     if not FindWeapon.ValidateTarget(bot) then

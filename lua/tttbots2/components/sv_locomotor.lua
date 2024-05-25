@@ -948,16 +948,13 @@ function BotLocomotor:UpdatePathRequest()
     if goalPos == nil then return STAT.NOGOALPOS end
     if not lib.IsPlayerAlive(self.bot) then return STAT.BOTDEAD end
 
-    local pathRequest = self:GetPathRequest()
-    if not pathRequest then
-        ErrorNoHaltWithStack("Path request is nil when it shouldn't be!")
-        return STAT.PENDING
-    end
+    local pathRequest = self:GetPathRequest() -- can be nil
     local goalNav = navmesh.GetNearestNavArea(goalPos)
     local pathLength = self:GetPathLength()
 
     local hasPath = self:HasPath()
     local endIsGoal = hasPath
+        and pathRequest
         and pathRequest.pathInfo.path[self:GetPathLength()] == goalNav -- true if we already have a path to the goal
     if hasPath and endIsGoal and not self:AnySegmentsNearby(pathRequest.pathInfo.path, 500) then
         local dvlpr = lib.GetConVarBool("debug_pathfinding")
