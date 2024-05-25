@@ -287,10 +287,9 @@ function BotInventory:HasNoWeaponAvailable(attackMode)
     return true
 end
 
---- Manage our own inventory by selecting the best weapon, queueing a reload if necessary, etc.
-function BotInventory:AutoManageInventory()
-    local SLOWDOWN = math.floor(TTTBots.Tickrate / 2) -- about twice per second
-    if self.tick % SLOWDOWN ~= 0 or self.disabled then return end
+---Equip the debug_forceweapon convar class if it is set. Returns true if it is set and we equipped it, false if not.
+---@return boolean
+function BotInventory:ManageDebugWeapon()
 
     local forcedClass = lib.GetConVarString('debug_forceweapon')
     if forcedClass ~= "" then
@@ -300,16 +299,26 @@ function BotInventory:AutoManageInventory()
         self.bot:SelectWeapon(forcedClass)
 
         local held = self:GetHeldWeaponInfo()
-        if not held then return end
-        if not held.needs_reload then return end
+        if not held then return true end
+        if not held.needs_reload then return true end
 
         local loco = self.bot:BotLocomotor()
 
-        if not loco then return end
+        if not loco then return true end
         loco:Reload()
 
-        return
+        return true
     end
+
+    return false
+end
+
+--- Manage our own inventory by selecting the best weapon, queueing a reload if necessary, etc.
+function BotInventory:AutoManageInventory()
+    local SLOWDOWN = math.floor(TTTBots.Tickrate / 2) -- about twice per second
+    if self.tick % SLOWDOWN ~= 0 or self.disabled then return end
+
+    if self:ManageDebugWeapon() then return end
 
     local w_special = self:GetSpecialPrimary()
     local special = w_special and self:GetWeaponInfo(w_special) or nil
