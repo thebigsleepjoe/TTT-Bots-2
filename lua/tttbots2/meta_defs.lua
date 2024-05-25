@@ -17,7 +17,6 @@ game = {}
 player = {}
 file = {}
 TTT2 = {}
-roles = {}
 MASK_SHOT = 0 -- some number, not literally 0.
 
 MOVETYPE_LADDER = 9 --- https://wiki.facepunch.com/gmod/Enums/MOVETYPE
