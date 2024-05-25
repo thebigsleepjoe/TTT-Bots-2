@@ -532,10 +532,7 @@ function TTTBots.PathManager.RequestPath(owner, startPos, finishPos, isAreas)
         TTTBots.Lib.GetNearestNavArea(startPos)  --navmesh.GetNearestNavArea(startPos)
     local finishArea = (isAreas and finishPos) or
         TTTBots.Lib.GetNearestNavArea(finishPos) --navmesh.GetNearestNavArea(finishPos)
-    
-    assert(startArea, "Start area is nil. Either you didn't provide one or there isn't a nav nearby.")
-    assert(finishArea, "Finish area is nil. Either you didn't provide one or there isn't a nav nearby.")
-
+    if not startArea or not finishArea then return end
     local pathID = startArea:GetID() .. "to" .. finishArea:GetID()
 
     local isImpossible = TTTBots.PathManager.impossiblePaths[pathID] ~= nil
