@@ -2,7 +2,7 @@
 This module is not intended to store everything bot-related, but instead store bot-specific stuff that
 is refreshed every round. Things like where the bot last saw each player, etc.
 ]]
----@class CMemory : Component
+---@class CMemory : CBase
 TTTBots.Components.Memory = {}
 TTTBots = TTTBots or {}
 
@@ -39,7 +39,7 @@ TTTBots.Sound = {
 }
 
 local lib = TTTBots.Lib
----@class CMemory : Component
+---@class CMemory : CBase
 local Memory = TTTBots.Components.Memory
 local DEAD = "DEAD"
 local ALIVE = "ALIVE"

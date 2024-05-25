@@ -52,8 +52,6 @@ MASK_SHOT = 0 -- some number, not literally 0.
 ---@field attackFocus number The focus of the bot's attack. Dictates accuracy, decreases with time.
 ---@field components Components The components of the bot.
 ---@field redHandedTime number The time the bot was last seen committing a crime.
----@field avatarN number The avatar number assigned to the bot. (SERVER)
----@field initialized boolean If TTT Bots has initialized this bot.
 
 ---@class CNavArea
 ---@field GetVisibleAreas fun(self: CNavArea): table<CNavArea> Get all areas visible from this area.

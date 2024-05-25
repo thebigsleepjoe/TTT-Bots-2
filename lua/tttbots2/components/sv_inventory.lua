@@ -1,8 +1,8 @@
----@class CInventory : Component
+---@class CInventory : CBase
 TTTBots.Components.Inventory = {}
 
 local lib = TTTBots.Lib
----@class CInventory : Component
+---@class CInventory : CBase
 local BotInventory = TTTBots.Components.Inventory
 
 function BotInventory:New(bot)

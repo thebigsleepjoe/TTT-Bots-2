@@ -1073,10 +1073,13 @@ end
 --- return the component 'type' of the bot, or nil if doesn't have one
 ---@param bot Bot
 ---@param type string
----@return Component Component
+---@return any Component
 ---@realm server
 function TTTBots.Lib.GetComp(bot, type)
-    return bot.components[type]
+    if bot and bot.components and bot.components[type] then
+        return bot.components[type]
+    end
+    return nil
 end
 
 function TTTBots.Lib.WepClassExists(classname)

@@ -1,8 +1,8 @@
----@class CChatter : Component
+---@class CChatter : CBase
 TTTBots.Components.Chatter = TTTBots.Components.Chatter or {}
 
 local lib = TTTBots.Lib
----@class CChatter : Component
+---@class CChatter : CBase
 local BotChatter = TTTBots.Components.Chatter
 
 function BotChatter:New(bot)
