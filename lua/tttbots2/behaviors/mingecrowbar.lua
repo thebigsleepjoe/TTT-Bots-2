@@ -13,8 +13,12 @@ MingeCrowbar.Interruptible = true
 MingeCrowbar.MinTimeBetween = 60.0
 MingeCrowbar.SkipChance = 3 -- 1 in X change of skipping even if cooldown
 
-
-local STATUS = TTTBots.STATUS
+---@type BStatus
+local STATUS = {
+    RUNNING = 1,
+    SUCCESS = 2,
+    FAILURE = 3,
+}
 
 function MingeCrowbar.IsMinging(bot)
     return bot.isCBMinging

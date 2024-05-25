@@ -14,8 +14,12 @@ BehaviorBase.Name = "Base"
 BehaviorBase.Description = "Change me"
 BehaviorBase.Interruptible = true
 
-
-local STATUS = TTTBots.STATUS
+---@type BStatus
+local STATUS = {
+    RUNNING = 1,
+    SUCCESS = 2,
+    FAILURE = 3,
+}
 
 --- Validate the behavior before we can start it (or continue running)
 --- Returning false when the behavior was just running will still call OnEnd.

@@ -15,8 +15,12 @@ Defib.Description = "Use the defibrillator on a corpse."
 Defib.Interruptible = true
 Defib.WeaponClasses = { "weapon_ttt_defibrillator" }
 
-
-local STATUS = TTTBots.STATUS
+---@type BStatus
+local STATUS = {
+    RUNNING = 1,
+    SUCCESS = 2,
+    FAILURE = 3,
+}
 
 local function printf(...) print(string.format(...)) end
 

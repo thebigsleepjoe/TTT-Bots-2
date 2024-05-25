@@ -10,7 +10,11 @@ FollowPlan.Interruptible = true
 -- When debugging the component and you want to print extra info, use this:
 FollowPlan.Debug = false
 
-local STATUS = TTTBots.STATUS
+local STATUS = {
+    RUNNING = 1,
+    SUCCESS = 2,
+    FAILURE = 3,
+}
 local Plans = TTTBots.Plans
 local ACTIONS = Plans.ACTIONS
 

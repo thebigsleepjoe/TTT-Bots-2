@@ -11,8 +11,12 @@ Stalk.Name = "Stalk"
 Stalk.Description = "Stalk a player (or random player) and ultimately kill them."
 Stalk.Interruptible = true
 
-
-local STATUS = TTTBots.STATUS
+---@type BStatus
+local STATUS = {
+    RUNNING = 1,
+    SUCCESS = 2,
+    FAILURE = 3,
+}
 
 ---Give a weight to how isolated 'other' is to us. This is used to determine who to stalk.
 ---A higher isolation means the player is more isolated, and thus a better target for stalking.
