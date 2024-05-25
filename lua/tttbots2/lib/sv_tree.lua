@@ -113,6 +113,8 @@ end
 
 function TTTBots.Behaviors.CallTree(bot, tree)
     if not IsValid(bot) or not (bot.components and bot:BotLocomotor()) then return end -- Prevent strange errors from happening on bot DC
+    if not TTTBots.Lib.IsPlayerAlive(bot) then return end
+
     tree = tree or TTTBots.Behaviors.GetTreeFor(bot)
     if not tree then return end
 
