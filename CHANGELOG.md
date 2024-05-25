@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.2.1-meta
+## v1.2-meta
 
 This version brings mostly nominal changes. I.e., mostly chore tasks which do not effect gameplay. This is to overcome some technical debt and drastically increase long-term maintainability using LuaLS annotations.
 
