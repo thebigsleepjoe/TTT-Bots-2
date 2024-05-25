@@ -53,9 +53,6 @@ IN_USE = 32768 --- https://wiki.facepunch.com/gmod/Enums/IN
 ---@field Distance fun(self: Vector, vec: Vector): number The distance from us to them.
 ---@field LengthSqr fun(self: Vector): number The length of the vector prior to taking a sqrt.
 ---@field Dot fun(self: Vector, vec: Vector): number The dot product of the two vectors.
----@field x number
----@field y number
----@field z number
 
 ---@class Entity
 ---@field GetPos fun(self: Entity): Vector
@@ -104,14 +101,10 @@ IN_USE = 32768 --- https://wiki.facepunch.com/gmod/Enums/IN
 ---@field GetVisibleAreas fun(self: CNavArea): table<CNavArea> Get all areas visible from this area.
 ---@field GetAdjacentAreas fun(self: CNavArea): table<CNavArea> Get all areas adjacent to this area.
 ---@field GetCenter fun(self: CNavArea): Vector Get the center of the area.
----@field GetID fun(self: CNavArea): string Get the ID of the area.
----@field IsLadder fun(self: CNavArea): boolean Is this area a ladder?
 
 ---@class CNavLadder
 ---@field GetTop fun(self: CNavLadder): Vector Get the top of the ladder.
 ---@field GetBottom fun(self: CNavLadder): Vector Get the bottom of the ladder.
----@field GetID fun(self: CNavArea): string Get the ID of the area.
----@field IsLadder fun(self: CNavArea): boolean Is this area a ladder?
 
 ---@class StuckBot
 ---@field ply Bot The bot that is stuck.
@@ -202,9 +195,3 @@ function table.Copy(tbl) return {} end
 ---@param n number
 ---@return integer
 function math.Round(n) return 0 end
-
---- Combines two tables into one super table.
----@param tb1 table
----@param tb2 table
----@return table
-function table.Add(tb1, tb2) return {} end
