@@ -12,7 +12,7 @@
 -- Reminder: this code is NEVER run, and never should be. It's just for typing.
 ------------------------------------
 
-
+ROLE_TRAITOR = 1
 game = {}
 player = {}
 file = {}
@@ -20,10 +20,6 @@ TTT2 = {}
 MASK_SHOT = 0 -- some number, not literally 0.
 
 MOVETYPE_LADDER = 9 --- https://wiki.facepunch.com/gmod/Enums/MOVETYPE
-
-ROLE_INNOCENT = 0 -- not actual value
-ROLE_TRAITOR = 0 -- not actual value
-ROLE_DETECTIVE = 0 -- not actual value
 
 IN_ATTACK = 1 --- https://wiki.facepunch.com/gmod/Enums/IN
 IN_JUMP = 2 --- https://wiki.facepunch.com/gmod/Enums/IN
@@ -68,18 +64,6 @@ IN_USE = 32768 --- https://wiki.facepunch.com/gmod/Enums/IN
 ---@class Weapon : Entity
 ---@field CanBuy table The roles that can buy this weapon, indexed by ROLE_ globals
 ---@field AutoSpawnable boolean Whether this weapon can be spawned by the game.
----@field Kind number The kind of weapon this is.
----@field AmmoEnt string The ammo entity class for this weapon.
----@field IsSilent boolean Whether this weapon is silent.
----@field AllowDrop boolean Whether this weapon can be dropped.
----@field Primary table? The primary attack table.
----@field Clip1 fun(self: Weapon): number The current ammo in the primary clip.
----@field GetMaxClip1 fun(self: Weapon): number The maximum ammo in the primary clip.
----@field Clip2 fun(self: Weapon): number The current ammo in the secondary clip.
----@field GetMaxClip2 fun(self: Weapon): number The maximum ammo in the secondary clip.
----@field GetPrimaryAmmoType fun(self: Weapon): number The primary ammo type.
----@field GetHoldType fun(self: Weapon): string The hold type of the weapon.
----@field GetPrintName fun(self: Weapon): string The print name of the weapon.
 
 ---@class Player : Entity
 ---@field GetRoleStringRaw fun(self: Entity): string

@@ -28,7 +28,6 @@ function BotInventory:Initialize(bot)
     self.componentID = string.format("inventory (%s)", lib.GenerateID()) -- Component ID, used for debugging
 
     self.tick = 0
-    self.disabled = false
 
     self.bot = bot
 end
@@ -62,7 +61,6 @@ end
 ---@field is_sniper boolean If the weapon is a sniper
 ---@field is_shotgun boolean If the weapon is a shotgun
 ---@field is_melee boolean If the weapon is a shotgun
----@field timestamp number The CurTime() when this info was last updated
 
 --- A hash table for the ammo_type field in an info table. See https://wiki.facepunch.com/gmod/Default_Ammo_Types
 local ammoTypes = {
@@ -105,31 +103,14 @@ local ammoTypes = {
     [37] = { name = "combineheavycannon", description = "the \"combine autogun\" ammo from half-life 2: episode 2" }
 }
 
-BotInventory.wInfoCache = {} ---@type table<Weapon, WeaponInfo>
-BotInventory.wInfoCacheTime = 1 --- Number of seconds before a cached weapon info is invalidated.
 
----Validate the cache for the weapon. Also returns the WeaponInfo if it's valid, otherwise nil.
----@param wep Weapon
----@return WeaponInfo?
-local function cacheValidate(wep)
-    local timeNow = CurTime()
-    local cache = BotInventory.wInfoCache[wep]
-    if not cache then return nil end
 
-    if timeNow - cache.timestamp > BotInventory.wInfoCacheTime then
-        BotInventory.wInfoCache[wep] = nil
-        return nil
-    end
-end
-
+---TODO: Cache me!
 ---Returns the WeaponInfo table of the given entity
 ---@param wep Weapon
 ---@return WeaponInfo
 function BotInventory:GetWeaponInfo(wep)
-    assert(wep and wep ~= NULL and IsValid(wep), "GetWeaponInfo: wep is not valid")
-
-    local cache = cacheValidate(wep)
-    if cache then return cache end
+    if wep == nil or wep == NULL or not IsValid(wep) then return end
 
     local info = {
         __tostring = function(obj) return BotInventory:GetWepInfoText(obj) end
@@ -206,20 +187,14 @@ function BotInventory:GetWeaponInfo(wep)
     info.is_melee = info.clip == -1
 
     info.damage = wep.Primary and wep.Primary.Damage or 1
-    local rps = wep.Primary and (1 / (wep.Primary.Delay or 1)) or 1
-    info.rpm = math.ceil(rps * 60) or 1
+    info.rpm = math.ceil(wep.Primary and (1 / (wep.Primary.Delay or 1)) * 60) or 1
     info.numshots = wep.Primary and wep.Primary.NumShots or 1
-    info.dps = math.ceil(info.damage * info.numshots * rps) or 1
+    info.dps = math.ceil(info.damage * info.numshots * info.rpm * (1 / 60)) or 1
     info.time_to_kill = (math.ceil((100 / info.dps) * 100) / 100) or 1
 
     info.is_automatic = (wep.Primary and wep.Primary.Automatic) or false
     -- we can infer if this is a sniper based off of the damage and if it's automatic
     info.is_sniper = (info.damage and info.damage > 40 and not info.is_automatic) or false
-
-    info.timestamp = CurTime()
-
-    -- Place this wep/info into the cache.
-    BotInventory.wInfoCache[wep] = info
 
     return info
 end
@@ -308,10 +283,9 @@ function BotInventory:AutoManageInventory()
         return
     end
 
-    local w_special = self:GetSpecialPrimary()
-    local special = w_special and self:GetWeaponInfo(w_special) or nil
-    local primary = self:GetPrimary()
-    local secondary = self:GetSecondary()
+    local special = self:GetWeaponInfo(self:GetSpecialPrimary())
+    local primary = self:GetWeaponInfo(self:GetPrimary())
+    local secondary = self:GetWeaponInfo(self:GetSecondary())
 
     -- local isAttacking = self.bot.attackTarget ~= nil
 
@@ -420,18 +394,18 @@ end
 
 ---Returns the weapon info table for the weapon we are holding, or what the target is holding if any.
 ---@param target Player|nil
----@return WeaponInfo?
+---@return WeaponInfo
 function BotInventory:GetHeldWeaponInfo(target)
     if not target then
         return self:GetWeaponInfo(self.bot:GetActiveWeapon())
     end
 
     local wep = target:GetActiveWeapon()
-    if not IsValid(wep) then return nil end
+    if not IsValid(wep) then return end
     return self:GetWeaponInfo(wep)
 end
 
----@return WeaponInfo?
+---@return WeaponInfo
 function BotInventory:GetPrimary()
     -- info.slot == "primary"
     local weapons = self.bot:GetWeapons()
@@ -441,11 +415,9 @@ function BotInventory:GetPrimary()
             return wep
         end
     end
-
-    return nil
 end
 
----@return WeaponInfo?
+---@return WeaponInfo
 function BotInventory:GetSecondary()
     -- info.slot == "secondary"
     local weapons = self.bot:GetWeapons()
@@ -455,11 +427,9 @@ function BotInventory:GetSecondary()
             return wep
         end
     end
-
-    return nil
 end
 
----@return WeaponInfo?
+---@return WeaponInfo
 function BotInventory:GetCrowbar()
     -- info.slot == "melee"
     local weapons = self.bot:GetWeapons()
@@ -469,11 +439,9 @@ function BotInventory:GetCrowbar()
             return wep
         end
     end
-
-    return nil
 end
 
----@return WeaponInfo?
+---@return WeaponInfo
 function BotInventory:GetGrenade()
     -- info.slot == "grenade"
     local weapons = self.bot:GetWeapons()
@@ -483,11 +451,9 @@ function BotInventory:GetGrenade()
             return wep
         end
     end
-
-    return nil
 end
 
----@return WeaponInfo?
+---@return WeaponInfo
 function BotInventory:GetWeaponByName(name)
     local weapons = self.bot:GetWeapons()
     for _, wep in pairs(weapons) do
@@ -496,8 +462,6 @@ function BotInventory:GetWeaponByName(name)
             return wep
         end
     end
-
-    return nil
 end
 
 --- Gets the debug/stylized text for the given weapon info. Used to check the ammo and weapon type.
@@ -606,9 +570,7 @@ end
 
 ---@class Player
 local plyMeta = FindMetaTable("Player")
-
 ---@return CInventory
 function plyMeta:BotInventory()
-    ---@cast self Bot
-    return self.components.inventory
+    return TTTBots.Lib.GetComp(self, "inventory")
 end
