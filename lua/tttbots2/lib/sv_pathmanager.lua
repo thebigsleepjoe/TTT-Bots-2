@@ -796,9 +796,6 @@ function TTTBots.PathManager.PathPostProcess(path)
     local points = {}
     local climbDir = nil
 
-    -- This is an absolute scope pyramid and an abomination to the codebase.
-    -- Too bad!
-
     for i, navArea in ipairs(path) do
         local isLadder = navArea:IsLadder()
         local isLast = i == #path
@@ -857,11 +854,10 @@ function TTTBots.PathManager.PathPostProcess(path)
                     continue
                 end
 
-                if not lastIsLadder and lastNavArea then
+                if not lastIsLadder then
                     -- Get the padded connecting edge from last to current. Does not apply if last is small
-                    local closestLast = nil
                     if not lastIsSmall then
-                        closestLast = lastNavArea:GetClosestPaddedPoint(navArea)
+                        local closestLast = lastNavArea:GetClosestPaddedPoint(navArea)
                         addPointToPoints(points, closestLast, navArea, lastNavArea, nil)
                     end
 
@@ -870,7 +866,6 @@ function TTTBots.PathManager.PathPostProcess(path)
                         closestLast or lastNavArea:GetCenter())
                     addPointToPoints(points, closestUsToLast, navArea, lastNavArea, nil)
                 end
-
                 if not nextIsLadder then
                     -- Get the padded connecting edge from current to next
                     local closestNext = navArea:GetClosestPaddedPoint(nextNavArea)
