@@ -217,5 +217,3 @@ function math.Round(n) return 0 end
 ---@param tb2 table
 ---@return table
 function table.Add(tb1, tb2) return {} end
-
-function IsValid(v) return v ~= nil end

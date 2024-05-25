@@ -183,8 +183,8 @@ function BotChatter:On(event_name, args, teamOnly)
     if not self:CanSayEvent(event_name) then return false end
 
     if event_name == "CallKOS" then
-        local target = args and args.playerEnt
-        if target and IsValid(target) then
+        local target = args.playerEnt
+        if IsValid(target) then
             if (target.lastKOSTime or 0) + 5 > CurTime() then return false end
             target.lastKOSTime = CurTime()
         end
@@ -216,7 +216,7 @@ function BotChatter:On(event_name, args, teamOnly)
     if localizedString then
         if isCasual then localizedString = string.lower(localizedString) end
         self:Say(localizedString, teamOnly, false, function()
-            if event_name == "CallKOS" and args then
+            if event_name == "CallKOS" then
                 self:QuickRadio("quick_traitor", args.playerEnt)
             end
         end)
@@ -288,10 +288,9 @@ timer.Create("TTTBots.Chatter.SillyChat", 20, 0, function()
     chatter:On(eventName, { player = randomPlayer:Nick() })
 end)
 
----@class Player
+---@class Bot : Player
 local plyMeta = FindMetaTable("Player")
 function plyMeta:BotChatter()
-    ---@cast self Bot
-    local comp = self.components.chatter
+    local comp = lib.GetComp(self, "chatter") ---@cast comp CChatter
     return comp
 end
