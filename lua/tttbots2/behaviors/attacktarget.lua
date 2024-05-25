@@ -378,7 +378,7 @@ function Attack.LookingCloseToTarget(bot, target)
 end
 
 --- Determine what mode of attack (attackMode) we are in.
----@param bot Bot
+---@param bot Player
 ---@return ATTACKMODE mode
 function Attack.RunningAttackLogic(bot)
     ---@type CMemory
