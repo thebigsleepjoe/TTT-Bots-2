@@ -96,8 +96,3 @@ function string.EndsWith(str, ending) return false end
 ---Get the current epoch time.
 ---@return number
 function SysTime() return 0 end
-
---- Run a console command
----@param str string
----@param args string
-function RunConsoleCommand(str, args) end
