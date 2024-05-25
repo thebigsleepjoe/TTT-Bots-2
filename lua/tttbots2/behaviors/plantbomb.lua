@@ -126,7 +126,7 @@ function PlantBomb.OnRunning(bot)
     if not spot then return STATUS.FAILURE end
 
     local distToSpot = bot:GetPos():Distance(spot)
-    local locomotor = bot:BotLocomotor()
+    local locomotor = lib.GetComp(bot, "locomotor") ---@type CLocomotor
     locomotor:SetGoal(spot)
 
     if locomotor.status == locomotor.PATH_STATUSES.IMPOSSIBLE then
@@ -181,7 +181,7 @@ function PlantBomb.ArmNearbyBomb(bot)
 
     if closestBomb and closestDist < PlantBomb.PLANT_RANGE then
         closestBomb:Arm(bot, 45)
-        local chatter = bot:BotChatter()
+        local chatter = lib.GetComp(bot, "chatter") ---@type CChatter
         chatter:On("BombArmed", {}, true)
         return true
     end
@@ -192,7 +192,7 @@ end
 --- Called when the behavior ends
 function PlantBomb.OnEnd(bot)
     bot.bombPlantSpot = nil
-    local locomotor = bot:BotLocomotor()
+    local locomotor = lib.GetComp(bot, "locomotor") ---@type CLocomotor
     local inventory = lib.GetComp(bot, "inventory") ---@type CInventory
     inventory:ResumeAutoSwitch()
     locomotor:StopAttack()

@@ -36,7 +36,7 @@ function Wander.OnRunning(bot)
     if hasExpired then return STATUS.SUCCESS end
 
     local wanderPos = bot.wander.targetPos
-    local loco = bot:BotLocomotor()
+    local loco = lib.GetComp(bot, "locomotor") ---@type CLocomotor
     loco:SetGoal(wanderPos)
 
     if loco:IsCloseEnough(wanderPos) then
@@ -141,7 +141,7 @@ end
 ---@return boolean foundSpot
 ---@return Vector? pos pos or nil if we didn't find a spot
 function Wander.FindSpotFor(bot)
-    local personality = bot:BotPersonality()
+    local personality = lib.GetComp(bot, "personality") ---@type CPersonality
     if not personality then return false, nil end
 
     local randomChance = math.random(1, 10) == 1
@@ -171,7 +171,7 @@ function Wander.UpdateWanderGoal(bot)
     local targetArea
     local targetPos
     local isSpot = false
-    local personality = bot:BotPersonality()
+    local personality = lib.GetComp(bot, "personality") ---@type CPersonality
     if not personality then return end
 
     ---------------------------------------------

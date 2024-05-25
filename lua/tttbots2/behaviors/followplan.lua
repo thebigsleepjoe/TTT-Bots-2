@@ -263,7 +263,7 @@ hook.Add("PlayerSay", "TTTBots_FollowPlan_PlayerSay", function(sender, text, tea
 
     local bot = TTTBots.Lib.GetClosest(TTTBots.Lib.GetAliveAllies(sender), sender:GetPos())
     if not (bot) then return end
-    local chatter = bot:BotChatter()
+    local chatter = lib.GetComp(bot, "chatter") ---@type CChatter
     if not (chatter) then return end
 
     local newJob = {

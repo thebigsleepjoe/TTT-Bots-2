@@ -14,7 +14,7 @@ local STATUS = TTTBots.STATUS
 ---@param bot Bot
 ---@return boolean
 function Follow.IsFollowerPersonality(bot)
-    local personality = bot:BotPersonality()
+    local personality = lib.GetComp(bot, "personality") ---@type CPersonality
     if not personality then return false end
 
     local hasTrait = personality:GetTraitBool("follower") or personality:GetTraitBool("followerAlways")
@@ -37,7 +37,7 @@ function Follow.GetFollowChance(bot)
     local debugging = false
     local chance = BASE_CHANCE * (Follow.IsFollowerPersonality(bot) and 2 or 1) * (Follow.IsFollowerRole(bot) and 2 or 1)
 
-    local personality = bot:BotPersonality()
+    local personality = lib.GetComp(bot, "personality") ---@type CPersonality
     if not personality then return chance end
     local alwaysFollows = personality:GetTraitBool("followerAlways")
 
@@ -126,7 +126,7 @@ function Follow.OnStart(bot)
     if not bot.followTarget then return STATUS.FAILURE end -- IDK how this happens but it just does.
     bot.followEndTime = CurTime() + math.random(12, 24)
 
-    local chatter = bot:BotChatter()
+    local chatter = lib.GetComp(bot, "chatter") ---@type CChatter
     chatter:On("FollowStarted", { player = bot.followTarget:Nick() })
 
     return STATUS.RUNNING
