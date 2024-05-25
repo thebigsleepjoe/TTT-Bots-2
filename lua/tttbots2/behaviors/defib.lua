@@ -15,7 +15,7 @@ Defib.Description = "Use the defibrillator on a corpse."
 Defib.Interruptible = true
 Defib.WeaponClasses = { "weapon_ttt_defibrillator" }
 
----@type BStatus
+---@enum BStatus
 local STATUS = {
     RUNNING = 1,
     SUCCESS = 2,

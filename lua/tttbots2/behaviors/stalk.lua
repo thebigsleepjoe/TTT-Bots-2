@@ -11,7 +11,7 @@ Stalk.Name = "Stalk"
 Stalk.Description = "Stalk a player (or random player) and ultimately kill them."
 Stalk.Interruptible = true
 
----@type BStatus
+---@enum BStatus
 local STATUS = {
     RUNNING = 1,
     SUCCESS = 2,
