@@ -1,16 +1,8 @@
-------------------------------------
 --- @meta
 --- This file exists to provide custom typing/linting for the addon. It
 --- has no inherent functionality and is NEVER(!) executed by the game.
 --- This mod uses LuaLS annotations.
---- -tbsj
-------------------------------------
-
-
-------------------------------------
--- Global fields and enums
--- Reminder: this code is NEVER run, and never should be. It's just for typing.
-------------------------------------
+--- tbsj
 
 ROLE_TRAITOR = 1
 game = {}
@@ -18,23 +10,6 @@ player = {}
 file = {}
 TTT2 = {}
 MASK_SHOT = 0 -- some number, not literally 0.
-
-MOVETYPE_LADDER = 9 --- https://wiki.facepunch.com/gmod/Enums/MOVETYPE
-
-IN_ATTACK = 1 --- https://wiki.facepunch.com/gmod/Enums/IN
-IN_JUMP = 2 --- https://wiki.facepunch.com/gmod/Enums/IN
-IN_DUCK = 4 --- https://wiki.facepunch.com/gmod/Enums/IN
-IN_FORWARD = 8 --- https://wiki.facepunch.com/gmod/Enums/IN
-IN_MOVELEFT = 512 --- https://wiki.facepunch.com/gmod/Enums/IN
-IN_MOVERIGHT = 1024 --- https://wiki.facepunch.com/gmod/Enums/IN
-IN_ATTACK2 = 2048 --- https://wiki.facepunch.com/gmod/Enums/IN
-IN_RUN = 4096 --- https://wiki.facepunch.com/gmod/Enums/IN
-IN_RELOAD = 8192 --- https://wiki.facepunch.com/gmod/Enums/IN
-IN_USE = 32768 --- https://wiki.facepunch.com/gmod/Enums/IN
-
-------------------------------------
--- Class definitions
-------------------------------------
 
 ---@class Components : table
 ---@field locomotor CLocomotor
@@ -87,21 +62,8 @@ IN_USE = 32768 --- https://wiki.facepunch.com/gmod/Enums/IN
 ---@field GetCenter fun(self: CNavArea): Vector Get the center of the area.
 
 ---@class CNavLadder
----@field GetTop fun(self: CNavLadder): Vector Get the top of the ladder.
----@field GetBottom fun(self: CNavLadder): Vector Get the bottom of the ladder.
-
----@class StuckBot
----@field ply Bot The bot that is stuck.
----@field stuckTime number The timestamp the bot got stuck.
----@field stuckPos Vector The position the bot got stuck at.
-
----@class CommonStuckPosition
----@field center Vector The center of the stuck spot.
----@field timeLost number How many man-seconds have been lost here.
----@field cnavarea CNavArea The nav area the stuck spot is in.
 
 ------------------------------------
--- Global functions
 -- Reminder: this code is NEVER run, and never should be. It's just for typing.
 ------------------------------------
 
@@ -140,27 +102,3 @@ function SysTime() return 0 end
 ---@param str string
 ---@param args string
 function RunConsoleCommand(str, args) end
-
----Angle difference function.
----@param a number
----@param b number
----@return number angle
-function math.AngleDifference(a, b) return 0 end
-
----Get the current frame time.
----@return number
-function FrameTime() return 0 end
-
----Clamp a value between two numbers.
----@param val number
----@param min number
----@param max number
----@return number
-function math.Clamp(val, min, max) return 0 end
-
----Lerp from one vec to another.
----@param frac number
----@param from Vector
----@param to Vector
----@return Vector
-function LerpVector(frac, from, to) return Vector(0, 0, 0) end
