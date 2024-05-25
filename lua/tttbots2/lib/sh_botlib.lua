@@ -118,7 +118,7 @@ timer.Create("ClearIsolationCache", 2, 0, function()
 end)
 ---Give a weight to how isolated 'other' is to us. This is used to determine who to Sidekick.
 ---A higher isolation means the player is more isolated, and thus a better target for Sidekicking.
----@param bot Bot
+---@param bot Player
 ---@param other Player
 ---@return number
 ---@realm server
@@ -134,7 +134,7 @@ function TTTBots.Lib.RateIsolation(bot, other)
 end
 
 ---Find the best target to Sidekick, and return it. This is a pretty expensive function, so don't call it too often.
----@param bot Bot
+---@param bot Player
 ---@return Player?
 ---@return number
 ---@realm server
@@ -155,7 +155,7 @@ function TTTBots.Lib.FindIsolatedTarget(bot)
 end
 
 ---Returns a table of living bots, according to the IsPlayerAlive cache.
----@return table<Bot>
+---@return table<Player>
 ---@realm shared
 function TTTBots.Lib.GetAliveBots()
     local alive = {}
@@ -255,8 +255,8 @@ function TTTBots.Lib.CallEveryNTicks(bot, callback, N)
 end
 
 --- An expensive visibility function that checks if ply1 can see ply2's feet, eyes, or hitbox center
----@param ply1 Player
----@param ply2 Player
+---@param ply1 Player1
+---@param ply2 Player2
 ---@return boolean canSee
 ---@realm shared
 function TTTBots.Lib.CanSee(ply1, ply2)
@@ -313,7 +313,6 @@ end
 function TTTBots.Lib.GetAllWitnessesBasic(pos, playerTbl, ignorePly)
     local RANGE = TTTBots.Lib.BASIC_VIS_RANGE
     local witnesses = {}
-    playerTbl = playerTbl or TTTBots.Lib.GetAlivePlayers()
     for i, ply in pairs(playerTbl) do
         if ply == NULL or not IsValid(ply) then continue end
         if ply:GetPos():Distance(pos) <= RANGE then
@@ -911,7 +910,7 @@ function TTTBots.Lib.GetRevivableCorpses()
 end
 
 ---Get the first closest revivable corpse to the given bot. If filterAlly d: true) then it will only return corpses of the same team. Else nil.
----@param bot Bot
+---@param bot Player
 ---@param filterAlly? boolean
 ---@return Player? player
 ---@return any? ragdoll
@@ -1071,7 +1070,7 @@ function TTTBots.Lib.VoluntaryDisconnect(bot, reason)
 end
 
 --- return the component 'type' of the bot, or nil if doesn't have one
----@param bot Bot
+---@param bot Player
 ---@param type string
 ---@return any Component
 ---@realm server
@@ -1086,9 +1085,9 @@ function TTTBots.Lib.WepClassExists(classname)
     return weapons.Get(classname) ~= nil
 end
 
---- Functionally the same as navmesh.GetNavArea(pos), but includes ladder areas. Might return nil if there is no navmesh.
+--- Functionally the same as navmesh.GetNavArea(pos), but includes ladder areas.
 ---@param pos any Vector
----@return CNavArea|CNavLadder|nil nav: CNavArea CNavLadder
+---@return CNavArea|CNavLadder nav: CNavArea CNavLadder
 ---@realm server
 function TTTBots.Lib.GetNearestNavArea(pos)
     local closestCNavArea = navmesh.GetNearestNavArea(pos)
@@ -1121,8 +1120,6 @@ function TTTBots.Lib.GetNearestNavArea(pos)
     if #navmesh.GetAllNavAreas() == 0 then
         error("This map is not supported by TTT Bots, it needs a navigational mesh.")
     end
-
-    return nil
 end
 
 --- Deep copy a table and return a new replica.
