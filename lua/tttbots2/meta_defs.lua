@@ -190,8 +190,3 @@ function table.RemoveByValue(haystack, needle) end
 ---@param tbl table
 ---@return table
 function table.Copy(tbl) return {} end
-
----Rounds the number to the nearest integer.
----@param n number
----@return integer
-function math.Round(n) return 0 end
