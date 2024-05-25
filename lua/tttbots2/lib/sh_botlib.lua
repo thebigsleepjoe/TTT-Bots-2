@@ -985,7 +985,7 @@ end
 ---@param entities table
 ---@param pos any Vector
 ---@param extraCallback function|nil Optional, a function that takes an entity and returns true/false
----@return Entity|Player|nil Entity the entity, else nill
+---@return Entity|nil Entity the entity, else nill
 ---@return number ClosestDist
 ---@realm shared
 function TTTBots.Lib.GetClosest(entities, pos, extraCallback)

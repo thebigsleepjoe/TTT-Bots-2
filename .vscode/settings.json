@@ -40,7 +40,6 @@
         "CLIENT",
         "engine",
         "resource",
-        "ErrorNoHaltWithStack",
-        "NULL"
+        "ErrorNoHaltWithStack"
     ],
 }

@@ -31,7 +31,6 @@
 ---@field lastBarrel Entity? The last explosive barrel we detected in our search.
 ---@field attackFocus number The focus of the bot's attack. Dictates accuracy, decreases with time.
 ---@field components Components The components of the bot.
----@field redHandedTime number The time the bot was last seen committing a crime.
 
 ------------------------------------
 -- Reminder: this code is NEVER run, and never should be. It's just for typing.
