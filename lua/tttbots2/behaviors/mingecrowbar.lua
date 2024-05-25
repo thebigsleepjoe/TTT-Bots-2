@@ -13,8 +13,12 @@ MingeCrowbar.Interruptible = true
 MingeCrowbar.MinTimeBetween = 60.0
 MingeCrowbar.SkipChance = 3 -- 1 in X change of skipping even if cooldown
 
-
-local STATUS = TTTBots.STATUS
+---@enum BStatus
+local STATUS = {
+    RUNNING = 1,
+    SUCCESS = 2,
+    FAILURE = 3,
+}
 
 function MingeCrowbar.IsMinging(bot)
     return bot.isCBMinging
@@ -60,7 +64,7 @@ end
 
 --- Validate the behavior before we can start it (or continue running)
 --- Returning false when the behavior was just running will still call OnEnd.
----@param bot Bot
+---@param bot Player
 ---@return boolean
 function MingeCrowbar.Validate(bot)
     local mc = MingeCrowbar
@@ -71,7 +75,7 @@ function MingeCrowbar.Validate(bot)
 end
 
 --- Called when the behavior is started. Useful for instantiating one-time variables per cycle. Return STATUS.RUNNING to continue running.
----@param bot Bot
+---@param bot Player
 ---@return BStatus
 function MingeCrowbar.OnStart(bot)
     bot.isCBMinging = true
@@ -82,7 +86,7 @@ function MingeCrowbar.OnStart(bot)
 end
 
 --- Called when OnStart or OnRunning returns STATUS.RUNNING. Return STATUS.RUNNING to continue running.
----@param bot Bot
+---@param bot Player
 ---@return BStatus
 function MingeCrowbar.OnRunning(bot)
     local loco = bot:BotLocomotor() ---@type CLocomotor
@@ -101,17 +105,17 @@ function MingeCrowbar.OnRunning(bot)
 end
 
 --- Called when the behavior returns a success state. Only called on success, however.
----@param bot Bot
+---@param bot Player
 function MingeCrowbar.OnSuccess(bot)
 end
 
 --- Called when the behavior returns a failure state. Only called on failure, however.
----@param bot Bot
+---@param bot Player
 function MingeCrowbar.OnFailure(bot)
 end
 
 --- Called when the behavior succeeds or fails. Useful for cleanup, as it is always called once the behavior is a) interrupted, or b) returns a success or failure state.
----@param bot Bot
+---@param bot Player
 function MingeCrowbar.OnEnd(bot)
     bot.isCBMinging = false
     bot.mingeStopTime = nil

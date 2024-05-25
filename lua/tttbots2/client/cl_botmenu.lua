@@ -26,7 +26,6 @@ local function getParsedNames()
     local str = GetConVar("ttt_bot_names_custom"):GetString()
 
     -- This is basically a csv
-    ---@diagnostic disable-next-line: undefined-field This is a valid field in GLua
     local names = string.Split(str, ",")
     return names
 end
@@ -39,7 +38,6 @@ local function addNameToNames(str)
 
     local filtered = {}
     for i, v in pairs(parsed) do
-        ---@diagnostic disable-next-line: undefined-field This is a valid field in GLua
         parsed[i] = string.Trim(v)
         if parsed[i] == "" then continue end
         table.insert(filtered, parsed[i])

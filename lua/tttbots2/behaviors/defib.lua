@@ -15,8 +15,12 @@ Defib.Description = "Use the defibrillator on a corpse."
 Defib.Interruptible = true
 Defib.WeaponClasses = { "weapon_ttt_defibrillator" }
 
-
-local STATUS = TTTBots.STATUS
+---@enum BStatus
+local STATUS = {
+    RUNNING = 1,
+    SUCCESS = 2,
+    FAILURE = 3,
+}
 
 local function printf(...) print(string.format(...)) end
 
@@ -44,9 +48,6 @@ function Defib.HasDefib(bot)
     return false
 end
 
----Get the defib weapon, if the bot has one.
----@param bot Bot
----@return Weapon?
 function Defib.GetDefib(bot)
     for i, class in pairs(Defib.WeaponClasses) do
         local wep = bot:GetWeapon(class)
@@ -57,7 +58,7 @@ end
 local function failFunc(bot, target)
     target.reviveCooldown = CurTime() + 30
     local defib = Defib.GetDefib(bot)
-    if not (defib and IsValid(defib)) then return end
+    if not IsValid(defib) then return end
 
     defib:StopSound("hum")
     defib:PlaySound("beep")
@@ -65,25 +66,25 @@ end
 
 local function startFunc(bot)
     local defib = Defib.GetDefib(bot)
-    if not (defib and IsValid(defib)) then return end
+    if not IsValid(defib) then return end
 
     defib:PlaySound("hum")
 end
 
 local function successFunc(bot)
     local defib = Defib.GetDefib(bot)
-    if not (defib and IsValid(defib)) then return end
+    if not IsValid(defib) then return end
 
     defib:StopSound("hum")
     defib:PlaySound("zap")
 
     timer.Simple(1, function()
-        if not (defib and IsValid(defib)) then return end
+        if not IsValid(defib) then return end
         defib:Remove()
     end)
 end
 ---Revives a player from the dead, assuming the target is alive
----@param bot Bot
+---@param bot Player
 ---@param target Player
 function Defib.FullDefib(bot, target)
     target:Revive(
@@ -146,12 +147,7 @@ function Defib.GetSpinePos(rag)
     return default
 end
 
----@class Bot
----@field defibTarget Player? The PLAYER of the defibRag we found
----@field defibRag Entity? The ragdoll we found to defib
----@field defibStartTime number? When we started defibbing our defibTarget
-
----@param bot Bot
+---@param bot Player
 function Defib.OnRunning(bot)
     local inventory, loco = bot:BotInventory(), bot:BotLocomotor()
     if not (inventory and loco) then return STATUS.FAILURE end
@@ -159,7 +155,6 @@ function Defib.OnRunning(bot)
     local defib = Defib.GetDefib(bot)
     local target = bot.defibTarget
     local rag = bot.defibRag
-    if not (target and rag and defib) then return STATUS.FAILURE end
     if not (IsValid(target) and IsValid(rag) and IsValid(defib)) then return STATUS.FAILURE end
     local ragPos = Defib.GetSpinePos(rag)
 
@@ -203,7 +198,7 @@ function Defib.OnFailure(bot)
 end
 
 --- Called when the behavior succeeds or fails. Useful for cleanup, as it is always called once the behavior is a) interrupted, or b) returns a success or failure state.
----@param bot Bot
+---@param bot Player
 function Defib.OnEnd(bot)
     bot.defibTarget, bot.defibRag = nil, nil
     bot.defibStartTime = nil

@@ -1,19 +1,11 @@
 TTTBots.Behaviors = {}
 
----@enum BStatus
-TTTBots.STATUS = {
-    RUNNING = 1,
-    SUCCESS = 2,
-    FAILURE = 3,
-}
-
 TTTBots.Lib.IncludeDirectory("tttbots2/behaviors")
 
 
 TEAM_TRAITOR = TEAM_TRAITOR or "traitors"
 TEAM_INNOCENT = TEAM_INNOCENT or "innocents"
 TEAM_NONE = TEAM_NONE or "none"
-
 
 local _bh = TTTBots.Behaviors
 
@@ -85,7 +77,11 @@ TTTBots.Behaviors.DefaultTreesByTeam = {
     [TEAM_NONE] = TTTBots.Behaviors.DefaultTrees.innocent,
 }
 
-local STATUS = TTTBots.STATUS
+local STATUS = {
+    RUNNING = 1,
+    SUCCESS = 2,
+    FAILURE = 3,
+}
 
 --- Returns the highest priority tree that has a callback which returned true on this bot.
 ---@param ply Player
@@ -95,7 +91,7 @@ end
 
 --- Return the first behavior in the given tree that is valid for the given bot. If none, then returns false.
 ---@param tree table<BBase>
----@param bot Bot
+---@param bot Player
 ---@return BBase|false
 function TTTBots.Behaviors.GetFirstValid(tree, bot)
     for _, behavior in ipairs(tree) do

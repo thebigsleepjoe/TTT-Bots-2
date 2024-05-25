@@ -14,14 +14,15 @@ Defuse.DEFUSE_WIN_CHANCE = 3   --- 1 in X chance of a successful defuse
 Defuse.DEFUSE_TRY_CHANCE = 30  --- 1 in X chance of attempting to defuse (per tick) if other conditions not met
 Defuse.DEFUSE_TIME_DELAY = 1.5 --- Seconds to wait before defusing (when within range!)
 
-local STATUS = TTTBots.STATUS
-
----@class Bot
----@field lastDefuseTime number The last time the bot attempted to defuse a bomb
+local STATUS = {
+    RUNNING = 1,
+    SUCCESS = 2,
+    FAILURE = 3,
+}
 
 
 ---Returns true if a bot is able to defuse C4 per their role data.
----@param bot Bot
+---@param bot Player
 ---@return boolean
 function Defuse.IsBotEligableRole(bot)
     local role = TTTBots.Roles.GetRoleFor(bot) ---@type RoleData
@@ -30,13 +31,13 @@ function Defuse.IsBotEligableRole(bot)
 end
 
 ---Return whether or not a bot is elligible to defuse a C4 (does not factor in if there is one nearby)
----@param bot Bot
+---@param bot Player
 ---@return boolean
 function Defuse.IsEligible(bot)
     if not lib.IsPlayerAlive(bot) then return false end
     if not Defuse.IsBotEligableRole(bot) then return false end
 
-    local personality = bot:BotPersonality()
+    local personality = lib.GetComp(bot, "personality") ---@type CPersonality
     if not personality then return false end
 
     local isDefuser = personality:GetTraitBool("defuser")
@@ -52,7 +53,7 @@ function Defuse.IsEligible(bot)
 end
 
 ---Returns the first visible C4 that has been spotted
----@param bot Bot
+---@param bot Player
 ---@return Entity|nil C4
 function Defuse.GetVisibleC4(bot)
     local allC4 = TTTBots.Match.AllArmedC4s
@@ -80,7 +81,7 @@ end
 function Defuse.OnStart(bot)
     bot.defuseTarget = Defuse.GetVisibleC4(bot)
 
-    local chatter = bot:BotChatter()
+    local chatter = lib.GetComp(bot, "chatter") ---@type CChatter
     if not chatter then return end
     chatter:On("DefusingC4")
 end
@@ -101,8 +102,8 @@ function Defuse.GetTimeUntilExplode(c4)
 end
 
 ---Wrapper function to defuse a C4; called internally by Defuse.TryDefuse
----@param bot Bot
----@param c4 C4
+---@param bot Player
+---@param c4 Entity
 ---@param isSuccess boolean If true then actually defuses, otherwise KABOOM!
 function Defuse.DefuseC4(bot, c4, isSuccess)
     if (bot.lastDefuseTime or 0) + Defuse.DEFUSE_TIME_DELAY > CurTime() then return end
@@ -113,7 +114,7 @@ function Defuse.DefuseC4(bot, c4, isSuccess)
         if isSuccess then
             c4:Disarm(bot)
 
-            local chatter = bot:BotChatter()
+            local chatter = lib.GetComp(bot, "chatter") ---@type CChatter
             if not chatter then return end
             chatter:On("DefusingSuccessful")
             Defuse.DestroyC4(c4)
@@ -167,7 +168,7 @@ function Defuse.OnRunning(bot)
         return STATUS.SUCCESS
     end
 
-    local locomotor = bot:BotLocomotor()
+    local locomotor = lib.GetComp(bot, "locomotor") ---@type CLocomotor
     if not locomotor then return STATUS.FAILURE end
 
     local bombPos = bomb:GetPos()

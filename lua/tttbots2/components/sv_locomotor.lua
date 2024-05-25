@@ -1,11 +1,11 @@
 --[[
 This component is how the bot gets to something. It does not create the paths, it just follows them.
 ]]
----@class CLocomotor : Component
+---@class CLocomotor : CBase
 TTTBots.Components.Locomotor = {}
 
 local lib = TTTBots.Lib
----@class CLocomotor : Component
+---@class CLocomotor : CBase
 local BotLocomotor = TTTBots.Components.Locomotor
 
 -- Define constants
@@ -78,14 +78,9 @@ function BotLocomotor:Initialize(bot)
     self.strafeTimeout = 0            -- The next tick our strafe will time out on, which is when it will be set to nil.
     self.forceForward = false         -- If true, then the bot will always move forward
 
-    self.stopLookingAround = false    -- If true, then the bot will stop looking around
-
     self.crouch = false
     self.jump = false
     self.dontmove = false
-
-    self.doorStandPos = nil
-    self.targetDoor = nil
 
     self.GetClimbDir, self.SetClimbDir = getSet("ClimbDir", "none")
     self.GetDismount, self.SetDismount = getSet("Dismount", true)
@@ -136,7 +131,7 @@ end
 
 --- Functionally assigns movePriorityVec to the given vector, if not within a certain range
 ---@param vec Vector
----@param range number? defaults to 32
+---@param range number defaults to 32
 function BotLocomotor:SetPriorityGoal(vec, range)
     if not vec then return end
     range = range or 32
@@ -915,13 +910,12 @@ BotLocomotor.PATH_STATUSES = {
     READY = "path_ready",
 }
 
---- Represents a request for a path.
 ---@class PathRequest
----@field pathInfo PathInfo The information about the path being requested.
----@field pathid number The ID of the path.
----@field processedPath table<PathNode> The processed path nodes.
----@field pathIndex number The current index in the path.
----@field owner Player The owner of the path request.
+---@field pathInfo PathInfo
+---@field pathid number
+---@field processedPath table<PathNode>
+---@field pathIndex number
+---@field owner Player
 
 ---@class PathNode
 ---@field area CNavArea|CNavLadder
@@ -933,7 +927,6 @@ BotLocomotor.PATH_STATUSES = {
 ---@field TimeSince function A callback that returns the time since the path was generated
 ---@field generatedAt number The timestamp the path was generated at
 ---@field path table<CNavArea|CNavLadder> The raw path itself
----@field processedPath table<PathNode> The processed path, with additional information
 
 
 --- Update the path. Requests a path from our current position to our goal position. Internal function.
@@ -949,10 +942,6 @@ function BotLocomotor:UpdatePathRequest()
     if not lib.IsPlayerAlive(self.bot) then return STAT.BOTDEAD end
 
     local pathRequest = self:GetPathRequest()
-    if not pathRequest then
-        ErrorNoHaltWithStack("Path request is nil when it shouldn't be!")
-        return STAT.PENDING
-    end
     local goalNav = navmesh.GetNearestNavArea(goalPos)
     local pathLength = self:GetPathLength()
 
@@ -1088,11 +1077,12 @@ function BotLocomotor:FollowPath()
     local hasPath = self:HasPath()
     if not (hasPath) then return false end
     if self.goalPos and self:GetXYDist(self.goalPos, self.bot:GetPos()) < 32 then return false end
+    -- TTTBots.DebugServer.DrawCross(self.goalPos, 10, Color(255, 0, 255), 0.15, "GoalFor" .. self.bot:Nick())
+    -- TTTBots.DebugServer.DrawLineBetween(self.bot:GetPos(), self.goalPos, Color(255, 0, 255), 0.15,
+    --     "GoalLineFor" .. self.bot:Nick())
     local dvlpr = lib.GetDebugFor("pathfinding")
     local bot = self.bot
     local pathRequest = self:GetPathRequest()
-
-    assert(pathRequest, "pathRequest must NOT be nil")
 
     local processedPath = pathRequest.processedPath
     if not processedPath or #processedPath == 0 then return false end
@@ -1130,10 +1120,11 @@ function BotLocomotor:FollowPath()
     end
 
     if dvlpr then
-        assert(nextPos, "nextPos must NOT be nil")
         local nextpostxt = string.format("NextPos (height difference is %s)", nextPos.z - bot:GetPos().z)
         TTTBots.DebugServer.DrawText(nextPos, nextpostxt, Color(255, 255, 255))
     end
+
+    -- self:DestroyBlockingEntities()
 
     return true
 end
@@ -1168,8 +1159,6 @@ function BotLocomotor:HandleFallingLook()
         self.pathingLookGoal = self.nextPos
         return true
     end
-
-    return false
 end
 
 --- Sets SetIronsights and SetZoom on the bot's active weapon to bool
@@ -1230,7 +1219,7 @@ end
 ---@return boolean
 ---@package
 function BotLocomotor:HandleRandomWalkLook()
-    if not self.nextPos then return false end
+    if not self.nextPos then return end
 
     local nextPosNormal = (self.nextPos - self.bot:GetPos()):GetNormal()
     local outwards = self.bot:GetPos() + nextPosNormal * 1200
@@ -1293,7 +1282,7 @@ end
 ---@package
 function BotLocomotor:HandleRandomIdleLook()
     local foundPlayer = self:TryRandomPlayerLook()
-    if foundPlayer then return false end
+    if foundPlayer then return end
 
     lib.CallEveryNTicks(self.bot, function()
         local myPos = self.bot:EyePos()
@@ -1587,11 +1576,27 @@ function BotLocomotor:StartCommand(cmd) -- aka StartCmd
     self.moveNormal = cmd:GetViewAngles():Forward()
 end
 
----@type table<CommonStuckPosition>
 TTTBots.Components.Locomotor.commonStuckPositions = {}
----@type table<StuckBot>
 TTTBots.Components.Locomotor.stuckBots = {}
+--[[
+Example stuckBots table:
+{
+    ["botname"] = {
+        stuckPos = Vector(0, 0, 0),
+        stuckTime = 0,
+        ply = <Player>
+    }
+}
 
+Example commonStuckPositions table: (every position within 200 units of center is considered related)
+{
+    {
+        center = Vector(0, 0, 0), -- center of the position
+        timeLost = 0, -- how much time, in man-seconds, has been lost near this position
+        cnavarea = <CNavArea>, -- the CNavArea that this position is in
+    }
+}
+]]
 timer.Create("TTTBots.Locomotor.StuckTracker", 1, 0, function()
     local stuckBots = TTTBots.Components.Locomotor.stuckBots
     local commonStucks = TTTBots.Components.Locomotor.commonStuckPositions
@@ -1600,10 +1605,9 @@ timer.Create("TTTBots.Locomotor.StuckTracker", 1, 0, function()
     ---------------------------
     -- Update stuckBots table
     ---------------------------
-    for _, bot in pairs(bots) do ---@cast bot Player
+    for i, bot in pairs(bots) do
         if not (bot and lib.IsPlayerAlive(bot)) then continue end
-        local locomotor = bot:BotLocomotor()
-
+        local locomotor = lib.GetComp(bot, "locomotor")
         if not locomotor then continue end
         local botname = bot:Nick()
 
@@ -1632,6 +1636,16 @@ timer.Create("TTTBots.Locomotor.StuckTracker", 1, 0, function()
                 stuckTime = stuckBots[botname].stuckTime
             end
         end
+
+        -- local shouldUnstuck = (stuckTime > 3)
+
+        -- if shouldUnstuck then
+        --     local cnavarea = navmesh.GetNearestNavArea(stuckPos)
+        --     if cnavarea then
+        --         local randomPos = cnavarea:GetRandomPoint()
+        --         bot:SetPos(randomPos + Vector(0, 0, 2))
+        --     end
+        -- end
     end
 
     ---------------------------
@@ -1697,8 +1711,8 @@ function plyMeta:SetAttackTarget(target)
     if (IsValid(target) and TTTBots.Roles.IsAllies(self, target)) then return end
     if (hook.Run("TTTBotsCanAttack", self, target) == false) then return end
     self.attackTarget = target
-    local loco = self:BotLocomotor()
-    local personality = self:BotPersonality()
+    local loco = lib.GetComp(self, "locomotor")
+    local personality = lib.GetComp(self, "personality")
     if not (loco and personality) then return end
     loco:OnNewTarget(target)
     personality:OnPressureEvent("NewTarget")
@@ -1706,6 +1720,5 @@ end
 
 ---@return CLocomotor
 function plyMeta:BotLocomotor()
-    ---@cast self Bot
-    return self.components.locomotor
+    return TTTBots.Lib.GetComp(self, "locomotor")
 end

@@ -2,11 +2,11 @@
     This component defines the morality of the agent. It is primarily responsible for determining who to shoot.
     It also tells traitors who to kill.
 ]]
----@class CMorality : Component
+---@class CMorality : CBase
 TTTBots.Components.Morality = TTTBots.Components.Morality or {}
 
 local lib = TTTBots.Lib
----@class CMorality : Component
+---@class CMorality : CBase
 local BotMorality = TTTBots.Components.Morality
 
 --- A scale of suspicious events to apply to a player's suspicion value. Scale is normally -10 to 10.
@@ -95,7 +95,7 @@ function BotMorality:Initialize(bot)
     self.componentID = string.format("Morality (%s)", lib.GenerateID()) -- Component ID, used for debugging
 
     self.tick = 0                                                       -- Tick counter
-    self.bot = bot ---@type Bot
+    self.bot = bot
     self.suspicions = {}                                                -- A table of suspicions for each player
 end
 
@@ -134,7 +134,7 @@ end
 ---@param target Player
 function BotMorality:AnnounceIfThreshold(target)
     local sus = self:GetSuspicion(target)
-    local chatter = self.bot:BotChatter()
+    local chatter = lib.GetComp(self.bot, "chatter") ---@type CChatter
     if not chatter then return end
     local KOSThresh = self.Thresholds.KOS
     local SusThresh = self.Thresholds.Sus
@@ -200,7 +200,7 @@ function BotMorality:SetRandomNearbyTarget()
     local delay = lib.GetConVarFloat("attack_delay")
     if TTTBots.Match.Time() <= delay then return end -- Don't attack randomly until the initial delay is over
 
-    local aggression = math.max((self.bot:GetTraitMult("aggression")) * (self.bot:BotPersonality().rage / 100), 0.3)
+    local aggression = math.max((self.bot:GetTraitMult("aggression")) * (self.bot.rage or 1), 0.3)
     local time_modifier = TTTBots.Match.SecondsPassed / 30 -- Increase chance to attack over time.
 
     local maxTargets = math.max(2, math.ceil(aggression * 2 * time_modifier))
@@ -246,7 +246,7 @@ end
 
 ---Called by OnWitnessHurt, but only if we (the owning bot) is a traitor.
 ---@param victim Player
----@param attacker Player
+---@param attacker Entity
 ---@param healthRemaining number
 ---@param damageTaken number
 ---@return nil
@@ -339,7 +339,7 @@ function BotMorality:OnWitnessHurt(victim, attacker, healthRemaining, damageTake
     self:OnWitnessHurtIfAlly(victim, attacker, healthRemaining, damageTaken)
     if attacker == self.bot then       -- if we are the attacker, there is no sus to be thrown around.
         if victim == self.bot.attackTarget then
-            local personality = self.bot:BotPersonality()
+            local personality = lib.GetComp(self.bot, "personality")
             if not personality then return end
             personality:OnPressureEvent("HurtEnemy")
         end
@@ -347,7 +347,7 @@ function BotMorality:OnWitnessHurt(victim, attacker, healthRemaining, damageTake
     end
     if self.bot == victim then -- if we are the victim, just fight back instead of worrying about sus.
         self.bot:SetAttackTarget(attacker)
-        local personality = self.bot:BotPersonality()
+        local personality = lib.GetComp(self.bot, "personality")
         if personality then
             personality:OnPressureEvent("Hurt")
         end
@@ -400,7 +400,7 @@ function BotMorality:OnWitnessFireBullets(attacker, data, angleDiff)
 
     -- print(attacker, data, angleDiff, angleDiffPercent, sus)
     if sus > 3 then
-        local personality = self.bot:BotPersonality()
+        local personality = lib.GetComp(self.bot, "personality")
         if personality then
             personality:OnPressureEvent("BulletClose")
         end
@@ -416,21 +416,20 @@ hook.Add("EntityFireBullets", "TTTBots.Components.Morality.FireBullets", functio
 
     -- Combined loop for all witnesses
     for i, witness in pairs(witnesses) do
-        if not witness:IsBot() then continue end
-        ---@cast witness Bot
-        local morality = witness:BotMorality()
+        local morality = lib.GetComp(witness, "morality")
+        if morality then
+            -- We calculate the angle difference between the entity and the witness
+            local witnessAngle = witness:EyeAngles()
+            local angleDiff = lookAngle.y - witnessAngle.y
 
-        -- We calculate the angle difference between the entity and the witness
-        local witnessAngle = witness:EyeAngles()
-        local angleDiff = lookAngle.y - witnessAngle.y
+            -- Adjust angle difference to be between -180 and 180
+            angleDiff = ((angleDiff + 180) % 360) - 180
+            -- Absolute value to ensure angleDiff is non-negative
+            angleDiff = math.abs(angleDiff)
 
-        -- Adjust angle difference to be between -180 and 180
-        angleDiff = ((angleDiff + 180) % 360) - 180
-        -- Absolute value to ensure angleDiff is non-negative
-        angleDiff = math.abs(angleDiff)
-
-        morality:OnWitnessFireBullets(entity, data, angleDiff)
-        hook.Run("TTTBotsOnWitnessFireBullets", witness, entity, data, angleDiff)
+            morality:OnWitnessFireBullets(entity, data, angleDiff)
+            hook.Run("TTTBotsOnWitnessFireBullets", witness, entity, data, angleDiff)
+        end
     end
 end)
 
@@ -512,21 +511,20 @@ timer.Create("TTTBots.Components.Morality.DisguisedPlayerDetection", 1, 0, funct
         if isDisguised then
             local witnessBots = lib.GetAllWitnesses(ply:EyePos(), true)
             for i, bot in pairs(witnessBots) do
-                ---@cast bot Bot
                 if not IsValid(bot) then continue end
                 if not TTTBots.Roles.GetRoleFor(bot):GetUsesSuspicion() then continue end
-                local chatter = bot:BotChatter()
+                local chatter = lib.GetComp(bot, "chatter")
                 if not chatter then continue end
                 -- set attack target if we do not have one already
                 bot:SetAttackTarget(bot.attackTarget or ply)
-                bot:BotChatter():On("DisguisedPlayer")
+                bot.components.chatter:On("DisguisedPlayer")
             end
         end
     end
 end)
 
 ---Keep killing any nearby non-allies if we're red-handed.
----@param bot Bot
+---@param bot Player
 local function continueMassacre(bot)
     local isRedHanded = bot.redHandedTime and (CurTime() < bot.redHandedTime)
     local isKillerRole = TTTBots.Roles.GetRoleFor(bot):GetStartsFights()
@@ -534,7 +532,7 @@ local function continueMassacre(bot)
     if isRedHanded and isKillerRole then
         local nonAllies = TTTBots.Roles.GetNonAllies(bot)
         local closest = TTTBots.Lib.GetClosest(nonAllies, bot:GetPos())
-        if closest and closest ~= NULL then
+        if closest and closest != NULL then
             bot:SetAttackTarget(closest)
         end
     end
@@ -608,7 +606,6 @@ local function noticeTraitorWeapons(bot)
     if table.IsEmpty(filtered) then return end
 
     local firstEnemy = TTTBots.Lib.GetClosest(filtered, bot:GetPos())
-    if not firstEnemy then return end
     bot:SetAttackTarget(firstEnemy)
     bot:BotChatter():On("HoldingTraitorWeapon", { player = firstEnemy:Nick() })
 end
@@ -630,9 +627,7 @@ timer.Create("TTTBots.Components.Morality.CommonSense", 0.5, 0, function()
     end
 end)
 
----@class Player
 local plyMeta = FindMetaTable("Player")
-function plyMeta:BotMorality()
-    ---@cast self Bot
-    return self.components.morality
+function plyMeta:GetMorality()
+    return self.components and self.components.morality
 end

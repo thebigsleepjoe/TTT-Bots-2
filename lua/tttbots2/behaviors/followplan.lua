@@ -10,7 +10,11 @@ FollowPlan.Interruptible = true
 -- When debugging the component and you want to print extra info, use this:
 FollowPlan.Debug = false
 
-local STATUS = TTTBots.STATUS
+local STATUS = {
+    RUNNING = 1,
+    SUCCESS = 2,
+    FAILURE = 3,
+}
 local Plans = TTTBots.Plans
 local ACTIONS = Plans.ACTIONS
 
@@ -34,7 +38,7 @@ function FollowPlan.GetJobState(bot)
 end
 
 --- Grabs an available job from the PlanCoordinator and assigns it to the bot.
----@param bot Bot the bot to assign a job to
+---@param bot Player the bot to assign a job to
 ---@return boolean|table false if no job was assigned, otherwise the job
 function FollowPlan.AssignNextAvailableJob(bot)
     bot.Job = nil
@@ -94,7 +98,7 @@ function FollowPlan.ValidateJob(bot, job)
 end
 
 --- Finds a new job if one isn't already set. Doesn't impact anything if the bot is doing a job already; otherwise, assigns a job using AssignNextAvailableJob
----@param bot Bot the bot to assign a job to
+---@param bot Player the bot to assign a job to
 ---@return boolean|table false if no job was assigned, otherwise the job
 function FollowPlan.FindNewJobIfAvailable(bot)
     local job = FollowPlan.GetBotJob(bot)
@@ -263,7 +267,7 @@ hook.Add("PlayerSay", "TTTBots_FollowPlan_PlayerSay", function(sender, text, tea
 
     local bot = TTTBots.Lib.GetClosest(TTTBots.Lib.GetAliveAllies(sender), sender:GetPos())
     if not (bot) then return end
-    local chatter = bot:BotChatter()
+    local chatter = lib.GetComp(bot, "chatter") ---@type CChatter
     if not (chatter) then return end
 
     local newJob = {

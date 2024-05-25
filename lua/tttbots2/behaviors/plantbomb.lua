@@ -12,10 +12,11 @@ PlantBomb.Interruptible = true
 
 PlantBomb.PLANT_RANGE = 80 --- Distance to the site to which we can plant the bomb
 
-local STATUS = TTTBots.STATUS
-
----@class Bot
----@field bombFailCounter number The number of times the bot has failed to plant a bomb.
+local STATUS = {
+    RUNNING = 1,
+    SUCCESS = 2,
+    FAILURE = 3,
+}
 
 function PlantBomb.HasBomb(bot)
     return bot:HasWeapon("weapon_ttt_c4")
@@ -39,7 +40,7 @@ end
 local penalizedBombSpots = {}
 
 ---Gets the best spot to plant a bomb around the bot.
----@param bot Bot
+---@param bot Player
 ---@return Vector|nil
 function PlantBomb.FindPlantSpot(bot)
     local options = TTTBots.Spots.GetSpotsInCategory("bomb")
@@ -116,7 +117,7 @@ function PlantBomb.OnStart(bot)
         print("No spot to plant bomb;", spot)
         return STATUS.FAILURE
     end
-    local inventory = bot:BotInventory()
+    local inventory = lib.GetComp(bot, "inventory") ---@type CInventory
     inventory:PauseAutoSwitch()
 
     bot.bombPlantSpot = spot
@@ -129,7 +130,7 @@ function PlantBomb.OnRunning(bot)
     if not spot then return STATUS.FAILURE end
 
     local distToSpot = bot:GetPos():Distance(spot)
-    local locomotor = bot:BotLocomotor()
+    local locomotor = lib.GetComp(bot, "locomotor") ---@type CLocomotor
     locomotor:SetGoal(spot)
 
     if locomotor.status == locomotor.PATH_STATUSES.IMPOSSIBLE then
@@ -184,7 +185,7 @@ function PlantBomb.ArmNearbyBomb(bot)
 
     if closestBomb and closestDist < PlantBomb.PLANT_RANGE then
         closestBomb:Arm(bot, 45)
-        local chatter = bot:BotChatter()
+        local chatter = lib.GetComp(bot, "chatter") ---@type CChatter
         chatter:On("BombArmed", {}, true)
         return true
     end
@@ -195,8 +196,8 @@ end
 --- Called when the behavior ends
 function PlantBomb.OnEnd(bot)
     bot.bombPlantSpot = nil
-    local locomotor = bot:BotLocomotor()
-    local inventory = bot:BotInventory()
+    local locomotor = lib.GetComp(bot, "locomotor") ---@type CLocomotor
+    local inventory = lib.GetComp(bot, "inventory") ---@type CInventory
     inventory:ResumeAutoSwitch()
     locomotor:StopAttack()
     PlantBomb.ArmNearbyBomb(bot)

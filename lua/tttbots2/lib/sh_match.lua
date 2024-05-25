@@ -1,6 +1,5 @@
 ---@class Match
 TTTBots.Match = {}
----@type table<Bot>
 TTTBots.Bots = {} --- Bots in the game right now. We have to do this because of a silly bug with TTTBots.Bots
 
 timer.Create("TTTBots.Match.UpdateBotsTable", 1, 0, function()
@@ -89,7 +88,7 @@ function Match.CallKOS(caller, target)
     Match.KOSList[target][caller] = caller
 
     for i, bot in pairs(TTTBots.Bots) do
-        local morality = bot:BotMorality()
+        local morality = TTTBots.Lib.GetComp(bot, "morality")
         if not morality then continue end
         morality:OnKOSCalled(caller, target)
     end
@@ -143,18 +142,18 @@ function Match.ResetStats(roundActive)
 end
 
 ---Gets the difficulty scoring of the given bot. Returns -1 if the bot is not a TTTBot.
----@param bot Bot
+---@param bot Player
 ---@return number difficulty
 ---@realm server
 function Match.GetBotDifficulty(bot)
-    local personality = bot:BotPersonality()
+    local personality = TTTBots.Lib.GetComp(bot, "personality") ---@type CPersonality
     if not personality then return -1 end
     local diff = personality:GetDifficulty()
     return diff
 end
 
 --- Returns a table of all bots in the game, indexed by bot object, with each key as the estimated difficulty score.
----@return table<Bot, number> botDifficulty
+---@return table<bot, number> botDifficulty
 ---@realm server
 function Match.GetBotsDifficulty()
     local tbl = {}
@@ -202,12 +201,12 @@ function Match.IsPlayerDisguised(ply)
 end
 
 ---Event called when an innocent bot spots a C4.
----@param bot Bot
+---@param bot Player
 ---@param c4 Entity
 ---@realm server
 function Match.OnBotSpotC4(bot, c4)
-    local chatter = bot:BotChatter()
-    local locomotor = bot:BotLocomotor()
+    local chatter = TTTBots.Lib.GetComp(bot, "chatter") ---@type CChatter
+    local locomotor = TTTBots.Lib.GetComp(bot, "locomotor") ---@type CLocomotor
     if not chatter then return end
     chatter:On("SpottedC4", {}, false)
     locomotor:LookAt(c4:GetPos())
