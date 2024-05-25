@@ -943,38 +943,43 @@ function BotLocomotor:UpdatePathRequest()
     local STAT = BotLocomotor.PATH_STATUSES
     self.cantReachGoal = false
     self.pathRequestWaiting = false
-    if self.dontmove then return STAT.DONTMOVE end
+
+    if self.dontmove then
+        return STAT.DONTMOVE
+    end
+
     local goalPos = self:GetGoal()
-    if goalPos == nil then return STAT.NOGOALPOS end
-    if not lib.IsPlayerAlive(self.bot) then return STAT.BOTDEAD end
+    if not goalPos then
+        return STAT.NOGOALPOS
+    end
+
+    if not lib.IsPlayerAlive(self.bot) then
+        return STAT.BOTDEAD
+    end
 
     local pathRequest = self:GetPathRequest() -- can be nil
     local goalNav = navmesh.GetNearestNavArea(goalPos)
     local pathLength = self:GetPathLength()
-
     local hasPath = self:HasPath()
-    local endIsGoal = hasPath
-        and pathRequest
-        and pathRequest.pathInfo.path[self:GetPathLength()] == goalNav -- true if we already have a path to the goal
-    if hasPath and endIsGoal and not self:AnySegmentsNearby(pathRequest.pathInfo.path, 500) then
-        local dvlpr = lib.GetConVarBool("debug_pathfinding")
-        if dvlpr then print(self.bot:Nick() .. " path is too far") end
-        -- return STAT.PATHTOOFAR
-    elseif (hasPath and pathLength > 0 and endIsGoal) then
+
+    local endIsGoal = hasPath and pathRequest and pathRequest.pathInfo.path[pathLength] == goalNav
+    if pathRequest and hasPath and endIsGoal and not self:AnySegmentsNearby(pathRequest.pathInfo.path, 500) then
+        if lib.GetConVarBool("debug_pathfinding") then
+            print(self.bot:Nick() .. " path is too far")
+        end
+    elseif hasPath and pathLength > 0 and endIsGoal then
         return STAT.PATHINGCURRENTLY
     end
 
     -- If we don't have a path, request one
     local pathid, pathInfo, status = TTTBots.PathManager.RequestPath(self.bot, self.bot:GetPos(), goalPos, false)
 
-    local fr = string.format
-
-    if (pathInfo == false or pathInfo == nil) then -- path is impossible
+    if not pathInfo then -- path is impossible
         self.cantReachGoal = true
         self.pathRequestWaiting = false
         self.pathRequest = nil
         return STAT.IMPOSSIBLE
-    elseif (pathInfo == true) then
+    elseif pathInfo == true then
         self.pathRequestWaiting = true
         return STAT.PENDING
     else -- path is a table
@@ -989,6 +994,7 @@ function BotLocomotor:UpdatePathRequest()
         return STAT.READY
     end
 end
+
 
 --- Do a traceline from startPos to endPos, with no specific mask (hit anything). Filter out ourselves.
 --- Returns if we can see the endPos without interruption
