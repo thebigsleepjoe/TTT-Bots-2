@@ -21,7 +21,6 @@ This build will probably not be going to steam due to it having minimal gameplay
 * BStatus is now a public enum, and can be found by querying the TTTBots global for the STATUS field (`TTTBots.STATUS`)
 * Removed deprecated Follow.GetVisibleNavs function
 * Removed deprecated Follow.GetRandomVisiblePointOnNavmeshTo function. (Holy, that was a long name)
-* lib.GetComp is now obsolete. Use `Player:BotCOMPONENTNAME` instead. (e.g., `Player:BotLocomotor`)
 
 ## v1.2
 
