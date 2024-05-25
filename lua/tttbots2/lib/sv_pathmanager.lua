@@ -878,7 +878,7 @@ function TTTBots.PathManager.PathPostProcess(path)
                 end
             else
                 -- Handle the last navigation area in the path.
-                if not lastIsLadder and not nextIsSmall and lastNavArea then
+                if not lastIsLadder and not nextIsSmall then
                     local closestLast = lastNavArea:GetClosestPaddedPoint(navArea)
                     addPointToPoints(points, closestLast, navArea, lastNavArea, nil)
                 end
