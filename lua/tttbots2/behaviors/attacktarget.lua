@@ -15,6 +15,7 @@ Attack.Name = "AttackTarget"
 Attack.Description = "Attacking target"
 Attack.Interruptible = true
 
+---@enum STATUS
 local STATUS = TTTBots.STATUS
 
 ---@enum ATTACKMODE
@@ -435,7 +436,7 @@ end
 
 --- Called when the behavior's last state is running
 ---@param bot Bot
----@return BStatus status
+---@return STATUS status
 function Attack.OnRunning(bot)
     local target = bot.attackTarget
     -- We could probably do Attack.Validate but this is more explicit:
