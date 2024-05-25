@@ -322,8 +322,8 @@ function BotInventory:AutoManageInventory()
 
     local w_special = self:GetSpecialPrimary()
     local special = w_special and self:GetWeaponInfo(w_special) or nil
-    local primary = self:GetPrimary()
-    local secondary = self:GetSecondary()
+    local w_primary, primary = self:GetPrimary()
+    local w_secondary, secondary = self:GetSecondary()
 
     -- local isAttacking = self.bot.attackTarget ~= nil
 
@@ -335,7 +335,7 @@ function BotInventory:AutoManageInventory()
     }
 
     for func, wepInfo in pairs(hash) do
-        if wepInfo == true or (type(wepInfo) == "table" and wepInfo.ammo or 0) > 0 then
+        if wepInfo == true or (type(wepInfo) == "table" and wepInfo.ammo > 0) then
             func(self)
             break
         end
@@ -447,56 +447,35 @@ function BotInventory:GetHeldWeaponInfo(target)
     return self:GetWeaponInfo(wep)
 end
 
----@return WeaponInfo?
+---@return Weapon?, WeaponInfo?
 function BotInventory:GetPrimary()
-    -- info.slot == "primary"
-    local weapons = self.bot:GetWeapons()
-    for _, wep in pairs(weapons) do
-        local info = self:GetWeaponInfo(wep)
-        if info.slot == "primary" then
-            return wep
-        end
-    end
-
-    return nil
+    return self:GetBySlot("primary")
 end
 
----@return WeaponInfo?
+---@return Weapon?, WeaponInfo?
 function BotInventory:GetSecondary()
-    -- info.slot == "secondary"
-    local weapons = self.bot:GetWeapons()
-    for _, wep in pairs(weapons) do
-        local info = self:GetWeaponInfo(wep)
-        if info.slot == "secondary" then
-            return wep
-        end
-    end
-
-    return nil
+    return self:GetBySlot("secondary")
 end
 
----@return WeaponInfo?
+---@return Weapon?, WeaponInfo?
 function BotInventory:GetCrowbar()
-    -- info.slot == "melee"
-    local weapons = self.bot:GetWeapons()
-    for _, wep in pairs(weapons) do
-        local info = self:GetWeaponInfo(wep)
-        if info.slot == "melee" then
-            return wep
-        end
-    end
-
-    return nil
+    return self:GetBySlot("melee")
 end
 
----@return WeaponInfo?
+---@return Weapon?, WeaponInfo?
 function BotInventory:GetGrenade()
-    -- info.slot == "grenade"
+    return self:GetBySlot("grenade")
+end
+
+--- Return the first weapon of slot 'slot'. Also returns weaponinfo if it exists.
+---@param slot string
+---@return Weapon?, WeaponInfo?
+function BotInventory:GetBySlot(slot)
     local weapons = self.bot:GetWeapons()
     for _, wep in pairs(weapons) do
         local info = self:GetWeaponInfo(wep)
-        if info.slot == "grenade" then
-            return wep
+        if info.slot == slot then
+            return wep, info
         end
     end
 
@@ -509,7 +488,7 @@ function BotInventory:GetWeaponByName(name)
     for _, wep in pairs(weapons) do
         local info = self:GetWeaponInfo(wep)
         if info.print_name == name then
-            return wep
+            return info
         end
     end
 
