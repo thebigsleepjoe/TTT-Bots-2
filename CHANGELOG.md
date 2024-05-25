@@ -19,8 +19,6 @@ This build will probably not be going to steam due to it having minimal gameplay
 * There are no longer linting errors present using LuaLS. Which is saying a lot, as there were probably a hundred or so before these changes.
 * Changed `Player:GetMorality` --> `Player:BotMorality` for consistency.
 * BStatus is now a public enum, and can be found by querying the TTTBots global for the STATUS field (`TTTBots.STATUS`)
-* Removed deprecated Follow.GetVisibleNavs function
-* Removed deprecated Follow.GetRandomVisiblePointOnNavmeshTo function. (Holy, that was a long name)
 
 ## v1.2
 
