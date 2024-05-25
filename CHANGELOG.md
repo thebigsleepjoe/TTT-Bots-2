@@ -9,13 +9,11 @@ This means more features can be developed quicker. The next version will be a fe
 ### Fixed
 
 * Cache WeaponInfo class to prevent unnecessary computation.
-* Traitor aggression now properly considers the bot's current rage level.
 
 ### Developer Notes
 
 * Added a large number of class definitions and improved commenting across the entire codebase.
 * There are no longer linting errors present using LuaLS. Which is saying a lot, as there were probably a hundred or so before these changes.
-* Changed `Player:GetMorality` --> `Player:BotMorality` for consistency.
 
 
 ## v1.2
