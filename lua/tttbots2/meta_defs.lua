@@ -114,7 +114,6 @@ IN_USE = 32768 --- https://wiki.facepunch.com/gmod/Enums/IN
 ---@field Revive fun(self: Player, delay: number, onRevive: fun()?, doCheck: fun()?, needsCorpse: boolean?, blockRound: number, onFail: fun()?, spawnPos: Vector?, spawnAng: Angle?): boolean Revive the player from the ragdoll.
 ---@field SetActiveWeapon fun(self: Player, wep: Weapon): boolean Set the active weapon of the player.
 ---@field GetWeapon fun(self: Player, class: string)
----@field HasWeapon fun(self: Player, class: string): boolean
 
 ---@class Bot : Player
 ---@field lastBarrelCheck number? The last time we checked for any nearby explosive barrels.
