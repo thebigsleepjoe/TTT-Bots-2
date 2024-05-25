@@ -828,8 +828,6 @@ local function createPlayerBot(botname)
         end
     end
 
-    bot.initialized = true
-
     return bot
 end
 
@@ -939,7 +937,7 @@ if SERVER then
     hook.Add("PlayerInitialSpawn", "TTTBots.Lib.PlayerInitialSpawn.Chatter", function(bot)
         timer.Simple(math.pi, function()
             if not (bot and IsValid(bot) and bot:IsBot()) then return end
-            local chatter = bot:BotChatter()
+            local chatter = TTTBots.Lib.GetComp(bot, "chatter") ---@type CChatter
             if not chatter then return end
             chatter:On("ServerConnected", { player = bot:Nick() })
         end)
