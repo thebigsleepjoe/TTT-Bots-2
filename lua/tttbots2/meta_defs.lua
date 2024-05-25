@@ -79,11 +79,6 @@ IN_USE = 32768 --- https://wiki.facepunch.com/gmod/Enums/IN
 ---@field GetAimVector fun(self: Entity): Vector The aim vector of the Entity.
 ---@field GetNWBool fun(self: Entity, key: string, default: boolean): boolean Get a networked boolean.
 
----@class C4 : Entity
----@field Disarm fun(self: C4, ply: Player) Disarm the C4.
----@field FailedDisarm fun(self: C4, ply: Player) Fail a disarm attempt
----@field Arm fun(self: C4, ply: Player) Arm the C4.
-
 ---@class Weapon : Entity
 ---@field CanBuy table The roles that can buy this weapon, indexed by ROLE_ globals
 ---@field AutoSpawnable boolean Whether this weapon can be spawned by the game.
