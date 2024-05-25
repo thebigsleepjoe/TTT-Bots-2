@@ -247,7 +247,7 @@ local targetHashTable = {
 --- Calculates the target for a job, based upon the job's Target string.
 ---@param job table
 ---@return table Job the job, with the TargetObj field set. The TargetObj can also be retrieved with the second return value.
----@return Player|Vector|nil TargetObj the target object, depending on the target type.
+---@return Player|Vector3|nil TargetObj the target object, depending on the target type.
 function PlanCoordinator.CalculateTargetForJob(job, caller)
     local target = job.Target
     local targetFunc = targetHashTable[target]

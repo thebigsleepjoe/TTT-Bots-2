@@ -1,13 +1,13 @@
 local Registry = {}
 
 local function testPlyHasTrait(ply, trait, N)
-    local personality = ply:BotPersonality()
+    local personality = TTTBots.Lib.GetComp(ply, "personality") ---@type CPersonality
     if not personality then return false end
     return (personality:GetTraitBool(trait)) or math.random(1, N) == 1
 end
 
 local function testPlyIsArchetype(ply, archetype, N)
-    local personality = ply:BotPersonality()
+    local personality = TTTBots.Lib.GetComp(ply, "personality") ---@type CPersonality
     if not personality then return false end
     return (personality:GetClosestArchetype() == archetype) or math.random(1, N) == 1
 end

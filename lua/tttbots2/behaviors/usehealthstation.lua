@@ -11,7 +11,11 @@ UseHealthStation.UseRange = 50 --- The range at which we can use a health statio
 
 UseHealthStation.TargetClass = "ttt_health_station"
 
-local STATUS = TTTBots.STATUS
+local STATUS = {
+    RUNNING = 1,
+    SUCCESS = 2,
+    FAILURE = 3,
+}
 
 function UseHealthStation.HasHealthStation(bot)
     if not lib.GetConVarBool("plant_health") then return false end -- This behavior is disabled per the user's choice.
@@ -67,7 +71,7 @@ end
 --- Called when the behavior is started
 function UseHealthStation.OnStart(bot)
     if UseHealthStation.HasHealthStation(bot) then
-        local inventory = bot:BotInventory()
+        local inventory = lib.GetComp(bot, "inventory") ---@type CInventory
         inventory:PauseAutoSwitch()
         return STATUS.RUNNING
     end
@@ -78,7 +82,7 @@ function UseHealthStation.OnStart(bot)
 end
 
 function UseHealthStation.PlaceHealthStation(bot)
-    local locomotor = bot:BotLocomotor()
+    local locomotor = lib.GetComp(bot, "locomotor") ---@type CLocomotor
     bot:SelectWeapon("weapon_ttt_health_station")
     locomotor:StartAttack()
 end
@@ -99,7 +103,7 @@ function UseHealthStation.OnRunning(bot)
     end
 
     local station = bot.targetStation
-    local locomotor = bot:BotLocomotor()
+    local locomotor = lib.GetComp(bot, "locomotor") ---@type CLocomotor
     locomotor:SetGoal(station:GetPos())
     locomotor:PauseRepel()
     local distToStation = bot:GetPos():Distance(station:GetPos())
@@ -122,8 +126,8 @@ end
 --- Called when the behavior ends
 function UseHealthStation.OnEnd(bot)
     bot.targetStation = nil
-    local locomotor = bot:BotLocomotor()
-    local inventory = bot:BotInventory()
+    local locomotor = lib.GetComp(bot, "locomotor") ---@type CLocomotor
+    local inventory = lib.GetComp(bot, "inventory") ---@type CInventory
     inventory:ResumeAutoSwitch()
     locomotor:StopAttack()
     locomotor:ResumeRepel()

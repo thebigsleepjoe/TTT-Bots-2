@@ -80,18 +80,17 @@ Chat.Commands = {
         end
         local split = string.gmatch(fulltxt, "%S+") -- split by spaces
         local cmd = split()                         -- first word is the command
-        local s_amt = split()                         -- second word is the amount of bots to add
-        local i_amt = 0
+        local amt = split()                         -- second word is the amount of bots to add
 
-        -- check we can convert amt_s to a number, if it isn't nil or blank
-        if s_amt ~= nil and s_amt ~= "" then
-            i_amt = tonumber(s_amt) or 1
-            if i_amt == nil then
+        -- check we can convert amt to a number, if it isn't nil or blank
+        if amt ~= nil and amt ~= "" then
+            amt = tonumber(amt)
+            if amt == nil then
                 TTTBots.Chat.MessagePlayer(ply, gls("invalid.bot.number"))
                 return
             end
         else
-            i_amt = 1
+            amt = 1
         end
 
         -- check there are enough player slots
@@ -102,14 +101,14 @@ Chat.Commands = {
             return
         end
         local slots = game.MaxPlayers() - #player.GetAll()
-        if i_amt > slots then
-            TTTBots.Chat.MessagePlayer(ply, gls("not.enough.slots.n", tostring(i_amt)))
+        if amt > slots then
+            TTTBots.Chat.MessagePlayer(ply, gls("not.enough.slots.n", tostring(amt)))
             TTTBots.Chat.MessagePlayer(ply, gls("consider.kicking"))
             return
         end
 
         -- add bots
-        for i = 1, i_amt do
+        for i = 1, amt do
             TTTBots.Lib.CreateBot()
         end
     end,
@@ -228,22 +227,21 @@ Chat.Commands = {
         -- Basic function to just set ttt_bot_quota to the number specified
         local split = string.gmatch(fulltxt, "%S+") -- split by spaces
         local cmd = split()                         -- first word is the command
-        local s_amt = split()                         -- second word is the amount of bots to add
-        local i_amt = 0
+        local amt = split()                         -- second word is the amount of bots to add
 
-        -- check we can convert s_amt to a number, if it isn't nil or blank
-        if s_amt ~= nil and s_amt ~= "" then
-            i_amt = tonumber(s_amt) or 0
-            if i_amt == nil then
+        -- check we can convert amt to a number, if it isn't nil or blank
+        if amt ~= nil and amt ~= "" then
+            amt = tonumber(amt)
+            if amt == nil then
                 TTTBots.Chat.MessagePlayer(ply, gls("invalid.bot.number"))
                 return
             end
         else
-            i_amt = 1
+            amt = 1
         end
 
-        RunConsoleCommand("ttt_bot_quota", tostring(i_amt))
-        TTTBots.Chat.BroadcastInChat(gls("bot.quota.changed", ply:Nick(), i_amt))
+        RunConsoleCommand("ttt_bot_quota", tostring(amt))
+        TTTBots.Chat.BroadcastInChat(gls("bot.quota.changed", ply:Nick(), amt))
     end,
 }
 

@@ -85,9 +85,9 @@ end
 ---@return boolean - Whether or not we successfully registered a role.
 function TTTBots.Roles.GenerateRegisterForRole(roleString)
     -- If we are in this function, this is definitely TTT2. But check anyway :)))
-    if not TTTBots.Lib.IsTTT2() then return false end
+    if not TTTBots.Lib.IsTTT2() then return end
     local roleObj = roles.GetByName(roleString)
-    if not roleObj then return false end
+    if not roleObj then return end
     local baseRole = roleObj.baserole and roles.GetByIndex(roleObj.baserole)
     if baseRole then
         local baseData = TTTBots.Roles.GetRole(baseRole.name)

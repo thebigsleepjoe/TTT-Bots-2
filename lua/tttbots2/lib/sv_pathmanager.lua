@@ -519,23 +519,24 @@ end
 ---@param startPos any Vector (or CNavArea if isAreas==true)
 ---@param finishPos any Vector (or CNavArea if isAreas==true)
 ---@param isAreas boolean
----@return string pathID, boolean|PathInfo path, string status
+---@return string pathID, boolean|table<CNavArea> path, string status
 function TTTBots.PathManager.RequestPath(owner, startPos, finishPos, isAreas)
     if not startPos or not finishPos then
         error(
             "No startPos and/or finishPos, keep your functions safe from this error.")
     end
-
-    assert(TTTBots.Lib.IsPlayerAlive(owner), "Owner must be a living player.")
+    if not TTTBots.Lib.IsPlayerAlive(owner) then
+        -- print("Tried generating path for owner " .. tostring(owner) .. " but they are dead.")
+        -- error(
+        --     "The bot you are generating a path for is dead. Your path generation should be made safer.")
+        return
+    end
 
     local startArea = (isAreas and startPos) or
         TTTBots.Lib.GetNearestNavArea(startPos)  --navmesh.GetNearestNavArea(startPos)
     local finishArea = (isAreas and finishPos) or
         TTTBots.Lib.GetNearestNavArea(finishPos) --navmesh.GetNearestNavArea(finishPos)
-    
-    assert(startArea, "Start area is nil. Either you didn't provide one or there isn't a nav nearby.")
-    assert(finishArea, "Finish area is nil. Either you didn't provide one or there isn't a nav nearby.")
-
+    if not startArea or not finishArea then return end
     local pathID = startArea:GetID() .. "to" .. finishArea:GetID()
 
     local isImpossible = TTTBots.PathManager.impossiblePaths[pathID] ~= nil
@@ -686,10 +687,7 @@ local function ClosestPointOnLineSegment(start, endpoint, point)
     return start + startToEnd * t
 end
 
---- Function to find the closest point on a rectangle (defined by its four 'corners') to a given 'point'.
----@param corners table
----@param point Vector
----@return Vector
+-- Function to find the closest point on a rectangle (defined by its four 'corners') to a given 'point'.
 local function ClosestPointOnRectangle(corners, point)
     if #corners ~= 4 then
         error("Expected 4 corners for a rectangle")
@@ -704,7 +702,7 @@ local function ClosestPointOnRectangle(corners, point)
     }
 
     -- Initialize our search for the closest point
-    local closestPoint = Vector(0, 0, 0)
+    local closestPoint = nil
     local shortestDistance = math.huge
 
     -- Iterate through each edge and find the closest point on that edge to our 'point'
@@ -722,8 +720,8 @@ local function ClosestPointOnRectangle(corners, point)
     return closestPoint
 end
 
---- Converts a Vector to a rounded, compact string representation.
---- @param vec Vector: The vector to convert.
+--- Converts a Vector3 to a rounded, compact string representation.
+--- @param vec Vector3: The vector to convert.
 --- @return string: A compact, rounded string representation of the vector.
 local function VectorToString(vec)
     local x = math.Round(vec.x)
@@ -734,12 +732,7 @@ end
 
 local paddingCache = {}
 local closestCache = {} -- indexed by "navarea id : navarea id"
-
 --- Return the closest point within the padded borders of areaA and areaB, to areaB.
----@param areaA CNavArea
----@param areaB CNavArea
----@param pos Vector
----@return Vector
 local function getClosestCache(areaA, areaB, pos)
     local index = areaA:GetID() .. ":" .. areaB:GetID() .. ((pos and VectorToString(pos)) or "")
     if closestCache[index] then return closestCache[index] end
@@ -754,8 +747,8 @@ end
 
 --- Return the closest point along our padding to their center. Accounts for ladders by returning either the closest pos (top or bottom)
 ---@param other CNavArea the nav area to get the closest point to
----@param centerOrPos Vector defaults to the other nav area's center, but can be a Vector within other
----@return Vector pos the closest point on our nav area to the other nav area, within padding
+---@param centerOrPos Vector3 defaults to the other nav area's center, but can be a vector3 within other
+---@return Vector3 pos the closest point on our nav area to the other nav area, within padding
 function navMeta:GetClosestPaddedPoint(other, centerOrPos)
     if other:IsLadder() then return self:GetConnectingEdge(other) end
     centerOrPos = centerOrPos or other:GetCenter()
@@ -798,9 +791,6 @@ function TTTBots.PathManager.PathPostProcess(path)
     ]]
     local points = {}
     local climbDir = nil
-
-    -- This is an absolute scope pyramid and an abomination to the codebase.
-    -- Too bad!
 
     for i, navArea in ipairs(path) do
         local isLadder = navArea:IsLadder()
@@ -860,11 +850,10 @@ function TTTBots.PathManager.PathPostProcess(path)
                     continue
                 end
 
-                if not lastIsLadder and lastNavArea then
+                if not lastIsLadder then
                     -- Get the padded connecting edge from last to current. Does not apply if last is small
-                    local closestLast = nil
                     if not lastIsSmall then
-                        closestLast = lastNavArea:GetClosestPaddedPoint(navArea)
+                        local closestLast = lastNavArea:GetClosestPaddedPoint(navArea)
                         addPointToPoints(points, closestLast, navArea, lastNavArea, nil)
                     end
 
@@ -873,7 +862,6 @@ function TTTBots.PathManager.PathPostProcess(path)
                         closestLast or lastNavArea:GetCenter())
                     addPointToPoints(points, closestUsToLast, navArea, lastNavArea, nil)
                 end
-
                 if not nextIsLadder then
                     -- Get the padded connecting edge from current to next
                     local closestNext = navArea:GetClosestPaddedPoint(nextNavArea)
@@ -881,7 +869,7 @@ function TTTBots.PathManager.PathPostProcess(path)
                 end
             else
                 -- Handle the last navigation area in the path.
-                if not lastIsLadder and not nextIsSmall and lastNavArea then
+                if not lastIsLadder and not nextIsSmall then
                     local closestLast = lastNavArea:GetClosestPaddedPoint(navArea)
                     addPointToPoints(points, closestLast, navArea, lastNavArea, nil)
                 end

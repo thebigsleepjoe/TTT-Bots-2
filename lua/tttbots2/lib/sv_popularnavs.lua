@@ -88,7 +88,7 @@ local navMeta = FindMetaTable("CNavArea")
 
 
 ---Get the popularity percentage [0,1] of this nav area compared to others. 1 = most, 0 = least
----@return number
+---@return unknown
 function navMeta:GetPopularityPct()
     local popNavs = TTTBots.Lib.GetPopularNavs()
     local total = #popNavs
@@ -98,6 +98,4 @@ function navMeta:GetPopularityPct()
             return i / total
         end
     end
-
-    return 0.0
 end

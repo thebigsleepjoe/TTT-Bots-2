@@ -2,7 +2,7 @@
 This module is not intended to store everything bot-related, but instead store bot-specific stuff that
 is refreshed every round. Things like where the bot last saw each player, etc.
 ]]
----@class CMemory : Component
+---@class CMemory : CBase
 TTTBots.Components.Memory = {}
 TTTBots = TTTBots or {}
 
@@ -39,7 +39,7 @@ TTTBots.Sound = {
 }
 
 local lib = TTTBots.Lib
----@class CMemory : Component
+---@class CMemory : CBase
 local Memory = TTTBots.Components.Memory
 local DEAD = "DEAD"
 local ALIVE = "ALIVE"
@@ -424,14 +424,13 @@ end
 ---@param soundData table The original GLua sound table.
 ---@return boolean IsUseful Whether or not the sound was useful, basically false if did not hear.
 function Memory:HandleSound(info, soundData)
-    local bot = self.bot ---@type Bot
-    local soundPos = info.Pos
-    assert(soundPos, "Sound position is nil")
-    local standardRange = info.Distance
+    local bot = self.bot
+    local soundpos = info.Pos
+    local stdrange = info.Distance
     local botHearingMult = self:GetHearingMultiplier()
 
-    local distTo = bot:GetPos():Distance(soundPos)
-    local canHear = distTo <= standardRange * botHearingMult
+    local distTo = bot:GetPos():Distance(soundpos)
+    local canHear = distTo <= stdrange * botHearingMult
 
     if not canHear then
         return false
@@ -440,7 +439,7 @@ function Memory:HandleSound(info, soundData)
     local tbl = {
         time = CurTime(),
         sound = info.SoundName,
-        pos = soundPos,
+        pos = soundpos,
         info = info,
         ent = info.EntInfo.Entity or info.EntInfo.Owner,
         sourceIsPly = info.EntInfo.EntityIsPlayer or info.EntInfo.OwnerIsPlayer,
@@ -462,8 +461,10 @@ function Memory:HandleSound(info, soundData)
     }
     local hashedName = pressureHash[info.SoundName]
     if hashedName then
-        local personality = bot:BotPersonality()
-        personality:OnPressureEvent(hashedName)
+        local personality = lib.GetComp(bot, "personality")
+        if personality then
+            personality:OnPressureEvent(hashedName, tbl)
+        end
     end
 
     return true
@@ -474,7 +475,7 @@ function Memory:CullSoundMemory()
     local recentSounds = self.recentSounds
     if not recentSounds then return end
     local curTime = CurTime()
-    for i, sound in ipairs(recentSounds) do
+    for i, sound in pairs(recentSounds) do
         local timeSince = curTime - sound.time
         if timeSince > 5 then
             table.remove(recentSounds, i)

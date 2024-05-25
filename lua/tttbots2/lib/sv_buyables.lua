@@ -44,7 +44,7 @@ function TTTBots.Buyables.AddBuyableToRole(buyable, roleString)
 end
 
 ---Purchases any registered buyables for the given bot's rolestring. Returns a table of Buyables that were successfully purchased.
----@param bot Bot
+---@param bot any
 ---@return table<Buyable>
 function TTTBots.Buyables.PurchaseBuyablesFor(bot)
     local roleString = bot:GetRoleStringRaw()
@@ -65,7 +65,7 @@ function TTTBots.Buyables.PurchaseBuyablesFor(bot)
         buyfunc(bot)
         if option.OnBuy then option.OnBuy(bot) end
         if option.ShouldAnnounce then
-            local chatter = bot:BotChatter()
+            local chatter = TTTBots.Lib.GetComp(bot, "chatter") ---@type CChatter
             if not chatter then continue end
             chatter:On("Buy" .. option.Name, {}, option.AnnounceTeam or false)
         end
