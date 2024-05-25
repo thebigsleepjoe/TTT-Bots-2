@@ -257,8 +257,7 @@ local keywordEvents = {
 -- Helper function to handle the chat events
 local function handleEvent(eventName)
     for i, v in pairs(TTTBots.Bots) do
-        ---@cast v Bot
-        local chatter = v:BotChatter()
+        local chatter = lib.GetComp(v, "chatter")
         if not chatter then continue end
         chatter:On(eventName, {}, false)
     end
@@ -278,7 +277,7 @@ timer.Create("TTTBots.Chatter.SillyChat", 20, 0, function()
     if math.random(1, 9) > 1 then return end -- Should average to about once every 3 minutes
     local targetBot = TTTBots.Bots[math.random(1, #TTTBots.Bots)]
     if not targetBot then return end
-    local chatter = targetBot:BotChatter()
+    local chatter = lib.GetComp(targetBot, "chatter") ---@type CChatter
     if not chatter then return end
 
     local randomPlayer = TTTBots.Match.AlivePlayers[math.random(1, #TTTBots.Match.AlivePlayers)]
@@ -288,9 +287,7 @@ timer.Create("TTTBots.Chatter.SillyChat", 20, 0, function()
     chatter:On(eventName, { player = randomPlayer:Nick() })
 end)
 
----@class Bot : Player
 local plyMeta = FindMetaTable("Player")
 function plyMeta:BotChatter()
-    local comp = lib.GetComp(self, "chatter") ---@cast comp CChatter
-    return comp
+    return lib.GetComp(self, "chatter")
 end

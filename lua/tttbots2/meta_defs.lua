@@ -34,7 +34,6 @@ MASK_SHOT = 0 -- some number, not literally 0.
 ---@field EyePos fun(self: Entity): Vector The position of the Entity's eyes.
 ---@field GetClass fun(self: Entity): string The class of the Entity.
 ---@field GetAimVector fun(self: Entity): Vector The aim vector of the Entity.
----@field GetNWBool fun(self: Entity, key: string, default: boolean): boolean Get a networked boolean.
 
 ---@class Weapon : Entity
 ---@field CanBuy table The roles that can buy this weapon, indexed by ROLE_ globals
