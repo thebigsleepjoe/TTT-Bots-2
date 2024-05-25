@@ -13,6 +13,10 @@ MingeCrowbar.Interruptible = true
 MingeCrowbar.MinTimeBetween = 60.0
 MingeCrowbar.SkipChance = 3 -- 1 in X change of skipping even if cooldown
 
+---@class Bot
+---@field isCBMinging boolean Is the bot currently minging
+---@field mingeStopTime number The time we should stop minging by
+---@field mingeTarget Player? The player target to minge
 
 local STATUS = TTTBots.STATUS
 
