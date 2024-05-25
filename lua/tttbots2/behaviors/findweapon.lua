@@ -5,7 +5,7 @@ local lib = TTTBots.Lib
 
 local FindWeapon = TTTBots.Behaviors.FindWeapon
 FindWeapon.Name = "FindWeapon"
-FindWeapon.Description = "Wanders around the map"
+FindWeapon.Description = "Find an available weapon to use"
 FindWeapon.Interruptible = true
 
 local STATUS = TTTBots.STATUS
@@ -145,7 +145,10 @@ function FindWeapon.OnRunning(bot)
     local debugPrint = false
 
     local pastTarget = bot.findweapon.target
-    if pastTarget and IsValid(pastTarget) and pastTarget:GetOwner() == bot then return STATUS.SUCCESS end
+    if pastTarget and IsValid(pastTarget) and pastTarget:GetOwner() == bot then
+        bot.findweapon.target = nil
+        return STATUS.SUCCESS
+    end
 
     bot.findweapon.target = (FindWeapon.ValidateTarget(bot) and bot.findweapon.target) or FindWeapon.GetWeaponFor(bot)
     if not FindWeapon.ValidateTarget(bot) then
