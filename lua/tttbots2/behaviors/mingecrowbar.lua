@@ -24,6 +24,7 @@ function MingeCrowbar.IsMinging(bot)
     return bot.isCBMinging
 end
 
+---@return Player?
 function MingeCrowbar.GetMingeTarget(bot)
     local personality = bot:BotPersonality() ---@type CPersonality
     local rate = personality:GetTraitMult("mingeRate") or 1.0
@@ -35,7 +36,7 @@ function MingeCrowbar.GetMingeTarget(bot)
         if dist < (100 * rate) then return true end
     end)
 
-    return lib.GetClosest(nearbyPlayers, bot:GetPos())
+    return lib.GetClosest(nearbyPlayers, bot:GetPos()) ---@type Player?
 end
 
 function MingeCrowbar.CanStartMinge(bot)
