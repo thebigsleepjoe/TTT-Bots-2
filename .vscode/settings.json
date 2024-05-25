@@ -35,11 +35,6 @@
         "GetConVar",
         "LocalPlayer",
         "debugoverlay",
-        "VectorRand",
-        "AddCSLuaFile",
-        "CLIENT",
-        "engine",
-        "resource",
-        "ErrorNoHaltWithStack"
+        "VectorRand"
     ],
 }
