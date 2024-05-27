@@ -9,11 +9,7 @@ InvestigateCorpse.Name = "InvestigateCorpse"
 InvestigateCorpse.Description = "Investigate the corpse of a fallen player"
 InvestigateCorpse.Interruptible = true
 
-local STATUS = {
-    RUNNING = 1,
-    SUCCESS = 2,
-    FAILURE = 3,
-}
+local STATUS = TTTBots.STATUS
 
 ---@deprecated deprecated until distance check, technically works tho
 function InvestigateCorpse.GetVisibleCorpses(bot)
@@ -49,7 +45,7 @@ end
 function InvestigateCorpse.GetShouldInvestigateCorpses(bot)
     local BASE_PCT = 75
     local MIN_PCT = 5
-    local personality = lib.GetComp(bot, "personality") ---@type CPersonality
+    local personality = bot:BotPersonality()
     if not personality then return false end
     local mult = personality:GetTraitMult("investigateCorpse")
     return lib.TestPercent(

@@ -1,8 +1,8 @@
----@class CInventory : CBase
+---@class CInventory : Component
 TTTBots.Components.Inventory = {}
 
 local lib = TTTBots.Lib
----@class CInventory : CBase
+---@class CInventory : Component
 local BotInventory = TTTBots.Components.Inventory
 
 function BotInventory:New(bot)
@@ -28,6 +28,7 @@ function BotInventory:Initialize(bot)
     self.componentID = string.format("inventory (%s)", lib.GenerateID()) -- Component ID, used for debugging
 
     self.tick = 0
+    self.disabled = false
 
     self.bot = bot
 end
@@ -61,6 +62,7 @@ end
 ---@field is_sniper boolean If the weapon is a sniper
 ---@field is_shotgun boolean If the weapon is a shotgun
 ---@field is_melee boolean If the weapon is a shotgun
+---@field timestamp number The CurTime() when this info was last updated
 
 --- A hash table for the ammo_type field in an info table. See https://wiki.facepunch.com/gmod/Default_Ammo_Types
 local ammoTypes = {
@@ -103,14 +105,34 @@ local ammoTypes = {
     [37] = { name = "combineheavycannon", description = "the \"combine autogun\" ammo from half-life 2: episode 2" }
 }
 
+BotInventory.wInfoCache = {} ---@type table<Weapon, WeaponInfo>
+BotInventory.wInfoCacheTime = 1 --- Number of seconds before a cached weapon info is invalidated.
 
+---Validate the cache for the weapon. Also returns the WeaponInfo if it's valid, otherwise nil.
+---@param wep Weapon
+---@return WeaponInfo?
+local function cacheValidate(wep)
+    local timeNow = CurTime()
+    local cache = BotInventory.wInfoCache[wep]
+    if not cache then return nil end
 
----TODO: Cache me!
+    if timeNow - cache.timestamp > BotInventory.wInfoCacheTime then
+        BotInventory.wInfoCache[wep] = nil
+        return nil
+    end
+end
+
 ---Returns the WeaponInfo table of the given entity
 ---@param wep Weapon
 ---@return WeaponInfo
 function BotInventory:GetWeaponInfo(wep)
-    if wep == nil or wep == NULL or not IsValid(wep) then return end
+    if not (wep and IsValid(wep)) then
+        ErrorNoHaltWithStack("Invalid weapon object passed to GetWeaponInfo")
+        error("Invalid weapon object passed to GetWeaponInfo")
+    end
+
+    local cache = cacheValidate(wep)
+    if cache then return cache end
 
     local info = {
         __tostring = function(obj) return BotInventory:GetWepInfoText(obj) end
@@ -187,14 +209,20 @@ function BotInventory:GetWeaponInfo(wep)
     info.is_melee = info.clip == -1
 
     info.damage = wep.Primary and wep.Primary.Damage or 1
-    info.rpm = math.ceil(wep.Primary and (1 / (wep.Primary.Delay or 1)) * 60) or 1
+    local rps = wep.Primary and (1 / (wep.Primary.Delay or 1)) or 1
+    info.rpm = math.ceil(rps * 60) or 1
     info.numshots = wep.Primary and wep.Primary.NumShots or 1
-    info.dps = math.ceil(info.damage * info.numshots * info.rpm * (1 / 60)) or 1
+    info.dps = math.ceil(info.damage * info.numshots * rps) or 1
     info.time_to_kill = (math.ceil((100 / info.dps) * 100) / 100) or 1
 
     info.is_automatic = (wep.Primary and wep.Primary.Automatic) or false
     -- we can infer if this is a sniper based off of the damage and if it's automatic
     info.is_sniper = (info.damage and info.damage > 40 and not info.is_automatic) or false
+
+    info.timestamp = CurTime()
+
+    -- Place this wep/info into the cache.
+    BotInventory.wInfoCache[wep] = info
 
     return info
 end
@@ -259,10 +287,9 @@ function BotInventory:HasNoWeaponAvailable(attackMode)
     return true
 end
 
---- Manage our own inventory by selecting the best weapon, queueing a reload if necessary, etc.
-function BotInventory:AutoManageInventory()
-    local SLOWDOWN = math.floor(TTTBots.Tickrate / 2) -- about twice per second
-    if self.tick % SLOWDOWN ~= 0 or self.disabled then return end
+---Equip the debug_forceweapon convar class if it is set. Returns true if it is set and we equipped it, false if not.
+---@return boolean
+function BotInventory:ManageDebugWeapon()
 
     local forcedClass = lib.GetConVarString('debug_forceweapon')
     if forcedClass ~= "" then
@@ -272,20 +299,31 @@ function BotInventory:AutoManageInventory()
         self.bot:SelectWeapon(forcedClass)
 
         local held = self:GetHeldWeaponInfo()
-        if not held then return end
-        if not held.needs_reload then return end
+        if not held then return true end
+        if not held.needs_reload then return true end
 
         local loco = self.bot:BotLocomotor()
 
-        if not loco then return end
+        if not loco then return true end
         loco:Reload()
 
-        return
+        return true
     end
 
-    local special = self:GetWeaponInfo(self:GetSpecialPrimary())
-    local primary = self:GetWeaponInfo(self:GetPrimary())
-    local secondary = self:GetWeaponInfo(self:GetSecondary())
+    return false
+end
+
+--- Manage our own inventory by selecting the best weapon, queueing a reload if necessary, etc.
+function BotInventory:AutoManageInventory()
+    local SLOWDOWN = math.floor(TTTBots.Tickrate / 2) -- about twice per second
+    if self.tick % SLOWDOWN ~= 0 or self.disabled then return end
+
+    if self:ManageDebugWeapon() then return end
+
+    local w_special = self:GetSpecialPrimary()
+    local special = w_special and self:GetWeaponInfo(w_special) or nil
+    local w_primary, primary = self:GetPrimary()
+    local w_secondary, secondary = self:GetSecondary()
 
     -- local isAttacking = self.bot.attackTarget ~= nil
 
@@ -293,14 +331,20 @@ function BotInventory:AutoManageInventory()
         [self.EquipSpecial] = special,
         [self.EquipPrimary] = primary,
         [self.EquipSecondary] = secondary,
-        [self.EquipMelee] = self:HasNoWeaponAvailable(false),
+        -- [self.EquipMelee] = self:HasNoWeaponAvailable(false),
     }
 
+    local foundGun = false
     for func, wepInfo in pairs(hash) do
-        if wepInfo and (wepInfo == true or wepInfo.ammo > 0) then
+        if wepInfo.ammo > 0 then
             func(self)
+            foundGun = true
             break
         end
+    end
+
+    if not foundGun and self:HasNoWeaponAvailable(false) then
+        self:EquipMelee()
     end
 
     local current = self:GetHeldWeaponInfo()
@@ -394,74 +438,67 @@ end
 
 ---Returns the weapon info table for the weapon we are holding, or what the target is holding if any.
 ---@param target Player|nil
----@return WeaponInfo
+---@return WeaponInfo?
 function BotInventory:GetHeldWeaponInfo(target)
     if not target then
-        return self:GetWeaponInfo(self.bot:GetActiveWeapon())
+        local wep = self.bot:GetActiveWeapon()
+
+        if not (wep and IsValid(wep)) then return nil end
+
+        return self:GetWeaponInfo(wep)
     end
 
     local wep = target:GetActiveWeapon()
-    if not IsValid(wep) then return end
+    if not IsValid(wep) then return nil end
     return self:GetWeaponInfo(wep)
 end
 
----@return WeaponInfo
+---@return Weapon?, WeaponInfo?
 function BotInventory:GetPrimary()
-    -- info.slot == "primary"
-    local weapons = self.bot:GetWeapons()
-    for _, wep in pairs(weapons) do
-        local info = self:GetWeaponInfo(wep)
-        if info.slot == "primary" then
-            return wep
-        end
-    end
+    return self:GetBySlot("primary")
 end
 
----@return WeaponInfo
+---@return Weapon?, WeaponInfo?
 function BotInventory:GetSecondary()
-    -- info.slot == "secondary"
-    local weapons = self.bot:GetWeapons()
-    for _, wep in pairs(weapons) do
-        local info = self:GetWeaponInfo(wep)
-        if info.slot == "secondary" then
-            return wep
-        end
-    end
+    return self:GetBySlot("secondary")
 end
 
----@return WeaponInfo
+---@return Weapon?, WeaponInfo?
 function BotInventory:GetCrowbar()
-    -- info.slot == "melee"
-    local weapons = self.bot:GetWeapons()
-    for _, wep in pairs(weapons) do
-        local info = self:GetWeaponInfo(wep)
-        if info.slot == "melee" then
-            return wep
-        end
-    end
+    return self:GetBySlot("melee")
 end
 
----@return WeaponInfo
+---@return Weapon?, WeaponInfo?
 function BotInventory:GetGrenade()
-    -- info.slot == "grenade"
+    return self:GetBySlot("grenade")
+end
+
+--- Return the first weapon of slot 'slot'. Also returns weaponinfo if it exists.
+---@param slot string
+---@return Weapon?, WeaponInfo?
+function BotInventory:GetBySlot(slot)
     local weapons = self.bot:GetWeapons()
     for _, wep in pairs(weapons) do
         local info = self:GetWeaponInfo(wep)
-        if info.slot == "grenade" then
-            return wep
+        if info.slot == slot then
+            return wep, info
         end
     end
+
+    return nil
 end
 
----@return WeaponInfo
+---@return WeaponInfo?
 function BotInventory:GetWeaponByName(name)
     local weapons = self.bot:GetWeapons()
     for _, wep in pairs(weapons) do
         local info = self:GetWeaponInfo(wep)
         if info.print_name == name then
-            return wep
+            return info
         end
     end
+
+    return nil
 end
 
 --- Gets the debug/stylized text for the given weapon info. Used to check the ammo and weapon type.
@@ -570,7 +607,9 @@ end
 
 ---@class Player
 local plyMeta = FindMetaTable("Player")
+
 ---@return CInventory
 function plyMeta:BotInventory()
-    return TTTBots.Lib.GetComp(self, "inventory")
+    ---@cast self Bot
+    return self.components.inventory
 end

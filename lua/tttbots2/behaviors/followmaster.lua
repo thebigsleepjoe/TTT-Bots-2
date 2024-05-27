@@ -8,14 +8,10 @@ FollowMaster.Name = "FollowMaster"
 FollowMaster.Description = "(Typically of a sidekick) follow a master of the same team, that is not our role."
 FollowMaster.Interruptible = true
 
-local STATUS = {
-    RUNNING = 1,
-    SUCCESS = 2,
-    FAILURE = 3,
-}
+local STATUS = TTTBots.STATUS
 
 ---Find a random master to follow.
----@param bot Player
+---@param bot Bot
 ---@return Player?
 function FollowMaster.FindMaster(bot)
     local myRole = bot:GetRoleStringRaw()

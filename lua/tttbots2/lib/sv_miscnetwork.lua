@@ -38,12 +38,13 @@ local function selectRandomHumanlike(bot)
     return selectedNumber
 end
 
+---@param bot Bot
 local function assignBotAvatar(bot)
     validateAvatarCache()
 
     -- local avatarNumber = math.random(1, 281)
     -- avatars[bot] = avatarNumber
-    local personality = TTTBots.Lib.GetComp(bot, "personality") ---@type CPersonality
+    local personality = bot:BotPersonality()
     if not personality then
         timer.Simple(1, function()
             assignBotAvatar(bot)
@@ -76,10 +77,8 @@ local function assignBotAvatar(bot)
     bot.avatarN = assignedImage
 end
 
-hook.Add("PlayerInitialSpawn", "TTTBots_PlayerInitialSpawn", function(ply)
-    if ply:IsBot() then
-        assignBotAvatar(ply)
-    end
+hook.Add("TTTBotJoined", "TTTBotAssignAvatar", function(ply)
+    assignBotAvatar(ply)
 end)
 
 local function syncClientAvatars(ply)

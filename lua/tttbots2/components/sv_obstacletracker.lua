@@ -1,8 +1,8 @@
----@class CObstacleTracker : CBase
+---@class CObstacleTracker : Component
 TTTBots.Components.ObstacleTracker = TTTBots.Components.ObstacleTracker or {}
 
 local lib = TTTBots.Lib
----@class CObstacleTracker : CBase
+---@class CObstacleTracker : Component
 local BotObstacleTracker = TTTBots.Components.ObstacleTracker
 
 function BotObstacleTracker:New(bot)

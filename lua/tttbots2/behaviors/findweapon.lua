@@ -5,14 +5,10 @@ local lib = TTTBots.Lib
 
 local FindWeapon = TTTBots.Behaviors.FindWeapon
 FindWeapon.Name = "FindWeapon"
-FindWeapon.Description = "Wanders around the map"
+FindWeapon.Description = "Find an available weapon to use"
 FindWeapon.Interruptible = true
 
-local STATUS = {
-    RUNNING = 1,
-    SUCCESS = 2,
-    FAILURE = 3,
-}
+local STATUS = TTTBots.STATUS
 
 function FindWeapon.HasPrimary(bot)
     local im = bot.components.inventory
@@ -20,15 +16,17 @@ function FindWeapon.HasPrimary(bot)
     return primary ~= nil
 end
 
---- Cache for GetWeaponsNear
----@field weapons table
----@field time number
-local getWeaponsNearCache = nil
+--- Cache for GetWeaponsNear'
+---@class GetWeaponsNearCache
+---@field weapons table<Weapon>
+---@field time number?
+local GetWeaponsNearCache = {}
 local GWNC_EXPIRY = 2
 
 function FindWeapon.GetWeaponsNear(bot, radius)
-    if getWeaponsNearCache and getWeaponsNearCache.time + GWNC_EXPIRY > CurTime() then
-        return getWeaponsNearCache.weapons
+    local cacheTime = GetWeaponsNearCache and GetWeaponsNearCache.time or -math.huge
+    if cacheTime + GWNC_EXPIRY > CurTime() then
+        return GetWeaponsNearCache.weapons
     end
     local im = bot.components.inventory
     radius = radius or 1000
@@ -38,7 +36,7 @@ function FindWeapon.GetWeaponsNear(bot, radius)
             table.insert(weapons, v)
         end
     end
-    getWeaponsNearCache = {
+    GetWeaponsNearCache = {
         weapons = weapons,
         time = CurTime(),
     }
@@ -64,16 +62,18 @@ function FindWeapon.CanReachWeapon(ent)
 end
 
 --- Cache the result of GetWeaponFor;
----@field ent Entity the weapon/ent
----@field time number the time the cache was created
-local getWeaponForCache = nil
+---@class GetWeaponForCache
+---@field ent Weapon? the weapon/ent
+---@field time number? the time the cache was created
+local GetWeaponForCache = {}
 local GWFC_EXPIRY = 1
 --- Find a **primary** weapon on the ground nearest to **bot**
----@param bot Player
----@return Entity
+---@param bot Bot
+---@return Weapon?
 function FindWeapon.GetWeaponFor(bot)
-    if getWeaponForCache and (getWeaponForCache.time + GWFC_EXPIRY) > CurTime() then
-        return getWeaponForCache.ent
+    local cacheTime = GetWeaponForCache and GetWeaponForCache.time or -math.huge
+    if (cacheTime + GWFC_EXPIRY) > CurTime() then
+        return GetWeaponForCache.ent
     end
     -- Return the nearest weapon to bot:GetPos()
     local weapons = FindWeapon.GetWeaponsNear(bot)
@@ -93,7 +93,8 @@ function FindWeapon.GetWeaponFor(bot)
             closestWeapon = v
         end
     end
-    getWeaponForCache = {
+
+    GetWeaponForCache = {
         ent = closestWeapon,
         time = CurTime(),
     }
@@ -143,7 +144,11 @@ end
 function FindWeapon.OnRunning(bot)
     local debugPrint = false
 
-    if IsValid(bot.findweapon.target) and bot.findweapon.target:GetOwner() == bot then return STATUS.SUCCESS end
+    local pastTarget = bot.findweapon.target
+    if pastTarget and IsValid(pastTarget) and pastTarget:GetOwner() == bot then
+        bot.findweapon.target = nil
+        return STATUS.SUCCESS
+    end
 
     bot.findweapon.target = (FindWeapon.ValidateTarget(bot) and bot.findweapon.target) or FindWeapon.GetWeaponFor(bot)
     if not FindWeapon.ValidateTarget(bot) then
@@ -151,6 +156,9 @@ function FindWeapon.OnRunning(bot)
     end
 
     local target = bot.findweapon.target
+
+    assert(target, "Target is nil when it shouldn't be.")
+
     local loco = bot:BotLocomotor()
     loco:SetGoal(target:GetPos())
 
