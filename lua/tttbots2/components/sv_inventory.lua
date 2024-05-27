@@ -331,14 +331,20 @@ function BotInventory:AutoManageInventory()
         [self.EquipSpecial] = special,
         [self.EquipPrimary] = primary,
         [self.EquipSecondary] = secondary,
-        [self.EquipMelee] = self:HasNoWeaponAvailable(false),
+        -- [self.EquipMelee] = self:HasNoWeaponAvailable(false),
     }
 
+    local foundGun = false
     for func, wepInfo in pairs(hash) do
-        if wepInfo == true or (type(wepInfo) == "table" and wepInfo.ammo > 0) then
+        if wepInfo.ammo > 0 then
             func(self)
+            foundGun = true
             break
         end
+    end
+
+    if not foundGun and self:HasNoWeaponAvailable(false) then
+        self:EquipMelee()
     end
 
     local current = self:GetHeldWeaponInfo()
