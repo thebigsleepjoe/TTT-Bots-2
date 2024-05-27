@@ -830,6 +830,8 @@ local function createPlayerBot(botname)
 
     bot.initialized = true
 
+    hook.Run("TTTBotJoined", bot)
+
     return bot
 end
 

@@ -30,6 +30,8 @@ This build will probably not be going to steam due to it having minimal gameplay
 
 - lib.GetComp is now obsolete. Use `Player:BotCOMPONENTNAME` instead. (e.g., `Player:BotLocomotor`)
 
+- Added hook "TTTBotJoined" which is called AFTER full bot initialization. sv_miscnetwork now depends on this hook.
+
 ## v1.2
 
 ### Features

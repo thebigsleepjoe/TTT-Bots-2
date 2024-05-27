@@ -40,7 +40,6 @@ end
 
 ---@param bot Bot
 local function assignBotAvatar(bot)
-    if not bot.initialized then return end
     validateAvatarCache()
 
     -- local avatarNumber = math.random(1, 281)
@@ -78,10 +77,8 @@ local function assignBotAvatar(bot)
     bot.avatarN = assignedImage
 end
 
-hook.Add("PlayerInitialSpawn", "TTTBots_PlayerInitialSpawn", function(ply)
-    if ply:IsBot() then
-        assignBotAvatar(ply)
-    end
+hook.Add("TTTBotJoined", "TTTBotAssignAvatar", function(ply)
+    assignBotAvatar(ply)
 end)
 
 local function syncClientAvatars(ply)
