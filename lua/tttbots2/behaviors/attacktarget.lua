@@ -15,12 +15,7 @@ Attack.Name = "AttackTarget"
 Attack.Description = "Attacking target"
 Attack.Interruptible = true
 
----@enum STATUS
-local STATUS = {
-    RUNNING = 1,
-    SUCCESS = 2,
-    FAILURE = 3,
-}
+local STATUS = TTTBots.STATUS
 
 ---@enum ATTACKMODE
 local ATTACKMODE = {
@@ -148,7 +143,7 @@ function Attack.ShouldApproachWith(bot, weapon)
 end
 
 --- Tests if the target is next to an explosive barrel, if so, returns the barrel.
----@param bot Player
+---@param bot Bot
 ---@param target Player
 ---@return Entity|nil barrel
 function Attack.TargetNextToBarrel(bot, target)
@@ -205,7 +200,7 @@ end
 function Attack.Engage(bot, targetPos)
     local target = bot.attackTarget
     local inv = bot.components.inventory ---@type CInventory
-    local weapon = inv:GetHeldWeaponInfo() ---@type WeaponInfo
+    local weapon = inv:GetHeldWeaponInfo()
     if not weapon then return end
     local usingMelee = not weapon.is_gun
     local loco = bot:BotLocomotor() ---@type CLocomotor
@@ -286,11 +281,11 @@ end
 local INACCURACY_BASE = 9  --- The higher this is, the more inaccurate the bots will be.
 local INACCURACY_SMOKE = 5 --- The inaccuracy modifier when the bot or its target is in smoke.
 --- Calculate the inaccuracy of agent 'bot' according to a) its personality and b) diff setts
----@param bot Player The bot that is shooting.
+---@param bot Bot The bot that is shooting.
 ---@param origin Vector The original aim point.
 ---@param target Player The target that is being shot at.
 function Attack.CalculateInaccuracy(bot, origin, target)
-    local personality = lib.GetComp(bot, "personality") ---@type CPersonality
+    local personality = bot:BotPersonality()
     local difficulty = lib.GetConVarInt("difficulty") -- int [0,5]
     if not (difficulty or personality) then return Vector(0, 0, 0) end
 
@@ -378,7 +373,7 @@ function Attack.LookingCloseToTarget(bot, target)
 end
 
 --- Determine what mode of attack (attackMode) we are in.
----@param bot Player
+---@param bot Bot
 ---@return ATTACKMODE mode
 function Attack.RunningAttackLogic(bot)
     ---@type CMemory
@@ -399,7 +394,7 @@ function Attack.RunningAttackLogic(bot)
 end
 
 --- Validates if the target is extant and alive. True if valid.
----@param bot Player
+---@param bot Bot
 ---@return boolean isValid
 function Attack.ValidateTarget(bot)
     local target = bot.attackTarget
@@ -439,8 +434,8 @@ function Attack.IsTargetAlly(bot)
 end
 
 --- Called when the behavior's last state is running
----@param bot Player
----@return STATUS status
+---@param bot Bot
+---@return BStatus status
 function Attack.OnRunning(bot)
     local target = bot.attackTarget
     -- We could probably do Attack.Validate but this is more explicit:

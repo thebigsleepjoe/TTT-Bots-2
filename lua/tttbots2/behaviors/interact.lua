@@ -18,12 +18,8 @@ Interact.MinTimeBetween = 8 -- Minimum seconds between all interactions.
 Interact.MaxDistance = 200  -- Maximum distance before an interaction is considered
 Interact.BaseChancePct = 6  -- Base chance of interacting with a player within our range, considered per tick
 
----@enum BStatus
-local STATUS = {
-    RUNNING = 1,
-    SUCCESS = 2,
-    FAILURE = 3,
-}
+
+local STATUS = TTTBots.STATUS
 
 local intensity = 20
 
@@ -152,7 +148,7 @@ function Interact.TestLookingAtEachOther(bot, other)
 end
 
 ---Returns the first other that is close enough and/or looking at us. Prefers those we are looking at, or vice versa.
----@param bot Player
+---@param bot Bot
 ---@return Player target?
 ---@return number targetDist?
 function Interact.FindOther(bot)
@@ -181,7 +177,7 @@ function Interact.FindOther(bot)
 end
 
 ---Validate the target of bot
----@param bot Player
+---@param bot Bot
 ---@param target Player
 ---@return boolean
 function Interact.ValidateTarget(bot, target)
@@ -205,7 +201,7 @@ end
 
 --- Validate the behavior before we can start it (or continue running)
 --- Returning false when the behavior was just running will still call OnEnd.
----@param bot Player
+---@param bot Bot
 ---@return boolean
 function Interact.Validate(bot)
     if not lib.IsPlayerAlive(bot) then return false end
@@ -219,7 +215,7 @@ function Interact.Validate(bot)
 end
 
 --- Called when the behavior is started. Useful for instantiating one-time variables per cycle. Return STATUS.RUNNING to continue running.
----@param bot Player
+---@param bot Bot
 ---@return BStatus
 function Interact.OnStart(bot)
     Interact.SetAnimation(bot, nil)
@@ -248,7 +244,7 @@ function Interact.StopActions(loco)
 end
 
 --- Called when OnStart or OnRunning returns STATUS.RUNNING. Return STATUS.RUNNING to continue running.
----@param bot Player
+---@param bot Bot
 ---@return BStatus
 function Interact.OnRunning(bot)
     if Interact.IsAnimationOver(bot) then
@@ -287,17 +283,17 @@ function Interact.OnRunning(bot)
 end
 
 --- Called when the behavior returns a success state. Only called on success, however.
----@param bot Player
+---@param bot Bot
 function Interact.OnSuccess(bot)
 end
 
 --- Called when the behavior returns a failure state. Only called on failure, however.
----@param bot Player
+---@param bot Bot
 function Interact.OnFailure(bot)
 end
 
 --- Called when the behavior succeeds or fails. Useful for cleanup, as it is always called once the behavior is a) interrupted, or b) returns a success or failure state.
----@param bot Player
+---@param bot Bot
 function Interact.OnEnd(bot)
     Interact.SetAnimation(bot, nil)
     bot.lastInteractionTime = CurTime()

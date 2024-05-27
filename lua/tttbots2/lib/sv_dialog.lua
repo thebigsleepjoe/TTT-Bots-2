@@ -100,7 +100,7 @@ function Dialog.ExecuteDialog(dialog)
         Dialog.EndDialog(dialog)
         return dialog
     end
-    local participant = dialog.participants[dline.participantId]
+    local participant = dialog.participants[dline.participantId] ---@type Bot
 
     if not Dialog.VerifyLifeStates(dialog) then -- We cannot run a dialog if the participants are alive when they shouldn't be
         Dialog.EndDialog(dialog)
@@ -123,7 +123,7 @@ function Dialog.ExecuteDialog(dialog)
         return dialog
     end
 
-    local chatter = TTTBots.Lib.GetComp(participant, "chatter") ---@type CChatter
+    local chatter = participant:BotChatter()
     if not chatter then
         Dialog.EndDialog(dialog)
         print("no chatter on bot`")
@@ -146,9 +146,9 @@ end
 function Dialog.New(templateName, participants)
     local template = Dialog.Templates[templateName]
     local dialog = table.Copy(template) ---@type Dialog
-    dialog.participants = participants or Dialog.SelectParticipants(template)
+    dialog.participants = participants or Dialog.SelectParticipants(template) or {}
 
-    if not dialog.participants then return false end
+    if table.Count(dialog.participants) == 0 then return false end
 
     return dialog
 end
