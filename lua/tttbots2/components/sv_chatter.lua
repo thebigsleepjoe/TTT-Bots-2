@@ -277,7 +277,9 @@ end)
 timer.Create("TTTBots.Chatter.SillyChat", 20, 0, function()
     if math.random(1, 9) > 1 then return end -- Should average to about once every 3 minutes
     local targetBot = TTTBots.Bots[math.random(1, #TTTBots.Bots)]
-    if not targetBot then return end
+    if not (targetBot and IsValid(targetBot)) then return end
+    if not targetBot.components then return end
+
     local chatter = targetBot:BotChatter()
     if not chatter then return end
 
