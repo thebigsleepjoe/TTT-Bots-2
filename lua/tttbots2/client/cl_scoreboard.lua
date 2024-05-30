@@ -256,8 +256,11 @@ end)
 timer.Create("TTTBots.Client.UpdateScoreboard", 0.25, 0, updateScoreboardPfps)
 timer.Create("TTTBots.Client.AuditAvatarCache", 3, 0, auditAvatarCache)
 
+if not TTT2 then return end -- Prevent any hypothetical errors created from the below code.
+
+-- Fetching bot avatars
+
 hook.Add("TTT2FetchAvatar", "TTTBots.Client.FetchAvatar", function(id64, size)
-    print("Fetching avatar for " .. id64)
     local bot = nil
     for i,v in pairs(player.GetBots()) do
         if v:SteamID64() == id64 then
@@ -271,7 +274,6 @@ hook.Add("TTT2FetchAvatar", "TTTBots.Client.FetchAvatar", function(id64, size)
     local number = avatarCache[bot:Nick()]
 
     if not number then
-        print("[TTT Bots 2] Missing avatar for bot " .. bot:Nick() .. ", requesting...")
         timer.Simple(5, function()
             if not (bot and bot:IsValid()) then return end -- This bot was probably removed...
             draw.DropCacheAvatar(id64, size)
@@ -283,4 +285,36 @@ hook.Add("TTT2FetchAvatar", "TTTBots.Client.FetchAvatar", function(id64, size)
     return file.Read(resolveAvatarPath(number), "GAME")
 end)
 
-print("refresh")
+
+--- This is different to avatarCache, as it is purely for TTT2's avatar cache.
+local cachedAvatarData = {} ---@type table<Bot?, boolean>
+
+--- Iterates over every bot unfetched by this script and forcefully refreshes their avatar data.
+local function refreshAvatarData()
+    for i, bot in pairs(player.GetBots()) do
+        if not IsValid(bot) then continue end
+        if cachedAvatarData[bot] then continue end
+
+        local id64 = bot:SteamID64()
+        local sizes = {"small", "medium", "large"}
+        -- local dropFn = draw.DropCacheAvatar -- Forcefully drops the cache of this player's avatars.
+        local cacheFn = draw.CacheAvatar -- This implicitly calls TTTBots.Client.FetchAvatar (and every other related hook)
+
+        for _, size in pairs(sizes) do
+            -- dropFn(id64, size)
+            cacheFn(id64, size)
+        end
+    end
+end
+
+--- Release nil or invalid bots from the cache to prevent memory leaks.
+local function invalidateAvatarCache()
+    for bot, _ in pairs(cachedAvatarData) do
+        if not (bot and IsValid(bot)) then
+            cachedAvatarData[bot] = nil
+        end
+    end
+end
+
+timer.Create("TTTBots.Client.FetchAvatars", 5, 0, refreshAvatarData)
+timer.Create("TTTBots.Client.InvalidateAvatars", 60, 0, invalidateAvatarCache)

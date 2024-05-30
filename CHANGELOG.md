@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.3
+
+A major feature overhaul.
+
+### Added
+
+- **TTT2** Bots will show their avatars in the top-right when their corpse is revealed. (#41)
+
 ## v1.2.2
 
 Very small bugfix.
