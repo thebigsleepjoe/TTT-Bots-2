@@ -526,7 +526,11 @@ function TTTBots.PathManager.RequestPath(owner, startPos, finishPos, isAreas)
             "No startPos and/or finishPos, keep your functions safe from this error.")
     end
 
-    assert(TTTBots.Lib.IsPlayerAlive(owner), "Owner must be a living player.")
+    -- assert(TTTBots.Lib.IsPlayerAlive(owner), "Owner must be a living player.")
+    if not TTTBots.Lib.IsPlayerAlive(owner) then 
+        ErrorNoHaltWithStack("Owner must be a living player.")
+        return "error", false, "owner_not_alive"
+    end
 
     local startArea = (isAreas and startPos) or
         TTTBots.Lib.GetNearestNavArea(startPos)  --navmesh.GetNearestNavArea(startPos)
