@@ -273,14 +273,6 @@ hook.Add("TTT2FetchAvatar", "TTTBots.Client.FetchAvatar", function(id64, size)
 
     local number = avatarCache[bot:Nick()]
 
-    if not number then
-        timer.Simple(5, function()
-            if not (bot and bot:IsValid()) then return end -- This bot was probably removed...
-            draw.DropCacheAvatar(id64, size)
-        end)
-        return nil
-    end
-
     print("[TTT Bots 2] Fetching avatar for bot " .. bot:Nick() .. " (" .. number .. ")")
     return file.Read(resolveAvatarPath(number), "GAME")
 end)
