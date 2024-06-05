@@ -607,7 +607,7 @@ local function noticeTraitorWeapons(bot)
 
     if table.IsEmpty(filtered) then return end
 
-    local firstEnemy = TTTBots.Lib.GetClosest(filtered, bot:GetPos())
+    local firstEnemy = TTTBots.Lib.GetClosest(filtered, bot:GetPos()) ---@cast firstEnemy Player?
     if not firstEnemy then return end
     bot:SetAttackTarget(firstEnemy)
     bot:BotChatter():On("HoldingTraitorWeapon", { player = firstEnemy:Nick() })

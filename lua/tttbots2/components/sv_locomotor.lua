@@ -895,6 +895,8 @@ end
 ---@package
 function BotLocomotor:AnySegmentsNearby(path, range)
     for i, nav in pairs(path) do
+        -- extra safety check
+        if not IsValid(nav) then continue end
         local center = nav:GetCenter()
         if self.bot:VisibleVec(center) and (center:Distance(self.bot:GetPos()) < range) then
             return true
