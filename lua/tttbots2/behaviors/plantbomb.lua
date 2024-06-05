@@ -113,7 +113,6 @@ end
 function PlantBomb.OnStart(bot)
     local spot = PlantBomb.FindPlantSpot(bot)
     if not spot then
-        print("No spot to plant bomb;", spot)
         return STATUS.FAILURE
     end
     local inventory = bot:BotInventory()
