@@ -184,6 +184,8 @@ end)
 hook.Add("navoptimizer_done_gencheapexpanded", "TTTBots.PostProcessNO", function()
     RunConsoleCommand("ttt_bot_nav_cullconnections")
     RunConsoleCommand("ttt_bot_nav_markdangerousnavs")
+    RunConsoleCommand("ttt_bot_kickall")
+    RunConsoleCommand("ttt_bot_reload")
 end)
 
 CreateSharedConCommand("ttt_bot_nav_markdangerousnavs", function(ply, _, args)
