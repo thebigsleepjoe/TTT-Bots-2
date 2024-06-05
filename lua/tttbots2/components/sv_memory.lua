@@ -581,6 +581,7 @@ hook.Add("EntityEmitSound", "TTTBots.EntityEmitSound", function(data)
 end)
 
 
+---@class Bot
 local plyMeta = FindMetaTable("Player")
 function plyMeta:BotMemory()
     return self.components and self.components.memory
