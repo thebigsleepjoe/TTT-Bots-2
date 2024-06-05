@@ -1,6 +1,3 @@
---- This file is a base behavior meta file. It is not used in code, and is merely present for Intellisense and prototyping.
----@meta
-
 TTTBots.Behaviors = TTTBots.Behaviors or {}
 
 ---@class BDefib
