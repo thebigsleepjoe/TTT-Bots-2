@@ -165,18 +165,23 @@ CreateSharedConCommand("ttt_bot_nav_cullconnections", function(ply, _, args)
     end
     print("Number of bogus connections removed: " .. nBogus)
 end)
-
-CreateSharedConCommand("ttt_bot_nav_generate", function(ply, _, args)
+CreateSharedConCommand("ttt_bot_nav_gen", function(ply, _, args)
     if SERVER and ply == NULL then
         print("You must be in-game to use this command, sorry.")
         return
     end
+    if not superIncrementalGeneration then 
+        print("You must have Navmesh Optimizer installed to use this command.")
+        return
+    end
     if not ply then return end
     if not ply:IsSuperAdmin() then return end
-    local plyPos = ply:GetPos()
-    local upNormal = Vector(0, 0, 1)
-    navmesh.AddWalkableSeed(plyPos, upNormal)
-    navmesh.BeginGeneration()
+    print("Starting Navmesh Optimizer generation with TTT bots post processing... (Initiator: " .. ply:Nick() .. ")")
+    RunConsoleCommand("nav_generate_fencetops", "0")
+    superIncrementalGeneration( ply, true, true )
+end)
+
+hook.Add("navoptimizer_done_gencheapexpanded", "TTTBots.PostProcessNO", function()
     RunConsoleCommand("ttt_bot_nav_cullconnections")
     RunConsoleCommand("ttt_bot_nav_markdangerousnavs")
 end)
@@ -188,11 +193,9 @@ CreateSharedConCommand("ttt_bot_nav_markdangerousnavs", function(ply, _, args)
     local hazards = ents.FindByClass("trigger_hurt")
 
     for i, hazard in pairs(hazards) do
-        -- TTTBots.DebugServer.DrawCross(hazard:GetPos(), 10, Color(255, 0, 0), 10)
         -- Let's draw a box around it instead
         local mins, maxs = hazard:OBBMins(), hazard:OBBMaxs()
         local pos = hazard:GetPos()
-        TTTBots.DebugServer.DrawBox(pos, mins, maxs, Color(255, 100, 100, 10), 10)
 
         -- Get all navs in an area where the radius is the distance between the center and the maxs.
         local radius = pos:Distance(pos + maxs)
@@ -201,7 +204,6 @@ CreateSharedConCommand("ttt_bot_nav_markdangerousnavs", function(ply, _, args)
             -- First check if the nav's center point is within the box bounds
             if not nav:GetCenter():WithinAABox(pos + mins, pos + maxs) then continue end
             nav:SetAttributes(nav:GetAttributes() + NAV_MESH_AVOID)
-            TTTBots.DebugServer.DrawCross(nav:GetCenter(), 20, Color(255, 0, 0), 10)
         end
     end
 end)

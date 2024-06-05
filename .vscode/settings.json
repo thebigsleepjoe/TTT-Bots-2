@@ -62,6 +62,7 @@
         "FCVAR_REPLICATED",
         "FCVAR_LUA_SERVER",
         "GAMEMODE",
-        "REVIVAL_BLOCK_NONE"
+        "REVIVAL_BLOCK_NONE",
+        "superIncrementalGeneration"
     ],
 }
