@@ -18,6 +18,11 @@ Interact.MinTimeBetween = 24 -- Minimum seconds between all interactions.
 Interact.MaxDistance = 200  -- Maximum distance before an interaction is considered
 Interact.BaseChancePct = 4  -- Base chance of interacting with a player within our range, considered per tick
 
+---@class Bot
+---@field interactTarget Player?
+---@field interactAnimationKeyframe integer? The current keyframe of the animation
+---@field lastInteractionTime number The last time we interacted with someone
+---@field nextKeyframeTime number The time the next keyframe should be played
 
 local STATUS = TTTBots.STATUS
 
@@ -255,7 +260,7 @@ function Interact.OnRunning(bot)
     local animation, keyframe, nextKeyframeTime = Interact.GetBotAnimation(bot)
     local target = bot.interactTarget
 
-    if not Interact.ValidateTarget(bot, target) then
+    if not (target and Interact.ValidateTarget(bot, target)) then
         -- print("Target is no longer valid for " .. bot:Nick())
         return STATUS.FAILURE
     end

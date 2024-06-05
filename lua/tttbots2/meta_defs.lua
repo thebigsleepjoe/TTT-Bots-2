@@ -52,6 +52,7 @@ IN_USE = 32768 --- https://wiki.facepunch.com/gmod/Enums/IN
 
 ---@class Vector
 ---@field Distance fun(self: Vector, vec: Vector): number The distance from us to them.
+---@field DistToSqr fun(self: Vector, vec: Vector): number Distance btwn A & B squared
 ---@field LengthSqr fun(self: Vector): number The length of the vector prior to taking a sqrt.
 ---@field Dot fun(self: Vector, vec: Vector): number The dot product of the two vectors.
 ---@field x number
