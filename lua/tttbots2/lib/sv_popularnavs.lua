@@ -46,14 +46,14 @@ timer.Create("TTTBots.Lib.PopularNavsTimer", 1, 0, function()
 end)
 
 --- Retrieves the sorted list of popular nav areas.
----@return table A sorted table of nav areas by popularity.
+---@return table sorted A sorted table of nav areas by popularity.
 function TTTBots.Lib.GetPopularNavs()
     return TTTBots.Lib.PopularNavsSorted
 end
 
 --- Retrieves the top N popular nav areas.
 ---@param n number The number of top popular nav areas to retrieve.
----@return table A table of the top N popular nav areas.
+---@return table<table<number, number>> popular A table of the top N popular nav areas.
 function TTTBots.Lib.GetTopNPopularNavs(n)
     local sorted = TTTBots.Lib.GetPopularNavs()
     local topN = {}
@@ -67,7 +67,7 @@ end
 --- Retrieves the top N unpopular nav areas.
 --- The opposite of GetTopNPopularNavs.
 ---@param n number The number of top unpopular nav areas to retrieve.
----@return table A table of the top N unpopular nav areas.
+---@return table<table<number, number>> unpopular A table of the top N unpopular nav areas.
 function TTTBots.Lib.GetTopNUnpopularNavs(n)
     local sorted = TTTBots.Lib.GetPopularNavs()
     local topN = {}
@@ -79,7 +79,7 @@ function TTTBots.Lib.GetTopNUnpopularNavs(n)
 end
 
 --- Retrieves a random popular nav area from the top 8 most popular nav areas (or fewer if there are less than 8).
----@return number The ID of a random popular nav area.
+---@return number id The ID of a random popular nav area.
 function TTTBots.Lib.GetRandomPopularNav()
     local topN = TTTBots.Lib.GetTopNPopularNavs(8)
     local rand = math.random(1, #topN)
@@ -89,7 +89,7 @@ end
 local navMeta = FindMetaTable("CNavArea")
 
 --- Gets the popularity percentage [0,1] of this nav area compared to others. 1 = most, 0 = least.
----@return number The popularity percentage of this nav area.
+---@return number popularity The popularity percentage of this nav area.
 function navMeta:GetPopularityPct()
     local popNavs = TTTBots.Lib.GetPopularNavs()
     local total = #popNavs
