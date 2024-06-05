@@ -7,7 +7,7 @@ A major feature overhaul.
 ### Added
 
 - **TTT2** Bots will show their avatars in the top-right when their corpse is revealed. (#41)
-- Added concommand `ttt_bot_nav_gen` to utilzie Navmesh Optimizer for quick navmesh generation.
+- Added concommand `ttt_bot_nav_gen` to utilize Navmesh Optimizer for quick navmesh generation.
 
 ### Changed
 
