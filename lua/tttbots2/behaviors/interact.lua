@@ -14,9 +14,9 @@ Interact.Name = "Interact"
 Interact.Description = "Interact with another bot or player we can see"
 Interact.Interruptible = true
 
-Interact.MinTimeBetween = 8 -- Minimum seconds between all interactions.
+Interact.MinTimeBetween = 24 -- Minimum seconds between all interactions.
 Interact.MaxDistance = 200  -- Maximum distance before an interaction is considered
-Interact.BaseChancePct = 6  -- Base chance of interacting with a player within our range, considered per tick
+Interact.BaseChancePct = 4  -- Base chance of interacting with a player within our range, considered per tick
 
 
 local STATUS = TTTBots.STATUS

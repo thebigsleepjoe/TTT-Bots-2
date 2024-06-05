@@ -9,6 +9,10 @@ A major feature overhaul.
 - **TTT2** Bots will show their avatars in the top-right when their corpse is revealed. (#41)
 - Added concommand `ttt_bot_nav_gen` to utilzie Navmesh Optimizer for quick navmesh generation.
 
+### Changed
+
+- Dramatically increased time interval between the Interaction behavior and the crowbar minge behavior. This should prevent the bots from grouping up too much.
+
 ### Removed
 
 - Removed concommand `ttt_bot_nav_generate`, as it was outdated.
