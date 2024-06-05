@@ -54,6 +54,7 @@ TTTBots.Behaviors.DefaultTrees = {
         _bh.Interact,
         _prior.Investigate,
         _prior.Minge,
+        _bh.Decrowd,
         _prior.Patrol
     },
     traitor = {
@@ -76,6 +77,7 @@ TTTBots.Behaviors.DefaultTrees = {
         _bh.Interact,
         _prior.Minge,
         _prior.Investigate,
+        _bh.Decrowd,
         _prior.Patrol
     }
 }
