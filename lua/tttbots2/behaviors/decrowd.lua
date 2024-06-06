@@ -36,30 +36,22 @@ function Decrowd.Validate(bot)
 end
 
 function Decrowd.FindRetreatArea(bot)
-    local leastPopular = TTTBots.Lib.GetTopNUnpopularNavs(25)
-    local maxNearby = Decrowd.MaxNearbyPlayers
+    local botRegion = TTTBots.Lib.GetNearestRegion(bot:GetPos())
+    for i = 1, 5 do
+        local randomArea = TTTBots.Lib.GetRandomNavInRegion(botRegion)
+        local nWitnesses = TTTBots.Lib.GetAllWitnessesBasic(
+            randomArea:GetCenter(),
+            TTTBots.Match.AlivePlayers,
+            bot
+        )
 
-    -- We start with a lot of areas, so we need to whittle them down.
-
-    local retreatID
-    local retreatArea
-
-    -- Iterate 3 times, selecting a random unpopular nav, and select one with < MaxNearbyPlayers
-    for _ = 1, 5 do
-        retreatID = table.Random(leastPopular)[1]
-        retreatArea = navmesh.GetNavAreaByID(retreatID)
-
-        local nearbyPlys = lib.GetAllWitnessesBasic(retreatArea:GetCenter(), lib.GetAlivePlayers(), bot)
-        if #nearbyPlys < maxNearby then
-            return retreatArea
+        if #nWitnesses <= 1 then
+            return randomArea
         end
     end
 
-    -- Fallback to just picking a random unpopular area to retreat to.
-    retreatID = table.Random(leastPopular)[1]
-    retreatArea = navmesh.GetNavAreaByID(retreatID)
-
-    return retreatArea
+    -- Fallback just in case.
+    return table.Random(navmesh.GetAllNavAreas())
 end
 
 ---@param bot Bot
