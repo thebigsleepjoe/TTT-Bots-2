@@ -23,6 +23,7 @@ A major feature overhaul.
 ### Fixed
 
 - Potential bug created when a bot would try to grab a weapon in the world
+- Lua error caused by quota trying to kick an uninitialized bot. Oops!
 
 ## v1.2.2
 
