@@ -24,6 +24,7 @@ A major feature overhaul.
 
 - Potential bug created when a bot would try to grab a weapon in the world
 - Lua error caused by quota trying to kick an uninitialized bot. Oops!
+- Lua error related to plymeta:GetDifficulty
 
 ## v1.2.2
 

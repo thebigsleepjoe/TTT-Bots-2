@@ -445,10 +445,12 @@ function plyMeta:HasTraitIn(hashtable)
 end
 
 ---Get the difficulty of the bot. Returns nil if bot isn't fully initialized.
+---@param self Bot
 ---@return number? difficulty The calculated bot difficulty
 function plyMeta:GetDifficulty()
+    if not self.components then return end
     if self.calcDifficulty ~= nil then return self.calcDifficulty end
-    local personality = plyMeta:BotPersonality()
+    local personality = self:BotPersonality()
     if not personality then return nil end
 
     local diff = personality:GetTraitAdditive("difficulty")
