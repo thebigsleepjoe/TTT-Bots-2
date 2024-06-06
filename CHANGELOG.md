@@ -20,6 +20,10 @@ A major feature overhaul.
 
 - Removed concommand `ttt_bot_nav_generate`, as it was outdated.
 
+### Fixed
+
+- Potential bug created when a bot would try to grab a weapon in the world
+
 ## v1.2.2
 
 Very small bugfix.
