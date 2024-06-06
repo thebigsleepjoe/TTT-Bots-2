@@ -34,6 +34,8 @@ A major feature overhaul.
 
 - Lua error related to plymeta:GetDifficulty
 
+- Lua error related to fetching the BotLocomotor in one of the timers
+
 - Fixed caching issue in inventory component which prevented caching from actually working.
 
 ## v1.2.2
