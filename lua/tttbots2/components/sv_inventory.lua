@@ -113,13 +113,15 @@ BotInventory.wInfoCacheTime = 1 --- Number of seconds before a cached weapon inf
 ---@return WeaponInfo?
 local function cacheValidate(wep)
     local timeNow = CurTime()
-    local cache = BotInventory.wInfoCache[wep]
-    if not cache then return nil end
+    local cachedWeapon = BotInventory.wInfoCache[wep]
+    if not cachedWeapon then return nil end
 
-    if timeNow - cache.timestamp > BotInventory.wInfoCacheTime then
+    if timeNow - cachedWeapon.timestamp > BotInventory.wInfoCacheTime then
         BotInventory.wInfoCache[wep] = nil
         return nil
     end
+
+    return cachedWeapon
 end
 
 ---Returns the WeaponInfo table of the given entity
