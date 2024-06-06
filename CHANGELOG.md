@@ -6,7 +6,8 @@ A major feature overhaul.
 
 ### Added
 
-- **TTT2** Bots will show their avatars in the top-right when their corpse is revealed. (#41)
+- **TTT2** Bots will show their avatars in the top-right when their corpse is revealed. ([#41](https://github.com/thebigsleepjoe/TTT-Bots-2/issues/41))
+- **TTT2** Role suppport for Bodyguard ([#37](https://github.com/thebigsleepjoe/TTT-Bots-2/issues/37))
 - Added concommand `ttt_bot_nav_gen` to utilize Navmesh Optimizer for quick navmesh generation.
 - Added `Decrowding` behavior to main bot classes. This behavior will make bots without the `lovesCrowds` attribute (most bots) try to find less populated areas when they feel too crowded.
 

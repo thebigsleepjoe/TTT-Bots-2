@@ -63,6 +63,9 @@
         "FCVAR_LUA_SERVER",
         "GAMEMODE",
         "REVIVAL_BLOCK_NONE",
-        "superIncrementalGeneration"
+        "superIncrementalGeneration",
+        "ROLE_BODYGUARD",
+        "TEAM_BODYGUARD",
+        "BODYGRD_DATA"
     ],
 }
