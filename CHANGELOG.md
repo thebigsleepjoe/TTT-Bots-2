@@ -8,10 +8,12 @@ A major feature overhaul.
 
 - **TTT2** Bots will show their avatars in the top-right when their corpse is revealed. (#41)
 - Added concommand `ttt_bot_nav_gen` to utilize Navmesh Optimizer for quick navmesh generation.
+- Added `Decrowding` behavior to main bot classes. This behavior will make bots without the `lovesCrowds` attribute (most bots) try to find less populated areas when they feel too crowded.
 
 ### Changed
 
 - Dramatically increased time interval between the Interaction behavior and the crowbar minge behavior. This should prevent the bots from grouping up too much.
+- Increased `CommonSense` timer interval for optimization.
 
 ### Removed
 
