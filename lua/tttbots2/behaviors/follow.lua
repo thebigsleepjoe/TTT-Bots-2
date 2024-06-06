@@ -132,7 +132,7 @@ function Follow.OnRunning(bot)
     if bot.botFollowPoint == false then return STATUS.FAILURE end
 
     local distToPoint = bot:GetPos():Distance(bot.botFollowPoint)
-    local finalTarget = (distToPoint < 100 and bot:GetPos()) or bot.botFollowPoint
+    local finalTarget = (distToPoint < 250 and bot:GetPos()) or bot.botFollowPoint
 
     loco:SetGoal(finalTarget)
 end

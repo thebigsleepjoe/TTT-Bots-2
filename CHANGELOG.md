@@ -20,6 +20,8 @@ A major feature overhaul.
 
 - Increased `CommonSense` timer interval for optimization.
 
+- Increased follow distance target so that bots following another player don't keep bumping into them (as much)
+
 ### Removed
 
 - Removed concommand `ttt_bot_nav_generate`, as it was outdated.
@@ -27,7 +29,9 @@ A major feature overhaul.
 ### Fixed
 
 - Potential bug created when a bot would try to grab a weapon in the world
+
 - Lua error caused by quota trying to kick an uninitialized bot. Oops!
+
 - Lua error related to plymeta:GetDifficulty
 
 ## v1.2.2
