@@ -106,7 +106,6 @@ function FindWeapon.ValidateTarget(bot)
     if target == nil then return false end
     if not IsValid(target) then return false end
     if not target:IsValid() then return false end
-    if not target:IsInWorld() then return false end
     if not FindWeapon.WeaponOnGround(target) then return false end
     if not FindWeapon.WeaponIsPathable(bot, target) then return false end
 
