@@ -24,9 +24,13 @@ A major feature overhaul.
 
 - Improved bot movement precision by reducing the pathfinding node 'complete' threshold.
 
+- Bot avatar system no longer needs to sync with server, reducing bandwidth usage and increasing consitency.
+
 ### Removed
 
 - Removed concommand `ttt_bot_nav_generate`, as it was outdated.
+
+- No more difficulty-specific bot profile pictures due to unmaintainabiltiy
 
 ### Fixed
 
