@@ -108,21 +108,21 @@ local ammoTypes = {
 BotInventory.wInfoCache = {} ---@type table<Weapon, WeaponInfo>
 BotInventory.wInfoCacheTime = 1 --- Number of seconds before a cached weapon info is invalidated.
 
--- ---Validate the cache for the weapon. Also returns the WeaponInfo if it's valid, otherwise nil.
--- ---@param wep Weapon
--- ---@return WeaponInfo?
--- local function cacheValidate(wep)
---     local timeNow = CurTime()
---     local cachedWeapon = BotInventory.wInfoCache[wep]
---     if not cachedWeapon then return nil end
+---Validate the cache for the weapon. Also returns the WeaponInfo if it's valid, otherwise nil.
+---@param wep Weapon
+---@return WeaponInfo?
+local function cacheValidate(wep)
+    local timeNow = CurTime()
+    local cachedWeapon = BotInventory.wInfoCache[wep]
+    if not cachedWeapon then return nil end
 
---     if timeNow - cachedWeapon.timestamp > BotInventory.wInfoCacheTime then
---         BotInventory.wInfoCache[wep] = nil
---         return nil
---     end
+    if timeNow - cachedWeapon.timestamp > BotInventory.wInfoCacheTime then
+        BotInventory.wInfoCache[wep] = nil
+        return nil
+    end
 
---     return cachedWeapon
--- end
+    return cachedWeapon
+end
 
 ---Returns the WeaponInfo table of the given entity
 ---@param wep Weapon
@@ -133,8 +133,8 @@ function BotInventory:GetWeaponInfo(wep)
         error("Invalid weapon object passed to GetWeaponInfo")
     end
 
-    -- local cache = cacheValidate(wep)
-    -- if cache then return cache end
+    local cache = cacheValidate(wep)
+    if cache then return cache end
 
     local info = {
         __tostring = function(obj) return BotInventory:GetWepInfoText(obj) end
@@ -338,7 +338,7 @@ function BotInventory:AutoManageInventory()
 
     local foundGun = false
     for func, wepInfo in pairs(hash) do
-        if wepInfo.ammo > 0 then
+        if wepInfo.ammo > 0 or wepInfo.clip > 0 then
             func(self)
             foundGun = true
             break
