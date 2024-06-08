@@ -22,6 +22,8 @@ A major feature overhaul.
 
 - Increased follow distance target so that bots following another player don't keep bumping into them (as much)
 
+- Improved bot movement precision by reducing the pathfinding node 'complete' threshold.
+
 ### Removed
 
 - Removed concommand `ttt_bot_nav_generate`, as it was outdated.
