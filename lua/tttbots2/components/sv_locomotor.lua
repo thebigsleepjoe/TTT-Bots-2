@@ -1605,7 +1605,7 @@ timer.Create("TTTBots.Locomotor.StuckTracker", 1, 0, function()
     ---------------------------
     -- Update stuckBots table
     ---------------------------
-    for _, bot in pairs(bots) do ---@cast bot Player
+    for _, bot in pairs(bots) do ---@cast bot Bot
         if not (bot and lib.IsPlayerAlive(bot)) then continue end
         if not (bot.components and bot.components.locomotor) then continue end
         local locomotor = bot:BotLocomotor()
