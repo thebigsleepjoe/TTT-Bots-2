@@ -38,6 +38,8 @@ A major feature overhaul.
 
 - Fixed caching issue in inventory component which prevented caching from actually working.
 
+- Fixed bots using the crowbar when they have ammo in the mag but none in reserve.
+
 ## v1.2.2
 
 Very small bugfix.
