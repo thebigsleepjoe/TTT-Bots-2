@@ -83,6 +83,8 @@ function Defuse.OnStart(bot)
     local chatter = bot:BotChatter()
     if not chatter then return end
     chatter:On("DefusingC4")
+
+    return STATUS.RUNNING
 end
 
 function Defuse.IsC4Defusable(c4)

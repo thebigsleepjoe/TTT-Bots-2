@@ -45,10 +45,6 @@ end
 function FollowMaster.OnStart(bot)
     local target = bot.followMaster or FollowMaster.FindMaster(bot)
 
-    if not FollowMaster.ValidatePlayer(target) then
-        return STATUS.FAILURE
-    end
-
     bot.followMaster = target
 
     return STATUS.RUNNING

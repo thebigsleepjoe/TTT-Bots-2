@@ -13,6 +13,9 @@ InvestigateNoise.INVESTIGATE_CATEGORIES = {
     Explosion = true
 }
 
+---@class Bot
+---@field investigateNoiseTimer number The last time the bot investigated a noise
+
 local STATUS = TTTBots.STATUS
 
 function InvestigateNoise.GetInterestingSounds(bot)

@@ -113,6 +113,7 @@ end
 function PlantBomb.OnStart(bot)
     local spot = PlantBomb.FindPlantSpot(bot)
     if not spot then
+        ErrorNoHaltWithStack("PlantBomb.OnStart: No valid bomb plant spot found for " .. bot:Nick() .. "\n")
         return STATUS.FAILURE
     end
     local inventory = bot:BotInventory()

@@ -216,6 +216,9 @@ function Interact.Validate(bot)
 
     local target = Interact.FindOther(bot)
     if not Interact.ValidateTarget(bot, target) then return false end
+
+    bot.interactTarget = target
+
     return true
 end
 
@@ -223,11 +226,6 @@ end
 ---@param bot Bot
 ---@return BStatus
 function Interact.OnStart(bot)
-    Interact.SetAnimation(bot, nil)
-    local target = Interact.FindOther(bot)
-    if not Interact.ValidateTarget(bot, target) then return STATUS.FAILURE end
-
-    bot.interactTarget = target
     Interact.SetAnimation(bot, table.Random(Interact.Animations))
     return STATUS.RUNNING
 end

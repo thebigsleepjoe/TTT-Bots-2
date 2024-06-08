@@ -117,6 +117,7 @@ IN_USE = 32768 --- https://wiki.facepunch.com/gmod/Enums/IN
 ---@field SetActiveWeapon fun(self: Player, wep: Weapon): boolean Set the active weapon of the player.
 ---@field GetWeapon fun(self: Player, class: string)
 ---@field HasWeapon fun(self: Player, class: string): boolean
+---@field GetTeam fun(self: Player): number
 
 ---@class Bot : Player
 ---@field lastBarrelCheck number? The last time we checked for any nearby explosive barrels.

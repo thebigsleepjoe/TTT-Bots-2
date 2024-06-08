@@ -5,6 +5,10 @@ TTTBots.Behaviors.Stalk = {}
 
 local lib = TTTBots.Lib
 
+---@class Bot
+---@field StalkTarget Player? The target to stalk
+---@field StalkScore number The isolation score of the target
+
 ---@class BStalk
 local Stalk = TTTBots.Behaviors.Stalk
 Stalk.Name = "Stalk"
