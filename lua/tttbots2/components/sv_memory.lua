@@ -182,6 +182,15 @@ function Memory:GetKnownPositionFor(ply)
     return pnp.pos
 end
 
+---Get the CurTime we last saw the player at
+---@param ply Player
+---@return number
+function Memory:GetLastSeenTime(ply)
+    local playerPosition = self.playerKnownPositions[ply:Nick()]
+    if not playerPosition then return 0 end
+    return playerPosition.time
+end
+
 --- Parse through our recent sound memory for any sounds tied to ply's entity. Returns the position vector, else nil.
 ---@param ply Player
 ---@return Vector|nil
