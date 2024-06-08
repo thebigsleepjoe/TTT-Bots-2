@@ -537,8 +537,14 @@ function TTTBots.PathManager.RequestPath(owner, startPos, finishPos, isAreas)
     local finishArea = (isAreas and finishPos) or
         TTTBots.Lib.GetNearestNavArea(finishPos) --navmesh.GetNearestNavArea(finishPos)
     
-    assert(startArea, "Start area is nil. Either you didn't provide one or there isn't a nav nearby.")
-    assert(finishArea, "Finish area is nil. Either you didn't provide one or there isn't a nav nearby.")
+    if not startArea then
+        ErrorNoHaltWithStack("Start nil")
+        assert(startArea, "Start area is nil. Either you didn't provide one or there isn't a nav nearby.")
+    end
+    if not finishArea then
+        ErrorNoHaltWithStack("Finish nil")
+        assert(finishArea, "Finish area is nil. Either you didn't provide one or there isn't a nav nearby.")
+    end
 
     local pathID = startArea:GetID() .. "to" .. finishArea:GetID()
 
