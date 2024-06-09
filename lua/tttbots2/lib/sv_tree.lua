@@ -189,3 +189,22 @@ function TTTBots.Behaviors.RunTreeOnBots()
         )
     end
 end
+
+
+timer.Create("TTTBots.Debug.Brain", 0.5, 0, function()
+    if not TTTBots.DebugServer then return end
+    if not TTTBots.Lib.GetConVarBool("debug_brain") then return end
+
+    for _, bot in ipairs(TTTBots.Bots) do
+        if not (bot and IsValid(bot)) then continue end
+        if not (TTTBots.Lib.IsPlayerAlive(bot)) then continue end
+        if not (bot.lastBehavior and bot.lastBehavior.Name) then continue end
+
+        TTTBots.DebugServer.DrawText(
+            bot:GetPos(),
+            bot:Nick() .. ": " .. bot.lastBehavior.Name,
+            0.5,
+            bot:Nick() .. "_behavior"
+        )
+    end
+end)

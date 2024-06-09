@@ -127,6 +127,8 @@ bot_sh_cvar("debug_strafe", "0",
     "[May console spam. Development use only] Enables debug drawing for strafing. Requires 'developer 1' first.")
 bot_sh_cvar('debug_navpopularity', '0',
     '[May console spam. Development use only] Enables debug drawing for nav popularity. Requires "developer 1" first.')
+bot_sh_cvar('debug_brain', '0',
+    '[May console spam. Development use only] Enables debug for behavior trees. Requires "developer 1" first.')
 
 bot_sh_cvar('debug_forceweapon', '', 'Forces bots to use a specific weapon. Gives it to them if they do not have it.')
 
