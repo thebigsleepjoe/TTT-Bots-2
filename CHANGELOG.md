@@ -26,6 +26,8 @@ A major feature overhaul.
 
 - Bot avatar system no longer needs to sync with server, reducing bandwidth usage and increasing consitency.
 
+- Overhauled bot brain functionality to prevent potential (rare) bugs, mostly related to bots doing nothing
+
 ### Removed
 
 - Removed concommand `ttt_bot_nav_generate`, as it was outdated.

@@ -9,6 +9,7 @@ TTTBots.STATUS = {
 
 TTTBots.Lib.IncludeDirectory("tttbots2/behaviors")
 
+---@alias Tree table<BBase|Tree>
 
 TEAM_TRAITOR = TEAM_TRAITOR or "traitors"
 TEAM_INNOCENT = TEAM_INNOCENT or "innocents"
@@ -46,6 +47,7 @@ TTTBots.Behaviors.PriorityNodes = {
 
 local _prior = TTTBots.Behaviors.PriorityNodes
 
+---@type table<string, Tree>
 TTTBots.Behaviors.DefaultTrees = {
     innocent = {
         _prior.FightBack,
@@ -89,82 +91,101 @@ TTTBots.Behaviors.DefaultTreesByTeam = {
 
 local STATUS = TTTBots.STATUS
 
+---@class Bot
+---@field lastBehavior BBase?
+
 --- Returns the highest priority tree that has a callback which returned true on this bot.
----@param ply Player
-function TTTBots.Behaviors.GetTreeFor(ply)
-    return TTTBots.Roles.GetRoleFor(ply):GetBTree()
+---@param bot Bot
+---@return Tree
+function TTTBots.Behaviors.GetTreeFor(bot)
+    return TTTBots.Roles.GetRoleFor(bot):GetBTree()
 end
 
---- Return the first behavior in the given tree that is valid for the given bot. If none, then returns false.
----@param tree table<BBase>
+--- Iterates over the node (or Tree if you're pedantic)
+--- and performs logic accordingly. Can set bot.lastBehavior if successful
 ---@param bot Bot
----@return BBase|false
-function TTTBots.Behaviors.GetFirstValid(tree, bot)
-    for _, behavior in ipairs(tree) do
-        local bh = behavior
-        if type(behavior) == "table" and not behavior.Validate then
-            bh = TTTBots.Behaviors.GetFirstValid(behavior, bot)
+---@param tree Tree
+---@return boolean yield Should we stop any further calls?
+function TTTBots.Behaviors.IterateNode(bot, tree)
+    local lastBehavior = bot.lastBehavior
+    -- Iterate through each node in this tree to see if we can find something that will work.
+    for _, node in ipairs(tree) do
+        if node.Validate == nil then
+            -- If validate is nil then this is another Tree within this Tree, which is acceptable.
+            local yield = TTTBots.Behaviors.IterateNode(bot, node)
+            if yield then return true end
+
+            -- If our tree-child didn't want us to yield, let's keep iterating through our other kiddos.
+            -- Continue to the next node.
+            continue
         end
-        if bh and bh.Validate(bot) then
-            return bh
+
+        ---@cast node BBase
+        local valid = node.Validate(bot)
+        if not valid then continue end
+
+        if lastBehavior == node then
+            -- If we have already ran this action once just now, then try OnRunning instead.
+            local ranResult = node.OnRunning(bot)
+
+            if ranResult == STATUS.RUNNING then
+                return true
+            elseif ranResult == STATUS.FAILURE then
+                bot.lastBehavior = nil
+                node.OnFailure(bot)
+                node.OnEnd(bot)
+            elseif ranResult == STATUS.SUCCESS then
+                bot.lastBehavior = nil
+                node.OnSuccess(bot)
+                node.OnEnd(bot)
+            end
+
+            return true
         end
+
+        if lastBehavior ~= nil then
+            -- If we have a last behavior, then we need to end it.
+            lastBehavior.OnFailure(bot)
+            lastBehavior.OnEnd(bot)
+        end
+
+        -- We just got here. Run OnStart.
+        node.OnStart(bot)
+        bot.lastBehavior = node
+
+        return true
     end
 
     return false
 end
 
-function TTTBots.Behaviors.CallTree(bot, tree)
-    if not IsValid(bot) or not (bot.components and bot:BotLocomotor()) then return end -- Prevent strange errors from happening on bot DC
-    if not TTTBots.Lib.IsPlayerAlive(bot) then return end
+---Executes the tree of a bot
+---@param bot Bot
+---@param tree Tree
+function TTTBots.Behaviors.RunTree(bot, tree)
+    local lastBehavior = bot.lastBehavior
 
-    tree = tree or TTTBots.Behaviors.GetTreeFor(bot)
-    if not tree then return end
+    -- Obligatory nil-safety.
+    if not (bot and IsValid(bot)) then return end
+    if not bot.initialized then return end
 
-    local lastBehavior = bot.lastBehavior ---@type BBase?
-    local lastState = bot.lastState ---@type BStatus?
-    local canInterrupt =
-        not lastBehavior
-        or lastState ~= STATUS.RUNNING
-        or lastBehavior.Interruptible
-
-    local behavior = canInterrupt and TTTBots.Behaviors.GetFirstValid(tree, bot) or lastBehavior
-    local behaviorChanged = lastBehavior ~= behavior
-
-    local newState = STATUS.FAILURE
-
-    if not behavior then return end -- no valid behaviors
-
-    if behaviorChanged then
-        -- clean up past bhvr and start new one
-        if lastBehavior then lastBehavior.OnEnd(bot) end
-        newState = behavior.OnStart(bot)
-        bot.lastBehavior = behavior
-    elseif behavior.Validate(bot) then
-        -- otherwise keep running the same one
-        newState = behavior.OnRunning(bot)
+    -- If we have a behavior that is currently running and cannot be suddenly stopped, then we must
+    -- try to run it again and see what happens.
+    if lastBehavior and not lastBehavior.Interruptible then
+        local result = lastBehavior.OnRunning(bot)
+        if result == STATUS.RUNNING then return end
     end
 
-    if newState == STATUS.SUCCESS or newState == STATUS.FAILURE then
-        -- if our current behavior is done, do cleanup
-        if lastBehavior then lastBehavior.OnEnd(bot) end
-        bot.lastBehavior = nil
-        bot.lastState = nil
-
-        if newState == STATUS.SUCCESS then
-            behavior.OnSuccess(bot)
-            behavior.OnEnd(bot)
-        elseif newState == STATUS.FAILURE then
-            behavior.OnFailure(bot)
-            behavior.OnEnd(bot)
-        end
-    else
-        -- otherwise set the lastState for the next tick
-        bot.lastState = newState
-    end
+    -- Now we've either finished the last behavior or it was interruptible.
+    -- Try running the tree.
+    TTTBots.Behaviors.IterateNode(bot, tree)
 end
 
-function TTTBots.Behaviors.CallTreeOnBots()
+function TTTBots.Behaviors.RunTreeOnBots()
     for _, bot in ipairs(TTTBots.Bots) do
-        TTTBots.Behaviors.CallTree(bot)
+        TTTBots.Behaviors.RunTree(
+            bot,
+            TTTBots.Behaviors.GetTreeFor(bot)
+        )
     end
 end

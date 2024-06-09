@@ -103,7 +103,7 @@ function TTTBots.Reload()
         local call, err = pcall(function()
             -- _testBotAttack()
             TTTBots.Match.Tick()
-            TTTBots.Behaviors.CallTreeOnBots()
+            TTTBots.Behaviors.RunTreeOnBots()
             TTTBots.PlanCoordinator.Tick()
             local bots = TTTBots.Bots
             for i, bot in pairs(bots) do

@@ -36,6 +36,9 @@ end
 ---@param bot Bot
 function Bodyguard.OnRunning(bot)
     local target = Bodyguard.GetTarget(bot)
+
+    if not (target and IsValid(target)) then return STATUS.FAILURE end
+
     local loco = bot:BotLocomotor()
 
     local distToTarget = bot:GetPos():Distance(target:GetPos())
