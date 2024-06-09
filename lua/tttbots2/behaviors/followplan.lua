@@ -1,4 +1,4 @@
-TTTBots.Behaviors = TTTBots.Behaviors or {}
+
 TTTBots.Behaviors.FollowPlan = {}
 
 local lib = TTTBots.Lib

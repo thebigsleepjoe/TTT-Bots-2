@@ -1,7 +1,7 @@
 --- This is a more fluff-related module that make bots feel more alive.
 --- It lets them nod, shake their head, and do silly actions next to one another/humans.
 
-TTTBots.Behaviors = TTTBots.Behaviors or {}
+
 
 ---@class BInteract
 TTTBots.Behaviors.Interact = {}

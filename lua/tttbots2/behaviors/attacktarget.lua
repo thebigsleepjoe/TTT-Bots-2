@@ -1,4 +1,4 @@
-TTTBots.Behaviors = TTTBots.Behaviors or {}
+
 --[[
 This behavior is not responsible for finding a target. It is responsible for attacking a target.
 

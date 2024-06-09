@@ -1,4 +1,4 @@
-TTTBots.Behaviors = TTTBots.Behaviors or {}
+
 
 ---@class BDefib
 TTTBots.Behaviors.Defib = {}

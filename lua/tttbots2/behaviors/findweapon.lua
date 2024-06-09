@@ -1,4 +1,4 @@
-TTTBots.Behaviors = TTTBots.Behaviors or {}
+
 TTTBots.Behaviors.FindWeapon = {}
 
 local lib = TTTBots.Lib

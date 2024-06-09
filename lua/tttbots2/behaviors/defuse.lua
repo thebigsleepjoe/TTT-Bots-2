@@ -1,4 +1,4 @@
-TTTBots.Behaviors = TTTBots.Behaviors or {}
+
 TTTBots.Behaviors.Defuse = {}
 
 local lib = TTTBots.Lib

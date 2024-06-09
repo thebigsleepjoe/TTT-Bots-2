@@ -1,4 +1,4 @@
-TTTBots.Behaviors = TTTBots.Behaviors or {}
+
 ---@class InvestigateCorpse
 TTTBots.Behaviors.InvestigateCorpse = {}
 

@@ -1,7 +1,7 @@
 --- Similar to BWander's decrowding mechanic, 
 --- but this behavior is specifically focused on preventing overcrowding.
 
-TTTBots.Behaviors = TTTBots.Behaviors or {}
+
 
 ---@class BDecrowd : BBase
 TTTBots.Behaviors.Decrowd = {}

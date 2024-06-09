@@ -1,6 +1,6 @@
 --- Plants a bomb in a safe location. Does not do anything if the bot does not have C4 in its inventory.
 
-TTTBots.Behaviors = TTTBots.Behaviors or {}
+
 TTTBots.Behaviors.PlantBomb = {}
 
 local lib = TTTBots.Lib

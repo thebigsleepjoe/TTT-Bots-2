@@ -1,7 +1,7 @@
 --- This module is specific to the TTT2 Bodyguard role.
 if not (TTT2 and ROLE_BODYGUARD) then return end
 
-TTTBots.Behaviors = TTTBots.Behaviors or {}
+
 
 ---@class BBodyguard : BBase
 TTTBots.Behaviors.Bodyguard = {}
