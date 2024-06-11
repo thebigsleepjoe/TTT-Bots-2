@@ -82,6 +82,9 @@ function TTTBots.RoleData.New(rolename, roleteam)
     --- If the bot can navigate to sniper spots instead of wandering randomly (applies to Wander behavior)
     newRole.GetCanSnipe, newRole.SetCanSnipe = getSet("canSnipe", true)
 
+    --- If the bot automatically registers teammates via Player:GetTeam() as teammates. Used to consider Bodyguards as allies.
+    newRole.GetLovesTeammates, newRole.SetLovesTeammates = getSet("lovesTeammates", true)
+
     return newRole
 end
 
