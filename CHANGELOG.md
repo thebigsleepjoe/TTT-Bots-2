@@ -14,6 +14,8 @@ A major feature overhaul.
 
 - Added `Decrowding` behavior to main bot classes. This behavior will make bots without the `lovesCrowds` attribute (most bots) try to find less populated areas when they feel too crowded.
 
+- New `GetWeapons` behavior to fix issues plaguing the old `FindWeapon` behavior. This makes bots seek out weapons more intelligently.
+
 ### Changed
 
 - Dramatically increased time interval between the Interaction behavior and the crowbar minge behavior. This should prevent the bots from grouping up too much.
@@ -33,6 +35,8 @@ A major feature overhaul.
 - Removed concommand `ttt_bot_nav_generate`, as it was outdated.
 
 - No more difficulty-specific bot profile pictures due to unmaintainabiltiy
+
+- Removed old `FindWeapon` behavior due to a number of headaches it caused.
 
 ### Fixed
 

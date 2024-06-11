@@ -26,7 +26,7 @@ TTTBots.Behaviors.PriorityNodes = {
     },
     --- Restore values, like health, ammo, etc.
     Restore = {
-        _bh.FindWeapon,
+        _bh.GetWeapons,
         _bh.UseHealthStation
     },
     --- Investigate corpses/noises.
