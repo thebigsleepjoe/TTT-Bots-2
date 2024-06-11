@@ -22,8 +22,6 @@ local STATUS = TTTBots.STATUS
 
 ---@param bot Bot
 function Decrowd.Validate(bot)
-    if not TTTBots.Match.IsRoundActive() then return false end
-
     -- Always fail if the bot loves crowding.
     local personality = bot:BotPersonality()
     if personality:GetTraitBool("lovesCrowds") then return false end
