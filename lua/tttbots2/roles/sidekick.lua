@@ -27,6 +27,7 @@ sidekick:SetUsesSuspicion(false)
 sidekick:SetTeam(TEAM_SIDEKICK)
 sidekick:SetAlliedTeams(allyTeams)
 sidekick:SetBTree(bTree)
+sidekick:SetLovesTeammates(true)
 TTTBots.Roles.RegisterRole(sidekick)
 
 -- Sidekick help master when shooting a victim

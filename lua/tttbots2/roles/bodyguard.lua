@@ -21,6 +21,7 @@ bodyguard:SetUsesSuspicion(false)
 bodyguard:SetBTree(bTree)
 bodyguard:SetAlliedTeams({})
 bodyguard:SetCanSnipe(false)
+bodyguard:SetLovesTeammates(true)
 TTTBots.Roles.RegisterRole(bodyguard)
 
 return true

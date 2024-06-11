@@ -83,7 +83,7 @@ function TTTBots.RoleData.New(rolename, roleteam)
     newRole.GetCanSnipe, newRole.SetCanSnipe = getSet("canSnipe", true)
 
     --- If the bot automatically registers teammates via Player:GetTeam() as teammates. Used to consider Bodyguards as allies.
-    newRole.GetLovesTeammates, newRole.SetLovesTeammates = getSet("lovesTeammates", true)
+    newRole.GetLovesTeammates, newRole.SetLovesTeammates = getSet("lovesTeammates", false)
 
     return newRole
 end

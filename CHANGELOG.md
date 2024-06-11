@@ -62,7 +62,7 @@ A major feature overhaul.
 
 - Added `ttt_bot_debug_brain` concommand to render a bot's latest behavior underneath them.
 
-- New `Get/SetLovesTeammates` in RoleData to allow the Role definitions to understand if `Player:GetTeam()` can be used to test if two players are allied. Defaults to true.
+- New `Get/SetLovesTeammates` in RoleData to allow the Role definitions to understand if `Player:GetTeam()` can be used to test if two players are allied. Defaults to false; specifically useful for T roles.
 
 ## v1.2.2
 
