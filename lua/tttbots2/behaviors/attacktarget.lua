@@ -423,12 +423,18 @@ function Attack.ValidateTarget(bot)
     -- print("| targetIsPlayerOrNPCAndAlive: " .. tostring(targetIsPlayerOrNPCAndAlive))
     -- print("------------------")
 
-    return (
+    local checkPassed = (
         hasTarget
         and targetIsValid
         and targetIsAlive
         and targetIsPlayerOrNPCAndAlive
     )
+
+    if not checkPassed then
+        bot:SetAttackTarget(nil)
+    end
+
+    return checkPassed
 end
 
 function Attack.IsTargetAlly(bot)

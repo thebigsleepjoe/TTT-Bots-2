@@ -54,6 +54,8 @@ A major feature overhaul.
 
 - Mostly mitigated the issue in [#39](https://github.com/thebigsleepjoe/TTT-Bots-2/issues/39) where traitor bots would stare through walls at their target. Bots will not look at where they think an enemy is for more than 4 seconds.
 
+- Bots will forget about their targets once they die, to prevent other behaviors from errantly being skipped (rare bug)
+
 # Developer Notes
 
 - Added `ttt_bot_debug_brain` concommand to render a bot's latest behavior underneath them.
