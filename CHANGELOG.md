@@ -56,6 +56,8 @@ A major feature overhaul.
 
 - Fixed InvestigateNoise behavior not including name/description metadata
 
+- Fixed a funny bug where bots would congregate around health stations like a campfire. This was because they mistook the healing sound for gunshots.
+
 # Developer Notes
 
 - Added `ttt_bot_debug_brain` concommand to render a bot's latest behavior underneath them.
