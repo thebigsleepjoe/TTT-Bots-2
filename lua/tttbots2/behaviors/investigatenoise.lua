@@ -5,6 +5,8 @@ local lib = TTTBots.Lib
 
 ---@class InvestigateNoise
 local InvestigateNoise = TTTBots.Behaviors.InvestigateNoise
+InvestigateNoise.Name = "Investigate Noise"
+InvestigateNoise.Description = "Investigates a suspicious noises"
 
 InvestigateNoise.INVESTIGATE_CATEGORIES = {
     Gunshot = true,

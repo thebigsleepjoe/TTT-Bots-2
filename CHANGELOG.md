@@ -54,6 +54,8 @@ A major feature overhaul.
 
 - Bots will forget about their targets once they die, to prevent other behaviors from errantly being skipped (rare bug)
 
+- Fixed InvestigateNoise behavior not including name/description metadata
+
 # Developer Notes
 
 - Added `ttt_bot_debug_brain` concommand to render a bot's latest behavior underneath them.
