@@ -48,7 +48,7 @@ A major feature overhaul.
 
 - Fixed caching issue in inventory component which prevented caching from actually working.
 
-- Fixed bots using the crowbar when they have ammo in the mag but none in reserve.
+- Fixed bots using the crowbar when they have ammo in the mag but none in the current mag.
 
 - Mostly mitigated the issue in [#39](https://github.com/thebigsleepjoe/TTT-Bots-2/issues/39) where traitor bots would stare through walls at their target. Bots will not look at where they think an enemy is for more than 4 seconds.
 
