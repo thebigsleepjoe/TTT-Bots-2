@@ -2,7 +2,9 @@
 
 ## v1.3
 
-A major feature overhaul.
+A major feature overhaul, focused on fixing major bugs and adding some useful QOL features.
+
+Next up will likely be the Traitor rework, but before then will be a patch to debloat the main repo. I.e., separate TTT Bots 2 maps into another repo.
 
 ### Added
 
@@ -18,6 +20,8 @@ A major feature overhaul.
 - New `GetWeapons` behavior to fix issues plaguing the old `FindWeapon` behavior. This makes bots seek out weapons more intelligently.
 
 - Added @EntranceJew's (the 1st other contributor of this repo) username to Community name pool :)
+
+- Added some name suggestions from [discussion #47](https://github.com/thebigsleepjoe/TTT-Bots-2/discussions/47) into the community name pool.
 
 ### Changed
 
