@@ -32,6 +32,7 @@ jackal:SetTeam(TEAM_JACKAL)
 jackal:SetBTree(bTree)
 jackal:SetAlliedTeams(allyTeams)
 jackal:SetAlliedRoles(allyRoles)
+jackal:SetLovesTeammates(true)
 TTTBots.Roles.RegisterRole(jackal)
 
 return true

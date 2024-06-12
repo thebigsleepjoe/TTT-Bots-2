@@ -1,5 +1,76 @@
 # Changelog
 
+## v1.3
+
+A major feature overhaul, focused on fixing major bugs and adding some useful QOL features.
+
+Next up will likely be the Traitor rework, but before then will be a patch to debloat the main repo. I.e., separate TTT Bots 2 maps into another repo.
+
+### Added
+
+- **TTT2** Bots will show their avatars in the top-right when their corpse is revealed. ([#41](https://github.com/thebigsleepjoe/TTT-Bots-2/issues/41))
+^ Note: this is a little inconsistent, but AFAIK it's the best I will do for now.
+
+- **TTT2** Role suppport for Bodyguard ([#37](https://github.com/thebigsleepjoe/TTT-Bots-2/issues/37))
+
+- Added concommand `ttt_bot_nav_gen` to utilize Navmesh Optimizer for quick navmesh generation.
+
+- Added `Decrowding` behavior to main bot classes. This behavior will make bots without the `lovesCrowds` attribute (most bots) try to find less populated areas when they feel too crowded.
+
+- New `GetWeapons` behavior to fix issues plaguing the old `FindWeapon` behavior. This makes bots seek out weapons more intelligently.
+
+- Added @EntranceJew's (the 1st other contributor of this repo) username to Community name pool :)
+
+- Added some name suggestions from [discussion #47](https://github.com/thebigsleepjoe/TTT-Bots-2/discussions/47) into the community name pool.
+
+### Changed
+
+- Dramatically increased time interval between the Interaction behavior and the crowbar minge behavior. This should prevent the bots from grouping up too much.
+
+- Increased `CommonSense` timer interval for optimization.
+
+- Increased follow distance target so that bots following another player don't keep bumping into them (as much)
+
+- Improved bot movement precision by reducing the pathfinding node 'complete' threshold.
+
+- Bot avatar system no longer needs to sync with server, reducing bandwidth usage and increasing consitency.
+
+- Overhauled bot brain functionality to prevent potential (rare) bugs, mostly related to bots doing nothing
+
+### Removed
+
+- Removed concommand `ttt_bot_nav_generate`, as it was outdated.
+
+- No more difficulty-specific bot profile pictures due to unmaintainabiltiy
+
+- Removed old `FindWeapon` behavior due to a number of headaches it caused.
+
+### Fixed
+
+- Lua error caused by quota trying to kick an uninitialized bot. Oops!
+
+- Lua error related to plymeta:GetDifficulty
+
+- Lua error related to fetching the BotLocomotor in one of the timers
+
+- Fixed caching issue in inventory component which prevented caching from actually working.
+
+- Fixed bots using the crowbar when they have ammo in the mag but none in the current mag.
+
+- Mostly mitigated the issue in [#39](https://github.com/thebigsleepjoe/TTT-Bots-2/issues/39) where traitor bots would stare through walls at their target. Bots will not look at where they think an enemy is for more than 4 seconds.
+
+- Bots will forget about their targets once they die, to prevent other behaviors from errantly being skipped (rare bug)
+
+- Fixed InvestigateNoise behavior not including name/description metadata
+
+- Fixed a funny bug where bots would congregate around health stations like a campfire. This was because they mistook the healing sound for gunshots.
+
+# Developer Notes
+
+- Added `ttt_bot_debug_brain` concommand to render a bot's latest behavior underneath them.
+
+- New `Get/SetLovesTeammates` in RoleData to allow the Role definitions to understand if `Player:GetTeam()` can be used to test if two players are allied. Defaults to false; specifically useful for T roles.
+
 ## v1.2.2
 
 Very small bugfix.

@@ -1,4 +1,4 @@
-TTTBots.Behaviors = TTTBots.Behaviors or {}
+
 TTTBots.Behaviors.Follow = {}
 
 local lib = TTTBots.Lib
@@ -97,7 +97,10 @@ end
 --- Called when the behavior is started
 function Follow.OnStart(bot)
     bot.followTarget = table.Random(Follow.GetFollowTargets(bot))
-    if not bot.followTarget then return STATUS.FAILURE end -- IDK how this happens but it just does.
+    if not bot.followTarget then
+        ErrorNoHaltWithStack("Follow.OnStart: bot.followTarget is nil for " .. bot:Nick() .. "\n")
+        return STATUS.FAILURE
+    end -- IDK how this happens but it just does.
     bot.followEndTime = CurTime() + math.random(12, 24)
 
     local chatter = bot:BotChatter()
@@ -132,7 +135,7 @@ function Follow.OnRunning(bot)
     if bot.botFollowPoint == false then return STATUS.FAILURE end
 
     local distToPoint = bot:GetPos():Distance(bot.botFollowPoint)
-    local finalTarget = (distToPoint < 100 and bot:GetPos()) or bot.botFollowPoint
+    local finalTarget = (distToPoint < 250 and bot:GetPos()) or bot.botFollowPoint
 
     loco:SetGoal(finalTarget)
 end

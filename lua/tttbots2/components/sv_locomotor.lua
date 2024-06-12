@@ -9,8 +9,8 @@ local lib = TTTBots.Lib
 local BotLocomotor = TTTBots.Components.Locomotor
 
 -- Define constants
-local COMPLETION_DIST_HORIZONTAL = 30
-local COMPLETION_DIST_VERTICAL = 48
+local COMPLETION_DIST_HORIZONTAL = 20
+local COMPLETION_DIST_VERTICAL = 35
 
 
 function BotLocomotor:New(bot)
@@ -895,6 +895,8 @@ end
 ---@package
 function BotLocomotor:AnySegmentsNearby(path, range)
     for i, nav in pairs(path) do
+        -- extra safety check
+        if not IsValid(nav) then continue end
         local center = nav:GetCenter()
         if self.bot:VisibleVec(center) and (center:Distance(self.bot:GetPos()) < range) then
             return true
@@ -1603,8 +1605,9 @@ timer.Create("TTTBots.Locomotor.StuckTracker", 1, 0, function()
     ---------------------------
     -- Update stuckBots table
     ---------------------------
-    for _, bot in pairs(bots) do ---@cast bot Player
+    for _, bot in pairs(bots) do ---@cast bot Bot
         if not (bot and lib.IsPlayerAlive(bot)) then continue end
+        if not (bot.components and bot.components.locomotor) then continue end
         local locomotor = bot:BotLocomotor()
 
         if not locomotor then continue end

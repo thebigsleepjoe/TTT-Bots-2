@@ -1,4 +1,4 @@
-TTTBots.Behaviors = TTTBots.Behaviors or {}
+
 
 ---@class BMingeCrowbar
 TTTBots.Behaviors.MingeCrowbar = {}
@@ -10,8 +10,8 @@ local MingeCrowbar = TTTBots.Behaviors.MingeCrowbar
 MingeCrowbar.Name = "MingeCrowbar"
 MingeCrowbar.Description = "Minge (mostly push-related) with the crowbar."
 MingeCrowbar.Interruptible = true
-MingeCrowbar.MinTimeBetween = 60.0
-MingeCrowbar.SkipChance = 3 -- 1 in X change of skipping even if cooldown
+MingeCrowbar.MinTimeBetween = 80.0
+MingeCrowbar.SkipChance = 5 -- 1 in X chance to NOT skip
 
 ---@class Bot
 ---@field isCBMinging boolean Is the bot currently minging

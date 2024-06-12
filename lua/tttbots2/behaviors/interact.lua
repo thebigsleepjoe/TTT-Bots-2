@@ -1,7 +1,7 @@
 --- This is a more fluff-related module that make bots feel more alive.
 --- It lets them nod, shake their head, and do silly actions next to one another/humans.
 
-TTTBots.Behaviors = TTTBots.Behaviors or {}
+
 
 ---@class BInteract
 TTTBots.Behaviors.Interact = {}
@@ -14,10 +14,15 @@ Interact.Name = "Interact"
 Interact.Description = "Interact with another bot or player we can see"
 Interact.Interruptible = true
 
-Interact.MinTimeBetween = 8 -- Minimum seconds between all interactions.
+Interact.MinTimeBetween = 24 -- Minimum seconds between all interactions.
 Interact.MaxDistance = 200  -- Maximum distance before an interaction is considered
-Interact.BaseChancePct = 6  -- Base chance of interacting with a player within our range, considered per tick
+Interact.BaseChancePct = 4  -- Base chance of interacting with a player within our range, considered per tick
 
+---@class Bot
+---@field interactTarget Player?
+---@field interactAnimationKeyframe integer? The current keyframe of the animation
+---@field lastInteractionTime number The last time we interacted with someone
+---@field nextKeyframeTime number The time the next keyframe should be played
 
 local STATUS = TTTBots.STATUS
 
@@ -211,6 +216,9 @@ function Interact.Validate(bot)
 
     local target = Interact.FindOther(bot)
     if not Interact.ValidateTarget(bot, target) then return false end
+
+    bot.interactTarget = target
+
     return true
 end
 
@@ -218,11 +226,6 @@ end
 ---@param bot Bot
 ---@return BStatus
 function Interact.OnStart(bot)
-    Interact.SetAnimation(bot, nil)
-    local target = Interact.FindOther(bot)
-    if not Interact.ValidateTarget(bot, target) then return STATUS.FAILURE end
-
-    bot.interactTarget = target
     Interact.SetAnimation(bot, table.Random(Interact.Animations))
     return STATUS.RUNNING
 end
@@ -255,7 +258,7 @@ function Interact.OnRunning(bot)
     local animation, keyframe, nextKeyframeTime = Interact.GetBotAnimation(bot)
     local target = bot.interactTarget
 
-    if not Interact.ValidateTarget(bot, target) then
+    if not (target and Interact.ValidateTarget(bot, target)) then
         -- print("Target is no longer valid for " .. bot:Nick())
         return STATUS.FAILURE
     end

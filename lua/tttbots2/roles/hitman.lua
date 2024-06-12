@@ -18,6 +18,7 @@ hitman:SetTeam(TEAM_TRAITOR)
 hitman:SetUsesSuspicion(false)
 hitman:SetBTree(TTTBots.Behaviors.DefaultTrees.traitor) -- TODO: Btree for hitman
 hitman:SetAlliedTeams(allyTeams)
+hitman:SetLovesTeammates(true)
 TTTBots.Roles.RegisterRole(hitman)
 
 return true

@@ -14,6 +14,7 @@ traitor:SetUsesSuspicion(false)
 traitor:SetBTree(TTTBots.Behaviors.DefaultTrees.traitor)
 traitor:SetAlliedTeams(allyTeams)
 traitor:SetCanSnipe(true)
+traitor:SetLovesTeammates(true)
 TTTBots.Roles.RegisterRole(traitor)
 
 return true

@@ -1,4 +1,4 @@
-TTTBots.Behaviors = TTTBots.Behaviors or {}
+
 TTTBots.Behaviors.FollowMaster = {}
 
 local lib = TTTBots.Lib
@@ -44,10 +44,6 @@ end
 --- Called when the behavior is started
 function FollowMaster.OnStart(bot)
     local target = bot.followMaster or FollowMaster.FindMaster(bot)
-
-    if not FollowMaster.ValidatePlayer(target) then
-        return STATUS.FAILURE
-    end
 
     bot.followMaster = target
 

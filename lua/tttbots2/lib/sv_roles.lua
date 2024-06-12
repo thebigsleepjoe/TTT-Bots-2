@@ -55,6 +55,13 @@ function TTTBots.Roles.IsAllies(ply1, ply2)
     local role1 = TTTBots.Roles.GetRoleFor(ply1)
     local role2 = TTTBots.Roles.GetRoleFor(ply2)
 
+    -- Workaround for roles like Bodyguard where player team is adjusted on-the-fly
+    if (
+        (role1:GetLovesTeammates() or role2:GetLovesTeammates())
+        and (ply1:GetTeam() == ply2:GetTeam())
+    ) then return true end
+
+    -- Now just testing if the roles are setup to care about each other.
     local allied1 = role1:GetAlliedRoles()[role2:GetName()] or role1:GetAlliedTeams()[role2:GetTeam()] or false
     local allied2 = role2:GetAlliedRoles()[role1:GetName()] or role2:GetAlliedTeams()[role1:GetTeam()] or false
 

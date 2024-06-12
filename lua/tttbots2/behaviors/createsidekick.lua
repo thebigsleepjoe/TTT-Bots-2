@@ -1,4 +1,4 @@
-TTTBots.Behaviors = TTTBots.Behaviors or {}
+
 
 ---@class BSidekick
 TTTBots.Behaviors.CreateSidekick = {}

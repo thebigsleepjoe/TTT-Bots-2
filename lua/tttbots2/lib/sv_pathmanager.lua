@@ -526,15 +526,25 @@ function TTTBots.PathManager.RequestPath(owner, startPos, finishPos, isAreas)
             "No startPos and/or finishPos, keep your functions safe from this error.")
     end
 
-    assert(TTTBots.Lib.IsPlayerAlive(owner), "Owner must be a living player.")
+    -- assert(TTTBots.Lib.IsPlayerAlive(owner), "Owner must be a living player.")
+    if not TTTBots.Lib.IsPlayerAlive(owner) then 
+        ErrorNoHaltWithStack("Owner must be a living player.")
+        return "error", false, "owner_not_alive"
+    end
 
     local startArea = (isAreas and startPos) or
         TTTBots.Lib.GetNearestNavArea(startPos)  --navmesh.GetNearestNavArea(startPos)
     local finishArea = (isAreas and finishPos) or
         TTTBots.Lib.GetNearestNavArea(finishPos) --navmesh.GetNearestNavArea(finishPos)
     
-    assert(startArea, "Start area is nil. Either you didn't provide one or there isn't a nav nearby.")
-    assert(finishArea, "Finish area is nil. Either you didn't provide one or there isn't a nav nearby.")
+    if not startArea then
+        ErrorNoHaltWithStack("Start nil")
+        assert(startArea, "Start area is nil. Either you didn't provide one or there isn't a nav nearby.")
+    end
+    if not finishArea then
+        ErrorNoHaltWithStack("Finish nil")
+        assert(finishArea, "Finish area is nil. Either you didn't provide one or there isn't a nav nearby.")
+    end
 
     local pathID = startArea:GetID() .. "to" .. finishArea:GetID()
 

@@ -25,6 +25,7 @@ serialkiller:SetTeam(TEAM_SERIALKILLER)
 serialkiller:SetBTree(bTree)
 serialkiller:SetKnowsLifeStates(true)
 serialkiller:SetAlliedTeams(allyTeams)
+serialkiller:SetLovesTeammates(true)
 TTTBots.Roles.RegisterRole(serialkiller)
 
 return true

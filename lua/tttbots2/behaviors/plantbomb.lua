@@ -1,6 +1,6 @@
 --- Plants a bomb in a safe location. Does not do anything if the bot does not have C4 in its inventory.
 
-TTTBots.Behaviors = TTTBots.Behaviors or {}
+
 TTTBots.Behaviors.PlantBomb = {}
 
 local lib = TTTBots.Lib
@@ -113,7 +113,7 @@ end
 function PlantBomb.OnStart(bot)
     local spot = PlantBomb.FindPlantSpot(bot)
     if not spot then
-        print("No spot to plant bomb;", spot)
+        ErrorNoHaltWithStack("PlantBomb.OnStart: No valid bomb plant spot found for " .. bot:Nick() .. "\n")
         return STATUS.FAILURE
     end
     local inventory = bot:BotInventory()

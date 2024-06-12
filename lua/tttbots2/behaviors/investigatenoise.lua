@@ -5,6 +5,8 @@ local lib = TTTBots.Lib
 
 ---@class InvestigateNoise
 local InvestigateNoise = TTTBots.Behaviors.InvestigateNoise
+InvestigateNoise.Name = "Investigate Noise"
+InvestigateNoise.Description = "Investigates a suspicious noises"
 
 InvestigateNoise.INVESTIGATE_CATEGORIES = {
     Gunshot = true,
@@ -12,6 +14,9 @@ InvestigateNoise.INVESTIGATE_CATEGORIES = {
     C4Beep = false, -- Disabled due to behavior where bot would hover around an armed bomb that's about to explode
     Explosion = true
 }
+
+---@class Bot
+---@field investigateNoiseTimer number The last time the bot investigated a noise
 
 local STATUS = TTTBots.STATUS
 

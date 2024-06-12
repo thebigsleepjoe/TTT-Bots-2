@@ -1,4 +1,4 @@
-TTTBots.Behaviors = TTTBots.Behaviors or {}
+
 --[[
 This behavior is not responsible for finding a target. It is responsible for attacking a target.
 
@@ -46,8 +46,11 @@ function Attack.Seek(bot, targetPos)
     ---@type CMemory
     local memory = bot.components.memory
     local lastKnownPos = memory:GetSuspectedPositionFor(target) or memory:GetKnownPositionFor(target)
+    local lastSeenTime = memory:GetLastSeenTime(target)
+    local timeNow = CurTime()
+    local secsSince = timeNow - lastSeenTime
 
-    if lastKnownPos then
+    if lastKnownPos and secsSince > 4 then
         loco:SetGoal(lastKnownPos)
         loco:LookAt(lastKnownPos + Vector(0, 0, 40)) -- around hip/abdomen level
     else
@@ -420,12 +423,18 @@ function Attack.ValidateTarget(bot)
     -- print("| targetIsPlayerOrNPCAndAlive: " .. tostring(targetIsPlayerOrNPCAndAlive))
     -- print("------------------")
 
-    return (
+    local checkPassed = (
         hasTarget
         and targetIsValid
         and targetIsAlive
         and targetIsPlayerOrNPCAndAlive
     )
+
+    if not checkPassed then
+        bot:SetAttackTarget(nil)
+    end
+
+    return checkPassed
 end
 
 function Attack.IsTargetAlly(bot)

@@ -105,6 +105,28 @@ local ammoTypes = {
     [37] = { name = "combineheavycannon", description = "the \"combine autogun\" ammo from half-life 2: episode 2" }
 }
 
+BotInventory.kindHash = {
+    [1] = "melee",
+    [2] = "secondary",
+    [3] = "primary",
+    [4] = "grenade",
+    [5] = "carry",
+    [6] = "unarmed",
+    [7] = "special",
+    [8] = "extra",
+    [9] = "class",
+    
+    melee = 1,
+    secondary = 2,
+    primary = 3,
+    grenade = 4,
+    carry = 5,
+    unarmed = 6,
+    special = 7,
+    extra = 8,
+    class = 9,
+}
+
 BotInventory.wInfoCache = {} ---@type table<Weapon, WeaponInfo>
 BotInventory.wInfoCacheTime = 1 --- Number of seconds before a cached weapon info is invalidated.
 
@@ -113,13 +135,15 @@ BotInventory.wInfoCacheTime = 1 --- Number of seconds before a cached weapon inf
 ---@return WeaponInfo?
 local function cacheValidate(wep)
     local timeNow = CurTime()
-    local cache = BotInventory.wInfoCache[wep]
-    if not cache then return nil end
+    local cachedWeapon = BotInventory.wInfoCache[wep]
+    if not cachedWeapon then return nil end
 
-    if timeNow - cache.timestamp > BotInventory.wInfoCacheTime then
+    if timeNow - cachedWeapon.timestamp > BotInventory.wInfoCacheTime then
         BotInventory.wInfoCache[wep] = nil
         return nil
     end
+
+    return cachedWeapon
 end
 
 ---Returns the WeaponInfo table of the given entity
@@ -150,17 +174,7 @@ function BotInventory:GetWeaponInfo(wep)
     -- The string version of the ammo type
     info.ammo_type_string = ammoTypes[info.ammo_type] and ammoTypes[info.ammo_type].name or "unknown"
     -- Slot of the weapon, functionally just a string version of the Kind
-    info.slot = (
-        wep.Kind == 1 and "melee"
-        or wep.Kind == 2 and "secondary"
-        or wep.Kind == 3 and "primary"
-        or wep.Kind == 4 and "grenade"
-        or wep.Kind == 5 and "carry"
-        or wep.Kind == 6 and "unarmed"
-        or wep.Kind == 7 and "special"
-        or wep.Kind == 8 and "extra"
-        or wep.Kind == 9 and "class"
-    )
+    info.slot = self.kindHash[wep.Kind] or "unknown"
     -- Hold type of the weapon
     info.hold_type = wep:GetHoldType()
     -- If the weapon is a gun
@@ -336,7 +350,7 @@ function BotInventory:AutoManageInventory()
 
     local foundGun = false
     for func, wepInfo in pairs(hash) do
-        if wepInfo.ammo > 0 then
+        if wepInfo.ammo > 0 or wepInfo.clip > 0 then
             func(self)
             foundGun = true
             break
@@ -486,6 +500,28 @@ function BotInventory:GetBySlot(slot)
     end
 
     return nil
+end
+
+function BotInventory:HasPrimary()
+    return self:GetByKindRaw(BotInventory.kindHash.primary) == nil
+end
+
+function BotInventory:HasSecondary()
+    return self:GetByKindRaw(BotInventory.kindHash.secondary) == nil
+end
+
+---Returns the first Weapon in the bots weapons list of int "kind"
+---Does NOT get the weapon info
+---@param kind integer The kind number of the weapon
+---@return Weapon?
+function BotInventory:GetByKindRaw(kind)
+    local weapons = self.bot:GetWeapons()
+    for _,wep in pairs(weapons) do
+        if not wep then continue end
+        if wep.Kind == kind then
+            return wep
+        end
+    end
 end
 
 ---@return WeaponInfo?

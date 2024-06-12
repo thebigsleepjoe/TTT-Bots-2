@@ -10,7 +10,7 @@ end
 bot_sh_cvar("language", "en",
     "Changes the language that the bots speak in text chat, and may modify some GUI strings. Example is 'en' or 'es'")
 bot_sh_cvar("pfps", "1", "Bots can have AI-related profile pictures in the scoreboard")
-bot_sh_cvar("pfps_humanlike", "0", "Bots can have AI-related profile pictures in the scoreboard")
+bot_sh_cvar("pfps_humanlike", "1", "Bots can have AI-related profile pictures in the scoreboard")
 bot_sh_cvar("emulate_ping", "0",
     "Bots will emulate a humanlike ping (does not affect gameplay and is cosmetic.) This is to be used in servers of players that consent to playing with bots. It's a flavor feature for friends.")
 
@@ -127,6 +127,8 @@ bot_sh_cvar("debug_strafe", "0",
     "[May console spam. Development use only] Enables debug drawing for strafing. Requires 'developer 1' first.")
 bot_sh_cvar('debug_navpopularity', '0',
     '[May console spam. Development use only] Enables debug drawing for nav popularity. Requires "developer 1" first.')
+bot_sh_cvar('debug_brain', '0',
+    '[May console spam. Development use only] Enables debug for behavior trees. Requires "developer 1" first.')
 
 bot_sh_cvar('debug_forceweapon', '', 'Forces bots to use a specific weapon. Gives it to them if they do not have it.')
 

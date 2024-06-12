@@ -1,4 +1,4 @@
-TTTBots.Behaviors = TTTBots.Behaviors or {}
+
 TTTBots.Behaviors.UseHealthStation = {}
 
 local lib = TTTBots.Lib

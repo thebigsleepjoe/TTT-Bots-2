@@ -1,4 +1,4 @@
-TTTBots.Behaviors = TTTBots.Behaviors or {}
+
 TTTBots.Behaviors.FollowPlan = {}
 
 local lib = TTTBots.Lib
@@ -9,6 +9,11 @@ FollowPlan.Description = "Follow the plan assigned to us by the game coordinator
 FollowPlan.Interruptible = true
 -- When debugging the component and you want to print extra info, use this:
 FollowPlan.Debug = false
+
+---@class Bot
+---@field Job table?
+---@field followTarget Player? for the plan system
+---@field followEndTime number for the plan system
 
 local STATUS = TTTBots.STATUS
 local Plans = TTTBots.Plans
@@ -137,7 +142,10 @@ local f = string.format
 
 --- Called when the behavior is started
 function FollowPlan.OnStart(bot)
-    if not bot.Job then return STATUS.FAILURE end
+    if not bot.Job then
+        ErrorNoHaltWithStack("FollowPlan.OnStart called without a job assigned to the bot!")
+        return STATUS.FAILURE
+    end
     if FollowPlan.Debug then
         printf("FollowPlan. JOB '%s' assigned to bot %s (For plan %s)",
             bot.Job.Action, bot:Nick(), TTTBots.Plans.GetName())
@@ -262,9 +270,10 @@ hook.Add("PlayerSay", "TTTBots_FollowPlan_PlayerSay", function(sender, text, tea
     if not string.find(string.lower(text), "follow", 1, true) then return end
 
     local bot = TTTBots.Lib.GetClosest(TTTBots.Lib.GetAliveAllies(sender), sender:GetPos())
+    ---@cast bot Bot
     if not (bot) then return end
+    if not (bot.components and bot.components.chatter) then return end
     local chatter = bot:BotChatter()
-    if not (chatter) then return end
 
     local newJob = {
         Action = ACTIONS.FOLLOW,

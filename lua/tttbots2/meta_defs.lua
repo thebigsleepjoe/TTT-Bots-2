@@ -52,6 +52,7 @@ IN_USE = 32768 --- https://wiki.facepunch.com/gmod/Enums/IN
 
 ---@class Vector
 ---@field Distance fun(self: Vector, vec: Vector): number The distance from us to them.
+---@field DistToSqr fun(self: Vector, vec: Vector): number Distance btwn A & B squared
 ---@field LengthSqr fun(self: Vector): number The length of the vector prior to taking a sqrt.
 ---@field Dot fun(self: Vector, vec: Vector): number The dot product of the two vectors.
 ---@field x number
@@ -79,6 +80,7 @@ IN_USE = 32768 --- https://wiki.facepunch.com/gmod/Enums/IN
 ---@field GetAimVector fun(self: Entity): Vector The aim vector of the Entity.
 ---@field GetNWBool fun(self: Entity, key: string, default: boolean): boolean Get a networked boolean.
 ---@field GetOwner fun(self: Entity): Entity? Get the owner of the Entity.
+---@field IsWeapon fun(self: Entity): boolean Is the Entity a weapon?
 
 ---@class C4 : Entity
 ---@field Disarm fun(self: C4, ply: Player) Disarm the C4.
@@ -116,6 +118,7 @@ IN_USE = 32768 --- https://wiki.facepunch.com/gmod/Enums/IN
 ---@field SetActiveWeapon fun(self: Player, wep: Weapon): boolean Set the active weapon of the player.
 ---@field GetWeapon fun(self: Player, class: string)
 ---@field HasWeapon fun(self: Player, class: string): boolean
+---@field GetTeam fun(self: Player): number
 
 ---@class Bot : Player
 ---@field lastBarrelCheck number? The last time we checked for any nearby explosive barrels.

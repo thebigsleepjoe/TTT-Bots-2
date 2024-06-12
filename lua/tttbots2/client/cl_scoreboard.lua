@@ -152,7 +152,7 @@ local function HijackScoreboard(tries)
         return
     end
 
-    print("Hijacking scoreboard...")
+    print("[TTT Bots 2] Hijacking scoreboard...")
 
     if not timer.Exists("TTTScoreboardUpdater") then
         return
@@ -178,6 +178,50 @@ end)
 
 local avatarCache = {} -- A cache of avatars <string nick, number avatarNumber>
 
+---Turns a string into a conistent, hashable number between min and max (inclusive).
+---@param s string
+---@param min integer
+---@param max integer
+---@return integer hashedNumber
+local function stringToHash(s, min, max)
+    local hash = 0
+    for i = 1, #s do
+        local char = string.byte(s, i)
+        hash = (hash + char) % (max - min + 1)
+    end
+    -- Adjusting to fit the range between min and max
+    return (hash + min)
+end
+
+---Fetches the avatar for the Player or its nickname. Fetches from the cache if it exists.
+---@param playerOrNick Player|string
+---@return integer avatarNumber
+local function getAvatarIntFor(playerOrNick)
+    local nick = playerOrNick
+
+    if type(playerOrNick) ~= "string" then
+        nick = playerOrNick:Nick() ---@cast nick string
+    end
+
+    if avatarCache[nick] then return avatarCache[nick] end
+
+    local robotPfps = GetConVar("ttt_bot_pfps_humanlike"):GetBool()
+    if robotPfps then return stringToHash(nick, 0, 87) end
+
+    return 3
+end
+
+---Find the proper picture path for the given avatar number, depending on the current game settings.
+---@param number integer
+---@return string path
+local function resolveAvatarPath(number)
+    local pfps_humanlike = GetConVar("ttt_bot_pfps_humanlike"):GetBool()
+    local path = string.format("materials/avatars/%d.png", number)
+    if pfps_humanlike then
+        path = string.format("materials/avatars/humanlike/%d.jpg", number)
+    end
+    return path
+end
 
 --- Iterates through our avatar cache to update the scoreboard pfps
 local function updateScoreboardPfps()
@@ -195,7 +239,7 @@ local function updateScoreboardPfps()
                 --local avatar = getChildByName(row, "Avatar")
                 local avatar = row.avatar
                 if not avatar then continue end
-                local avatarNumber = avatarCache[player:Nick()]
+                local avatarNumber = getAvatarIntFor(player)
                 if not avatarNumber then continue end
                 if avatar.IsFakeAvatar or row.hasFakeAvatar then continue end
                 -- print("Created avatar for bot " .. player:Nick() .. " (" .. avatarNumber .. ")")
@@ -208,10 +252,7 @@ local function updateScoreboardPfps()
                 avatar.IsFakeAvatar = true
                 row.hasFakeAvatar = true
 
-                local path = string.format("materials/avatars/%d.png", avatarNumber)
-                if pfps_humanlike then
-                    path = string.format("materials/avatars/humanlike/%d.jpg", avatarNumber)
-                end
+                local path = resolveAvatarPath(avatarNumber)
                 avatar:SetImage(path)
                 --avatar:SetAvatar("BotAvatar (" .. avatarNumber .. ").jpg")
             end
@@ -219,30 +260,45 @@ local function updateScoreboardPfps()
     end
 end
 
-local function sendSyncRequest()
-    net.Start("TTTBots_SyncAvatarNumbers")
-    net.SendToServer()
-end
+timer.Create("TTTBots.Client.UpdateScoreboard", 0.25, 0, updateScoreboardPfps)
 
---- Iterates through the bot-player list and sends the sync message to the server if we are missing anyone.
-local function auditAvatarCache()
-    local bots = player.GetBots()
+-- Fetching bot avatars
 
-    for i, bot in pairs(bots) do
+hook.Add("TTT2FetchAvatar", "TTTBots.Client.FetchAvatar", function(id64, size)
+    local bot = nil
+    for i,v in pairs(player.GetBots()) do
+        if v:SteamID64() == id64 then
+            bot = v
+            break
+        end
+    end
+
+    if not bot then return end -- Couldn't find the player, so skip.
+
+    local number = getAvatarIntFor(bot)
+
+    print("[TTT Bots 2] Fetching avatar for bot " .. bot:Nick() .. " (" .. number .. ")")
+    return file.Read(resolveAvatarPath(number), "GAME")
+end)
+
+
+--- This is different to avatarCache, as it is purely for TTT2's avatar cache.
+local cachedAvatarData = {} ---@type table<Bot?, boolean>
+
+--- Iterates over every bot unfetched by this script and forcefully refreshes their avatar data.
+local function refreshAvatarData()
+    if not draw.DrawAvatar then return end -- TTT2-specific
+    for i, bot in pairs(player.GetBots()) do
         if not IsValid(bot) then continue end
-        local nick = bot:Nick()
-        if not avatarCache[nick] then
-            -- print("[TTT Bots 2] Missing avatar for bot " .. nick .. ", requesting...")
-            sendSyncRequest()
-            return
+
+        local id64 = bot:SteamID64()
+        local sizes = {"small", "medium", "large"}
+        local cacheFn = draw.CacheAvatar -- This implicitly calls TTTBots.Client.FetchAvatar (and every other related hook)
+
+        for _, size in pairs(sizes) do
+            cacheFn(id64, size)
         end
     end
 end
 
-net.Receive("TTTBots_SyncAvatarNumbers", function(len, ply)
-    avatarCache = net.ReadTable()
-    updateScoreboardPfps()
-end)
-
-timer.Create("TTTBots.Client.UpdateScoreboard", 0.25, 0, updateScoreboardPfps)
-timer.Create("TTTBots.Client.AuditAvatarCache", 3, 0, auditAvatarCache)
+timer.Create("TTTBots.Client.FetchAvatars", 5, 0, refreshAvatarData)

@@ -36,6 +36,9 @@ TTTBots.Sound = {
             Keywords = { "ball_zap", "explode" }
         }
     },
+    SoundBlacklist = {
+        "medshot" -- health stations create items/medshot__.wav, which overlaps with "shot" above
+    }
 }
 
 local lib = TTTBots.Lib
@@ -180,6 +183,15 @@ function Memory:GetKnownPositionFor(ply)
     local pnp = self.playerKnownPositions[ply:Nick()]
     if not pnp then return nil end
     return pnp.pos
+end
+
+---Get the CurTime we last saw the player at
+---@param ply Player
+---@return number
+function Memory:GetLastSeenTime(ply)
+    local playerPosition = self.playerKnownPositions[ply:Nick()]
+    if not playerPosition then return 0 end
+    return playerPosition.time
 end
 
 --- Parse through our recent sound memory for any sounds tied to ply's entity. Returns the position vector, else nil.
@@ -538,6 +550,15 @@ end
 ---@field Nick string|nil The nick of the entity, if it is a player.
 ---@field Owner Entity|nil The owner of the entity, if any.
 
+local function findFirstKeyword(str, keywordTbl)
+    for i, keyword in pairs(keywordTbl) do
+        if string.find(str, keyword) then
+            return keyword
+        end
+    end
+    return nil
+end
+
 -- GM:EntityEmitSound(table data)
 hook.Add("EntityEmitSound", "TTTBots.EntityEmitSound", function(data)
     local MODULE_ENABLED = lib.GetConVarBool("noise_enable")
@@ -551,36 +572,39 @@ hook.Add("EntityEmitSound", "TTTBots.EntityEmitSound", function(data)
 
     for k, v in pairs(TTTBots.Sound.DetectionInfo) do
         local keywords = v.Keywords
-        for i, keyword in pairs(keywords) do
-            if f(sn, keyword) then
-                -- print(string.format("%s: Found keyword %s in sound %s", k, keyword, sn))
-                Memory.HandleSoundForAllBots(
-                    {
-                        SoundName = k,
-                        FoundKeyword = keyword,
-                        Distance = v.Distance,
-                        Pos = data.Pos or (data.Entity:GetPos()),
-                        EntInfo = {
-                            Entity = data.Entity,
-                            EntityIsPlayer = data.Entity:IsPlayer(),
-                            OwnerIsPlayer = data.Entity:GetOwner() and data.Entity:GetOwner():IsPlayer(),
-                            Class = data.Entity:GetClass(),
-                            Name = data.Entity:GetName(),
-                            Nick = data.Entity:IsPlayer() and data.Entity:Nick(),
-                            Owner = data.Entity:GetOwner(),
-                        }
-                    },
-                    data
-                )
-                return
-            end
-        end
+
+        local keyword = findFirstKeyword(sn, keywords)
+        local blacklistKeyword = findFirstKeyword(sn, TTTBots.Sound.SoundBlacklist)
+
+        if blacklistKeyword then return end -- Don't process blacklisted sounds.
+        if not keyword then continue end
+
+        Memory.HandleSoundForAllBots(
+            {
+                SoundName = k,
+                FoundKeyword = keyword,
+                Distance = v.Distance,
+                Pos = data.Pos or (data.Entity:GetPos()),
+                EntInfo = {
+                    Entity = data.Entity,
+                    EntityIsPlayer = data.Entity:IsPlayer(),
+                    OwnerIsPlayer = data.Entity:GetOwner() and data.Entity:GetOwner():IsPlayer(),
+                    Class = data.Entity:GetClass(),
+                    Name = data.Entity:GetName(),
+                    Nick = data.Entity:IsPlayer() and data.Entity:Nick(),
+                    Owner = data.Entity:GetOwner(),
+                }
+            },
+            data
+        )
+        return
     end
 
     -- print("Unknown sound: " .. sn)
 end)
 
 
+---@class Bot
 local plyMeta = FindMetaTable("Player")
 function plyMeta:BotMemory()
     return self.components and self.components.memory
