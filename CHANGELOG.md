@@ -7,6 +7,7 @@ A major feature overhaul.
 ### Added
 
 - **TTT2** Bots will show their avatars in the top-right when their corpse is revealed. ([#41](https://github.com/thebigsleepjoe/TTT-Bots-2/issues/41))
+^ Note: this is a little inconsistent, but AFAIK it's the best I will do for now.
 
 - **TTT2** Role suppport for Bodyguard ([#37](https://github.com/thebigsleepjoe/TTT-Bots-2/issues/37))
 
@@ -15,6 +16,8 @@ A major feature overhaul.
 - Added `Decrowding` behavior to main bot classes. This behavior will make bots without the `lovesCrowds` attribute (most bots) try to find less populated areas when they feel too crowded.
 
 - New `GetWeapons` behavior to fix issues plaguing the old `FindWeapon` behavior. This makes bots seek out weapons more intelligently.
+
+- Added @EntranceJew's (the 1st other contributor of this repo) username to Community name pool :)
 
 ### Changed
 
