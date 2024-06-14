@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.4
+
+An update centered on improving Traitor coordination and overall intelligence.
+
+TODO
+
 ## v1.3
 
 A major feature overhaul, focused on fixing major bugs and adding some useful QOL features.
