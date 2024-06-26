@@ -266,7 +266,7 @@ timer.Create("TTTBots.Client.UpdateScoreboard", 0.25, 0, updateScoreboardPfps)
 
 hook.Add("TTT2FetchAvatar", "TTTBots.Client.FetchAvatar", function(id64, size)
     local bot = nil
-    for i,v in pairs(player.GetBots()) do
+    for i, v in pairs(player.GetBots()) do
         if v:SteamID64() == id64 then
             bot = v
             break
@@ -276,8 +276,6 @@ hook.Add("TTT2FetchAvatar", "TTTBots.Client.FetchAvatar", function(id64, size)
     if not bot then return end -- Couldn't find the player, so skip.
 
     local number = getAvatarIntFor(bot)
-
-    print("[TTT Bots 2] Fetching avatar for bot " .. bot:Nick() .. " (" .. number .. ")")
     return file.Read(resolveAvatarPath(number), "GAME")
 end)
 
@@ -292,8 +290,9 @@ local function refreshAvatarData()
         if not IsValid(bot) then continue end
 
         local id64 = bot:SteamID64()
-        local sizes = {"small", "medium", "large"}
-        local cacheFn = draw.CacheAvatar -- This implicitly calls TTTBots.Client.FetchAvatar (and every other related hook)
+        local sizes = { "small", "medium", "large" }
+        local cacheFn = draw
+        .CacheAvatar                     -- This implicitly calls TTTBots.Client.FetchAvatar (and every other related hook)
 
         for _, size in pairs(sizes) do
             cacheFn(id64, size)

@@ -14,7 +14,7 @@ if not gamemodeCompatible() then return end
 
 -- Declare TTTBots table
 TTTBots = {
-    Version = "v1.3",
+    Version = "v1.4",
     Tickrate = 5, -- Ticks per second. Do not change unless you really know what you're doing.
     Lib = {},
     Chat = {}
@@ -104,7 +104,6 @@ function TTTBots.Reload()
             -- _testBotAttack()
             TTTBots.Match.Tick()
             TTTBots.Behaviors.RunTreeOnBots()
-            TTTBots.PlanCoordinator.Tick()
             local bots = TTTBots.Bots
             for i, bot in pairs(bots) do
                 -- TTTBots.DebugServer.RenderDebugFor(bot, { "all" })
