@@ -2,9 +2,37 @@
 
 ## v1.4
 
-An update centered on improving Traitor coordination and overall intelligence.
+**CURRENTLY WIP - NOT RECOMMENDED FOR PUBLIC USE.**
 
-TODO
+An update centered on improving Traitor coordination and overall intelligence. This update removes the centralized coordinator in favor of a more individualistic coordination system.
+
+This allows for more personalized and competent behavior from the Traitor bots. This update also includes a number of unrelated bugfixes and features.
+
+### Changed
+
+- Cvar `ttt_bot_plans_mindelay` --> `ttt_bot_grace_period` to better reflect its purpose. Violent roles will only return fire (and not start fights) until this much time has passed.
+
+### Removed
+
+- Removed `ttt_bot_plans_maxdelay` cvar, as it was unnecessary.
+
+- Removed PlanCoordinator lib, FollowPlan behavior, and PlanPresets data file.
+
+- Removed dependencies on the plan coordinator and its related modules.
+
+### Fixed
+
+- Fixed typo in `ttt_bot_chatter_lvl` cvar hint.
+
+- Fixed console spam caused by avatar fetches.
+
+- Added is-living check in locomotor to prevent related errors and lag.
+
+- Fix rare bug in decrowding behavior
+
+### Dev Notes
+
+- Removed Get/SetCanCoordinate method from RoleData, as this depends on the plan coordinator, which no longer exists.
 
 ## v1.3
 
@@ -71,7 +99,7 @@ Next up will likely be the Traitor rework, but before then will be a patch to de
 
 - Fixed a funny bug where bots would congregate around health stations like a campfire. This was because they mistook the healing sound for gunshots.
 
-# Developer Notes
+### Developer Notes
 
 - Added `ttt_bot_debug_brain` concommand to render a bot's latest behavior underneath them.
 

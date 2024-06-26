@@ -104,7 +104,6 @@ function TTTBots.Reload()
             -- _testBotAttack()
             TTTBots.Match.Tick()
             TTTBots.Behaviors.RunTreeOnBots()
-            TTTBots.PlanCoordinator.Tick()
             local bots = TTTBots.Bots
             for i, bot in pairs(bots) do
                 -- TTTBots.DebugServer.RenderDebugFor(bot, { "all" })

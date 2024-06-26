@@ -1,4 +1,4 @@
---- Similar to BWander's decrowding mechanic, 
+--- Similar to BWander's decrowding mechanic,
 --- but this behavior is specifically focused on preventing overcrowding.
 
 
@@ -46,7 +46,6 @@ function Decrowd.CountNearby(bot, plyTable)
         end
     end
     return count
-
 end
 
 ---Returns the number of living witnesses currently that can see pos (and are close-ish to it).
@@ -54,7 +53,6 @@ end
 ---@param pos Vector
 ---@return number
 function Decrowd.GetWitnessesAround(bot, pos)
-
     local witnesses = TTTBots.Lib.GetAllWitnessesBasic(
         pos,
         TTTBots.Match.AlivePlayers,
@@ -87,6 +85,7 @@ function Decrowd.FindRetreatArea(bot)
     local botRegion = TTTBots.Lib.GetNearestRegion(bot:GetPos())
     for i = 1, 5 do
         local randomArea = TTTBots.Lib.GetRandomNavInRegion(botRegion)
+        if not randomArea then continue end
         local nWitnesses = Decrowd.GetWitnessesAround(bot, randomArea:GetPos())
 
         if nWitnesses <= 1 then

@@ -564,6 +564,8 @@ end
 
 --- Tick periodically. Do not tick per GM:StartCommand
 function BotLocomotor:Think()
+    if not lib.IsPlayerAlive(self.bot) then return end
+
     self.tick = self.tick + 1
     local status = self:UpdatePathRequest() -- Update the path that the bot is following, so that we can move along it.
     self.status = status
@@ -996,7 +998,6 @@ function BotLocomotor:UpdatePathRequest()
         return STAT.READY
     end
 end
-
 
 --- Do a traceline from startPos to endPos, with no specific mask (hit anything). Filter out ourselves.
 --- Returns if we can see the endPos without interruption
