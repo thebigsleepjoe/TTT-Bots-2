@@ -1557,7 +1557,17 @@ function BotLocomotor:StartCommand(cmd) -- aka StartCmd
         if DVLPR_PATHFINDING then
             TTTBots.DebugServer.DrawText(MYPOS, "Opening door", Color(255, 255, 255))
         end
-        cmd:SetButtons(cmd:GetButtons() + IN_USE)
+        if (TTTBots.Lib.IsTTT2()) then
+            local door = self:DetectDoorNearby()
+            if (door and TTTBots.Lib.IsDoor(door)) then
+                door:ToggleDoor(self.bot)
+            else
+                print("WARN: Door is not a door...?????")
+            end
+
+        else
+            cmd:SetButtons(cmd:GetButtons() + IN_USE)
+        end
     end
 
     --- 🔫 MANAGE ATTACKING OF THE BOT
