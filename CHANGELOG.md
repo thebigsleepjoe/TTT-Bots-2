@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.3.1
+
+A small patch has been released.
+
+### Fixed
+
+- #60: Fix bots unable to use doors in TTT2, via @ZeadenBeake
+
+### Changed
+
+- Updated names list to include issue submitter @ZeadenBeake (#60)
+
 ## v1.3
 
 A major feature overhaul, focused on fixing major bugs and adding some useful QOL features.
