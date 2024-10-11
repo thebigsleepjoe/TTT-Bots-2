@@ -36,6 +36,9 @@ This add-on supports a wide range of TTT2 roles. Here are some that have explici
 * Serial Killer
 * Survivalist
 * Bodyguard
+* Sheriff
+* Deputy
+* Drunk
 
 The mod also auto-generates compatibility with custom roles, but it is imperfect. It does not comprehend most 'public killer' roles (e.g., 'Speedrunner').
 
