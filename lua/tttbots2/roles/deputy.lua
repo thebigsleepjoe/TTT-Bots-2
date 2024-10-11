@@ -26,6 +26,7 @@ deputy:SetTeam(TEAM_INNOCENT)
 deputy:SetBTree(bTree)
 deputy:SetLovesTeammates(true)
 deputy:SetAppearsPolice(true)
+deputy:SetAlliedRoles(allyRoles)
 TTTBots.Roles.RegisterRole(deputy)
 
 -- Sidekick help master when shooting a victim
