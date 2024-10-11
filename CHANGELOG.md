@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.3.2
+
+Merge of PR #62 via @ZeadenBeake -- adds support for multiple TTT2 roles.
+
+### Added
+
+- **TTT2** Role support: Sheriff
+
+- **TTT2** Role support: Deputy
+
+- **TTT2** Role support: Drunk
+
 ## v1.3.1
 
 A small patch has been released.

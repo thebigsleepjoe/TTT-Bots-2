@@ -66,6 +66,8 @@
         "superIncrementalGeneration",
         "ROLE_BODYGUARD",
         "TEAM_BODYGUARD",
-        "BODYGRD_DATA"
+        "BODYGRD_DATA",
+        "ROLE_SHERIFF",
+        "ROLE_DRUNK"
     ],
 }
