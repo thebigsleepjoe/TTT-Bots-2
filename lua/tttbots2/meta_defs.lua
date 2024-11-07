@@ -82,6 +82,10 @@ IN_USE = 32768 --- https://wiki.facepunch.com/gmod/Enums/IN
 ---@field GetOwner fun(self: Entity): Entity? Get the owner of the Entity.
 ---@field IsWeapon fun(self: Entity): boolean Is the Entity a weapon?
 
+---@class Door : Entity
+---@field ToggleDoor fun(self: Door) [TTT2] Toggles the door open or closed.
+---@field IsDoorLocked fun(self: Door): boolean [TTT2] Is the door locked?
+
 ---@class C4 : Entity
 ---@field Disarm fun(self: C4, ply: Player) Disarm the C4.
 ---@field FailedDisarm fun(self: C4, ply: Player) Fail a disarm attempt

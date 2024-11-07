@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.3.3
+
+This is a small patch targeting **TTT2**, fixing bots able to open locked doors as well as rate-limiting door interactions.
+
+### Changed
+
+- **TTT2** Rate-limit door interactions between bots to prevent traffic jams
+
+### Fixed
+
+- **TTT2** #64: Bots able to open locked doors
+
 ## v1.3.2
 
 Merge of PR #62 via @ZeadenBeake -- adds support for multiple TTT2 roles.

@@ -1419,6 +1419,28 @@ function BotLocomotor:TestShouldPreventFire()
     return (self.tick % TTTBots.Tickrate == 1)
 end
 
+TTTBots.DoorRateLimiter = {}
+
+function BotLocomotor:TryToggleDoor(cmd)
+    if (TTTBots.Lib.IsTTT2()) then
+        local door = self:DetectDoorNearby()
+        if not (door and TTTBots.Lib.IsDoor(door) and not door:IsDoorLocked()) then return end
+
+        local doorID = door:EntIndex()
+        local lastTime = TTTBots.DoorRateLimiter[doorID] or 0
+        local time = CurTime()
+
+        if (time - lastTime) < 1 then return end
+
+        door:ToggleDoor(self.bot)
+        TTTBots.DoorRateLimiter[doorID] = time
+
+        return
+    end
+
+    cmd:SetButtons(cmd:GetButtons() + IN_USE)
+end
+
 ---Basically manages the locomotor of the locomotor
 ---@package
 function BotLocomotor:StartCommand(cmd) -- aka StartCmd
@@ -1557,17 +1579,7 @@ function BotLocomotor:StartCommand(cmd) -- aka StartCmd
         if DVLPR_PATHFINDING then
             TTTBots.DebugServer.DrawText(MYPOS, "Opening door", Color(255, 255, 255))
         end
-        if (TTTBots.Lib.IsTTT2()) then
-            local door = self:DetectDoorNearby()
-            if (door and TTTBots.Lib.IsDoor(door)) then
-                door:ToggleDoor(self.bot)
-            else
-                print("WARN: Door is not a door...?????")
-            end
-
-        else
-            cmd:SetButtons(cmd:GetButtons() + IN_USE)
-        end
+        self:TryToggleDoor(cmd)
     end
 
     --- 🔫 MANAGE ATTACKING OF THE BOT
