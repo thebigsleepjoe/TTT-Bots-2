@@ -1425,6 +1425,9 @@ function BotLocomotor:TryToggleDoor(cmd)
     if (TTTBots.Lib.IsTTT2()) then
         local door = self:DetectDoorNearby()
         if not (door and TTTBots.Lib.IsDoor(door) and not door:IsDoorLocked()) then return end
+	-- #64: Check if the door is even openable.
+	if not door:UseOpensDoor() then return end
+	if not door:PlayerCanOpenDoor() then return end
 
         local doorID = door:EntIndex()
         local lastTime = TTTBots.DoorRateLimiter[doorID] or 0

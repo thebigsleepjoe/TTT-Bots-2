@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.3.4
+
+Another patch to prevent bots from opening doors they are not supposed to; targeting **TTT2**
+
+## Fixed
+
+- **TTT2** #64: Bots were able to open doors that were unopenable but technically not locked
+
 ## v1.3.3
 
 This is a small patch targeting **TTT2**, fixing bots able to open locked doors as well as rate-limiting door interactions.
