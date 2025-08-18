@@ -28,6 +28,8 @@ bot_sh_cvar("quota_mode", "fill",
 bot_sh_cvar("quota_cull_difficulty", "1",
     "Whether or not the quota system should cull bots that are too beyond or below the ttt_bot_difficulty setting.")
 bot_sh_cvar("notify_always", "0", "If we should notify players of the number bots at the start of *every* round.")
+bot_sh_cvar("enable_quota_when_only_spectators", "1",
+    "Disables quota if every player is a spectator. This is to prevent bots from being added when the server is 'empty'.")
 
 -- "Cheat" cvars
 bot_sh_cvar("cheat_know_shooter", "1",
