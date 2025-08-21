@@ -368,7 +368,7 @@ function TTTBots.Lib.UpdateQuota()
     if quotaN == 0 then return end
     local quotaMode = TTTBots.Lib.GetConVarString("quota_mode")
     local players = player.GetAll()
-    local nPlayers = #players -- All players in the match, including bots.
+    local nPlayers = #players -- All players in the match, including bots, excluding spectators.
     local nBots = #TTTBots.Bots
     local slotsLeft = game.MaxPlayers() - nPlayers
     
