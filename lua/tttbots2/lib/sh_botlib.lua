@@ -354,15 +354,48 @@ TTTBots.Lib.DIFFICULTY_RANGES = {    --- The expected :GetDifficulty() ranges pe
 }
 TTTBots.Lib.DIFFICULTY_TOLERANCE = 4 --- The variability in difficulty that is allowed for a bot to be considered for removal.
 
+net.Receive("TTTBots_SpectateModeChanged", function(len, ply)
+    if not IsValid(ply) or ply:IsBot() then return end
+    local spectateMode = net.ReadBool()
+    ply.forceSpectate = spectateMode
+    ply.QueryingSpectateMode = false
+end)
+
 --- Function responsible for managing bots to be added and removed by the quota system.
 ---@realm server
 function TTTBots.Lib.UpdateQuota()
     local quotaN = TTTBots.Lib.GetConVarInt("quota")
     if quotaN == 0 then return end
     local quotaMode = TTTBots.Lib.GetConVarString("quota_mode")
-    local nPlayers = #player.GetAll() -- All players in the match, including bots.
+    local players = player.GetAll()
+    local nPlayers = #players -- All players in the match, including bots, excluding spectators.
     local nBots = #TTTBots.Bots
     local slotsLeft = game.MaxPlayers() - nPlayers
+    
+    if TTTBots.Lib.GetConVarBool("enable_quota_when_only_spectators") then
+        local canPlay = false
+        for _, ply in ipairs(players) do
+            if not ply:IsBot() then
+                if ply.forceSpectate == nil and (ply.QueryingSpectateMode == nil or ply.QueryingSpectateMode == false) then
+                    net.Start("TTTBots_QuerySpectateMode")
+                    net.Send(ply)
+                    ply.QueryingSpectateMode = true -- As to not overload anyones network with queries. Worse network would result in more queries, and worse networks are overloaded faster.
+                else
+                    if ply.forceSpectate ~= nil and ply.forceSpectate == false then 
+                        canPlay = true
+                        break
+                    end
+                end
+            end
+        end
+
+        if canPlay == false then
+            if nBots > 0 then
+                RunConsoleCommand("ttt_bot_kickall")
+            end
+            return
+        end
+    end
 
     if quotaMode == "fill" then
         if nPlayers < quotaN then
