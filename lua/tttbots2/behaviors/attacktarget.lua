@@ -70,41 +70,11 @@ function Attack.Seek(bot, targetPos)
 end
 
 function Attack.GetTargetHeadPos(targetPly)
-    local fallback = targetPly:EyePos()
-
-    local head_bone_index = targetPly:LookupBone("ValveBiped.Bip01_Head1")
-    if not head_bone_index then
-        print("Returning fallback; no bone index for target.")
-        return fallback
-    end
-
-    local head_pos, head_ang = targetPly:GetBonePosition(head_bone_index)
-
-    if head_pos then
-        return head_pos
-    else
-        print("Returning fallback, couldn't retrieve head_pos from bone index " .. head_bone_index)
-        return fallback
-    end
+    return lib.GetHeadPos(targetPly)
 end
 
 function Attack.GetTargetBodyPos(targetPly)
-    local fallback = targetPly:GetPos() + Vector(0, 0, 30)
-
-    local spine_bone_index = targetPly:LookupBone("ValveBiped.Bip01_Spine2")
-    if not spine_bone_index then
-        print("Returning fallback; no bone index for target.")
-        return fallback
-    end
-
-    local spine_pos, spine_ang = targetPly:GetBonePosition(spine_bone_index)
-
-    if spine_pos then
-        return spine_pos
-    else
-        print("Returning fallback, couldn't retrieve spine_pos from bone index " .. spine_bone_index)
-        return fallback
-    end
+    return lib.GetBodyPos(targetPly)
 end
 
 function Attack.ShouldLookAtBody(bot, weapon)

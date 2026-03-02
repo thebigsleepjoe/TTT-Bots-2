@@ -100,11 +100,22 @@ local STATUS = TTTBots.STATUS
 ---@class Bot
 ---@field lastBehavior BBase?
 
---- Returns the highest priority tree that has a callback which returned true on this bot.
+--- Returns the behavior tree for the given bot, with per-bot caching.
+--- The cache is invalidated when the bot's role changes.
 ---@param bot Bot
 ---@return Tree
 function TTTBots.Behaviors.GetTreeFor(bot)
-    return TTTBots.Roles.GetRoleFor(bot):GetBTree()
+    local roleData = TTTBots.Roles.GetRoleFor(bot)
+    local roleName = roleData:GetName()
+
+    if bot._cachedTreeRole == roleName and bot._cachedTree then
+        return bot._cachedTree
+    end
+
+    local tree = roleData:GetBTree()
+    bot._cachedTreeRole = roleName
+    bot._cachedTree = tree
+    return tree
 end
 
 --- Iterates over the node (or Tree if you're pedantic)

@@ -29,31 +29,7 @@ deputy:SetAppearsPolice(true)
 deputy:SetAlliedRoles(allyRoles)
 TTTBots.Roles.RegisterRole(deputy)
 
--- Deputy helps sheriff when shooting a victim
-hook.Add("TTTBotsOnWitnessFireBullets", "TTTBots_DeputyWitnessFireBullets", function(witness, attacker, data, angleDiff)
-    local attackerRole = attacker:GetRoleStringRaw()
-    local witnessRole = witness:GetRoleStringRaw()
-
-    if witnessRole == 'deputy' and attackerRole == 'sheriff' then
-        local eyeTracePos = attacker:GetEyeTrace().HitPos
-        if not IsValid(eyeTracePos) then return end
-        local target = TTTBots.Lib.GetClosest(TTTBots.Roles.GetNonAllies(witness), eyeTracePos)
-        if not target then return end
-        witness:SetAttackTarget(target)
-    end
-end)
-
--- Deputy helps sheriff when he's attacked
-hook.Add("TTTBotsOnWitnessHurt", "TTTBots_DeputyWitnessHurt",
-    function(witness, victim, attacker, healthRemaining, damageTaken)
-        if not IsValid(attacker) then return end
-
-        local victimRole = victim:GetRoleStringRaw()
-        local witnessRole = witness:GetRoleStringRaw()
-
-        if witnessRole == 'deputy' and victimRole == 'sheriff' then
-            witness:SetAttackTarget(attacker)
-        end
-    end)
+-- Deputy helps sheriff when shooting/attacked
+TTTBots.Lib.RegisterMasterMinionHooks("deputy", "sheriff", "TTTBots_Deputy")
 
 return true

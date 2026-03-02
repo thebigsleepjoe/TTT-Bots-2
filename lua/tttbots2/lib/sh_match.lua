@@ -98,7 +98,7 @@ function Match.CallKOS(caller, target)
     Match.KOSList[target] = Match.KOSList[target] or {}
     Match.KOSList[target][caller] = caller
 
-    for i, bot in pairs(TTTBots.Bots) do
+    for i, bot in ipairs(TTTBots.Bots) do
         local morality = bot:BotMorality()
         if not morality then continue end
         morality:OnKOSCalled(caller, target)
@@ -146,7 +146,7 @@ function Match.ResetStats(roundActive)
     Match.Smokes = {}
 
     if SERVER then
-        for i, v in pairs(TTTBots.Bots) do
+        for i, v in ipairs(TTTBots.Bots) do
             v:SetAttackTarget(nil)
         end
     end
@@ -168,7 +168,7 @@ end
 ---@realm server
 function Match.GetBotsDifficulty()
     local tbl = {}
-    for i, bot in pairs(TTTBots.Bots) do
+    for i, bot in ipairs(TTTBots.Bots) do
         local diff = Match.GetBotDifficulty(bot)
         tbl[bot] = diff
     end
@@ -244,7 +244,7 @@ end
 
 ---@realm server
 function Match.BotsTrySpotC4()
-    for i, bot in pairs(TTTBots.Bots) do
+    for i, bot in ipairs(TTTBots.Bots) do
         if not TTTBots.Lib.IsPlayerAlive(bot) then continue end
         if not TTTBots.Roles.GetRoleFor(bot):GetDefusesC4() then continue end
 

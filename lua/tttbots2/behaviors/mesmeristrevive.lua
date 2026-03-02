@@ -22,34 +22,13 @@ local STATUS = TTTBots.STATUS
 
 function MesRevive.HasDefib(bot)
     if bot:HasWeapon(MesRevive.WeaponClass) then return true end
-
-    -- Fallback: scan for any weapon with "mesdefi" or "mesmerist" in the name
-    for _, wep in pairs(bot:GetWeapons()) do
-        if IsValid(wep) then
-            local cls = wep:GetClass()
-            if string.find(cls, "mesdefi", 1, true)
-            or string.find(cls, "mesmerist", 1, true) then
-                return true
-            end
-        end
-    end
-    return false
+    return lib.FindWeaponByPattern(bot, { "mesdefi", "mesmerist" }) ~= nil
 end
 
 function MesRevive.GetDefib(bot)
     local wep = bot:GetWeapon(MesRevive.WeaponClass)
     if IsValid(wep) then return wep end
-
-    for _, w in pairs(bot:GetWeapons()) do
-        if IsValid(w) then
-            local cls = w:GetClass()
-            if string.find(cls, "mesdefi", 1, true)
-            or string.find(cls, "mesmerist", 1, true) then
-                return w
-            end
-        end
-    end
-    return nil
+    return lib.FindWeaponByPattern(bot, { "mesdefi", "mesmerist" })
 end
 
 ---------------------------------------------------------------------------

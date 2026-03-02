@@ -1342,6 +1342,151 @@ function TTTBots.Lib.GetHeadPos(other)
     return other:GetBonePosition(boneIndex)
 end
 
+--- Get a named bone position with a fallback if the bone doesn't exist.
+---@param ply Player The player/entity to look up the bone on
+---@param boneName string The bone name (e.g. "ValveBiped.Bip01_Spine2")
+---@param fallback Vector The fallback position if the bone is not found
+---@return Vector
+function TTTBots.Lib.GetBonePos(ply, boneName, fallback)
+    local boneIndex = ply:LookupBone(boneName)
+    if not boneIndex then return fallback end
+    local pos = ply:GetBonePosition(boneIndex)
+    return pos or fallback
+end
+
+--- Get the body/spine position of a player with fallback.
+---@param ply Player
+---@return Vector
+function TTTBots.Lib.GetBodyPos(ply)
+    return TTTBots.Lib.GetBonePos(ply, "ValveBiped.Bip01_Spine2", ply:GetPos() + Vector(0, 0, 30))
+end
+
+--- Check if a player entity is valid, is a player, and is alive. Combines
+--- the common three-part check: target and IsValid(target) and IsPlayerAlive(target)
+---@param ply any
+---@return boolean
+function TTTBots.Lib.IsValidAlivePlayer(ply)
+    return ply and ply ~= NULL and IsValid(ply) and ply:IsPlayer() and TTTBots.Lib.IsPlayerAlive(ply)
+end
+
+--- Search a bot's weapons for one matching any of the given string patterns.
+--- Replaces the duplicated weapon-search-by-pattern loops found in many behaviors.
+---@param bot Player The bot whose weapons to search
+---@param patterns table<string> List of plain-text patterns to match against weapon class names
+---@return Weapon|nil
+function TTTBots.Lib.FindWeaponByPattern(bot, patterns)
+    for _, wep in pairs(bot:GetWeapons()) do
+        if IsValid(wep) then
+            local cls = wep:GetClass()
+            for _, pattern in ipairs(patterns) do
+                if string.find(cls, pattern, 1, true) then
+                    return wep
+                end
+            end
+        end
+    end
+    return nil
+end
+
+--- Find a navmesh-valid flee spot far from a danger position.
+--- Consolidates the duplicated flee-spot-finding logic from multiple behaviors.
+---@param bot Player The bot that needs to flee
+---@param dangerPos Vector The position to flee from
+---@param fleeDist number How far to try to flee (in hammer units)
+---@return Vector
+function TTTBots.Lib.FindFleeSpot(bot, dangerPos, fleeDist)
+    fleeDist = fleeDist or 800
+    local botPos = bot:GetPos()
+    local navAreas = navmesh.GetAllNavAreas()
+    local fleeSpot = nil
+
+    if navAreas and #navAreas > 0 then
+        local bestSpot, bestDist = nil, 0
+        -- First pass: far from danger and reasonably close to us
+        local samples = math.min(20, #navAreas)
+        for i = 1, samples do
+            local nav = navAreas[math.random(#navAreas)]
+            if not IsValid(nav) then continue end
+            local center = nav:GetCenter()
+            local distFromDanger = center:Distance(dangerPos)
+            local distFromBot = center:Distance(botPos)
+            if distFromDanger > fleeDist and distFromBot < 3000 then
+                if distFromDanger > bestDist then
+                    bestDist = distFromDanger
+                    bestSpot = center
+                end
+            end
+        end
+        -- Relaxed pass: just pick the farthest from danger
+        if not bestSpot then
+            for i = 1, 15 do
+                local nav = navAreas[math.random(#navAreas)]
+                if not IsValid(nav) then continue end
+                local center = nav:GetCenter()
+                local d = center:Distance(dangerPos)
+                if d > bestDist then
+                    bestDist = d
+                    bestSpot = center
+                end
+            end
+        end
+        fleeSpot = bestSpot
+    end
+
+    -- Final fallback: snap opposite direction to nearest nav
+    if not fleeSpot then
+        local awayDir = (botPos - dangerPos):GetNormalized()
+        awayDir.z = 0
+        awayDir:Normalize()
+        local rawSpot = botPos + awayDir * fleeDist
+        local nearNav = navmesh.GetNearestNavArea(rawSpot)
+        if nearNav and IsValid(nearNav) then
+            fleeSpot = nearNav:GetCenter()
+        else
+            local myNav = navmesh.GetNearestNavArea(botPos)
+            fleeSpot = myNav and IsValid(myNav) and myNav:GetCenter() or botPos
+        end
+    end
+
+    return fleeSpot
+end
+
+--- Register master/minion witness hooks for a role pair.
+--- The minion will help the master when the master shoots or is attacked.
+--- Replaces the duplicated hook patterns in sidekick, slave, deputy, pirate, etc.
+---@param minionRole string The role string of the minion (e.g. "sidekick")
+---@param masterRole string The role string of the master (e.g. "jackal")
+---@param hookPrefix string A unique prefix for hook names (e.g. "TTTBots_Sidekick")
+function TTTBots.Lib.RegisterMasterMinionHooks(minionRole, masterRole, hookPrefix)
+    -- Minion helps master when master shoots at someone
+    hook.Add("TTTBotsOnWitnessFireBullets", hookPrefix .. "WitnessFireBullets",
+        function(witness, attacker, data, angleDiff)
+            local attackerRole = attacker:GetRoleStringRaw()
+            local witnessRole = witness:GetRoleStringRaw()
+
+            if witnessRole == minionRole and attackerRole == masterRole then
+                local eyeTracePos = attacker:GetEyeTrace().HitPos
+                if not eyeTracePos then return end
+                local target = TTTBots.Lib.GetClosest(TTTBots.Roles.GetNonAllies(witness), eyeTracePos)
+                if not target then return end
+                witness:SetAttackTarget(target)
+            end
+        end)
+
+    -- Minion defends master when master is attacked
+    hook.Add("TTTBotsOnWitnessHurt", hookPrefix .. "WitnessHurt",
+        function(witness, victim, attacker, healthRemaining, damageTaken)
+            if not IsValid(attacker) then return end
+
+            local victimRole = victim:GetRoleStringRaw()
+            local witnessRole = witness:GetRoleStringRaw()
+
+            if witnessRole == minionRole and victimRole == masterRole then
+                witness:SetAttackTarget(attacker)
+            end
+        end)
+end
+
 --- Get a random number between 1 and 100 and return true if it is less than pct. Supports decimals above 0.01.
 ---@param pct number
 ---@realm shared

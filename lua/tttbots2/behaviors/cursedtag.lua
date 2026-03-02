@@ -63,17 +63,7 @@ end
 ---@param bot Bot
 ---@return Weapon?
 function CursedTag.GetDeagle(bot)
-    for _, wep in pairs(bot:GetWeapons()) do
-        if IsValid(wep) then
-            local cls = wep:GetClass()
-            if string.find(cls, "cursed", 1, true)
-            or string.find(cls, "roleswap", 1, true)
-            or string.find(cls, "curs", 1, true) then
-                return wep
-            end
-        end
-    end
-    return nil
+    return lib.FindWeaponByPattern(bot, { "cursed", "roleswap", "curs" })
 end
 
 ---------------------------------------------------------------------------

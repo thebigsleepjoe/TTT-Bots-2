@@ -39,32 +39,8 @@ slave:SetCanSnipe(false)
 slave:SetCanHide(false)
 TTTBots.Roles.RegisterRole(slave)
 
---- Slave helps the Brainwasher master when the master shoots at someone.
-hook.Add("TTTBotsOnWitnessFireBullets", "TTTBots_SlaveWitnessFireBullets", function(witness, attacker, data, angleDiff)
-    local attackerRole = attacker:GetRoleStringRaw()
-    local witnessRole = witness:GetRoleStringRaw()
-
-    if witnessRole == "slave" and attackerRole == "brainwasher" then
-        local eyeTracePos = attacker:GetEyeTrace().HitPos
-        if not eyeTracePos then return end
-        local target = TTTBots.Lib.GetClosest(TTTBots.Roles.GetNonAllies(witness), eyeTracePos)
-        if not target then return end
-        witness:SetAttackTarget(target)
-    end
-end)
-
---- Slave defends the Brainwasher master when master is attacked.
-hook.Add("TTTBotsOnWitnessHurt", "TTTBots_SlaveWitnessHurt",
-    function(witness, victim, attacker, healthRemaining, damageTaken)
-        if not IsValid(attacker) then return end
-
-        local victimRole = victim:GetRoleStringRaw()
-        local witnessRole = witness:GetRoleStringRaw()
-
-        if witnessRole == "slave" and victimRole == "brainwasher" then
-            witness:SetAttackTarget(attacker)
-        end
-    end)
+--- Slave helps/defends the Brainwasher master
+TTTBots.Lib.RegisterMasterMinionHooks("slave", "brainwasher", "TTTBots_Slave")
 
 --- When the Brainwasher dies, all bot Slaves that revert to Innocent need
 --- their suspicion system updated so they remember who the traitors were.

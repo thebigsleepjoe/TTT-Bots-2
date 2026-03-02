@@ -117,7 +117,7 @@ function Memory:ResetMemory()
 end
 
 hook.Add("TTTEndRound", "TTTBots.Memory.ClearRoundMemory", function()
-    for i, bot in pairs(TTTBots.Bots) do
+    for i, bot in ipairs(TTTBots.Bots) do
         if not (IsValid(bot) and bot:BotMemory()) then continue end
         bot:BotMemory().m_genericmemory.round = {}
     end
@@ -167,14 +167,13 @@ end
 
 function Memory:HandleUnseenPlayer(ply)
     if not IsValid(ply) then return end
-    -- Update radar if applicable
     self:UpdateRadar(ply)
 
-    -- Check if we have any memory of this player, if we shouldForget() then delete it
-    local pnp = self.playerKnownPositions[ply:Nick()]
+    local nick = ply:Nick()
+    local pnp = self.playerKnownPositions[nick]
     if not pnp then return end
     if pnp.shouldForget() then
-        self.playerKnownPositions[ply:Nick()] = nil
+        self.playerKnownPositions[nick] = nil
     end
 end
 
@@ -227,38 +226,31 @@ end
 ---@param pos Vector|nil If nil then ply:GetPos() will be used, else this will be used.
 ---@return table knownPos The updated known position entry for this player
 function Memory:UpdateKnownPositionFor(ply, pos)
-    -- Get the current time
     local ct = CurTime()
+    local nick = ply:Nick()
 
-    -- Create the knownPos entry
     local knownPos = {
-        ply = ply,                                    -- The player object
-        nick = ply:Nick(),                            -- The player's nickname
-        pos = pos or ply:GetPos(),                    -- The position of the player
-        inferred = (pos and true) or false,           -- Whether or not this position is inferred (and probably not accurate)
-        time = ct,                                    -- The time this position was last updated
-        forgetTime = FORGET.GetRememberTime(self.bot) -- How many seconds to remember this position for
+        ply = ply,
+        nick = nick,
+        pos = pos or ply:GetPos(),
+        inferred = (pos and true) or false,
+        time = ct,
+        forgetTime = FORGET.GetRememberTime(self.bot)
     }
 
-    -- Function to get how long ago this position was last updated
     function knownPos.timeSince()
         return CurTime() - knownPos.time
     end
 
-    -- Function to check whether or not we should forget this position
+    local playerKnownPositions = self.playerKnownPositions
+    local bot = self.bot
     function knownPos.shouldForget()
-        -- Calculate the elapsed time since the last update
         local ts = CurTime() - knownPos.time
-
-        -- Get the corresponding known position of the player
-        local pKP = self.playerKnownPositions[ply:Nick()]
-
-        -- Return whether the elapsed time is greater than the forget time
-        return (ts > pKP.forgetTime) or self.bot:VisibleVec(pKP.pos)
+        local pKP = playerKnownPositions[nick]
+        return (ts > pKP.forgetTime) or bot:VisibleVec(pKP.pos)
     end
 
-    -- Update the known position for this player
-    self.playerKnownPositions[ply:Nick()] = knownPos
+    playerKnownPositions[nick] = knownPos
 
     return knownPos
 end
@@ -348,10 +340,11 @@ end
 function Memory:GetRecentlySeenPlayers(withinSecs)
     withinSecs = withinSecs or 5
     local players = {}
-    local allPlys = player.GetAll()
+    local allPlys = lib.GetAlivePlayers()
     for i = 1, #allPlys do
         local ply = allPlys[i]
-        local pnp = self.playerKnownPositions[ply:Nick()]
+        local nick = ply:Nick()
+        local pnp = self.playerKnownPositions[nick]
         if pnp and pnp.timeSince() < withinSecs then
             players[#players + 1] = ply
         end
@@ -363,10 +356,11 @@ end
 ---@return table<Vector> positions [Player]=Vector
 function Memory:GetKnownPlayersPos()
     local positions = {}
-    local allPlys = player.GetAll()
+    local allPlys = lib.GetAlivePlayers()
     for i = 1, #allPlys do
         local ply = allPlys[i]
-        local pnp = self.playerKnownPositions[ply:Nick()]
+        local nick = ply:Nick()
+        local pnp = self.playerKnownPositions[nick]
         if pnp then
             positions[ply] = pnp.pos
         end
@@ -378,7 +372,7 @@ end
 ---@return table<Player> players
 function Memory:GetKnownAlivePlayers()
     local players = {}
-    local allPlys = player.GetAll()
+    local allPlys = lib.GetAlivePlayers()
     for i = 1, #allPlys do
         local ply = allPlys[i]
         if self:GetPlayerLifeState(ply) == ALIVE then
@@ -391,15 +385,7 @@ end
 --- Gets actually alive players irrespective of what we think.
 ---@return table<Player> players
 function Memory:GetActualAlivePlayers()
-    local players = {}
-    local allPlys = player.GetAll()
-    for i = 1, #allPlys do
-        local ply = allPlys[i]
-        if lib.IsPlayerAlive(ply) then
-            players[#players + 1] = ply
-        end
-    end
-    return players
+    return lib.GetAlivePlayers()
 end
 
 function Memory:Think()
@@ -426,9 +412,9 @@ end
 ---@return table<table> sounds
 function Memory:GetRecentSoundsFromPly(ply)
     local sounds = {}
-    for i, sound in pairs(self.recentSounds) do
+    for i, sound in ipairs(self.recentSounds) do
         if sound.ply == ply then
-            table.insert(sounds, sound)
+            sounds[#sounds + 1] = sound
         end
     end
     return sounds
@@ -436,9 +422,9 @@ end
 
 function Memory:GetHeardC4Sounds()
     local sounds = {}
-    for i, sound in pairs(self.recentSounds) do
+    for i, sound in ipairs(self.recentSounds) do
         if sound.sound == "C4Beep" then
-            table.insert(sounds, sound)
+            sounds[#sounds + 1] = sound
         end
     end
     return sounds
@@ -592,7 +578,7 @@ function Memory:GetMostUrgentGunfight()
 end
 
 timer.Create("TTTBots_CullSoundMemory", 1, 0, function()
-    for i, v in pairs(TTTBots.Bots) do
+    for i, v in ipairs(TTTBots.Bots) do
         if not (v and v.components and v.components.memory) then continue end
         v.components.memory:CullSoundMemory()
     end
@@ -602,7 +588,7 @@ end)
 ---@param info SoundInfo
 ---@param soundData table
 function Memory.HandleSoundForAllBots(info, soundData)
-    for i, v in pairs(TTTBots.Bots) do
+    for i, v in ipairs(TTTBots.Bots) do
         if not lib.IsPlayerAlive(v) then continue end
         if not (v and v.components and v.components.memory) then continue end
         local mem = v.components.memory

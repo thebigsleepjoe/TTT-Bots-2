@@ -346,7 +346,7 @@ hook.Add("PlayerDeath", "TTTBots.Components.Morality.PlayerDeath", function(vict
 
         -- Only escalate for bots who already had the planter flagged
         if IsValid(planter) and planter:IsPlayer() and lib.IsPlayerAlive(planter) then
-            for _, bot in pairs(TTTBots.Bots) do
+            for _, bot in ipairs(TTTBots.Bots) do
                 if not (IsValid(bot) and lib.IsPlayerAlive(bot)) then continue end
                 if bot == planter then continue end
                 if TTTBots.Roles.IsAllies(bot, planter) then continue end
@@ -388,7 +388,7 @@ hook.Add("PlayerDeath", "TTTBots.Components.Morality.PlayerDeath", function(vict
     local victimPos = victim:GetPos()
     local vicIsTraitor = victim:GetTeam() == TEAM_TRAITOR
 
-    for _, bot in pairs(TTTBots.Bots) do
+    for _, bot in ipairs(TTTBots.Bots) do
         if not (IsValid(bot) and lib.IsPlayerAlive(bot)) then continue end
         if bot == attacker or bot == victim then continue end
         if bot.attackTarget ~= nil then continue end
@@ -550,7 +550,7 @@ hook.Add("EntityFireBullets", "TTTBots.Components.Morality.FireBullets", functio
     local shooterPos = data.Src or entity:EyePos()
     local shootDir = data.Dir or entity:GetAimVector()
 
-    for i, bot in pairs(TTTBots.Bots) do
+    for i, bot in ipairs(TTTBots.Bots) do
         if not (IsValid(bot) and lib.IsPlayerAlive(bot)) then continue end
         if bot == entity then continue end
 
@@ -647,7 +647,7 @@ hook.Add("PlayerHurt", "TTTBots.Components.Morality.PlayerHurt", function(victim
     -- Hearing-based reaction: nearby bots who can't see the attacker
     local HEAR_RANGE = 1250
     local attackerPos = attacker:GetPos()
-    for _, bot in pairs(TTTBots.Bots) do
+    for _, bot in ipairs(TTTBots.Bots) do
         if not (IsValid(bot) and lib.IsPlayerAlive(bot)) then continue end
         if bot == attacker or bot == victim then continue end
         if not bot.components or not bot.components.morality then continue end
@@ -706,38 +706,35 @@ end
 --- Table of [Player]=number showing seconds near unidentified corpses
 --- Does not stack. If a player is near 2 corpses, it will only count as 1. This is to prevent innocents discovering massacres and being killed for it.
 local playersNearBodies = {}
-timer.Create("TTTBots.Components.Morality.PlayerCorpseTimer", 1, 0, function()
-    if TTTBots.Match.RoundActive == false then return end
+
+--- Consolidated per-player awareness timer: corpse tracking + disguised player detection.
+--- Runs once per second, single iteration over alive players.
+timer.Create("TTTBots.Components.Morality.PlayerAwareness", 1, 0, function()
+    if not TTTBots.Match.RoundActive then return end
     local alivePlayers = TTTBots.Match.AlivePlayers
     local corpses = TTTBots.Match.Corpses
 
-    for i, ply in pairs(alivePlayers) do
+    for i, ply in ipairs(alivePlayers) do
         if not IsValid(ply) then continue end
+
+        -- Corpse proximity tracking
         local isNearCorpse = BotMorality.IsPlayerNearUnfoundCorpse(ply, corpses)
         if isNearCorpse then
             playersNearBodies[ply] = (playersNearBodies[ply] or 0) + 1
         else
             playersNearBodies[ply] = math.max((playersNearBodies[ply] or 0) - 1, 0)
         end
-    end
-end)
 
--- Disguised player detection
-timer.Create("TTTBots.Components.Morality.DisguisedPlayerDetection", 1, 0, function()
-    if not TTTBots.Match.RoundActive then return end
-    local alivePlayers = TTTBots.Match.AlivePlayers
-    for i, ply in pairs(alivePlayers) do
+        -- Disguised player detection
         local isDisguised = TTTBots.Match.IsPlayerDisguised(ply)
-
         if isDisguised then
             local witnessBots = lib.GetAllWitnesses(ply:EyePos(), true)
-            for i, bot in pairs(witnessBots) do
+            for _, bot in ipairs(witnessBots) do
                 ---@cast bot Bot
                 if not IsValid(bot) then continue end
                 if not TTTBots.Roles.GetRoleFor(bot):GetUsesSuspicion() then continue end
                 local chatter = bot:BotChatter()
                 if not chatter then continue end
-                -- set attack target if we do not have one already
                 bot:SetAttackTarget(bot.attackTarget or ply)
                 chatter:On("DisguisedPlayer")
             end
@@ -875,17 +872,6 @@ local function commonSense(bot)
     noticeC4Holders(bot)
 end
 
-timer.Create("TTTBots.Components.Morality.CommonSense", 1, 0, function()
-    if not TTTBots.Match.IsRoundActive() then return end
-    for i, bot in pairs(TTTBots.Bots) do
-        if not bot or bot == NULL or not IsValid(bot) then continue end
-        if not bot.initialized or not bot.components then continue end
-        if not bot.components.chatter or not bot:BotLocomotor() then continue end
-        if not lib.IsPlayerAlive(bot) then continue end
-        commonSense(bot)
-    end
-end)
-
 ---@class Player
 local plyMeta = FindMetaTable("Player")
 function plyMeta:BotMorality()
@@ -894,52 +880,67 @@ function plyMeta:BotMorality()
     return self.components.morality
 end
 
---- Hearing-based suspicion: bots react to gunfire they can hear but not see.
-timer.Create("TTTBots.Components.Morality.HearingReaction", 2, 0, function()
+--- Hearing-based suspicion logic for a single bot. Called every 2 seconds.
+---@param bot Bot
+local function hearingReaction(bot)
+    if not bot.components or not bot.components.memory or not bot.components.morality then return end
+    if not TTTBots.Roles.GetRoleFor(bot):GetUsesSuspicion() then return end
+
+    local memory = bot.components.memory
+    local morality = bot.components.morality
+    local curTime = CurTime()
+
+    local recentSounds = memory:GetRecentSounds()
+    local heardShooters = {}
+    for _, s in ipairs(recentSounds) do
+        if s.sound ~= "Gunshot" then continue end
+        if (curTime - s.time) > 8 then continue end
+        if not (s.ply and IsValid(s.ply) and s.ply ~= bot) then continue end
+        if lib.CanSeeArc(bot, s.pos, 90) then continue end
+        heardShooters[s.ply] = (heardShooters[s.ply] or 0) + 1
+    end
+
+    for shooter, count in pairs(heardShooters) do
+        if count >= 2 and not TTTBots.Roles.IsAllies(bot, shooter) then
+            morality:ChangeSuspicion(shooter, "HearGunfight")
+        end
+    end
+
+    local cluster = memory:GetMostUrgentGunfight()
+    if cluster and cluster.count >= 3 and (curTime - cluster.newest) < 6 then
+        local dist = bot:GetPos():Distance(cluster.pos)
+        local recentNearMiss = (bot.tttbots_nearMissTime or 0) + 3 > curTime
+        if dist < 2000 and bot.attackTarget == nil and not recentNearMiss then
+            local loco = bot:BotLocomotor()
+            if loco then
+                loco:LookAt(cluster.pos + Vector(0, 0, 72))
+            end
+        end
+    end
+end
+
+--- Consolidated per-bot awareness timer: common sense + hearing reaction.
+--- Runs once per second with a single bot iteration. Hearing reaction runs
+--- every other cycle (effectively every 2 seconds) via a tick counter.
+local botAwarenessTick = 0
+timer.Create("TTTBots.Components.Morality.BotAwareness", 1, 0, function()
     if not TTTBots.Match.IsRoundActive() then return end
+    botAwarenessTick = botAwarenessTick + 1
+    local doHearing = (botAwarenessTick % 2 == 0)
 
-    for _, bot in pairs(TTTBots.Bots) do
-        if not (IsValid(bot) and bot ~= NULL and lib.IsPlayerAlive(bot)) then continue end
-        if not bot.components or not bot.components.memory or not bot.components.morality then continue end
-        if not TTTBots.Roles.GetRoleFor(bot):GetUsesSuspicion() then continue end
+    for i, bot in ipairs(TTTBots.Bots) do
+        if not bot or bot == NULL or not IsValid(bot) then continue end
+        if not bot.initialized or not bot.components then continue end
+        if not lib.IsPlayerAlive(bot) then continue end
 
-        local memory = bot.components.memory
-        local morality = bot.components.morality
-        local curTime = CurTime()
-
-        -- Scan recent gunshot sounds for player attribution
-        local recentSounds = memory:GetRecentSounds()
-        local heardShooters = {} -- [Player] = count of gunshots heard from them
-        for _, s in ipairs(recentSounds) do
-            if s.sound ~= "Gunshot" then continue end
-            if (curTime - s.time) > 8 then continue end
-            if not (s.ply and IsValid(s.ply) and s.ply ~= bot) then continue end
-            -- Only build suspicion if we COULDN'T see them (sound-only info)
-            if lib.CanSeeArc(bot, s.pos, 90) then continue end
-
-            heardShooters[s.ply] = (heardShooters[s.ply] or 0) + 1
+        -- Common sense (every 1s)
+        if bot.components.chatter and bot:BotLocomotor() then
+            commonSense(bot)
         end
 
-        -- Build suspicion on anyone we heard shooting repeatedly (2+ gunshots heard)
-        for shooter, count in pairs(heardShooters) do
-            if count >= 2 and not TTTBots.Roles.IsAllies(bot, shooter) then
-                morality:ChangeSuspicion(shooter, "HearGunfight")
-            end
-        end
-
-        -- If we hear an active gunfight nearby, look toward it even if we're patrolling
-        -- But defer to near-miss reaction if the bot was just shot at directly
-        local cluster = memory:GetMostUrgentGunfight()
-        if cluster and cluster.count >= 3 and (curTime - cluster.newest) < 6 then
-            local dist = bot:GetPos():Distance(cluster.pos)
-            local recentNearMiss = (bot.tttbots_nearMissTime or 0) + 3 > curTime
-            -- Only react if the gunfight is within reasonable range and we're not already fighting
-            if dist < 2000 and bot.attackTarget == nil and not recentNearMiss then
-                local loco = bot:BotLocomotor()
-                if loco then
-                    loco:LookAt(cluster.pos + Vector(0, 0, 72))
-                end
-            end
+        -- Hearing reaction (every 2s)
+        if doHearing then
+            hearingReaction(bot)
         end
     end
 end)

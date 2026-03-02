@@ -25,37 +25,18 @@ local STATUS = TTTBots.STATUS
 ---@param bot Bot
 ---@return Weapon|nil
 function HiddenHunt.GetHiddenKnife(bot)
-    for _, wep in pairs(bot:GetWeapons()) do
-        if IsValid(wep) then
-            local cls = wep:GetClass()
-            if string.find(cls, "hdnknife", 1, true)
-                or string.find(cls, "hidden_knife", 1, true)
-                or string.find(cls, "hdn_knife", 1, true)
-                or string.find(cls, "hiddenknife", 1, true) then
-                return wep
-            end
-        end
-    end
-    return nil
+    return lib.FindWeaponByPattern(bot, {
+        "hdnknife", "hidden_knife", "hdn_knife", "hiddenknife"
+    })
 end
 
 --- Find the Hidden's stun grenade.
 ---@param bot Bot
 ---@return Weapon|nil
 function HiddenHunt.GetHiddenGrenade(bot)
-    for _, wep in pairs(bot:GetWeapons()) do
-        if IsValid(wep) then
-            local cls = wep:GetClass()
-            if string.find(cls, "hdngrenade", 1, true)
-                or string.find(cls, "hidden_grenade", 1, true)
-                or string.find(cls, "hdn_grenade", 1, true)
-                or string.find(cls, "hdn_stun", 1, true)
-                or string.find(cls, "hiddengrenade", 1, true) then
-                return wep
-            end
-        end
-    end
-    return nil
+    return lib.FindWeaponByPattern(bot, {
+        "hdngrenade", "hidden_grenade", "hdn_grenade", "hdn_stun", "hiddengrenade"
+    })
 end
 
 --- Check if the Hidden has activated their powers (has the knife).
@@ -83,58 +64,7 @@ end
 ---@param dangerPos Vector
 ---@return Vector
 function HiddenHunt.FindFleeSpot(bot, dangerPos)
-    local botPos = bot:GetPos()
-    local navAreas = navmesh.GetAllNavAreas()
-    local fleeSpot = nil
-
-    if navAreas and #navAreas > 0 then
-        local bestSpot, bestDist = nil, 0
-        -- First pass: far from danger and reasonably close to us
-        for i = 1, 20 do
-            local nav = navAreas[math.random(#navAreas)]
-            if not IsValid(nav) then continue end
-            local center = nav:GetCenter()
-            local distFromDanger = center:Distance(dangerPos)
-            local distFromBot = center:Distance(botPos)
-            if distFromDanger > HiddenHunt.FLEE_DISTANCE and distFromBot < 3000 then
-                if distFromDanger > bestDist then
-                    bestDist = distFromDanger
-                    bestSpot = center
-                end
-            end
-        end
-        -- Relaxed pass: just pick the farthest
-        if not bestSpot then
-            for i = 1, 15 do
-                local nav = navAreas[math.random(#navAreas)]
-                if not IsValid(nav) then continue end
-                local center = nav:GetCenter()
-                local d = center:Distance(dangerPos)
-                if d > bestDist then
-                    bestDist = d
-                    bestSpot = center
-                end
-            end
-        end
-        fleeSpot = bestSpot
-    end
-
-    -- Final fallback: snap opposite direction to nearest nav
-    if not fleeSpot then
-        local awayDir = (botPos - dangerPos):GetNormalized()
-        awayDir.z = 0
-        awayDir:Normalize()
-        local rawSpot = botPos + awayDir * HiddenHunt.FLEE_DISTANCE
-        local nearNav = navmesh.GetNearestNavArea(rawSpot)
-        if nearNav and IsValid(nearNav) then
-            fleeSpot = nearNav:GetCenter()
-        else
-            local myNav = navmesh.GetNearestNavArea(botPos)
-            fleeSpot = myNav and IsValid(myNav) and myNav:GetCenter() or botPos
-        end
-    end
-
-    return fleeSpot
+    return lib.FindFleeSpot(bot, dangerPos, HiddenHunt.FLEE_DISTANCE)
 end
 
 --- Validate: only runs for Hidden bots.

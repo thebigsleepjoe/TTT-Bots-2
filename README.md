@@ -57,6 +57,7 @@ This add-on supports a wide range of TTT2 roles. Here are some that have explici
 * Amnesiac
 * Copycat
 * Arsonist
+* Shinigami
 
 The mod also auto-generates compatibility with custom roles, but it is imperfect. It does not comprehend most 'public killer' roles (e.g., 'Speedrunner').
 

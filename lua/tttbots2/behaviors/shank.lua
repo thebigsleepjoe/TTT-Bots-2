@@ -25,26 +25,9 @@ local STATUS = TTTBots.STATUS
 ---@param bot Bot
 ---@return Weapon|nil
 function Shank.GetShankerKnife(bot)
-    -- Try the most likely class names for the shanker's special knife
-    local candidates = {
-        "weapon_ttt2_shankerknife",
-        "weapon_ttt_shankerknife",
-        "weapon_shankerknife",
-        "weapon_shanker_knife",
-    }
-    for _, cls in ipairs(candidates) do
-        if bot:HasWeapon(cls) then
-            return bot:GetWeapon(cls)
-        end
-    end
-
-    -- Fallback: search for any weapon with "shanker" in the class name
-    for _, wep in pairs(bot:GetWeapons()) do
-        if IsValid(wep) and string.find(wep:GetClass(), "shanker", 1, true) then
-            return wep
-        end
-    end
-    return nil
+    return lib.FindWeaponByPattern(bot, {
+        "shankerknife", "shanker_knife", "shanker"
+    })
 end
 
 --- Check if the bot is behind the target (target is facing away from us).
@@ -304,51 +287,7 @@ function Shank.StartFlee(bot, killPos)
     local loco = bot:BotLocomotor()
     if loco then loco:StopAttack() end
 
-    -- Find a nav area far from the kill site but reachable
-    local botPos = bot:GetPos()
-    local fleeSpot = botPos -- fallback
-    local navAreas = navmesh.GetAllNavAreas()
-    if navAreas and #navAreas > 0 then
-        local bestSpot = nil
-        local bestDist = 0
-        local samples = math.min(20, #navAreas)
-        for i = 1, samples do
-            local nav = navAreas[math.random(#navAreas)]
-            if not IsValid(nav) then continue end
-            local center = nav:GetCenter()
-            local distFromKill = center:Distance(killPos)
-            local distFromBot = center:Distance(botPos)
-            -- Must be far from kill but not insanely far from us
-            if distFromKill > Shank.FLEE_DISTANCE and distFromBot < 3000 then
-                if distFromKill > bestDist then
-                    bestDist = distFromKill
-                    bestSpot = center
-                end
-            end
-        end
-        if bestSpot then fleeSpot = bestSpot end
-    end
-
-    -- If no good nav found, just run in the opposite direction
-    -- but snap to nearest nav area so pathfinding doesn't get a nil finish
-    if fleeSpot == botPos then
-        local awayDir = (botPos - killPos):GetNormalized()
-        awayDir.z = 0
-        awayDir:Normalize()
-        local rawSpot = botPos + awayDir * Shank.FLEE_DISTANCE
-        local nearNav = navmesh.GetNearestNavArea(rawSpot)
-        if nearNav and IsValid(nearNav) then
-            fleeSpot = nearNav:GetCenter()
-        else
-            -- Absolute last resort: use our own position's nav area
-            local myNav = navmesh.GetNearestNavArea(botPos)
-            if myNav and IsValid(myNav) then
-                fleeSpot = myNav:GetCenter()
-            end
-        end
-    end
-
-    bot.shankFleeSpot = fleeSpot
+    bot.shankFleeSpot = lib.FindFleeSpot(bot, killPos, Shank.FLEE_DISTANCE)
 end
 
 ---@param bot Bot

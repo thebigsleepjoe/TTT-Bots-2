@@ -48,53 +48,8 @@ pirate:SetCanSnipe(true)
 pirate:SetCanHide(true)
 TTTBots.Roles.RegisterRole(pirate)
 
---- Pirates help their Captain when the Captain is attacked
-hook.Add("TTTBotsOnWitnessHurt", "TTTBots.pirate.helpCaptain",
-    function(witness, victim, attacker, healthRemaining, damageTaken)
-        if not IsValid(attacker) then return end
-        if not (IsValid(witness) and IsValid(victim)) then return end
-
-        local witnessRole = witness:GetRoleStringRaw()
-        local victimRole = victim:GetRoleStringRaw()
-
-        -- Pirates rush to defend their Captain
-        if witnessRole == "pirate" and victimRole == "pirate_captain" then
-            witness:SetAttackTarget(attacker)
-        end
-
-        -- Captain defends their Pirates too
-        if witnessRole == "pirate_captain" and victimRole == "pirate" then
-            witness:SetAttackTarget(attacker)
-        end
-    end)
-
---- Pirates assist when the Captain starts shooting at someone
-hook.Add("TTTBotsOnWitnessFireBullets", "TTTBots.pirate.assistCaptain",
-    function(witness, attacker, data, angleDiff)
-        local attackerRole = attacker:GetRoleStringRaw()
-        local witnessRole = witness:GetRoleStringRaw()
-
-        -- If a pirate sees the captain shooting, help them
-        if witnessRole == "pirate" and attackerRole == "pirate_captain" then
-            local eyeTracePos = attacker:GetEyeTrace().HitPos
-            if not eyeTracePos then return end
-            local target = TTTBots.Lib.GetClosest(
-                TTTBots.Roles.GetNonAllies(witness), eyeTracePos
-            )
-            if not target then return end
-            witness:SetAttackTarget(target)
-        end
-
-        -- If the captain sees a pirate shooting, help them too
-        if witnessRole == "pirate_captain" and attackerRole == "pirate" then
-            local eyeTracePos = attacker:GetEyeTrace().HitPos
-            if not eyeTracePos then return end
-            local target = TTTBots.Lib.GetClosest(
-                TTTBots.Roles.GetNonAllies(witness), eyeTracePos
-            )
-            if not target then return end
-            witness:SetAttackTarget(target)
-        end
-    end)
+--- Pirates and Captain help each other when shooting/attacked
+TTTBots.Lib.RegisterMasterMinionHooks("pirate", "pirate_captain", "TTTBots_Pirate")
+TTTBots.Lib.RegisterMasterMinionHooks("pirate_captain", "pirate", "TTTBots_PirateCaptain")
 
 return true
