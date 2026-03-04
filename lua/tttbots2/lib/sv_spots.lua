@@ -7,14 +7,15 @@ function TTTBots.Spots.CacheAllSpots()
         ["all"] = {},
     }
     local allNavs = navmesh.GetAllNavAreas()
-    for i, v in pairs(allNavs) do
-        local exposedSpots = v:GetExposedSpots()
-        local hidingSpots = v:GetHidingSpots()
-        for i, v in pairs(exposedSpots) do
-            table.insert(TTTBots.Spots.CachedSpots["all"], v)
+    local allSpots = TTTBots.Spots.CachedSpots["all"]
+    for _, nav in pairs(allNavs) do
+        local exposedSpots = nav:GetExposedSpots()
+        local hidingSpots = nav:GetHidingSpots()
+        for _, spot in pairs(exposedSpots) do
+            allSpots[#allSpots + 1] = spot
         end
-        for i, v in pairs(hidingSpots) do
-            table.insert(TTTBots.Spots.CachedSpots["all"], v)
+        for _, spot in pairs(hidingSpots) do
+            allSpots[#allSpots + 1] = spot
         end
     end
     TTTBots.Spots.CacheSpecialSpots()

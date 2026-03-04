@@ -6,43 +6,67 @@ TTTBots.Lib.PopularNavsSorted = {}
 
 local lib = TTTBots.Lib
 
+-- Lookup table: navID -> rank index (built alongside the sorted list)
+local _popularityRankLookup = {}
+local _sortCounter = 0
+local SORT_INTERVAL = 5 -- Only re-sort every N seconds instead of every second
+
 --- Creates a timer that updates the popularity of nav areas every second.
 timer.Create("TTTBots.Lib.PopularNavsTimer", 1, 0, function()
-    -- Check if we have a navmesh and we're in a round.
-    local plys = player.GetAll()
-    for i, v in pairs(plys) do
-        if not lib.IsPlayerAlive(v) then continue end
-        local nav = navmesh.GetNearestNavArea(v:GetPos())
+    -- Update visit counts for alive players
+    for ply, isAlive in pairs(lib.GetPlayerLifeStates()) do
+        if not isAlive then continue end
+        if not IsValid(ply) then continue end
+        local nav = navmesh.GetNearestNavArea(ply:GetPos())
         if not nav then continue end
         local id = nav:GetID()
         TTTBots.Lib.PopularNavs[id] = (TTTBots.Lib.PopularNavs[id] or 0) + 1
     end
 
-    -- Sort by popularity.
-    local sorted = {}
-    for k, v in pairs(TTTBots.Lib.PopularNavs) do
-        table.insert(sorted, { k, v })
-    end
-    table.sort(sorted, function(a, b) return a[2] > b[2] end)
+    -- Only re-sort every SORT_INTERVAL seconds to reduce CPU usage
+    _sortCounter = _sortCounter + 1
+    if _sortCounter >= SORT_INTERVAL then
+        _sortCounter = 0
 
-    TTTBots.Lib.PopularNavsSorted = sorted
+        local sorted = {}
+        for k, v in pairs(TTTBots.Lib.PopularNavs) do
+            sorted[#sorted + 1] = { k, v }
+        end
+        table.sort(sorted, function(a, b) return a[2] > b[2] end)
+
+        TTTBots.Lib.PopularNavsSorted = sorted
+
+        -- Build rank lookup for O(1) GetPopularityPct
+        _popularityRankLookup = {}
+        for i, navTbl in ipairs(sorted) do
+            _popularityRankLookup[navTbl[1]] = i
+        end
+    end
 
     if lib.GetConVarBool("debug_navpopularity") then
         -- Debug draw logic.
-        for i, navTbl in pairs(TTTBots.Lib.GetTopNPopularNavs(3)) do
+        for i, navTbl in ipairs(TTTBots.Lib.GetTopNPopularNavs(3)) do
             local nav = navmesh.GetNavAreaByID(navTbl[1])
             local pos = nav:GetCenter()
-            local txt = "(" .. navTbl[2] .. "s) Popularity Rank #" .. i
+            local txt = string.format("(%ds) Popularity Rank #%d", navTbl[2], i)
             TTTBots.DebugServer.DrawText(pos, txt, 1.2, "popularnavs" .. i)
         end
 
-        for i, navTbl in pairs(TTTBots.Lib.GetTopNUnpopularNavs(3)) do
+        for i, navTbl in ipairs(TTTBots.Lib.GetTopNUnpopularNavs(3)) do
             local nav = navmesh.GetNavAreaByID(navTbl[1])
             local pos = nav:GetCenter()
-            local txt = "(" .. navTbl[2] .. "s) Unpopularity Rank #" .. i
+            local txt = string.format("(%ds) Unpopularity Rank #%d", navTbl[2], i)
             TTTBots.DebugServer.DrawText(pos, txt, 1.2, "unpopularnavs" .. i)
         end
     end
+end)
+
+-- Reset popularity data between rounds
+hook.Add("TTTBeginRound", "TTTBots.PopularNavs.Reset", function()
+    TTTBots.Lib.PopularNavs = {}
+    TTTBots.Lib.PopularNavsSorted = {}
+    _popularityRankLookup = {}
+    _sortCounter = 0
 end)
 
 --- Retrieves the sorted list of popular nav areas.
@@ -57,9 +81,8 @@ end
 function TTTBots.Lib.GetTopNPopularNavs(n)
     local sorted = TTTBots.Lib.GetPopularNavs()
     local topN = {}
-    for i = 1, n do
-        if not sorted[i] then break end
-        table.insert(topN, sorted[i])
+    for i = 1, math.min(n, #sorted) do
+        topN[#topN + 1] = sorted[i]
     end
     return topN
 end
@@ -71,9 +94,9 @@ end
 function TTTBots.Lib.GetTopNUnpopularNavs(n)
     local sorted = TTTBots.Lib.GetPopularNavs()
     local topN = {}
-    for i = #sorted, #sorted - n, -1 do
+    for i = #sorted, math.max(#sorted - n + 1, 1), -1 do
         if not sorted[i] then break end
-        table.insert(topN, sorted[i])
+        topN[#topN + 1] = sorted[i]
     end
     return topN
 end
@@ -91,14 +114,13 @@ local navMeta = FindMetaTable("CNavArea")
 --- Gets the popularity percentage [0,1] of this nav area compared to others. 1 = most, 0 = least.
 ---@return number popularity The popularity percentage of this nav area.
 function navMeta:GetPopularityPct()
-    local popNavs = TTTBots.Lib.GetPopularNavs()
-    local total = #popNavs
+    local sorted = TTTBots.Lib.PopularNavsSorted
+    local total = #sorted
+    if total == 0 then return 0.0 end
 
-    for i, navTbl in pairs(popNavs) do
-        if navTbl[1] == self:GetID() then
-            return i / total
-        end
-    end
+    local rank = _popularityRankLookup[self:GetID()]
+    if not rank then return 0.0 end
 
-    return 0.0
+    -- Rank 1 = most popular = highest percentage
+    return 1 - ((rank - 1) / total)
 end

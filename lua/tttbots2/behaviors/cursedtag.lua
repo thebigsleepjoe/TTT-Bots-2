@@ -35,9 +35,8 @@ function CursedTag.FindTarget(bot)
     local candidates = {}
     local botPos = bot:GetPos()
 
-    for _, ply in pairs(player.GetAll()) do
-        if not (IsValid(ply) and ply ~= bot and lib.IsPlayerAlive(ply)) then continue end
-        if ply:IsSpec() then continue end
+    for _, ply in ipairs(TTTBots.Match.AlivePlayers) do
+        if not (IsValid(ply) and ply ~= bot) then continue end
 
         -- Skip the "no backsies" target if the addon tracks it
         if bot.cursedLastSwap and bot.cursedLastSwap == ply then continue end

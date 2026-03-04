@@ -95,7 +95,7 @@ function Decrowd.FindRetreatArea(bot)
     end
 
     -- Fallback just in case.
-    return table.Random(navmesh.GetAllNavAreas())
+    return table.Random(TTTBots.Lib.GetCachedNavAreas())
 end
 
 ---@param bot Bot

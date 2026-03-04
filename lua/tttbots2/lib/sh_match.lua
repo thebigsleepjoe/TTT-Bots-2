@@ -46,10 +46,16 @@ Match.SpottedC4s = {} ---@type table<Entity, boolean> Armed C4 that has been spo
 Match.AllArmedC4s = {} ---@type table<Entity, boolean>
 Match.Smokes = {}
 
+local _corpseCleanupCounter = 0
 function Match.Tick()
     if not Match.RoundActive then return end
-    Match.CleanupNullCorpses()
-    Match.SecondsPassed = (Match.Time()) + (1 / TTTBots.Tickrate)
+    -- Only clean up corpses once per second instead of every tick (5x/sec)
+    _corpseCleanupCounter = _corpseCleanupCounter + 1
+    if _corpseCleanupCounter >= TTTBots.Tickrate then
+        _corpseCleanupCounter = 0
+        Match.CleanupNullCorpses()
+    end
+    Match.SecondsPassed = Match.SecondsPassed + (1 / TTTBots.Tickrate)
 end
 
 --- Returns true if enough time, as defined by plans_mindelay and _maxdelay, has passed since the round began. Used for automatic plan execution by bots.
@@ -121,8 +127,8 @@ end
 
 ---@realm shared
 function Match.CleanupNullCorpses()
-    for i, v in pairs(Match.Corpses) do
-        if not IsValid(v) or v == NULL then
+    for i = #Match.Corpses, 1, -1 do
+        if not IsValid(Match.Corpses[i]) then
             table.remove(Match.Corpses, i)
         end
     end

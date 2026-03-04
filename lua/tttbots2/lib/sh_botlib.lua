@@ -43,7 +43,7 @@ local alivePlayers = {}
 ---@realm server
 local function updateAlivePlayers()
     alivePlayers = {}
-    for i, ply in pairs(player.GetAll()) do
+    for _, ply in ipairs(player.GetAll()) do
         alivePlayers[ply] = (IsValid(ply) and not (ply:IsSpec()) and ply:Alive() and ply:Health() > 0)
     end
 end
@@ -220,11 +220,11 @@ end
 ---@return string id
 ---@realm shared
 function TTTBots.Lib.GenerateID()
-    local id = ""
+    local chars = {}
     for i = 1, 6 do
-        id = id .. string.char(math.random(97, 122))
+        chars[i] = string.char(math.random(97, 122))
     end
-    return id
+    return table.concat(chars)
 end
 
 ---@realm shared
@@ -597,14 +597,15 @@ end
 ---@return function GetFunc Called with (self)
 ---@return function SetFunc Called with (self, value)
 function TTTBots.Lib.GetSet(varname, default)
+    local key = "m_" .. varname
     local setFunc = function(self, value)
-        self["m_" .. varname] = value
+        self[key] = value
     end
     local getFunc = function(self)
-        if self["m_" .. varname] == nil then
-            self["m_" .. varname] = default
+        if self[key] == nil then
+            self[key] = default
         end
-        return self["m_" .. varname]
+        return self[key]
     end
 
     return getFunc, setFunc
@@ -734,12 +735,9 @@ end
 ---@realm shared
 function TTTBots.Lib.GetAllWitnesses360(pos)
     local witnesses = {}
-    for _, ply in ipairs(player.GetAll()) do
-        if TTTBots.Lib.IsPlayerAlive(ply) then
-            local sawthat = TTTBots.Lib.CanSee(ply, pos)
-            if sawthat then
-                table.insert(witnesses, ply)
-            end
+    for _, ply in ipairs(TTTBots.Lib.GetAlivePlayers()) do
+        if IsValid(ply) and ply:VisibleVec(pos) then
+            witnesses[#witnesses + 1] = ply
         end
     end
     return witnesses
@@ -757,10 +755,10 @@ function TTTBots.Lib.GetAllVisible(pos, nonTeammatesOnly, caller)
         return {}
     end
     local witnesses = {}
-    local allPlys = player.GetAll()
+    local allPlys = TTTBots.Lib.GetAlivePlayers() -- Use cached alive players
     for i = 1, #allPlys do
         local ply = allPlys[i]
-        if TTTBots.Lib.IsPlayerAlive(ply) then
+        if IsValid(ply) then
             if nonTeammatesOnly and caller then
                 -- Only include non-allies
                 if TTTBots.Roles.IsAllies(caller, ply) then continue end
@@ -797,8 +795,14 @@ end
 ---@param debugType string
 ---@return boolean
 ---@realm server
+local _debugCvarCache = {}
 function TTTBots.Lib.GetDebugFor(debugType)
-    return GetConVar("ttt_bot_debug_" .. debugType):GetBool()
+    local cv = _debugCvarCache[debugType]
+    if not cv then
+        cv = GetConVar("ttt_bot_debug_" .. debugType)
+        _debugCvarCache[debugType] = cv
+    end
+    return cv and cv:GetBool() or false
 end
 
 --- XY Distance between two Vectors
@@ -816,14 +820,13 @@ function TTTBots.Lib.IsTTT2()
 end
 
 ---@realm shared
+local DOOR_CLASSES = {
+    ["func_door"] = true,
+    ["func_door_rotating"] = true,
+    ["prop_door_rotating"] = true,
+}
 function TTTBots.Lib.IsDoor(ent)
-    local class = ent:GetClass()
-    local validClasses = {
-        ["func_door"] = true,
-        ["func_door_rotating"] = true,
-        ["prop_door_rotating"] = true
-    }
-    return validClasses[class] or false
+    return DOOR_CLASSES[ent:GetClass()] or false
 end
 
 ---@realm shared
@@ -937,7 +940,7 @@ end
 ---Test if there is a navmesh and notify the server if not on first call.
 ---@return boolean
 function TTTBots.Lib.TestNavmesh()
-    if table.IsEmpty(navmesh.GetAllNavAreas()) then
+    if navmesh.GetNavAreaCount() == 0 then
         if not notifiedNavmesh then
             local msg = TTTBots.Locale.GetLocalizedString("no.navmesh")
             TTTBots.Chat.BroadcastInChat(msg)
@@ -970,9 +973,7 @@ end
 --- Test if there are any players in the server to prevent issue #34
 ---@return boolean
 function TTTBots.Lib.TestServerActive()
-    local numHumans = table.Count(player.GetHumans())
-
-    return numHumans > 0
+    return #player.GetHumans() > 0
 end
 
 --- Create a bot, optionally with a name.
@@ -1028,7 +1029,7 @@ function TTTBots.Lib.GetClosestRevivable(bot, filterAlly)
     local options = TTTBots.Lib.GetRevivableCorpses()
     local cTime = CurTime()
 
-    filterAlly = filterAlly or true -- Default filterAlly? to true
+    if filterAlly == nil then filterAlly = true end -- Default filterAlly to true
 
     for i, rag in pairs(options) do
         if not TTTBots.Lib.IsValidBody(rag) then continue end
@@ -1137,20 +1138,35 @@ end
 ---@return any CNavLadder Closest ladder
 ---@return number Distance Distance to closest ladder
 ---@realm server
-function TTTBots.Lib.GetClosestLadder(pos)
-    local closestLadder = nil
-    local closestDist = 99999
-    for i = 1, 100 do
+local _cachedLadders = nil
+local function getCachedLadders()
+    if _cachedLadders then return _cachedLadders end
+    _cachedLadders = {}
+    -- Scan up to 256 IDs to find all ladders (covers most maps)
+    for i = 1, 256 do
         local ladder = navmesh.GetNavLadderByID(i)
         if ladder then
-            local dist = ladder:GetCenter():Distance(pos)
-            if dist < closestDist then
-                closestLadder = ladder
-                closestDist = dist
-            end
+            _cachedLadders[#_cachedLadders + 1] = ladder
         end
     end
-    return closestLadder, closestDist
+    return _cachedLadders
+end
+-- Reset ladder cache on map change
+hook.Add("Initialize", "TTTBots.ResetLadderCache", function() _cachedLadders = nil end)
+
+function TTTBots.Lib.GetClosestLadder(pos)
+    local ladders = getCachedLadders()
+    local closestLadder = nil
+    local closestDistSqr = math.huge
+    for i = 1, #ladders do
+        local ladder = ladders[i]
+        local distSqr = ladder:GetCenter():DistToSqr(pos)
+        if distSqr < closestDistSqr then
+            closestLadder = ladder
+            closestDistSqr = distSqr
+        end
+    end
+    return closestLadder, closestLadder and math.sqrt(closestDistSqr) or math.huge
 end
 
 ---@realm server
@@ -1165,7 +1181,7 @@ function TTTBots.Lib.VoluntaryDisconnect(bot, reason)
         if not bot then return end
         if not IsValid(bot) then return end
         bot:Kick(string.format(
-            "Disconnect by user",
+            "Disconnect: %s",
             reason or "UNDEFINED"))
     end)
 
@@ -1394,10 +1410,20 @@ end
 ---@param dangerPos Vector The position to flee from
 ---@param fleeDist number How far to try to flee (in hammer units)
 ---@return Vector
+local _cachedAllNavAreas = nil
+--- Returns a cached copy of all nav areas. Cached on first call, reset on map change.
+function TTTBots.Lib.GetCachedNavAreas()
+    if not _cachedAllNavAreas then
+        _cachedAllNavAreas = navmesh.GetAllNavAreas()
+    end
+    return _cachedAllNavAreas
+end
+hook.Add("Initialize", "TTTBots.ResetNavAreaCache", function() _cachedAllNavAreas = nil end)
+
 function TTTBots.Lib.FindFleeSpot(bot, dangerPos, fleeDist)
     fleeDist = fleeDist or 800
     local botPos = bot:GetPos()
-    local navAreas = navmesh.GetAllNavAreas()
+    local navAreas = TTTBots.Lib.GetCachedNavAreas()
     local fleeSpot = nil
 
     if navAreas and #navAreas > 0 then
@@ -1586,7 +1612,9 @@ TTTBots.Chat = TTTBots.Chat or {}
 --- This used to be in the Chat library but due to loading orders it must be here.
 ---@realm server
 function TTTBots.Chat.BroadcastInChat(message, adminsOnly)
-    for _, ply in pairs(player.GetAll()) do
-        ply:ChatPrint(message)
+    for _, ply in ipairs(player.GetAll()) do
+        if not adminsOnly or ply:IsAdmin() then
+            ply:ChatPrint(message)
+        end
     end
 end

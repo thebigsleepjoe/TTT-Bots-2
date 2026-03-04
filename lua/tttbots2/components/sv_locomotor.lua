@@ -547,7 +547,9 @@ end
 
 function BotLocomotor:ShouldCrouchBetween(a, b)
     if not a or not b then return false end
-    local area1 = navmesh.GetNearestNavArea(a)
+    -- Use cached bot nav area when possible, fall back to query
+    local botPos = self.bot:GetPos()
+    local area1 = (a == botPos and self.cachedBotNavArea) or navmesh.GetNearestNavArea(a)
     local area2 = navmesh.GetNearestNavArea(b)
 
     return (area1 and area1:IsCrouch()) or (area2 and area2:IsCrouch())
@@ -582,22 +584,36 @@ function BotLocomotor:DetectDoorAhead()
 end
 
 ---Tries to find any doors in a sphere around ourselves. Returns the closest elsewhere nil.
+---Uses a cooldown to avoid expensive ents.FindInSphere() every tick.
 ---@return Entity|nil
 function BotLocomotor:DetectDoorNearby()
+    -- Return cached result if still valid (refresh every 0.5s worth of ticks)
+    local DOOR_CACHE_TICKS = 3
+    if self.doorCacheTick and (self.tick - self.doorCacheTick) < DOOR_CACHE_TICKS then
+        return self.cachedNearbyDoor
+    end
+
     local range = 100
     local pos = self.bot:GetPos()
-    local doors = {}
+    local closest = nil
+    local closestDist = math.huge
     for i, ent in pairs(ents.FindInSphere(pos, range)) do
         if IsValid(ent) and lib.IsDoor(ent) then
-            table.insert(doors, ent)
+            local dist = pos:DistToSqr(ent:GetPos())
+            if dist < closestDist then
+                closest = ent
+                closestDist = dist
+            end
         end
     end
 
-    local closest = TTTBots.Lib.GetClosest(doors, pos)
+    self.doorCacheTick = self.tick
+    self.cachedNearbyDoor = closest
     return closest
 end
 
 --- Sets a variable to a value for a certain amount of time. Useful for temporary positioning, and +use timing.
+--- Uses CurTime()-based expiry instead of timer.Simple to reduce closure/timer overhead.
 ---@param name string Name of the variable to set
 ---@param value any Value to set the variable to
 ---@param time number Time in seconds
@@ -605,13 +621,27 @@ end
 function BotLocomotor:TimedVariable(name, value, time)
     self[name] = value
 
-    timer.Simple(time, function()
-        if self[name] == value then -- only remove if it's still the same value
-            self[name] = nil
-        end
-    end)
+    -- Store expiry time instead of creating a timer closure
+    self._timedVarExpiry = self._timedVarExpiry or {}
+    self._timedVarExpiry[name] = { value = value, expires = CurTime() + time }
 
     return value
+end
+
+--- Called once per think to expire any timed variables. Replaces per-variable timer.Simple closures.
+---@package
+function BotLocomotor:UpdateTimedVariables()
+    local expiries = self._timedVarExpiry
+    if not expiries then return end
+    local ct = CurTime()
+    for name, info in pairs(expiries) do
+        if ct >= info.expires then
+            if self[name] == info.value then
+                self[name] = nil
+            end
+            expiries[name] = nil
+        end
+    end
 end
 
 --- If the timed variable is not nil, return true. Otherwise, start the timer and return false.
@@ -657,18 +687,30 @@ end
 --- Tick periodically. Do not tick per GM:StartCommand
 function BotLocomotor:Think()
     self.tick = self.tick + 1
+
+    -- Expire timed variables (replaces per-variable timer.Simple closures)
+    self:UpdateTimedVariables()
+
+    -- Cache nav area lookups once per tick to avoid redundant navmesh queries
+    self.cachedBotNavArea = navmesh.GetNearestNavArea(self.bot:GetPos())
+    self.cachedGoalNavArea = self:GetGoal() and navmesh.GetNearestNavArea(self:GetGoal()) or nil
+
     local status = self:UpdatePathRequest() -- Update the path that the bot is following, so that we can move along it.
     self.status = status
     self:UpdateMovement()                   -- Update the invisible angle that the bot moves at, and make it move.
     self:TickViewAngles()                   -- The real view angles
     self:UpdateADS()
+
+    -- Clear cached values at end of tick
+    self.cachedBotNavArea = nil
+    self.cachedGoalNavArea = nil
 end
 
 --- Gets nearby players then determines the best direction to strafe to avoid them.
 function BotLocomotor:AvoidPlayers()
     if self.dontAvoid then return end
     if self:IsCliffed() then return end -- don't let trolls push us off the map...
-    local plys = player.GetAll()
+    local plys = lib.GetAlivePlayers() -- Use cached alive players instead of player.GetAll()
     local pos = self.bot:GetPos()
     local nearbyClumpCenter = Vector(0, 0, 0)
     local nearbyClumpCount = 0
@@ -678,7 +720,6 @@ function BotLocomotor:AvoidPlayers()
         local other = plys[i]
         if other == self.bot then continue end
         if self.bot.attackTarget == other then continue end -- Don't try to avoid someone we want to kill. Duh!
-        if not lib.IsPlayerAlive(other) then continue end
 
         local plypos = other:GetPos()
 
@@ -973,8 +1014,8 @@ end
 ---@package
 function BotLocomotor:MoveDirectlyIfClose(goal)
     -- check goal navarea is same as bot:GetPos() nav area
-    local botArea = navmesh.GetNearestNavArea(self.bot:GetPos())
-    local goalArea = navmesh.GetNearestNavArea(goal)
+    local botArea = self.cachedBotNavArea or navmesh.GetNearestNavArea(self.bot:GetPos())
+    local goalArea = self.cachedGoalNavArea or navmesh.GetNearestNavArea(goal)
     if (botArea == goalArea) then
         --self:LerpMovement(0.1, goal)
         self:SetPriorityGoal(goal)
@@ -1146,6 +1187,9 @@ function BotLocomotor:UpdatePathRequest()
     end
 
     local pathRequest = self:GetPathRequest() -- can be nil
+    local botPos = self.bot:GetPos()
+
+    -- Cache navmesh lookups to avoid redundant queries per tick
     local goalNav = navmesh.GetNearestNavArea(goalPos)
     local pathLength = self:GetPathLength()
     local hasPath = self:HasPath()
@@ -1162,7 +1206,6 @@ function BotLocomotor:UpdatePathRequest()
     -- If we don't have a path, request one
     -- Validate that both start and goal positions have nearby nav areas to
     -- avoid spamming "Start nil" / "Finish nil" errors for off-mesh positions.
-    local botPos = self.bot:GetPos()
     local startNavArea = navmesh.GetNearestNavArea(botPos)
     if not startNavArea then
         if lib.GetConVarBool("debug_pathfinding") then
@@ -1173,8 +1216,8 @@ function BotLocomotor:UpdatePathRequest()
         return STAT.IMPOSSIBLE
     end
 
-    local goalNavArea = navmesh.GetNearestNavArea(goalPos)
-    if not goalNavArea then
+    -- Reuse goalNav from above instead of querying navmesh again
+    if not goalNav then
         if lib.GetConVarBool("debug_pathfinding") then
             print(string.format("[TTT Bots 2] %s: goal position %s has no nearby nav area — clearing goal",
                 self.bot:Nick(), tostring(goalPos)))
@@ -1908,7 +1951,11 @@ timer.Create("TTTBots.Locomotor.StuckTracker", 1, 0, function()
         for i, pos in pairs(commonStucks) do
             if pos.center:Distance(stuckPos) < 200 then
                 pos.timeLost = pos.timeLost + 1
-                if not table.HasValue(pos.victims, botname) then table.insert(pos.victims, botname) end
+                pos.victimsSet = pos.victimsSet or {}
+                if not pos.victimsSet[botname] then
+                    table.insert(pos.victims, botname)
+                    pos.victimsSet[botname] = true
+                end
                 found = true
                 break
             end

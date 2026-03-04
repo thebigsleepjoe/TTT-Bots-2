@@ -132,13 +132,10 @@ function GetWeapons.UpdateCache()
 
         table.insert(globalWeapons, v)
 
-        local kindTable = {
-            [2] = globalSecondaries,
-            [3] = globalPrimaries,
-        }
-
-        if kindTable[v.Kind] then
-            table.insert(kindTable[v.Kind], v)
+        if v.Kind == 2 then
+            table.insert(globalSecondaries, v)
+        elseif v.Kind == 3 then
+            table.insert(globalPrimaries, v)
         end
     end
 end

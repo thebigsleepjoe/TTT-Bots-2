@@ -133,6 +133,13 @@ local BOREDOM_ENABLED = 1
 local PRESSURE_ENABLED = 1
 local RAGE_ENABLED = 1
 
+-- Refresh personality convar cache periodically instead of per-bot per-tick
+timer.Create("TTTBots.Personality.ConVarCache", 1, 0, function()
+    BOREDOM_ENABLED = TTTBots.Lib.GetConVarBool("boredom")
+    PRESSURE_ENABLED = TTTBots.Lib.GetConVarBool("pressure")
+    RAGE_ENABLED = TTTBots.Lib.GetConVarBool("rage")
+end)
+
 local function clamp(n, min, max)
     return math.min(math.max(n, min), max)
 end
@@ -238,10 +245,6 @@ function BotPersonality:Think()
         self.pressureRate = (self:GetTraitMult("pressureRate") or 1) --- The multiplier of the given stat based off the bot's personality. Applies to increases and decreases
         self.boredomRate = (self:GetTraitMult("boredomRate") or 1)   --- The multiplier of the given stat based off the bot's personality. Applies to increases and decreases
     end
-
-    BOREDOM_ENABLED = TTTBots.Lib.GetConVarBool("boredom")
-    PRESSURE_ENABLED = TTTBots.Lib.GetConVarBool("pressure")
-    RAGE_ENABLED = TTTBots.Lib.GetConVarBool("rage")
 
     self:DecayStats()
 

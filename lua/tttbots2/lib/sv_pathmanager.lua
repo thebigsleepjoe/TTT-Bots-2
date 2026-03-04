@@ -384,7 +384,7 @@ end
 ---@return boolean|table result false if no path found nor possible, else output a table of navareas
 function TTTBots.PathManager.Astar2(start, goal, _playerFilter)
     -- local P_Astar2 = TTTBots.Lib.Profiler("Astar2", true)
-    local closedSet = {}
+    local closedSet = {} -- hash table: closedSet[area] = true for O(1) lookup
     local openSet = { { area = start, cost = 0, fScore = heuristic_cost_estimate(start, goal) } }
     local neighborsCounted = 0
     local totalNeighbors = navmesh.GetNavAreaCount()
@@ -406,7 +406,7 @@ function TTTBots.PathManager.Astar2(start, goal, _playerFilter)
         ---------------------------------- end coroutine stuff
         local current = openSet[1]
         table.remove(openSet, 1)
-        table.insert(closedSet, current.area)
+        closedSet[current.area] = true
 
         if (current.area == goal) then
             local path = { current.area }
@@ -424,7 +424,7 @@ function TTTBots.PathManager.Astar2(start, goal, _playerFilter)
         table.Add(adjacents, portals)
 
         for _, neighbor in pairs(adjacents) do
-            if (not table.HasValue(closedSet, neighbor)) then
+            if (not closedSet[neighbor]) then
                 neighborsCounted = neighborsCounted + 1
                 local tentative_gScore = current.cost + distance_between(current.area, neighbor) +
                     get_penalties_between(current.area, neighbor)

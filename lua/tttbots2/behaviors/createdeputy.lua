@@ -27,10 +27,7 @@ function CreateDeputy.FindTarget(bot)
     local closest = lib.GetClosest(players, bot:GetPos())
 
     if closest then
-        print(closest)
         return closest
-    else
-        print("Nobody around!")
     end
 end
 

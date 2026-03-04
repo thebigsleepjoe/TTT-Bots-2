@@ -1,6 +1,12 @@
 TTTBots.DebugServer = {
     data = {}
 }
+
+local ATTACK_MODE_ENUMS = {
+    [1] = "Hunting",
+    [2] = "Seeking",
+    [3] = "Engaging",
+}
 --[[
     Data table example:
     {
@@ -87,12 +93,7 @@ net.Receive("TTTBots_RequestData", function(len, ply)
         local traitsCommaSep = table.concat(traits, ", ")
 
         local abm = bot.attackBehaviorMode
-        local attackModeEnums = {
-            [1] = "Hunting",
-            [2] = "Seeking",
-            [3] = "Engaging"
-        }
-        local abmTxt = attackModeEnums[abm] or "n/a"
+        local abmTxt = ATTACK_MODE_ENUMS[abm] or "n/a"
 
         botData[bot:Nick()] = {
             strafeDir = locomotor:GetStrafe() or "None",
@@ -223,7 +224,8 @@ function TTTBots.DebugServer.DrawBox(origin, mins, maxs, color, lifetime, forceI
         })
 end
 
--- Send latest draw data to clients every 0.1 seconds
+-- Send latest draw data to clients every 0.1 seconds (only when there is data)
 timer.Create("TTTBots_SendDrawData", 0.1, 0, function()
+    if next(DebugServer.data) == nil then return end
     DebugServer.SendDrawData()
 end)

@@ -99,10 +99,8 @@ function ThrowGrenade.Validate(bot)
     local botPos = bot:GetPos()
     local throwDir = (center - botPos):GetNormalized()
     local clusterDist = botPos:Distance(center)
-    for _, ply in pairs(player.GetAll()) do
-        if not (IsValid(ply) and lib.IsPlayerAlive(ply)) then continue end
-        if ply == bot then continue end
-        if not TTTBots.Roles.IsAllies(bot, ply) then continue end
+    for _, ply in pairs(TTTBots.Roles.GetLivingAllies(bot)) do
+        if not IsValid(ply) or ply == bot then continue end
         local allyDir = (ply:GetPos() - botPos):GetNormalized()
         if throwDir:Dot(allyDir) > 0.85 then
             if botPos:Distance(ply:GetPos()) < clusterDist + 200 then return false end

@@ -435,7 +435,7 @@ function BotMorality:OnWitnessHurt(victim, attacker, healthRemaining, damageTake
             personality:OnPressureEvent("Hurt")
         end
     end
-    if self.bot == victim or self.bot == attacker and TTTBots.Roles.IsAllies(victim, attacker) then return end -- Don't build sus on ourselves or our allies
+    if self.bot == victim or (self.bot == attacker and TTTBots.Roles.IsAllies(victim, attacker)) then return end -- Don't build sus on ourselves or our allies
     -- If the target is disguised, we don't know who they are, so we can't build sus on them. Instead, ATTACK!
     if TTTBots.Match.IsPlayerDisguised(attacker) then
         if self.bot.attackTarget == nil then
@@ -543,24 +543,35 @@ function BotMorality:OnNearMiss(attacker, aimAngleToMe)
     end
 end
 
+local FIRE_BULLETS_RANGE_SQR = 1500 * 1500
+local VEC_UP_8 = Vector(0, 0, 8)
+
 hook.Add("EntityFireBullets", "TTTBots.Components.Morality.FireBullets", function(entity, data)
     if not (IsValid(entity) and entity:IsPlayer()) then return end
     if not TTTBots.Match.IsRoundActive() then return end
 
     local shooterPos = data.Src or entity:EyePos()
     local shootDir = data.Dir or entity:GetAimVector()
+    local curTime = CurTime()
 
     for i, bot in ipairs(TTTBots.Bots) do
         if not (IsValid(bot) and lib.IsPlayerAlive(bot)) then continue end
         if bot == entity then continue end
 
-        local dist = shooterPos:Distance(bot:GetPos())
-        if dist > 1500 then continue end
+        -- Debounce: skip if this bot already processed a bullet from this shooter recently
+        bot._lastFireBulletCheck = bot._lastFireBulletCheck or {}
+        local lastCheck = bot._lastFireBulletCheck[entity] or 0
+        if curTime - lastCheck < 0.1 then continue end
+
+        local botPos = bot:GetPos()
+        if shooterPos:DistToSqr(botPos) > FIRE_BULLETS_RANGE_SQR then continue end
+
+        bot._lastFireBulletCheck[entity] = curTime
 
         -- Check aim angle against head, center mass, and feet
         local botCenter = bot:WorldSpaceCenter()
         local botEye = bot:EyePos()
-        local botFeet = bot:GetPos() + Vector(0, 0, 8)
+        local botFeet = botPos + VEC_UP_8
 
         local bestAngle = 180
         for _, targetPos in ipairs({ botCenter, botEye, botFeet }) do
@@ -645,23 +656,23 @@ hook.Add("PlayerHurt", "TTTBots.Components.Morality.PlayerHurt", function(victim
     end
 
     -- Hearing-based reaction: nearby bots who can't see the attacker
-    local HEAR_RANGE = 1250
+    local HEAR_RANGE_SQR = 1250 * 1250
     local attackerPos = attacker:GetPos()
+    local VEC_UP_72 = Vector(0, 0, 72)
     for _, bot in ipairs(TTTBots.Bots) do
         if not (IsValid(bot) and lib.IsPlayerAlive(bot)) then continue end
         if bot == attacker or bot == victim then continue end
         if not bot.components or not bot.components.morality then continue end
 
-        if lib.CanSeeArc(bot, attacker:EyePos(), 90) then continue end
+        if bot:GetPos():DistToSqr(attackerPos) > HEAR_RANGE_SQR then continue end
 
-        local dist = bot:GetPos():Distance(attackerPos)
-        if dist > HEAR_RANGE then continue end
+        if lib.CanSeeArc(bot, attacker:EyePos(), 90) then continue end
 
         -- Look toward the fight unless already reacting to a near-miss
         local loco = bot:BotLocomotor()
         local recentNearMiss = (bot.tttbots_nearMissTime or 0) + 3 > CurTime()
         if loco and bot.attackTarget == nil and not recentNearMiss then
-            loco:LookAt(attackerPos + Vector(0, 0, 72))
+            loco:LookAt(attackerPos + VEC_UP_72)
         end
 
         if bot.components.memory then
@@ -673,8 +684,9 @@ end)
 hook.Add("TTTBodyFound", "TTTBots.Components.Morality.BodyFound", function(ply, deadply, rag)
     if not (IsValid(ply) and ply:IsPlayer()) then return end
     if not (IsValid(deadply) and deadply:IsPlayer()) then return end
-    local corpseIsTraitor = deadply:GetTeam() ~= TEAM_INNOCENT
-    local corpseIsPolice = deadply:GetRoleStringRaw() == "detective"
+    local corpseIsTraitor = deadply:GetTeam() == TEAM_TRAITOR
+    local corpseRoleData = TTTBots.Roles.GetRoleFor(deadply)
+    local corpseIsPolice = corpseRoleData and corpseRoleData:GetAppearsPolice() or false
 
     for i, bot in pairs(lib.GetAliveBots()) do
         local morality = bot.components and bot.components.morality
@@ -765,7 +777,7 @@ local function preventAttackAlly(bot)
     end
 end
 
-local PS_RADIUS = 100
+local PS_RADIUS_SQR = 100 * 100
 local PS_INTERVAL = 5 -- time before we start caring about personal space
 local function personalSpace(bot)
     bot.personalSpaceTbl = bot.personalSpaceTbl or {}
@@ -773,20 +785,14 @@ local function personalSpace(bot)
     if not TTTBots.Roles.GetRoleFor(bot):GetUsesSuspicion() then return end
     if IsValid(bot.attackTarget) then return end -- don't care about personal space if we're attacking someone
 
-    local withinPSpace = lib.FilterTable(TTTBots.Match.AlivePlayers, function(other)
-        if other == bot then return false end
-        if not IsValid(other) then return false end
-        if not lib.IsPlayerAlive(other) then return false end
-        if not bot:Visible(other) then return false end
-        if TTTBots.Roles.IsAllies(bot, other) then return false end -- don't care about allies
+    local botPos = bot:GetPos()
+    for _, other in ipairs(TTTBots.Match.AlivePlayers) do
+        if other == bot then continue end
+        if not IsValid(other) then continue end
+        if TTTBots.Roles.IsAllies(bot, other) then continue end
+        if botPos:DistToSqr(other:GetPos()) > PS_RADIUS_SQR then continue end
+        if not bot:Visible(other) then continue end
 
-        local dist = bot:GetPos():Distance(other:GetPos())
-        if dist > PS_RADIUS then return false end
-
-        return true
-    end)
-
-    for i, other in pairs(withinPSpace) do
         bot.personalSpaceTbl[other] = (bot.personalSpaceTbl[other] or 0) + 0.5
         ticked[other] = true
     end
@@ -824,7 +830,7 @@ local function noticeTraitorWeapons(bot)
         return iCanSee
     end)
 
-    if table.IsEmpty(filtered) then return end
+    if #filtered == 0 then return end
 
     local firstEnemy = TTTBots.Lib.GetClosest(filtered, bot:GetPos()) ---@cast firstEnemy Player?
     if not firstEnemy then return end

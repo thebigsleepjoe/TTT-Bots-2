@@ -220,8 +220,10 @@ end
 
 --- A Target Hashtable function to calculate a target for a job.
 function PlanCoordinator.CalcRandPolice(caller)
-    local police = TTTBots.Lib.FilterTable(TTTBots.Match.AlivePlayers,
-        function(ply) return ply:GetRoleStringRaw() == "detective" end)
+    local police = TTTBots.Lib.FilterTable(TTTBots.Match.AlivePlayers, function(ply)
+        local roleData = TTTBots.Roles.GetRoleFor(ply)
+        return roleData and roleData:GetCanHaveRadar() and not TTTBots.Roles.IsAllies(caller, ply)
+    end)
     local randPolice = table.Random(police)
 
     return randPolice

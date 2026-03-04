@@ -242,7 +242,7 @@ function BurnCorpse.StartFlee(bot, burnPos)
     -- Find a nav area away from the burn site
     local botPos = bot:GetPos()
     local fleeSpot = botPos
-    local navAreas = navmesh.GetAllNavAreas()
+    local navAreas = TTTBots.Lib.GetCachedNavAreas()
     if navAreas and #navAreas > 0 then
         local bestSpot = nil
         local bestDist = 0

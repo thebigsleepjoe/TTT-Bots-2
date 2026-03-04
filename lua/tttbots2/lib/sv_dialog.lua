@@ -126,7 +126,7 @@ function Dialog.ExecuteDialog(dialog)
     local chatter = participant:BotChatter()
     if not chatter then
         Dialog.EndDialog(dialog)
-        print("no chatter on bot`")
+        print("no chatter on bot")
         return dialog
     end
     dialog.waiting = true
@@ -148,7 +148,7 @@ function Dialog.New(templateName, participants)
     local dialog = table.Copy(template) ---@type Dialog
     dialog.participants = participants or Dialog.SelectParticipants(template) or {}
 
-    if table.Count(dialog.participants) == 0 then return false end
+    if #dialog.participants == 0 then return false end
 
     return dialog
 end

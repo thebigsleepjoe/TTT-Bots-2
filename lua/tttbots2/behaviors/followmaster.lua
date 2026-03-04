@@ -73,6 +73,7 @@ function FollowMaster.OnRunning(bot)
     local finalTarget = (distToPoint < 100 and bot:GetPos()) or bot.masterFollowPoint
 
     loco:SetGoal(finalTarget)
+    return STATUS.RUNNING
 end
 
 --- Called when the behavior returns a success state

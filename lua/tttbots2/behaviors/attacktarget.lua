@@ -315,8 +315,9 @@ function Attack.CalculateInaccuracy(bot, origin, target)
     local pressure = personality:GetPressure()   -- float [0,1]
     local rage = (personality:GetRage() * 2) + 1 -- float [1,3]
 
+    local roleData = TTTBots.Roles.GetRoleFor(bot)
     local isTraitorFactor =
-        (bot:GetTeam() == TEAM_TRAITOR and lib.GetConVarBool("cheat_traitor_accuracy"))
+        (roleData and roleData:GetStartsFights() and lib.GetConVarBool("cheat_traitor_accuracy"))
         and 0.5 or 1
 
     local focus_factor = (1 - (bot.attackFocus or 0.01)) * 1.5
@@ -392,6 +393,11 @@ function Attack.LookingCloseToTarget(bot, target)
     return isLookingClose
 end
 
+local ATTACK_DISPATCH = {
+    [ATTACKMODE.Seeking] = Attack.Seek,
+    [ATTACKMODE.Engaging] = Attack.Engage,
+}
+
 --- Determine what mode of attack (attackMode) we are in.
 ---@param bot Bot
 ---@return ATTACKMODE mode
@@ -405,11 +411,7 @@ function Attack.RunningAttackLogic(bot)
 
     if canShoot then mode = ATTACKMODE.Engaging end -- We can shoot them, we are engaging
 
-    local switchcase = {
-        [ATTACKMODE.Seeking] = Attack.Seek,
-        [ATTACKMODE.Engaging] = Attack.Engage,
-    }
-    switchcase[mode](bot, targetPos) -- Call the function
+    ATTACK_DISPATCH[mode](bot, targetPos) -- Call the function
     return mode
 end
 

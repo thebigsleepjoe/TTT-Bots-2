@@ -117,7 +117,7 @@ function BotChatter:TypoText(text)
         TTTBots.Lib.SetWeight(typoFuncs.missKey, 30)
     }
 
-    local result = ""
+    local chars = {}
     local textLength = string.len(text)
     for i = 1, textLength do
         local char = string.sub(text, i, i)
@@ -129,10 +129,10 @@ function BotChatter:TypoText(text)
             char = typoFunc(last, char, next)
         end
 
-        result = result .. char
+        chars[#chars + 1] = char
     end
 
-    return result
+    return table.concat(chars)
 end
 
 --- Order the bot to say a string of text in chat. This function is rate limited and types messages out at a somewhat random speed.

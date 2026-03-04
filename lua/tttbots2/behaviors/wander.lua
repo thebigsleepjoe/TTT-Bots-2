@@ -97,9 +97,9 @@ function Wander.GetRandomNavInRegion(bot)
     return lib.GetRandomNavInNearestRegion(bot:GetPos())
 end
 
---- Gets a random nav area from the entire navmesh
+--- Gets a random nav area from the entire navmesh (uses cached nav areas)
 function Wander.GetRandomNav()
-    return table.Random(navmesh.GetAllNavAreas())
+    return table.Random(TTTBots.Lib.GetCachedNavAreas())
 end
 
 ---Return if the role can see all C4s inherently, or if it must have someone spot it first

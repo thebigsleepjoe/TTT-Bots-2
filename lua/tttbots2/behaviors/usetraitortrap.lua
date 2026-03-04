@@ -37,11 +37,21 @@ function UseTraitorTrap.IsTraitorTeam(bot)
     return role:GetStartsFights() -- Traitor-team roles start fights
 end
 
---- Get all ttt_traitor_button entities on the map.
+--- Get all ttt_traitor_button entities on the map (cached per round).
 ---@return table<Entity>
+UseTraitorTrap._buttonCache = nil
 function UseTraitorTrap.GetAllTraitorButtons()
-    return ents.FindByClass("ttt_traitor_button")
+    if not UseTraitorTrap._buttonCache then
+        UseTraitorTrap._buttonCache = ents.FindByClass("ttt_traitor_button")
+    end
+    return UseTraitorTrap._buttonCache
 end
+hook.Add("TTTBeginRound", "TTTBots.UseTraitorTrap.ClearCache", function()
+    UseTraitorTrap._buttonCache = nil
+end)
+hook.Add("TTTEndRound", "TTTBots.UseTraitorTrap.ClearCacheEnd", function()
+    UseTraitorTrap._buttonCache = nil
+end)
 
 --- Check if a traitor button is currently usable.
 ---@param btn Entity

@@ -92,8 +92,8 @@ function PlantBomb.FindPlantSpot(bot)
         end
 
         -- Penalize or reward based on distance to targets
-        for _, ply in pairs(player.GetAll()) do
-            if not (not TTTBots.Roles.IsAllies(bot, ply) and lib.IsPlayerAlive(ply)) then continue end
+        for _, ply in pairs(TTTBots.Roles.GetNonAllies(bot)) do
+            if not lib.IsPlayerAlive(ply) then continue end
 
             local distToSpot = ply:GetPos():Distance(spot)
             if distToSpot < 256 then
@@ -133,7 +133,7 @@ function PlantBomb.FindFleeSpot(bot, bombPos)
     local botPos = bot:GetPos()
 
     -- Use patrol/wander spots if available, otherwise just pick a direction away from the bomb
-    local navAreas = navmesh.GetAllNavAreas()
+    local navAreas = TTTBots.Lib.GetCachedNavAreas()
     if navAreas and #navAreas > 0 then
         -- Sample a handful of random nav areas and pick the one farthest from the bomb
         -- that isn't too far from us (so the path is reachable)

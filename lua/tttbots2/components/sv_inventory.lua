@@ -231,9 +231,10 @@ function BotInventory:GetWeaponInfo(wep)
     ]]
     info.ammo_ent = wep.AmmoEnt
     -- If the weapon is a traitor weapon
-    info.is_traitor_weapon = table.HasValue(wep.CanBuy or {}, ROLE_TRAITOR)
+    local canBuy = wep.CanBuy or {}
+    info.is_traitor_weapon = canBuy[ROLE_TRAITOR] and true or false
     -- If the weapon is a detective weapon
-    info.is_detective_weapon = table.HasValue(wep.CanBuy or {}, ROLE_DETECTIVE)
+    info.is_detective_weapon = canBuy[ROLE_DETECTIVE] and true or false
     -- If the weapon is silent
     info.silent = wep.IsSilent
     -- If we can drop it

@@ -56,7 +56,7 @@ function BotObstacleTracker:GetBlockingBreakable()
 
     if trace.Hit and trace.Entity then
         -- check if trace.Entity is in the BotObstacleTracker.Breakables table
-        return table.HasValue(BotObstacleTracker.Breakables, trace.Entity) and trace.Entity or nil
+        return BotObstacleTracker.BreakablesSet[trace.Entity] and trace.Entity or nil
     end
 end
 
@@ -151,6 +151,7 @@ end
 ----------------------------------------
 
 BotObstacleTracker.Breakables = BotObstacleTracker.Breakables or {}
+BotObstacleTracker.BreakablesSet = BotObstacleTracker.BreakablesSet or {} -- hash set for O(1) lookup
 BotObstacleTracker.Unbreakables = BotObstacleTracker.Unbreakables or {}
 
 timer.Create("TTTBots.Components.ObstacleTracker_Breakables", 1.5, 0, function()
@@ -187,6 +188,13 @@ timer.Create("TTTBots.Components.ObstacleTracker_Breakables", 1.5, 0, function()
 
     BotObstacleTracker.Breakables = db_break
     BotObstacleTracker.Unbreakables = db_unbreak
+
+    -- Rebuild hash set for O(1) lookups in DetectBreakableAhead
+    local breakSet = {}
+    for _, ent in ipairs(db_break) do
+        breakSet[ent] = true
+    end
+    BotObstacleTracker.BreakablesSet = breakSet
 end)
 
 timer.Create("TTTBots.Components.ObstacleTracker_Breakables_draw", 0.1, 0, function()
