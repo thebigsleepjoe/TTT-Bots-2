@@ -33,7 +33,7 @@ function TTTBots.Locale.GetLocalizedString(name, ...)
 end
 
 local f = string.format
-local supportedLangs = { "en", "fr" }
+local supportedLangs = { "en", "fr", "de" }
 for _, lang in pairs(supportedLangs) do
     local directory = f("tttbots2/locale/%s/", lang)
     local chatPath = f("%ssh_chats.lua", directory)
